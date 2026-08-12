@@ -5,10 +5,16 @@ import { I } from './icons';
 import { Badge, Btn, Panel, Spark } from './ui';
 import { CAP } from './rbac';
 import { FirmAttestCard, useFirmAttest } from './firm_attest';
+import { attestKeyFor, attestChainLinks, attestChainComplete, attestVoidedRoles, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
 
-/* Otoritas atestasi evaluasi tahunan SOQM: individu yang ditugaskan tanggung
-   jawab akhir SOQM (ISQM 1 ¶20) = Managing/Engagement Partner (CAP.FIRM_ADMIN). */
-const SOQM_LEADER_ROLES = [{ id: 'leader', label: 'Pimpinan SOQM — tanggung jawab akhir (ISQM 1 ¶20)', cap: CAP.FIRM_ADMIN }];
+/** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
+function faShowAttestAt(at: string): string {
+  const d = new Date(at);
+  if (Number.isNaN(+d)) return at;
+  try { return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return at; }
+}
+
 
 /* ============================================================
    Asseris — SOQM Operasional (ISQM 1) · Pendalaman Modul
@@ -351,11 +357,17 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   const A: any = AMS;
   const master = A.QM_EVAL || {};
   const period: string = master.period || 'Tahun Berjalan';
-  const attestKey = 'soqmAnnualEval.' + period;
+  /* Kunci ber-ALAMAT 4-digit. Bentuk lama menyisipkan label periode manusiawi
+     ('1 Jan – 31 Des 2025'), yang ditolak allow-list baca server
+     (/^firmAttest\.soqmAnnualEval\.\d{4}$/) — dan penolakan itu ditelan sebagai
+     "offline", sehingga atestasi tak pernah meninggalkan browser penandatangan. */
+  const attestKey = attestKeyFor('soqmAnnualEval', period, (A.CPE_REQ || {}).year);
   /* baca atestasi tersimpan (SSOT) utk hero KV — sinkron dgn FirmAttestCard
      yang merender editor (pola sama wp_signoff: dua hook, satu store). */
   const attest = useFirmAttest(attestKey, period);
-  const leaderSign = attest.state.chain.leader;
+  const attestLinks = attestChainLinks(attest.state, SOQM_ANNUAL_ROLES);
+  const leaderLink = attestLinks[0], approverLink = attestLinks[1];
+  const attestComplete = attestChainComplete(attestLinks);
 
   /* mesin keputusan ¶54 — diturunkan dari live data */
   const defs = risks.filter((r: any) => r.deficiency);
@@ -409,7 +421,11 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
             <div className="row jb ac" style={{ marginBottom: 5 }}>
               <span className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Pengelolaan Mutu (ISQM 1 ¶53–¶54)</span>
               <span className="row ac gap8">
-                <Badge kind={leaderSign ? 'green' : 'amber'}>{leaderSign ? 'Diatestasi' : 'Menunggu atestasi'}</Badge>
+                <Badge kind={attestComplete ? 'green' : attestVoidedRoles(attestLinks).length ? 'red' : 'amber'}>
+                  {attestComplete ? 'Diatestasi'
+                    : attestVoidedRoles(attestLinks).length ? 'Atestasi gugur — kesimpulan berubah'
+                    : 'Menunggu atestasi'}
+                </Badge>
                 <span className="mono tiny" style={{ color: '#9fc0d2' }}>{period}</span>
               </span>
             </div>
@@ -421,9 +437,13 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
             <div className="tiny" style={{ color: '#cfe2ed', lineHeight: 1.55, maxWidth: 720 }}>{stmt}</div>
           </div>
           <div style={{ padding: '12px 18px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
-            <D2KV label="Penyusun" v={master.by || '—'} />
-            <D2KV label="Disetujui (Pimpinan SOQM)" v={leaderSign ? leaderSign.by : (master.approvedBy || 'Belum ditandatangani')} />
-            <D2KV label="Tanggal Atestasi" v={leaderSign ? leaderSign.at : (master.date || '—')} />
+            {/* TIDAK ada fallback ke seed. Bentuk lama menampilkan `master.approvedBy`
+                dan `master.date` — nama & tanggal dari konstanta beku — saat belum ada
+                yang menandatangani, sehingga layar menyatakan persetujuan yang tak
+                pernah dibuat siapa pun. */}
+            <D2KV label="Disusun (Pimpinan SOQM ¶20(b))" v={leaderLink.signer ? leaderLink.signer.by : 'Belum ditandatangani'} />
+            <D2KV label="Disetujui (Managing Partner ¶20(a))" v={approverLink.signer ? approverLink.signer.by : 'Belum ditandatangani'} />
+            <D2KV label="Tanggal Atestasi" v={approverLink.signer ? faShowAttestAt(approverLink.signer.at) : (leaderLink.signer ? faShowAttestAt(leaderLink.signer.at) : '—')} />
             <D2KV label="Cakupan Periode" v={period} />
           </div>
         </Panel>
@@ -433,8 +453,8 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
         <FirmAttestCard
           attestKey={attestKey}
           period={period}
-          roles={SOQM_LEADER_ROLES}
-          title="Kesimpulan & Atestasi Pimpinan SOQM (¶53)"
+          roles={SOQM_ANNUAL_ROLES}
+          title="Kesimpulan & Atestasi Berjenjang (¶53 · ¶20)"
           engineLabel={label}
           placeholder="Kesimpulan pimpinan atas efektivitas SPM & dasar pertimbangan (ISQM 1 ¶53)…"
         />

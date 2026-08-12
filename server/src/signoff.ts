@@ -25,6 +25,8 @@ import { wpChainViolations, signatureAttributionViolations } from '../../migrati
 /* PRD Kesiapan P2PK PR-1 — aturan gerbang EQR (ISQM 2). Modul MURNI yang sama
    dipakai UI, agar "lolos di layar" dan "lolos di server" tak dapat menyimpang. */
 import { eqrGateFor, type EqrReviewRow } from '../../migration/src/canon_eqr_gate';
+/* PRD Kesiapan P2PK PR-3 — aturan atestasi mutu firma (ISQM 1 ¶20 · ¶53–54). */
+import { attestContentHash, attestRolesFor, attestRoleCap } from '../../migration/src/canon_firm_attest';
 /* PRD prd-sa620-expert-gate-server PR-1 — aturan gerbang pakar SA 620. Modul yang
    SAMA dengan yang dibaca `useEstimateExpertGate`; alasan penolakan server dan hint
    UI karenanya tak dapat menyimpang (K9). */
@@ -249,6 +251,14 @@ export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 
      sekali: satu-satunya gerbang server adalah capForWrite (HR_MANAGE / WP_EDIT). */
   'pc.ethics', 'memberIndep.v1']);
 
+/* Kunci atestasi mutu firma BER-ALAMAT DINAMIS (`firmAttest.<nama>.<tahun>`),
+   jadi ia tak dapat dicantumkan sebagai anggota Set. Router memakai predikat ini
+   alih-alih `SIGNOFF_KEYS.has(key)` — kunci yang tak masuk salah satunya tidak
+   pernah melewati `guardSignoffWrite` sama sekali. */
+export function isSignoffKey(key: string): boolean {
+  return SIGNOFF_KEYS.has(key) || key.startsWith('firmAttest.');
+}
+
 /* PR-B — peran-langkah rantai AJE → kapabilitas. Cermin `STEP_CAP` di view_platform.tsx;
    SSOT kapabilitas sama (rbac), sengaja dipisah dari OPINION_APPROVE. */
 const AJE_STEP_CAP: Record<string, string> = {
@@ -393,6 +403,39 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
            Ditandai eksplisit di jejak audit agar celah ini berjejak, bukan senyap —
            pola yang sama dengan `expert-gate:no-register`. */
         changes.push({ what: pie === null ? 'eqr-gate:pie-unknown' : 'eqr-gate:pass', cap: '' });
+      }
+    }
+  } else if (key.startsWith('firmAttest.')) {
+    /* Atestasi mutu firma (ISQM 1 ¶53–54). Tiga tuntutan pada setiap tanda
+       tangan yang BERUBAH — otoritas lapis, atribusi, dan ikatan pada isi:
+
+       · OTORITAS per LAPIS. `capForWrite` hanya menggerbangi DOKUMEN
+         (SIGNOFF_REVIEWER, agar Pimpinan SOQM yang seorang Manager dapat
+         menulis). Tanpa aturan ini, Manager yang sama dapat mengisi lapis
+         Managing Partner (¶20(a)) lewat tRPC — pemisahan ¶20 runtuh.
+       · ATRIBUSI. Tanda tangan harus menyebut aktor.
+       · IKATAN ISI. `contentHash` harus sidik jari isi yang SEDANG ditulis;
+         tanpa ini seseorang dapat menandatangani satu kesimpulan lalu
+         mengirim kesimpulan lain dalam tulisan yang sama. */
+    const roles = attestRolesFor(key);
+    const p = asObj(prev), n = asObj(next);
+    const pc = asObj(p.chain), nc = asObj(n.chain);
+    const nextHash = attestContentHash({ period: n.period, conclusion: n.conclusion });
+    for (const role of roles) {
+      const before = sig(pc[role.id]), after = sig(nc[role.id]);
+      if (before === after) continue;
+      const cap = attestRoleCap(key, role.id);
+      if (cap) need(cap, `attest:${role.id}`);
+      const sg = asObj(nc[role.id]);
+      if (!nc[role.id]) continue;                       // pencabutan: otoritas sudah dituntut
+      if (sg.byUserId !== actor.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:attest:${role.id}: tanda tangan tidak menyebut pembubuhnya.` });
+      }
+      if (!sg.contentHash) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-missing-content-hash:attest:${role.id}: tanda tangan tidak terikat pada kesimpulan.` });
+      }
+      if (sg.contentHash !== nextHash) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-content-mismatch:attest:${role.id}: tanda tangan mengikat kesimpulan yang berbeda dari yang ditulis.` });
       }
     }
   } else if (key === 'pc.ethics') {

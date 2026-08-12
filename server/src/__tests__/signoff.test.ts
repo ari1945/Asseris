@@ -2,7 +2,8 @@
    Pure (tanpa DB): mem-validasi guardSignoffWrite mendiff & menuntut kapabilitas
    yang tepat, sejajar gate UI. Menutup celah capForWrite per-dokumen (WP_EDIT). */
 import { describe, it, expect } from 'vitest';
-import { guardSignoffWrite, signoffContextNeeds, type SignoffContext } from '../signoff';
+import { guardSignoffWrite, signoffContextNeeds, isSignoffKey, type SignoffContext } from '../signoff';
+import { attestContentHash } from '../../../migration/src/canon_firm_attest';
 import { CAP } from '../rbac';
 import { amsShortName } from '../../../migration/src/identity';
 import { EXPERT_APPROACH } from '../../../migration/src/canon_expert_eval';
@@ -747,5 +748,77 @@ describe('guardSignoffWrite — independensi anggota tim (memberIndep.v1)', () =
   it('MEMBUKA kembali deklarasi tidak diblokir gerbang ini', () => {
     expect(() => guardSignoffWrite(JUNIOR, 'memberIndep.v1', real(MANAGER), { 'Dimas Raharja': { signed: false } }, NOW))
       .not.toThrow();
+  });
+});
+
+/* ============================================================
+   PR-3 — atestasi mutu firma (ISQM 1 ¶20 · ¶53–54).
+
+   Kunci `firmAttest.<nama>.<tahun>` ber-alamat DINAMIS, jadi ia tak dapat
+   menjadi anggota `SIGNOFF_KEYS`; router memakai `isSignoffKey`. Sebelum PR
+   ini rantai atestasi tak dijaga sama sekali: `{by, at}` tanpa `byUserId`,
+   tanpa ikatan isi, dan `capForWrite` firm default FIRM_ADMIN membuat
+   Pimpinan SOQM (Audit Manager) gagal-tulis SENYAP.
+   ============================================================ */
+const AK = 'firmAttest.soqmAnnualEval.2025';
+const attestDoc = (conclusion: string, chain: Record<string, unknown> = {}) =>
+  ({ period: '1 Jan – 31 Des 2025', conclusion, engineLabel: '', chain });
+const attestSig = (a: Actor, conclusion: string) =>
+  ({ by: a.name, byUserId: a.id, at: AT, contentHash: attestContentHash({ period: '1 Jan – 31 Des 2025', conclusion }) });
+
+describe('guardSignoffWrite — atestasi mutu firma (firmAttest.*)', () => {
+  it('kunci dinamis dikenali sebagai kunci ber-guard', () => {
+    expect(isSignoffKey(AK)).toBe(true);
+    expect(isSignoffKey('firmAttest.apapun.2030')).toBe(true);
+    expect(isSignoffKey('soqmRisks')).toBe(false);
+  });
+
+  it('lapis ¶20(b) menuntut SIGNOFF_REVIEWER — Manager BOLEH, Junior tidak', () => {
+    const before = attestDoc('Memadai');
+    const after = attestDoc('Memadai', { leader: attestSig(MANAGER, 'Memadai') });
+    expect(() => guardSignoffWrite(MANAGER, AK, before, after, NOW)).not.toThrow();
+    const jr = attestDoc('Memadai', { leader: attestSig(JUNIOR, 'Memadai') });
+    expect(() => guardSignoffWrite(JUNIOR, AK, before, jr)).toThrow(/requires:signoff\.reviewer/);
+  });
+
+  it('lapis ¶20(a) menuntut FIRM_ADMIN — Manager DITOLAK (pemisahan ¶20)', () => {
+    const before = attestDoc('Memadai', { leader: attestSig(MANAGER, 'Memadai') });
+    const after = { ...before, chain: { ...before.chain, approver: attestSig(MANAGER, 'Memadai') } };
+    expect(() => guardSignoffWrite(MANAGER, AK, before, after)).toThrow(/requires:firm\.admin/);
+    const byPartner = { ...before, chain: { ...before.chain, approver: attestSig(PARTNER, 'Memadai') } };
+    expect(() => guardSignoffWrite(PARTNER, AK, before, byPartner, NOW)).not.toThrow();
+  });
+
+  it('tanda tangan atas nama orang lain ditolak', () => {
+    const before = attestDoc('Memadai');
+    const forged = attestDoc('Memadai', { leader: attestSig(PARTNER, 'Memadai') });
+    expect(() => guardSignoffWrite(MANAGER, AK, before, forged, NOW))
+      .toThrow(/signature-identity-mismatch:attest:leader/);
+  });
+
+  it('tanda tangan tanpa ikatan isi ditolak (bentuk warisan)', () => {
+    const before = attestDoc('Memadai');
+    const legacy = attestDoc('Memadai', { leader: { by: MANAGER.name, byUserId: MANAGER.id, at: AT } });
+    expect(() => guardSignoffWrite(MANAGER, AK, before, legacy, NOW))
+      .toThrow(/signature-missing-content-hash:attest:leader/);
+  });
+
+  it('menandatangani SATU kesimpulan sambil mengirim kesimpulan LAIN ditolak', () => {
+    const before = attestDoc('Memadai');
+    const swapped = attestDoc('Tidak memadai', { leader: attestSig(MANAGER, 'Memadai') });
+    expect(() => guardSignoffWrite(MANAGER, AK, before, swapped, NOW))
+      .toThrow(/signature-content-mismatch:attest:leader/);
+  });
+
+  it('menyunting kesimpulan TANPA menyentuh rantai tidak menuntut apa pun', () => {
+    const before = attestDoc('Memadai');
+    expect(guardSignoffWrite(JUNIOR, AK, before, attestDoc('Draf baru'), NOW)).toEqual([]);
+  });
+
+  it('MENCABUT tanda tangan tetap menuntut otoritas lapisnya', () => {
+    const before = attestDoc('Memadai', { approver: attestSig(PARTNER, 'Memadai') });
+    const after = attestDoc('Memadai', {});
+    expect(() => guardSignoffWrite(MANAGER, AK, before, after)).toThrow(/requires:firm\.admin/);
+    expect(() => guardSignoffWrite(PARTNER, AK, before, after, NOW)).not.toThrow();
   });
 });
