@@ -171,6 +171,16 @@ export function capForWrite(scope: any, key: any) {
     // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal
     // SENYAP (tak tersimpan, tampak berhasil sampai reload). Sejajar roster/priorYear.
     if (key === 'capacityPlan.v1') return ENGAGEMENT_MANAGE;
+    /* 2026-08-12 (PRD Kesiapan P2PK PR-3) — atestasi mutu firma. ISQM 1 ¶20
+       MEMBAGI tanggung jawab: ¶20(b) operasional SPM ada pada Pimpinan SOQM,
+       yang di firma ini seorang Audit Manager — dan yang namanya justru dicetak
+       sebagai penyusun evaluasi. Tanpa cabang ini kunci jatuh ke FIRM_ADMIN
+       (Partner-only) sehingga ia satu-satunya orang yang TIDAK dapat menyimpan
+       artefak yang menjadi tanggung jawabnya, dan gagalnya SENYAP.
+       Otoritas per-LAPIS (leader vs approver) tetap ditegakkan terpisah oleh
+       `guardSignoffWrite` lewat `attestRoleCap` — cabang ini hanya gerbang
+       dokumen. */
+    if (key.startsWith('firmAttest.')) return SIGNOFF_REVIEWER;
     return FIRM_ADMIN;
   }
   // scope === 'engagement'

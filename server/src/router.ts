@@ -11,7 +11,7 @@ import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
 import { refreshRoleCache } from './roleStore';
-import { guardSignoffWrite, signoffContextNeeds, SIGNOFF_KEYS, type SignoffChange, type SignoffContext } from './signoff';
+import { guardSignoffWrite, signoffContextNeeds, isSignoffKey, type SignoffChange, type SignoffContext } from './signoff';
 import { loadSignoffContext } from './signoffContext';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
@@ -914,7 +914,7 @@ export const appRouter = router({
         // dokumen (WP_EDIT); guard ini menuntut kapabilitas peran yang tepat untuk tiap
         // tanda tangan/kliring di dalam dok, dengan mem-diff nilai tersimpan vs masuk.
         let signoffChanges: SignoffChange[] = [];
-        if (SIGNOFF_KEYS.has(key)) {
+        if (isSignoffKey(key)) {
           const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
           /* PRD prd-sa620-expert-gate-server PR-1 — sebagian aturan menanyakan dokumen
