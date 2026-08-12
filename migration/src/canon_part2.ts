@@ -5,6 +5,7 @@ import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbOn, wtbVal } from './canon_ba
 import type { AjeLike } from './canon_base';
 import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1';
 import type { WTB, WtbBasis, RestatementItem } from './canon_types';
+import { sanitizeViuParams, type ViuParams } from './canon_viu';
 
   const RESTATE = {
     // Kesalahan periode lalu (prior period error) — penjualan & piutang fiktif FY2024
@@ -432,7 +433,11 @@ import type { WTB, WtbBasis, RestatementItem } from './canon_types';
      nilai = max(0, tercatat − terpulihkan). Selaras dgn SA 540 (E-05 goodwill) &
      SA 701 (KAM-3). Rp juta. */
   const GOODWILL = 6800;        // goodwill akuisisi (alokasi PPA · PSAK 22) — diuji tahunan
-  const P48 = { wacc: 0.135, growth: 0.030, terminal: 0.030, years: 5, cf1: 17800 };
+  /* BASIS asumsi nilai pakai. Tetap menjadi default & jaring pengaman: tanpa
+     override auditor, `psak48()` menghasilkan angka yang IDENTIK dengan sebelum
+     Tier B — sehingga snapshot regresi kanon tak bergerak. Override per-perikatan
+     masuk lewat argumen ke-4 (`viuParams.v1` di UI), disanitasi `canon_viu`. */
+  const P48: ViuParams = { wacc: 0.135, growth: 0.030, terminal: 0.030, years: 5, cf1: 17800 };
   /* indikator penurunan nilai (¶12) — sumber eksternal & internal */
   const P48_INDICATORS = [
     { id: 'ext-cap',   scope: 'Eksternal', t: 'Kapitalisasi pasar < nilai tercatat aset neto entitas', present: false },
@@ -463,11 +468,17 @@ import type { WTB, WtbBasis, RestatementItem } from './canon_types';
      TIDAK BERBALIK — `impairLoss` tetap 0, dan keempat skenario sensitivitas (¶134f)
      mempertahankan tandanya (WACC+1% & CF−5% sudah negatif pada KEDUA basis). Yang
      berubah adalah angka pengungkapan headroom, bukan simpulan audit. */
-  function psak48(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+  function psak48(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported', viuOverride?: Partial<ViuParams> | null) {
     const s = figuresFromWTB(wtb, aje, basis);
     const fa = fixedAssets(wtb, aje, basis);
     const intan = intangibles(wtb, aje, basis);
     const R = Math.round;
+
+    /* TIER B — asumsi nilai pakai dapat dikemudikan auditor. `P` = basis + override
+       yang LOLOS sanitasi; override tak koheren ditolak (bukan dijepit), dan
+       alasannya dibawa keluar lewat `viuIssues` supaya terbaca di UI. */
+    const viuSan = sanitizeViuParams(P48, viuOverride);
+    const P = viuSan.params;
 
     /* —— komposisi nilai tercatat UPK Operasi Inti — tiap baris ditarik dari sumbernya —— */
     const parts = [
@@ -479,7 +490,7 @@ import type { WTB, WtbBasis, RestatementItem } from './canon_types';
     const carry = parts.reduce((a, p) => a + p.val, 0);   // tercatat UPK (incl. goodwill)
 
     /* —— jumlah terpulihkan = nilai pakai (DCF) —— */
-    const viu = valueInUse(P48.cf1, P48.growth, P48.wacc, P48.years, P48.terminal);
+    const viu = valueInUse(P.cf1, P.growth, P.wacc, P.years, P.terminal);
     const recoverable = R(viu.pv);
     const headroom = recoverable - carry;
     const headroomPct = carry ? headroom / carry : 0;
@@ -487,14 +498,14 @@ import type { WTB, WtbBasis, RestatementItem } from './canon_types';
 
     /* —— sensitivitas (¶134f) — pergeseran asumsi utama vs headroom —— */
     const mkSens = (label: string, shock: string, w: number, g: number, c: number) => {
-      const rec = R(valueInUse(P48.cf1 * c, g, w, P48.years, P48.terminal).pv);
+      const rec = R(valueInUse(P.cf1 * c, g, w, P.years, P.terminal).pv);
       return { label, shock, rec, head: rec - carry };
     };
     const sens = [
-      mkSens('Tingkat diskonto (WACC) +1%', '+1,0 pp', P48.wacc + 0.01, P48.growth, 1),
-      mkSens('Tingkat diskonto (WACC) −1%', '−1,0 pp', P48.wacc - 0.01, P48.growth, 1),
-      mkSens('Pertumbuhan terminal −0,5%', '−0,5 pp', P48.wacc, P48.growth - 0.005, 1),
-      mkSens('Arus kas dasar −5%', '−5%', P48.wacc, P48.growth, 0.95),
+      mkSens('Tingkat diskonto (WACC) +1%', '+1,0 pp', P.wacc + 0.01, P.growth, 1),
+      mkSens('Tingkat diskonto (WACC) −1%', '−1,0 pp', P.wacc - 0.01, P.growth, 1),
+      mkSens('Pertumbuhan terminal −0,5%', '−0,5 pp', P.wacc, P.growth - 0.005, 1),
+      mkSens('Arus kas dasar −5%', '−5%', P.wacc, P.growth, 0.95),
     ];
 
     /* —— uji tahunan lisensi umur tak-terbatas (¶10) — reuse perhitungan PSAK 19 —— */
@@ -508,7 +519,9 @@ import type { WTB, WtbBasis, RestatementItem } from './canon_types';
     const cgu = { id: 'inti', label: 'UPK Operasi Inti (incl. goodwill)', parts, carry, recoverable, headroom, headroomPct, impairLoss, viu };
 
     return { cgu, parts, carry, recoverable, headroom, headroomPct, impairLoss, viu, sens,
-             license, tested, totalImpair, goodwill: GOODWILL, params: P48,
+             license, tested, totalImpair, goodwill: GOODWILL, params: P,
+             /* jejak Tier B — basis, apa yang diubah auditor, & apa yang ditolak */
+             paramsBase: P48, viuOverridden: viuSan.overridden, viuIssues: viuSan.issues, viuRejected: viuSan.rejected,
              indicators: P48_INDICATORS, indicatorCount: P48_INDICATORS.filter(i => i.present).length };
   }
 
