@@ -6,7 +6,11 @@ import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Tabs } from './ui';
+import { Badge, Btn, Check, Panel, Tabs } from './ui';
+import {
+  EXPERT_EVAL_STEPS, expertEvalComplete, expertEvalDone,
+  type ExpertEvalState, type ExpertEvalStepKey,
+} from './canon_expert_eval';
 import { estimateSensitivity, type SensDriver } from './estimate_sensitivity';
 import { EST_SEED, estimateMisstatement, type BiasRow, type Estimate, type EstState } from './canon_estimates';
 import { KvBox } from './view_analytical';
@@ -30,7 +34,10 @@ type Ev = { target: { value: string } };
 
 const EST_UNC = ['Tinggi', 'Sedang', 'Rendah'];
 const EST_RISK = ['Signifikan', 'Non-signifikan'];
-const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', 'Gunakan pakar (SA 620)', 'Uji peristiwa kemudian'];
+/* jalur respons yang MENUNTUT evaluasi pekerjaan pakar (SA 500 ¶8 / SA 620) —
+   satu literal, dipakai daftar pilihan DAN gerbang panel evaluasi */
+const EST_APPROACH_EXPERT = 'Gunakan pakar (SA 620)';
+const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', EST_APPROACH_EXPERT, 'Uji peristiwa kemudian'];
 const BIAS_FLAG = ['amber', 'green'];
 
 function estToday() {
@@ -65,6 +72,12 @@ function SA540View() {
   const setRegister = (fn: (l: Estimate[]) => Estimate[]) => setEst((s: EstState) => ({ ...s, register: fn((s && s.register) || []) }));
   const setBias = (fn: (l: BiasRow[]) => BiasRow[]) => setEst((s: EstState) => ({ ...s, bias: fn((s && s.bias) || []) }));
   const setSensitivity = (id: string, drivers: SensDriver[]) => setEst((s: EstState) => ({ ...s, sensitivity: { ...((s && s.sensitivity) || {}), [id]: drivers } }));
+
+  /* ARC ESTIMASI PR-2 — evaluasi pakar berbagi kunci dengan PSAK 68
+     (`expertEval.v1`), dikunci per id estimasi untuk jalur SA 620. */
+  const [expertEval, setExpertEval] = useAmsPersist('expertEval.v1', () => ({} as ExpertEvalState));
+  const toggleExpert = (ref: string, key: ExpertEvalStepKey, on: boolean) =>
+    setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), [key]: on, by: me, at: estToday() } }));
 
   const [tab, setTab] = useState540('inventaris');
   const sig = register.filter(e => e.risk === 'Signifikan').length;
@@ -131,7 +144,7 @@ function SA540View() {
 
         {tab === 'inventaris' && <F540Register register={register} setRegister={setRegister} me={me} locked={locked} />}
         {tab === 'risiko' && <F540Risk register={register} setRegister={setRegister} locked={locked} />}
-        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} />}
+        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} expertEval={expertEval} toggleExpert={toggleExpert} />}
         {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} />}
 
       </div></div>
@@ -297,7 +310,7 @@ function F540Risk({ register, setRegister, locked }: { register: Estimate[]; set
 }
 
 /* ---------------- Tab: Respons & Rentang ---------------- */
-function F540Response({ register, sensitivity, setSensitivity, locked }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean }) {
+function F540Response({ register, sensitivity, setSensitivity, locked, expertEval, toggleExpert }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean; expertEval: ExpertEvalState; toggleExpert: (ref: string, key: ExpertEvalStepKey, on: boolean) => void }) {
   const approaches = [
     { k: 'Uji bagaimana manajemen membuat estimasi', ref: '¶18', d: 'Evaluasi metode, asumsi signifikan, & data; uji penerapan & matematika model.', used: 'Persediaan · Garansi' },
     { k: 'Uji peristiwa hingga tanggal laporan auditor', ref: '¶21(a)', d: 'Bukti dari peristiwa setelah periode yang menguatkan/menyangkal estimasi.', used: 'Piutang (penerimaan kas pasca-periode)' },
@@ -362,20 +375,31 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
       </div>
 
       <div className="grid" style={{ gap: 12 }}>
-        <Panel title="Penggunaan Pakar (SA 620)">
-          <div style={{ display: 'grid', gap: 7 }}>
-            {[
-              { t: 'Kompetensi & kapabilitas aktuaris dievaluasi', ok: true },
-              { t: 'Objektivitas / independensi pakar dinilai', ok: true },
-              { t: 'Ruang lingkup & asumsi pakar dipahami', ok: true },
-              { t: 'Kewajaran temuan pakar dievaluasi', ok: true },
-            ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
-                <span style={{ lineHeight: 1.4 }}>{r.t}</span>
+        <Panel title="Penggunaan Pakar (SA 620)" sub={sel ? sel.id + ' · ' + sel.approach : ''}>
+          {sel && sel.approach === EST_APPROACH_EXPERT ? (
+            <>
+              <div className="row ac jb" style={{ marginBottom: 7 }}>
+                <span className="tiny muted">Evaluasi tersimpan per-perikatan</span>
+                <Badge kind={expertEvalComplete(expertEval && expertEval[sel.id]) ? 'green' : 'amber'}>
+                  {expertEvalDone(expertEval && expertEval[sel.id])}/{EXPERT_EVAL_STEPS.length}
+                </Badge>
               </div>
-            ))}
-          </div>
+              <div style={{ display: 'grid', gap: 4 }}>
+                {EXPERT_EVAL_STEPS.map(s => (
+                  <Check key={s.key} label={s.t} title={s.ref} disabled={locked}
+                    on={!!(expertEval && expertEval[sel.id] && expertEval[sel.id][s.key])}
+                    onChange={(on: boolean) => toggleExpert(sel.id, s.key, on)} />
+                ))}
+              </div>
+              <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>
+                Estimasi ini bergantung sepenuhnya pada pekerjaan pihak ketiga. Kecukupan pekerjaan itu adalah <b>bukti audit</b> (SA 500 ¶8) — bukan asumsi.
+              </div>
+            </>
+          ) : (
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+              Jalur respons estimasi ini <b>bukan</b> "{EST_APPROACH_EXPERT}", sehingga evaluasi pakar tidak dituntut. Ubah pendekatan di tab Inventaris bila estimasi bersandar pada pekerjaan pihak ketiga.
+            </div>
+          )}
         </Panel>
         <Panel noBody>
           <div className="panel-h"><h3>Analisis Sensitivitas — {sel ? sel.id : '—'}</h3><div style={{ flex: 1 }} />{!locked && sel && <Btn sm onClick={addD}><I.plus size={12} /> Driver</Btn>}</div>
