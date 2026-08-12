@@ -3,13 +3,17 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer } from 'node:http';
 import { createHTTPHandler } from '@trpc/server/adapters/standalone';
-import { MAX_FILE_BYTES } from '../attachments/store';
+import { LARGEST_FILE_BYTES } from '../attachments/store';
 import { MAX_REQUEST_BODY_BYTES, MAX_STATE_DOC_BYTES, rejectOversizedContentLength } from '../payloadLimits';
 import { appRouter } from '../router';
 
 describe('Tahap 3 — deployment blocker tripwires', () => {
-  it('request body accommodates one max attachment but remains bounded', () => {
-    const maxBase64Bytes = Math.ceil(MAX_FILE_BYTES / 3) * 4;
+  /* Invarian ini kini memakai berkas TERBESAR yang dapat diterima koleksi mana pun,
+     bukan batas global: menaikkan satu koleksi tanpa menaikkan amplop HTTP akan membuat
+     unggahannya ditolak 413 SEBELUM pengecekan ukuran sempat bicara — batas yang tampak
+     naik tetapi tak dapat dipakai. */
+  it('request body accommodates the largest permitted attachment but remains bounded', () => {
+    const maxBase64Bytes = Math.ceil(LARGEST_FILE_BYTES / 3) * 4;
     expect(MAX_REQUEST_BODY_BYTES).toBeGreaterThan(maxBase64Bytes);
     expect(MAX_REQUEST_BODY_BYTES).toBeLessThanOrEqual(32 * 1024 * 1024);
     expect(MAX_STATE_DOC_BYTES).toBeLessThan(MAX_REQUEST_BODY_BYTES);

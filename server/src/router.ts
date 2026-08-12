@@ -32,7 +32,7 @@ import { PERSONAL_KEYS, personalPopulation, filterPersonalByPopulation, seedForK
 import { assertStateDocRead } from './stateAccess';
 import {
   createAttachment, listAttachments, getMeta, readBytes, softRemove, scopeUsage,
-  AttachmentError, MAX_FILE_BYTES, MAX_SCOPE_BYTES,
+  AttachmentError, MAX_FILE_BYTES, MAX_SCOPE_BYTES, maxFileBytesFor,
 } from './attachments/store';
 import { listPurgeCandidates, approvePurge, activeLegalHoldEngagementIds } from './attachments/retention';
 import { StateDocTooLargeError } from './payloadLimits';
@@ -1016,11 +1016,13 @@ export const appRouter = router({
   attachment: router({
     // Quota + limits for a scope target — lets the client show remaining space before an upload.
     usage: protectedProcedure
-      .input(z.object({ scope: scopeEnum, scopeId: z.string().min(1) }))
+      .input(z.object({ scope: scopeEnum, scopeId: z.string().min(1), collection: z.string().optional() }))
       .query(async ({ input, ctx }) => {
         await assertAttachmentRead(ctx.user, input.scope, input.scopeId);
         const used = await scopeUsage(input.scope, input.scopeId);
-        return { used, maxFile: MAX_FILE_BYTES, maxScope: MAX_SCOPE_BYTES };
+        /* Q4 — batas per-berkas kini per-KOLEKSI; melaporkan batas global untuk koleksi
+           yang batasnya lebih tinggi akan membuat UI berbohong tentang apa yang diterima. */
+        return { used, maxFile: input.collection ? maxFileBytesFor(input.collection) : MAX_FILE_BYTES, maxScope: MAX_SCOPE_BYTES };
       }),
 
     // Live attachment metadata (never bytes) for a scope target, optionally filtered.

@@ -98,7 +98,7 @@
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
-| docs/prd-sa620-expert-gate-server.md | In Progress — PR-1·PR-2·PR-3 terkirim & live-verified 2026-08-12; Q4 (batas ukuran DMS) menunggu keputusan |
+| docs/prd-sa620-expert-gate-server.md | In Progress — PR-1·PR-2·PR-3 terkirim & live-verified 2026-08-12; Q1–Q4 terjawab; menunggu merge |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
