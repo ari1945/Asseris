@@ -443,6 +443,10 @@ const AMS_PERSIST_SCOPE = {
   'internalAudit.v1': 'engagement',
   'fluxState.v1': 'engagement',
   'leaseOverride.v1': 'engagement',
+  /* viuParams.v1 = asumsi nilai pakai PSAK 48 yang dikemudikan auditor (TIER B) —
+     override atas basis `P48` di kanon; disanitasi `canon_viu` sebelum dipakai.
+     Pola yang sama dengan leaseOverride.v1: parameter, bukan hasil. */
+  'viuParams.v1': 'engagement',
   'eclInputs.v1': 'engagement',
   /* PR-1a (PRD WTB 2026-07-25) — Materiality Workspace (SA 320). DUA cacat sekaligus:
      (1) materialitas adalah pertimbangan PER-PERIKATAN (SA 320 ¶10-11), tapi kunci ini

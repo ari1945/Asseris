@@ -3247,6 +3247,13 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "wacc": 0.135,
       "years": 5,
     },
+    "paramsBase": {
+      "cf1": 17800,
+      "growth": 0.03,
+      "terminal": 0.03,
+      "wacc": 0.135,
+      "years": 5,
+    },
     "parts": [
       {
         "code": "1-2100 / 1-2110",
@@ -3343,6 +3350,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "tv": 202420.294,
       "tvPv": 107466.906,
     },
+    "viuIssues": [],
+    "viuOverridden": [],
+    "viuRejected": false,
   },
   "psak57": {
     "claimExposure": 15530,
@@ -8111,6 +8121,13 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "wacc": 0.135,
         "years": 5,
       },
+      "paramsBase": {
+        "cf1": 17800,
+        "growth": 0.03,
+        "terminal": 0.03,
+        "wacc": 0.135,
+        "years": 5,
+      },
       "parts": [
         {
           "code": "1-2100 / 1-2110",
@@ -8207,6 +8224,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "tv": 202420.294,
         "tvPv": 107466.906,
       },
+      "viuIssues": [],
+      "viuOverridden": [],
+      "viuRejected": false,
     },
     "p57": {
       "claimExposure": 15530,

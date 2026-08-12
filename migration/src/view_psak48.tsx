@@ -2,10 +2,11 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
+import { type ViuField, type ViuParams } from './canon_viu';
 
 /* ============================================================
    Asseris — PSAK 48/57 · Penurunan Nilai Aset & Provisi
@@ -26,6 +27,16 @@ import { Badge, Btn, Donut, Panel } from './ui';
 const { useState: useStateP48, useMemo: useMemoP48 } = React;
 
 /* ---- ketentuan kunci PSAK 48 ---- */
+/* asumsi nilai pakai yang dapat dikemudikan (TIER B) — tiga rate disajikan dalam
+   PERSEN di UI tetapi disimpan desimal; konversi hanya di sini */
+const VIU_FIELDS: Array<{ k: ViuField; label: string; step: number; suffix: string; toUi: (n: number) => number; fromUi: (n: number) => number }> = [
+  { k: 'wacc',     label: 'WACC (diskonto)',   step: 0.1, suffix: '%', toUi: n => +(n * 100).toFixed(2), fromUi: n => n / 100 },
+  { k: 'growth',   label: 'Pertumbuhan CF',    step: 0.1, suffix: '%', toUi: n => +(n * 100).toFixed(2), fromUi: n => n / 100 },
+  { k: 'terminal', label: 'Pertumbuhan term.', step: 0.1, suffix: '%', toUi: n => +(n * 100).toFixed(2), fromUi: n => n / 100 },
+  { k: 'years',    label: 'Periode (tahun)',   step: 1,   suffix: '',  toUi: n => n, fromUi: n => n },
+  { k: 'cf1',      label: 'Arus kas th-1 (jt)', step: 100, suffix: '', toUi: n => n, fromUi: n => n },
+];
+
 const P48_KEY = [
   { k: 'Jumlah terpulihkan', v: 'Tertinggi dari', note: 'Nilai wajar dikurangi biaya pelepasan ATAU nilai pakai (value-in-use) — mana yang lebih tinggi (¶18).' },
   { k: 'Rugi penurunan nilai', v: 'Tercatat > terpulihkan', note: 'Diakui bila nilai tercatat melampaui jumlah terpulihkan; segera dibebankan ke laba rugi (¶59).' },
@@ -105,8 +116,23 @@ function PSAK48View() {
      posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
   const aje = (audit && audit.aje) ? audit.aje : undefined;
   const canon = AMS_CANON;
-  const p48 = useMemoP48(() => canon.psak48(wtb, aje), [wtb, aje]);
+  /* TIER B — asumsi nilai pakai kini DIKEMUDIKAN AUDITOR. Sebelumnya `P48` adalah
+     konstanta modul di kanon, sementara panel ini menampilkan `p48.params.wacc`
+     seolah asumsi audit: bila auditor menyimpulkan diskonto wajar 14,5% dan bukan
+     13,5%, ia tak punya cara menyatakannya. Override tersimpan per-perikatan;
+     yang tak koheren DITOLAK kanon (bukan dijepit) & alasannya tampil di panel. */
+  const [viuOverride, setViuOverride] = useAmsPersist('viuParams.v1', () => ({} as Partial<ViuParams>));
+  const p48 = useMemoP48(() => canon.psak48(wtb, aje, 'reported', viuOverride), [wtb, aje, viuOverride]);
   const p57 = useMemoP48(() => canon.psak57(wtb), [wtb]);
+  const setViu = (f: ViuField, raw: string) => {
+    const v = raw.trim() === '' ? undefined : Number(raw);
+    setViuOverride((m: Partial<ViuParams>) => {
+      const next: Partial<ViuParams> = { ...m };
+      if (v === undefined) delete next[f]; else next[f] = v;
+      return next;
+    });
+  };
+  const resetViu = () => setViuOverride(() => ({} as Partial<ViuParams>));
 
   const [tab, setTab] = useStateP48(() => loader('ams.psak48.tab', 'impair'));
   const [done, setDone] = window.useAmsPersist('psak48.done.v1', () => ({}));
@@ -211,6 +237,50 @@ function PSAK48View() {
                   </div>
                   <div className="tiny muted" style={{ padding: '9px 14px 12px', lineHeight: 1.5 }}>
                     Tiap komponen ditarik dari modul pemiliknya yang ber-sumber WTB (aset tetap PSAK 16, takberwujud PSAK 19, ROU PSAK 73) + goodwill akuisisi. {impaired ? <b>Rugi penurunan nilai Rp {fmt(p48.impairLoss)} jt diakui.</b> : <>Jumlah terpulihkan melampaui nilai tercatat — <b>tidak ada rugi penurunan nilai diakui</b>, namun headroom <b>{headKind === 'amber' ? 'tipis & sensitif' : 'memadai'}</b>.</>}
+                  </div>
+                </Panel>
+
+                <Panel noBody>
+                  <div className="panel-h">
+                    <h3>Asumsi Nilai Pakai — Ekspektasi Independen Auditor</h3>
+                    <span className="sub mono">SA 540 ¶21(b) · tersimpan per-perikatan</span>
+                    <div style={{ flex: 1 }} />
+                    {p48.viuOverridden.length > 0 && <Badge kind="blue">{p48.viuOverridden.length} asumsi diubah</Badge>}
+                    <Btn sm style={{ marginLeft: 8 }} onClick={resetViu} disabled={!p48.viuOverridden.length}><I.arrowLeft size={12} /> Kembalikan ke basis</Btn>
+                  </div>
+                  <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10, padding: 14 }}>
+                    {VIU_FIELDS.map(f => {
+                      const applied = p48.params[f.k];
+                      const base = p48.paramsBase[f.k];
+                      const changed = applied !== base;
+                      return (
+                        <div key={f.k} className="field">
+                          <label>{f.label}</label>
+                          <input className="input mono" type="number" step={f.step}
+                            value={String(f.toUi(applied))}
+                            onChange={(e: { target: { value: string } }) => setViu(f.k, e.target.value === '' ? '' : String(f.fromUi(Number(e.target.value))))}
+                            style={{ textAlign: 'right', borderColor: changed ? 'var(--blue)' : undefined }} />
+                          <div className="tiny muted" style={{ marginTop: 3 }}>
+                            {changed ? <>basis {f.toUi(base)}{f.suffix}</> : <>basis{f.suffix ? ' · ' + f.suffix : ''}</>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {p48.viuIssues.length > 0 && (
+                    <div className="panel" style={{ margin: '0 14px 14px', padding: '10px 12px', background: p48.viuRejected ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+                      <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                        <span style={{ color: p48.viuRejected ? 'var(--red)' : 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
+                        <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, lineHeight: 1.5 }}>
+                          {p48.viuIssues.map((iss: { field: string; severity: string; msg: string }, i: number) => (
+                            <li key={i}><b>{iss.severity === 'reject' ? 'Ditolak' : 'Perhatian'}</b> · {iss.field !== 'model' ? <span className="mono">{iss.field}</span> : 'model'} — {iss.msg}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  <div className="tiny muted" style={{ padding: '0 14px 12px', lineHeight: 1.5 }}>
+                    Hasilnya adalah <b>ekspektasi independen auditor</b> atas jumlah terpulihkan — <b>bukan</b> nilai wajar, dan bukan pengganti penilaian pakar. Mengubah satu asumsi menggerakkan headroom, sensitivitas, <b>dan</b> ada/tidaknya rugi penurunan nilai.
                   </div>
                 </Panel>
 
