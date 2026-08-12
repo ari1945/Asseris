@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 5 |
+| In Progress | 6 |
 | Implemented | 22 |
 | Superseded | 0 |
 
@@ -92,6 +92,7 @@
 | docs/prd-penerimaan-keberlanjutan-detail.md | Draft — menunggu sign-off |
 | docs/prd-performance-baseline-capacity.md | Implemented — Fase 1–7 dieksekusi & live-verified 2026-07-03 |
 | docs/prd-phase-gate-override-rbac.md | Approved — Disetujui ("buat follow-up RBAC override Partner-only") |
+| docs/prd-program-tahap-0-9.md | In Progress — retrospektif: Tahap 0–9 terkirim (`18d6e69`); Fase R (remediasi, termasuk race lintas-engagement terverifikasi hidup) menunggu "Proceed." |
 | docs/prd-rbac-admin-console.md | Draft — Open Questions terjawab — menunggu "Proceed." |
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
