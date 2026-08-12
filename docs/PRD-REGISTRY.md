@@ -8,7 +8,7 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 54 |
 | Approved | 5 |
 | In Progress | 6 |
 | Implemented | 22 |
@@ -85,6 +85,7 @@
 | docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |
 | docs/prd-backup-restore-dr-hardening.md | Draft |
 | docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |
+| docs/prd-estimasi-terfalsifikasi.md | Draft — menunggu sign-off ("Proceed."); Q1–Q3 menunggu keputusan Ari |
 | docs/prd-finalisation-gate-execution-completeness.md | Draft |
 | docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
 | docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |

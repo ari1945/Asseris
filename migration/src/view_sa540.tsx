@@ -8,6 +8,7 @@ import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { estimateSensitivity, type SensDriver } from './estimate_sensitivity';
+import { EST_SEED, estimateMisstatement, type BiasRow, type Estimate, type EstState } from './canon_estimates';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -20,28 +21,10 @@ import { WpPanel } from './wp_signoff';
    ============================================================ */
 const { useState: useState540, useMemo: useMemo540 } = React;
 
-/* ---- Inventaris estimasi (Rp jt) ---- */
-const EST_REG: Estimate[] = [
-  { id: 'E-01', name: 'CKPN Piutang (ECL · PSAK 71)', acct: 'Cadangan Kerugian', mgmt: 4870, lo: 4600, hi: 6300, unc: 'Tinggi', risk: 'Signifikan', method: 'Model ECL forward-looking; PD × LGD × EAD per staging', assump: ['Probabilitas gagal bayar (PD) per kelompok umur', 'Loss given default (LGD) berbasis recovery historis', 'Overlay makroekonomi (PDB, suku bunga)'], approach: 'Rentang independen', note: 'Titik manajemen di batas bawah rentang auditor — indikasi understatement (lihat Bias).' },
-  { id: 'E-02', name: 'Penyisihan Persediaan Usang', acct: 'Penyisihan Persediaan', mgmt: 2240, lo: 2050, hi: 2600, unc: 'Sedang', risk: 'Signifikan', method: 'Analisis umur & perputaran SKU; net realizable value', assump: ['Klasifikasi lambat-bergerak (> 180 hari)', 'Estimasi nilai jual bersih SKU usang', 'Rencana likuidasi/diskon manajemen'], approach: 'Uji proses manajemen', note: 'Dalam rentang; konsisten dengan temuan hitung fisik SA 501 (GBJ-03).' },
-  { id: 'E-03', name: 'Provisi Garansi Produk', acct: 'Provisi', mgmt: 1080, lo: 980, hi: 1240, unc: 'Sedang', risk: 'Non-signifikan', method: 'Tingkat klaim historis × penjualan bergaransi', assump: ['Rasio klaim historis 36 bulan', 'Periode garansi rata-rata', 'Tren kualitas produk'], approach: 'Uji proses manajemen', note: 'Telaah retrospektif menunjukkan estimasi PY akurat (selisih −6%).' },
-  { id: 'E-04', name: 'Liabilitas Imbalan Kerja (PSAK 24)', acct: 'Liabilitas Imbalan Pasti', mgmt: 9650, lo: 9100, hi: 10400, unc: 'Tinggi', risk: 'Signifikan', method: 'Projected Unit Credit oleh aktuaris independen', assump: ['Tingkat diskonto (obligasi korporasi)', 'Kenaikan gaji jangka panjang', 'Tingkat mortalita & pengunduran diri'], approach: 'Gunakan pakar (SA 620)', note: 'Asumsi diskonto di kisaran wajar; kompetensi & objektivitas aktuaris dievaluasi.' },
-  { id: 'E-05', name: 'Uji Penurunan Nilai Goodwill', acct: 'Goodwill', mgmt: 0, lo: 0, hi: 1800, unc: 'Tinggi', risk: 'Signifikan', method: 'Value-in-use; arus kas terdiskonto (DCF) per UPK', assump: ['Tingkat pertumbuhan terminal', 'WACC (tingkat diskonto)', 'Proyeksi arus kas 5 tahun'], approach: 'Rentang independen', note: 'Tidak ada rugi penurunan nilai diakui; headroom tipis & sensitif terhadap WACC.' },
-];
+/* Bentuk registri, seed, dan DASAR PENGUKURAN salah saji kini tinggal di
+   `canon_estimates.ts` — modul murni ber-uji unit yang dipakai bersama oleh
+   modul ini dan SAD Ledger (SA 450). Tidak ada seed kedua di mana pun. */
 
-/* ---- Indikator bias manajemen (¶32) ---- */
-const BIAS_ROWS: BiasRow[] = [
-  { id: 'B-01', t: 'Perubahan estimasi/asumsi yang menggeser laba ke arah menguntungkan', est: 'CKPN Piutang', flag: 'amber', d: 'Titik di batas bawah rentang; overlay makro dikurangi vs PY.' },
-  { id: 'B-02', t: 'Telaah retrospektif — selisih estimasi PY vs realisasi', est: 'CKPN Piutang', flag: 'amber', d: 'CKPN PY understated 42% terhadap realisasi (rujuk SA 240).' },
-  { id: 'B-03', t: 'Seleksi titik dalam rentang tanpa dasar netral', est: 'Goodwill', flag: 'amber', d: 'WACC di batas bawah kisaran wajar — menaikkan value-in-use.' },
-  { id: 'B-04', t: 'Konsistensi metode & asumsi antar periode', est: 'Imbalan Kerja', flag: 'green', d: 'Metode & sumber asumsi aktuaria konsisten dengan PY.' },
-];
-
-/* ---- model estimasi ter-persist engagement-scoped (SA 540 revisi) ---- */
-type Estimate = { id: string; name: string; acct: string; mgmt: number; lo: number; hi: number; unc: string; risk: string; method: string; assump: string[]; approach: string; note: string; cplx?: string; subj?: string; by?: string; at?: string };
-type BiasRow = { id: string; t: string; est: string; flag: string; d: string; by?: string; at?: string };
-/* sensitivity: daftar driver asumsi per id estimasi (Δ% × dampak per 1%) */
-type EstState = { register: Estimate[]; bias: BiasRow[]; sensitivity: Record<string, SensDriver[]> };
 /* tipe struktural minimal event input — hindari explicit-any (ratchet) */
 type Ev = { target: { value: string } };
 
@@ -49,31 +32,6 @@ const EST_UNC = ['Tinggi', 'Sedang', 'Rendah'];
 const EST_RISK = ['Signifikan', 'Non-signifikan'];
 const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', 'Gunakan pakar (SA 620)', 'Uji peristiwa kemudian'];
 const BIAS_FLAG = ['amber', 'green'];
-
-/* default kompleksitas/subjektivitas per estimasi (spektrum risiko bawaan ¶4) */
-const EST_CS: Record<string, { cplx: string; subj: string }> = {
-  'E-01': { cplx: 'Tinggi', subj: 'Tinggi' }, 'E-02': { cplx: 'Sedang', subj: 'Sedang' },
-  'E-03': { cplx: 'Rendah', subj: 'Rendah' }, 'E-04': { cplx: 'Tinggi', subj: 'Sedang' },
-  'E-05': { cplx: 'Tinggi', subj: 'Tinggi' },
-};
-/* seed sensitivitas — driver asumsi ilustratif (Δ% × Rp jt per 1%) */
-const SENS_SEED: Record<string, SensDriver[]> = {
-  'E-01': [
-    { id: 's1', label: 'Probabilitas gagal bayar (PD) per umur', deltaPct: 10, perPct: 45 },
-    { id: 's2', label: 'Loss given default (LGD)', deltaPct: 5, perPct: 60 },
-    { id: 's3', label: 'Overlay makroekonomi (PDB)', deltaPct: -5, perPct: 24 },
-  ],
-  'E-05': [
-    { id: 's1', label: 'WACC (tingkat diskonto)', deltaPct: 0.5, perPct: -4200 },
-    { id: 's2', label: 'Pertumbuhan terminal', deltaPct: -0.5, perPct: 2800 },
-    { id: 's3', label: 'Arus kas tahun-1', deltaPct: -10, perPct: 195 },
-  ],
-};
-const EST_SEED: EstState = {
-  register: EST_REG.map(e => ({ ...e, ...(EST_CS[e.id] || { cplx: 'Sedang', subj: 'Sedang' }) })),
-  bias: BIAS_ROWS,
-  sensitivity: SENS_SEED,
-};
 
 function estToday() {
   try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
@@ -103,7 +61,7 @@ function SA540View() {
   const register: Estimate[] = (est && est.register) || [];
   const bias: BiasRow[] = (est && est.bias) || [];
   /* backward-compat: state lama tak punya sensitivity → seed */
-  const sensitivity: Record<string, SensDriver[]> = (est && est.sensitivity) || SENS_SEED;
+  const sensitivity: Record<string, SensDriver[]> = (est && est.sensitivity) || EST_SEED.sensitivity;
   const setRegister = (fn: (l: Estimate[]) => Estimate[]) => setEst((s: EstState) => ({ ...s, register: fn((s && s.register) || []) }));
   const setBias = (fn: (l: BiasRow[]) => BiasRow[]) => setEst((s: EstState) => ({ ...s, bias: fn((s && s.bias) || []) }));
   const setSensitivity = (id: string, drivers: SensDriver[]) => setEst((s: EstState) => ({ ...s, sensitivity: { ...((s && s.sensitivity) || {}), [id]: drivers } }));
@@ -350,8 +308,10 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
   const [selId, setSelId] = useState540((indep[0] || register[0])?.id || 'E-01');
   const sel = register.find(e => e.id === selId) || register[0] || null;
   const drivers: SensDriver[] = (sel && sensitivity[sel.id]) || [];
-  const midpoint = sel ? Math.round((sel.lo + sel.hi) / 2) : 0;
-  const likely = sel ? sel.mgmt - midpoint : 0;
+  /* Dasar pengukuran = BATAS TERDEKAT (kanon `estimateMisstatement`), bukan titik
+     tengah. Di dalam rentang → nol salah saji; kecondongan terhadap titik tengah
+     tetap dilaporkan, tetapi sebagai indikator arah ¶32. */
+  const mis = sel ? estimateMisstatement(sel.mgmt, sel.lo, sel.hi, sel.plSign) : null;
   const sens = sel ? estimateSensitivity(sel.mgmt, sel.lo, sel.hi, drivers) : null;
   const setDrivers = (fn: (l: SensDriver[]) => SensDriver[]) => { if (!sel || locked) return; setSensitivity(sel.id, fn(drivers)); };
   const patchD = (id: string, p: Partial<SensDriver>) => setDrivers(l => l.map(d => d.id === id ? { ...d, ...p } : d));
@@ -385,9 +345,17 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
                 <KvBox label="Titik Manajemen" v={sel.mgmt.toLocaleString('id-ID')} />
                 <KvBox label="Rentang Auditor" v={`${sel.lo.toLocaleString('id-ID')}–${sel.hi.toLocaleString('id-ID')}`} accent="var(--blue)" />
-                <KvBox label="Titik Tengah Auditor" v={midpoint.toLocaleString('id-ID')} accent="var(--amber)" />
+                <KvBox label="Salah Saji → SAD"
+                  v={mis && mis.amount ? mis.amount.toLocaleString('id-ID') : '—'}
+                  accent={mis && mis.amount < 0 ? 'var(--num-neg)' : mis && mis.amount ? 'var(--green)' : 'var(--ink-4)'} />
               </div>
-              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Titik manajemen <b>{sel.mgmt.toLocaleString('id-ID')}</b> {sel.mgmt < midpoint ? 'di bawah' : sel.mgmt > midpoint ? 'di atas' : 'tepat di'} titik tengah rentang auditor. Selisih <b>{Math.abs(likely).toLocaleString('id-ID')} jt</b> ({likely < 0 ? 'understatement' : likely > 0 ? 'overstatement' : 'netral'}) dicatat sebagai <b>kemungkinan salah saji</b> ke SAD Ledger; dievaluasi bersama indikasi bias & telaah retrospektif (SA 240).</p>
+              {mis && mis.basis === 'indeterminate' ? (
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Rentang auditor tidak koheren (batas bawah melebihi batas atas) — salah saji <b>tidak dapat diukur</b> dan tidak diakumulasi ke SA 450. Perbaiki rentang di tab Inventaris.</p>
+              ) : mis && mis.amount ? (
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Titik manajemen <b>{sel.mgmt.toLocaleString('id-ID')}</b> berada <b>di luar</b> rentang wajar auditor. Selisih ke <b>batas terdekat</b> ({(mis.bound ?? 0).toLocaleString('id-ID')}) sebesar <b>{Math.abs(mis.amount).toLocaleString('id-ID')} jt</b> mengalir ke SAD Ledger sebagai kemungkinan salah saji judgmental <span className="mono">EST-{sel.id}</span>; dievaluasi bersama indikasi bias & telaah retrospektif (SA 240).</p>
+              ) : (
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Titik manajemen <b>{sel.mgmt.toLocaleString('id-ID')}</b> berada <b>di dalam</b> rentang wajar auditor — rentang itu sendiri zona yang dapat diterima, sehingga <b>tidak ada salah saji</b> untuk diakumulasi ke SA 450. {mis && mis.profitTilt ? <>Namun titik itu {mis.favoursProfit ? <b>menguntungkan laba</b> : 'menekan laba'} sebesar <b>{Math.abs(mis.profitTilt).toLocaleString('id-ID')} jt</b> dibanding titik tengah ({(mis.midpoint || 0).toLocaleString('id-ID')}) — dicatat sebagai indikator <b>arah</b> (¶32), bukan salah saji.</> : null}</p>
+              )}
             </div>
           ) : <div className="tiny muted" style={{ padding: 16 }}>Belum ada estimasi.</div>}
         </Panel>

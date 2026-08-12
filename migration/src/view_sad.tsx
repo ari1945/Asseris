@@ -6,6 +6,7 @@ import { ajeEffect, entityFigures } from './canon_base';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { reconcileUncorrectedMisstatements, type UncorrResult, type SadEntry, type AjeEntry } from './canon_validation';
+import { EST_SEED, estimateMisstatements, type EstState } from './canon_estimates';
 import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
@@ -29,7 +30,11 @@ const SAD_SEED = [
   { id: 'M-01', desc: 'Piutang fiktif belum dibalik (channel stuffing kuartal IV)', type: 'Factual', fsli: 'Pendapatan / Piutang Usaha', assertion: 'Keterjadian', initiator: 'Tim — Dewi A.', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-03', qual: ['fraud', 'trend', 'covenant'], bsEffect: { curAssets: -1_950_000_000, curLiab: 0 } },
   { id: 'M-02', desc: 'Koreksi penyusutan mesin produksi (umur manfaat terlalu panjang)', type: 'Factual', fsli: 'BPP / Akumulasi Penyusutan', assertion: 'Akurasi', initiator: 'Tim — Bagus P.', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-05', qual: [], bsEffect: { curAssets: 0, curLiab: 0 } },
   { id: 'M-03', desc: 'Proyeksi salah saji hasil sampling piutang (SA 530)', type: 'Projected', fsli: 'Piutang Usaha', assertion: 'Keberadaan', initiator: 'Tim — Dewi A.', pbt: -640_000_000, na: -640_000_000, origin: 'current', disp: 'uncorrected', aje: 'SA 530', qual: ['estimate'], bsEffect: { curAssets: -640_000_000, curLiab: 0 } },
-  { id: 'M-04', desc: 'Selisih estimasi cadangan kerugian penurunan nilai (PSAK 71)', type: 'Judgmental', fsli: 'CKPN / Beban Penyisihan', assertion: 'Penilaian', initiator: 'Reviu — Mgr.', pbt: -680_000_000, na: -680_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-02', qual: ['estimate'], bsEffect: { curAssets: -680_000_000, curLiab: 0 } },
+  /* M-04 DICABUT (arc estimasi PR-1). Baris ini DULU memaku "selisih estimasi CKPN
+     Rp 680 jt" — angka yang tak berasal dari registri estimasi mana pun, dan yang
+     membuat ledger tampak benar justru karena hasilnya dikarang. Salah saji estimasi
+     kini DITURUNKAN dari `estimates.v1` via `estimateMisstatements()`; bila tak ada
+     titik manajemen yang keluar rentang wajar auditor, memang tak ada barisnya. */
   { id: 'M-05', desc: 'Cut-off persediaan akhir tahun (penerimaan barang 31 Des)', type: 'Factual', fsli: 'Persediaan / BPP', assertion: 'Pisah Batas', initiator: 'Tim — Rina S.', pbt: -2_340_000_000, na: -2_340_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-01', qual: [], bsEffect: { curAssets: -2_340_000_000, curLiab: 0 } },
   { id: 'M-06', desc: 'Akrual bonus manajemen belum dicatat', type: 'Factual', fsli: 'Beban Gaji / Akrual', assertion: 'Kelengkapan', initiator: 'Tim — Bagus P.', pbt: -980_000_000, na: -980_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-04', qual: ['compensation'], bsEffect: { curAssets: 0, curLiab: 980_000_000 } },
   { id: 'M-07', desc: 'Reklasifikasi utang bank jatuh tempo ≤1 thn ke liabilitas lancar', type: 'Factual', fsli: 'Liabilitas Jk. Panjang → Lancar', assertion: 'Klasifikasi', initiator: 'Reviu — Mgr.', pbt: 0, na: 0, origin: 'current', disp: 'uncorrected', aje: 'PAJE-06', qual: ['classification', 'covenant'], bsEffect: { curAssets: 0, curLiab: 4_100_000_000 } },
@@ -51,7 +56,7 @@ const QUAL_SEED = [
   { id: 'relatedparty', text: 'Menyangkut/menyembunyikan transaksi dengan pihak berelasi', on: false, note: '' },
   { id: 'classification', text: 'Salah klasifikasi antar pos (mis. operasi vs non-operasi; lancar vs tidak lancar)', on: true, note: 'Reklas M-07 memindahkan Rp 4,1 M ke liabilitas lancar — material terhadap penyajian likuiditas.' },
   { id: 'fraud', text: 'Berkaitan dengan unsur kecurangan atau ketidakberesan yang teridentifikasi', on: true, note: 'M-01 berindikasi manipulasi pendapatan — eskalasi ke SA 240 & komunikasi TCWG wajib.' },
-  { id: 'estimate', text: 'Berada pada batas rentang estimasi yang dapat diterima (bias terarah)', on: true, note: 'M-03 & M-04 konsisten menurunkan beban — pola bias manajemen ke arah laba lebih tinggi.' },
+  { id: 'estimate', text: 'Berada pada batas rentang estimasi yang dapat diterima (bias terarah)', on: true, note: 'Arah pemilihan titik dalam rentang dinilai di SA 540 (indikator ¶32) — lihat panel Bias & kolom kecondongan laba, bukan dari baris SAD.' },
   { id: 'future', text: 'Memiliki dampak signifikan pada periode pelaporan mendatang', on: false, note: '' },
 ];
 
@@ -61,6 +66,13 @@ const DISP = {
   passed:      { label: 'Diwaivekan',      kind: 'gray' },
 };
 const DISP_CYCLE = ['uncorrected', 'corrected', 'passed'];
+type DispKey = keyof typeof DISP;
+/* Satu tempat pemetaan disposisi → lencana; dipakai baris tersimpan MAUPUN turunan
+   sehingga tak ada `as any` yang terduplikasi (ratchet no-explicit-any). */
+function DispBadge({ disp }: { disp: string }) {
+  const d = DISP[disp as DispKey] || DISP.uncorrected;
+  return <Badge kind={d.kind}>{d.label}</Badge>;
+}
 const TYPE_KIND = { Factual: 'blue', Judgmental: 'purple', Projected: 'teal' };
 
 /* ---- entity subtotals (FY2025, dilaporkan) ---- */
@@ -75,7 +87,7 @@ function SADLedger() {
   const nav = useNav();
   const { activeEngagement } = useFirm();
   const { wtb, aje } = useAudit() as { wtb: WTB; aje: AjeEntry[] };
-  const [items, setItems] = useAmsPersist('sadItems.v1', () => SAD_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
+  const [stored, setItems] = useAmsPersist('sadItems.v1', () => SAD_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [quals, setQuals] = useAmsPersist('sadQual.v1', () => QUAL_SEED);
   const [tab, setTab] = useStateSD('ledger');
   const [method, setMethod] = useAmsPersist('sadMethod.v1', 'rollover');
@@ -92,6 +104,23 @@ function SADLedger() {
      opinionDoc.v1 dibaca read-only; useServerState tak menulis saat mount →
      tak menyemai/merusak dokumen opini (default minimal hanya .type). */
   const [opinionDoc] = useAmsPersist('opinionDoc.v1', () => ({ type: 'unmodified' }));
+
+  /* ARC ESTIMASI PR-1 — salah saji estimasi TIDAK disalin ke `sadItems.v1`: ia
+     DITURUNKAN dari registri SA 540 pada tiap render, sehingga tak pernah ada dua
+     angka yang bisa menyimpang. Registri dibaca read-only (useServerState tak
+     menulis saat mount — pola yang sama dengan `opinionDoc.v1` di atas).
+     Dasar pengukuran = BATAS TERDEKAT: titik manajemen di DALAM rentang wajar
+     auditor tidak menghasilkan salah saji sama sekali. Itulah sebabnya baris
+     seed `M-04` (selisih estimasi CKPN Rp 680 jt) DICABUT — ia angka yang tak
+     berasal dari registri mana pun, dan pada data seed kelima estimasi berada
+     di dalam rentangnya masing-masing.
+     Baris turunan selalu `uncorrected` dan tak dapat disunting di sini: koreksi
+     atas estimasi dinyatakan dengan memindahkan titik manajemen di SA 540. */
+  const [estState] = useAmsPersist('estimates.v1', () => EST_SEED);
+  const items = useMemoSD(() => {
+    const reg = (estState && (estState as EstState).register) || [];
+    return [...stored, ...estimateMisstatements(reg)];
+  }, [stored, estState]);
 
   /* Figur dilaporkan = WTB `unadj` + efek jurnal BERSTATUS POSTED. Sengaja BUKAN
      kolom `adj`: kolom itu memuat AJE-03 & AJE-05 yang masih Proposed, sehingga
@@ -282,6 +311,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
               <tr key={m.id} style={{ opacity: m.disp === 'corrected' ? 0.6 : m.disp === 'passed' ? 0.72 : 1 }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 6 }}>
                   {m.id}{m.origin === 'prior' && <div><Badge kind="gray">PY</Badge></div>}
+                  {m.derived && <div style={{ marginTop: 3 }}><Badge kind="purple">SA 540</Badge></div>}
                 </td>
                 <td style={{ maxWidth: 250, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {m.desc}
@@ -294,9 +324,18 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: m.pbt < 0 ? 'var(--red)' : m.pbt > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{m.pbt === 0 ? '—' : fmt(m.pbt / 1e6, 0)}</td>
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: m.na < 0 ? 'var(--red)' : m.na > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{m.na === 0 ? '—' : fmt(m.na / 1e6, 0)}</td>
                 <td style={{ verticalAlign: 'top', paddingTop: 5 }}>
-                  <span onClick={() => cycleDisp(m.id)} style={{ cursor: 'pointer' }} title="Klik untuk ubah disposisi">
-                    <Badge kind={(DISP as any)[m.disp].kind}>{(DISP as any)[m.disp].label}</Badge>
-                  </span>
+                  {m.derived ? (
+                    /* Turunan registri SA 540 — disposisi TIDAK dapat diubah di sini.
+                       Koreksi dinyatakan dengan memindahkan titik manajemen ke dalam
+                       rentang wajar auditor, sehingga barisnya hilang dengan sendirinya. */
+                    <span title="Turunan registri estimasi SA 540 — koreksi dengan memindahkan titik manajemen, bukan dari sini">
+                      <DispBadge disp={m.disp} />
+                    </span>
+                  ) : (
+                    <span onClick={() => cycleDisp(m.id)} style={{ cursor: 'pointer' }} title="Klik untuk ubah disposisi">
+                      <DispBadge disp={m.disp} />
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
