@@ -68,7 +68,7 @@ export function rotTier(tenure: number, limit: number): RotTier {
 
   /* ---------- Izin Akuntan Publik diperkaya (HCM + CPE + Independence) ---------- */
   function apLicenses() {
-    const req = A().CPE_REQ || { annual: 40, structured: 20, year: 2026 };
+    const req = A().CPE_REQ || { annual: 40, structured: 30, year: 2026 };
     const frac = yearFrac();
     const expectedYtd = Math.round(req.annual * frac);
     return (BO().AP_LICENSES || []).map((a: any) => {
