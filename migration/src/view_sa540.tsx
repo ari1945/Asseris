@@ -20,7 +20,8 @@ import {
 } from './canon_range';
 import type { ViuParams } from './canon_viu';
 import { retrospectiveSummary, type Retrospective } from './canon_retrospective';
-import { amsEvidenceFor } from './evidence';
+import { amsAttachEvidence, FileDropField } from './evidence';
+import { isLegacyDocUid, uploadExpertDoc, useExpertDocs, type DropMeta, type ExpertDoc } from './expert_docs';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -108,14 +109,6 @@ function SA540View() {
   const setExpertDoc = (ref: string, uid: string) =>
     setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), docUid: uid || undefined, by: me, at: estToday() } }));
   const [tab, setTab] = useState540('inventaris');
-  /* Dokumen yang benar-benar terlampir pada kertas kerja ini — sumber pilihan
-     tautan laporan pakar, sekaligus yang diperiksa gerbang sign-off.
-     Store bukti hidup di localStorage (bukan state React), jadi dibaca ulang
-     saat berpindah tab — cukup untuk alur "lampirkan lalu tautkan". */
-  const evidenceDocs: EvDoc[] = useMemo540(() => {
-    try { return ((amsEvidenceFor('sa540') as EvDoc[]) || []).filter(d => d && d.uid); }
-    catch (e) { return []; }
-  }, [tab]);
   const sig = register.filter(e => e.risk === 'Signifikan').length;
   const uncHi = register.filter(e => e.unc === 'Tinggi').length;
   const biasFlags = bias.filter(b => b.flag !== 'green').length;
@@ -180,7 +173,7 @@ function SA540View() {
 
         {tab === 'inventaris' && <F540Register register={register} setRegister={setRegister} me={me} locked={locked} />}
         {tab === 'risiko' && <F540Risk register={register} setRegister={setRegister} locked={locked} />}
-        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} expertEval={expertEval} toggleExpert={toggleExpert} setExpertDoc={setExpertDoc} evidenceDocs={evidenceDocs} />}
+        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} expertEval={expertEval} toggleExpert={toggleExpert} setExpertDoc={setExpertDoc} />}
         {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} register={register} setRegister={setRegister} />}
 
       </div></div>
@@ -452,14 +445,28 @@ function F540Risk({ register, setRegister, locked }: { register: Estimate[]; set
 }
 
 /* ---------------- Tab: Respons & Rentang ---------------- */
-type EvDoc = { uid: string; name?: string };
-function docName(docs: EvDoc[], uid?: string) {
+/* PR-2 — `docUid` menunjuk id lampiran DMS SERVER, bukan lagi uid `localStorage`.
+   Lihat expert_docs.tsx untuk sebabnya. */
+function docName(docs: ExpertDoc[], uid?: string) {
   if (!uid) return 'belum ditautkan';
-  const d = docs.find(x => x.uid === uid);
-  return d ? (d.name || d.uid) : 'tautan putus — dokumen tak ada lagi';
+  const d = docs.find(x => x.id === uid);
+  if (d) return d.name || d.id;
+  return isLegacyDocUid(uid)
+    ? 'tautan warisan — dokumen ada di perangkat lama, bukan di DMS'
+    : 'tautan putus — dokumen tak ada lagi di DMS';
 }
 
-function F540Response({ register, sensitivity, setSensitivity, locked, expertEval, toggleExpert, setExpertDoc, evidenceDocs }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean; expertEval: ExpertEvalState; toggleExpert: (ref: string, key: ExpertEvalStepKey, on: boolean) => void; setExpertDoc: (ref: string, uid: string) => void; evidenceDocs: EvDoc[] }) {
+/** Ukuran manusiawi; laporan pakar kerap besar dan batasnya nyata (10 MB/berkas). */
+function docSize(bytes: number) {
+  return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+}
+
+function F540Response({ register, sensitivity, setSensitivity, locked, expertEval, toggleExpert, setExpertDoc }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean; expertEval: ExpertEvalState; toggleExpert: (ref: string, key: ExpertEvalStepKey, on: boolean) => void; setExpertDoc: (ref: string, uid: string) => void }) {
+  /* Dokumen pakar dibaca dari DMS server — daftar yang SAMA dengan yang dipakai
+     gerbang sign-off (`useEstimateExpertGate`), agar keduanya tak dapat menyimpang. */
+  const { docs: expertDocs, ready: docsReady, engId: docsEng, reload: reloadDocs } = useExpertDocs();
+  const [upBusy, setUpBusy] = useState540(false);
+  const [upErr, setUpErr] = useState540('');
   const approaches = [
     { k: 'Uji bagaimana manajemen membuat estimasi', ref: '¶18', d: 'Evaluasi metode, asumsi signifikan, & data; uji penerapan & matematika model.', used: 'Persediaan · Garansi' },
     { k: 'Uji peristiwa hingga tanggal laporan auditor', ref: '¶21(a)', d: 'Bukti dari peristiwa setelah periode yang menguatkan/menyangkal estimasi.', used: 'Piutang (penerimaan kas pasca-periode)' },
@@ -545,23 +552,61 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
                 ))}
               </div>
 
-              {/* Tautan ke laporan pakar di bukti kertas kerja. Disimpan sebagai
-                  uid, bukan nama berkas: tautan harus PUTUS bila dokumennya dicabut. */}
+              {/* Tautan ke laporan pakar di DMS. Disimpan sebagai id lampiran, bukan
+                  nama berkas: tautan harus PUTUS bila dokumennya dicabut — dan kini
+                  pencabutan itu terlihat SERVER, bukan hanya di perangkat ini. */}
               <div className="field" style={{ marginTop: 10 }}>
-                <label>Laporan pakar (dari bukti kertas kerja)</label>
+                <label>Laporan pakar (DMS perikatan · SHA-256 diverifikasi server)</label>
                 {locked ? (
-                  <div style={{ fontSize: 12 }}>{docName(evidenceDocs, expertEval && expertEval[sel.id] && expertEval[sel.id].docUid)}</div>
+                  <div style={{ fontSize: 12 }}>{docName(expertDocs, expertEval && expertEval[sel.id] && expertEval[sel.id].docUid)}</div>
                 ) : (
                   <select className="select" style={{ height: 28 }}
                     value={(expertEval && expertEval[sel.id] && expertEval[sel.id].docUid) || ''}
                     onChange={(e: Ev) => setExpertDoc(sel.id, e.target.value)}>
                     <option value="">— belum ditautkan —</option>
-                    {evidenceDocs.map(d => <option key={d.uid} value={d.uid}>{d.name || d.uid}</option>)}
+                    {expertDocs.map(d => <option key={d.id} value={d.id}>{d.name} · {docSize(d.size)}</option>)}
                   </select>
                 )}
-                {!evidenceDocs.length && (
+                {isLegacyDocUid(expertEval && expertEval[sel.id] && expertEval[sel.id].docUid) && (
                   <div className="tiny" style={{ color: 'var(--amber)', marginTop: 4, lineHeight: 1.45 }}>
-                    Belum ada dokumen terlampir pada kertas kerja ini — lampirkan laporan pakar lewat tombol <b>Bukti</b> di bilah atas.
+                    <b>Tautan warisan.</b> Dokumen ini tertaut ke bukti lokal perangkat lama, bukan ke DMS — server tak dapat memverifikasi keberadaannya. Unggah ulang laporan pakar di bawah, lalu tautkan kembali. Setelah penegakan penuh menyala, tautan warisan tidak lagi diterima untuk sign-off.
+                  </div>
+                )}
+                {!locked && (
+                  <div style={{ marginTop: 8 }}>
+                    <FileDropField compact multiple={false}
+                      hint={`Unggah laporan pakar ke DMS perikatan — PDF · XLSX · DOCX, maks 10 MB`}
+                      onFiles={(files: DropMeta[]) => {
+                        const f = files && files[0];
+                        if (!f) return;
+                        setUpErr(''); setUpBusy(true);
+                        uploadExpertDoc(docsEng, sel.id, f).then(res => {
+                          setUpBusy(false);
+                          if (res.ok !== true) { setUpErr(res.message); return; }
+                          reloadDocs();
+                          setExpertDoc(sel.id, res.doc.id);
+                          /* Penghitung bukti kertas kerja masih membaca store lokal; catatan
+                             ini menjaganya jujur. Ia BUKAN sumber gerbang — gerbang memakai
+                             id lampiran server di atas. */
+                          try { amsAttachEvidence('sa540', { file: res.doc.name, type: 'Laporan pakar (SA 620)', std: 'SA 620', classified: 'sa540', sha256: res.doc.sha256, attachmentId: res.doc.id }); } catch (e) { /* store lokal opsional */ }
+                        });
+                      }} />
+                    {upBusy && <div className="tiny muted" style={{ marginTop: 4 }}>Mengunggah & memverifikasi SHA-256 di server…</div>}
+                    {!!upErr && (
+                      <div className="tiny" style={{ color: 'var(--red)', marginTop: 4, lineHeight: 1.45 }}>
+                        <b>Unggahan ditolak:</b> {upErr}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {docsReady && !expertDocs.length && !upBusy && (
+                  <div className="tiny" style={{ color: 'var(--amber)', marginTop: 6, lineHeight: 1.45 }}>
+                    Belum ada laporan pakar di DMS perikatan ini.
+                  </div>
+                )}
+                {!docsReady && (
+                  <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>
+                    Daftar dokumen DMS belum dapat dibaca (server tak terjangkau) — tautan tidak dapat diverifikasi dari perangkat ini.
                   </div>
                 )}
               </div>

@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — "Proceed." 2026-08-12; **PR-1 terkirim & terverifikasi hidup**; PR-2/PR-3 belum |
+| Status | In Progress — "Proceed." 2026-08-12; **PR-1 & PR-2 terkirim & terverifikasi hidup**; PR-3 belum |
 | Tanggal | 2026-08-12 |
 | Arc | Lanjutan arc estimasi terfalsifikasi ([`prd-estimasi-terfalsifikasi.md`](prd-estimasi-terfalsifikasi.md), #182–#187) — menutup utang yang PRD itu catat sendiri di §9a |
 | Basis | master `774412a` · 8/8 gerbang hijau · nol PR terbuka · 1.250 uji frontend |
@@ -273,6 +273,58 @@ dicatat agar tak hilang):
 
 ---
 
+## 10b. Hasil pelaksanaan PR-2 (2026-08-12)
+
+`npm run verify` 8/8 hijau; uji `canon_expert_eval` 33 → **42**.
+
+**R9 diperiksa lebih dulu, sesuai janji.** Batas DMS: **10 MB/berkas, 50 MB/perikatan**
+([`attachments/store.ts:11`](../server/src/attachments/store.ts:11)), ditetapkan sadar di PRD
+lain (§11 Q2) — jadi bukan angka yang boleh saya ubah diam-diam. Laporan aktuaria PSAK 24
+(kasus E-04) lazimnya 1–5 MB dan aman; **laporan penilaian KJPP yang berfoto rutin melampaui
+10 MB**, dan kuota 50 MB per perikatan akan menjadi pengikat begitu lebih banyak bukti pindah
+ke DMS. Yang dapat dikendalikan di PR ini sudah dikerjakan: penolakan server **ditampilkan
+apa adanya** kepada auditor, bukan ditelan. Keputusan menaikkan batas diserahkan ke Ari
+(lihat §12).
+
+**Temuan yang tidak diantisipasi PRD.** `attachmentUpload`/`attachmentList` di `api.ts`
+**belum punya satu pun konsumen** dari view mana pun; satu-satunya pemakai DMS adalah
+`view_dms.tsx` lewat global `window.amsAttachmentUpload`, dan itu **firm-scope**
+(`collection:'dms'`). Jadi PR-2 adalah konsumen pertama DMS ber-scope PERIKATAN. Klaim
+"DMS sudah ada" di §1 benar di tingkat server/API, dan lebih tipis dari yang tersirat di
+tingkat aplikasi.
+
+**Keputusan pelaksanaan (di luar §8):**
+
+- `isLegacyDocUid` diletakkan di modul MURNI `canon_expert_eval.ts`, bukan di `expert_docs.tsx`,
+  karena PR-3 di server membutuhkan predikat yang sama untuk menolak dengan sebab yang TEPAT.
+- Tautan **warisan** dibedakan dari tautan **dicabut**. Keduanya tak resolve, tetapi tindakan
+  yang dituntut berbeda; pesan yang menyuruh auditor menelusuri dokumen yang tak pernah ada
+  di server membuang waktunya.
+- Galat unggah **dikembalikan, tidak ditelan** — kebalikan `view_dms.tsx` yang `catch {}`
+  lalu tetap membuat catatan. Kode mesin (`bad-type:`) dilucuti dari pesan yang dibaca auditor.
+- Limb dokumen di UI hanya ditegakkan bila daftar DMS **benar-benar sampai** (`ready`).
+  Menyimpulkan "tak ada dokumen" saat server tak terjangkau akan memblokir seluruh sign-off
+  SA 540 setiap kali jaringan putus — kegagalan lebih besar daripada yang dicegahnya.
+- Penghitung bukti kertas kerja masih membaca store lokal, jadi unggahan juga menulis catatan
+  `amsAttachEvidence` agar panel "0 terlampir" tidak berbohong. Catatan itu **bukan** sumber
+  gerbang.
+
+**Verifikasi hidup** di ENG-2025-014 (unggahan NYATA lewat `<input type=file>` aplikasi,
+bukan panggilan API):
+
+| Probe | Hasil |
+|---|---|
+| Unggah `Laporan Aktuaria PSAK 24 - FY2025.pdf` | tersimpan di DMS perikatan, `collection:'sa540'`, `refId:'E-04'`, SHA-256 dihitung SERVER; `docUid` = UUID lampiran (bukan `ev-…`) |
+| Unggah `malware.exe` | ditolak & **terlihat**: "Unggahan ditolak: jenis berkas tak diizinkan: .exe" |
+| `attachment.remove` lampiran yang tertaut | gerbang langsung melaporkan "tidak lagi ada di DMS perikatan (dicabut)" — atas fakta SERVER, bukan localStorage |
+| `docUid` warisan (`ev-…`) ditanam | kedua permukaan menampilkan pesan warisan + tindakan yang dituntut |
+
+Keadaan perikatan dipulihkan (E-04 tanpa `docUid`, nol lampiran hidup).
+
+**Utang PR-2:** tinjauan visual Ari atas panel "Penggunaan Pakar" yang berubah.
+
+---
+
 ## 11. Open Questions — SEMUA TERJAWAB
 
 > Ari menjawab ketiganya (2026-08-12) sesuai rekomendasi: **Q1 = blokir tanpa
@@ -297,6 +349,12 @@ dicatat agar tak hilang):
 >
 > Q3 juga menyederhanakan K5: karena seluruh slot digerbang, aturan "pencabutan tak
 > pernah digerbang" berlaku seragam — tak ada slot yang perlu perlakuan khusus.
+
+## 12. Pertanyaan BARU dari pelaksanaan
+
+**Q4 — Batas ukuran DMS (mengunci kelayakan gerbang di dunia nyata).** 10 MB/berkas & 50 MB/perikatan ditetapkan di PRD lain. Laporan KJPP berfoto rutin melampaui 10 MB; bila itu terjadi, gerbang PR-3 menjadi **tak dapat dipuaskan** dan tim akan mencari jalan memutar. Pilihan: (a) biarkan, tangani per kasus; (b) naikkan batas per-berkas untuk `collection:'sa540'` saja; (c) naikkan batas global. Rekomendasi saya: **(b)** — ia menyelesaikan kasus yang menghalangi tanpa melonggarkan penyimpanan firma secara umum. Butuh keputusan Anda sebelum PR-3 dianggap tuntas.
+
+---
 
 **Q1 — Nasib `docUid` warisan saat limb dokumen menyala (mengunci PR-3).**
 Nilai `docUid` yang ada hari ini menunjuk uid localStorage; ia tak akan resolve ke lampiran server mana pun.
