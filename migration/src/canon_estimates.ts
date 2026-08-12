@@ -31,6 +31,7 @@
 
 import type { SadEntry } from './canon_validation';
 import type { SensDriver } from './estimate_sensitivity';
+import { effectiveRange, type EstimateDerivation } from './canon_range';
 
 /** Rp juta → Rp penuh. SATU-SATUNYA tempat faktor ini hidup. Registri estimasi
  *  & kanon PSAK memakai Rp juta; `SadEntry.pbt`/`na` dan materialitas penuh
@@ -50,17 +51,33 @@ export type Estimate = {
   assump: string[]; approach: string; note: string;
   cplx?: string; subj?: string; by?: string; at?: string;
   plSign?: PlSign;
+  /** DASAR rentang (PR-4). Bila metodenya 'scenarios'/'viu' dengan ≥2 skenario,
+   *  `lo`/`hi` di atas TIDAK dipakai — rentang dihitung dari skenario. */
+  derivation?: EstimateDerivation | null;
 };
 export type BiasRow = { id: string; t: string; est: string; flag: string; d: string; by?: string; at?: string };
 export type EstState = { register: Estimate[]; bias: BiasRow[]; sensitivity: Record<string, SensDriver[]> };
 
 /* ---- Inventaris estimasi (Rp juta) ---- */
 const EST_REG: Estimate[] = [
-  { id: 'E-01', name: 'CKPN Piutang (ECL · PSAK 71)', acct: 'Cadangan Kerugian', mgmt: 4870, lo: 4600, hi: 6300, unc: 'Tinggi', risk: 'Signifikan', method: 'Model ECL forward-looking; PD × LGD × EAD per staging', assump: ['Probabilitas gagal bayar (PD) per kelompok umur', 'Loss given default (LGD) berbasis recovery historis', 'Overlay makroekonomi (PDB, suku bunga)'], approach: 'Rentang independen', plSign: -1, note: 'Titik manajemen di paruh bawah rentang — indikasi understatement penyisihan (lihat Bias).' },
+  { id: 'E-01', name: 'CKPN Piutang (ECL · PSAK 71)', acct: 'Cadangan Kerugian', mgmt: 4870, lo: 4600, hi: 6300, unc: 'Tinggi', risk: 'Signifikan', method: 'Model ECL forward-looking; PD × LGD × EAD per staging', assump: ['Probabilitas gagal bayar (PD) per kelompok umur', 'Loss given default (LGD) berbasis recovery historis', 'Overlay makroekonomi (PDB, suku bunga)'], approach: 'Rentang independen', plSign: -1, note: 'Titik manajemen di paruh bawah rentang — indikasi understatement penyisihan (lihat Bias).',
+    derivation: { method: 'scenarios', scenarios: [
+      { id: 'sc1', label: 'PD dinaikkan ke batas atas kisaran wajar (+10%)', value: 6300, note: 'staging 2–3 memburuk' },
+      { id: 'sc2', label: 'LGD pada recovery historis terbaik (−5%)', value: 4600, note: 'agunan terealisasi penuh' },
+      { id: 'sc3', label: 'Overlay makro dipertahankan setara PY', value: 5100 },
+    ] } },
   { id: 'E-02', name: 'Penyisihan Persediaan Usang', acct: 'Penyisihan Persediaan', mgmt: 2240, lo: 2050, hi: 2600, unc: 'Sedang', risk: 'Signifikan', method: 'Analisis umur & perputaran SKU; net realizable value', assump: ['Klasifikasi lambat-bergerak (> 180 hari)', 'Estimasi nilai jual bersih SKU usang', 'Rencana likuidasi/diskon manajemen'], approach: 'Uji proses manajemen', plSign: -1, note: 'Dalam rentang; konsisten dengan temuan hitung fisik SA 501 (GBJ-03).' },
   { id: 'E-03', name: 'Provisi Garansi Produk', acct: 'Provisi', mgmt: 1080, lo: 980, hi: 1240, unc: 'Sedang', risk: 'Non-signifikan', method: 'Tingkat klaim historis × penjualan bergaransi', assump: ['Rasio klaim historis 36 bulan', 'Periode garansi rata-rata', 'Tren kualitas produk'], approach: 'Uji proses manajemen', plSign: -1, note: 'Telaah retrospektif menunjukkan estimasi PY akurat (selisih −6%).' },
-  { id: 'E-04', name: 'Liabilitas Imbalan Kerja (PSAK 24)', acct: 'Liabilitas Imbalan Pasti', mgmt: 9650, lo: 9100, hi: 10400, unc: 'Tinggi', risk: 'Signifikan', method: 'Projected Unit Credit oleh aktuaris independen', assump: ['Tingkat diskonto (obligasi korporasi)', 'Kenaikan gaji jangka panjang', 'Tingkat mortalita & pengunduran diri'], approach: 'Gunakan pakar (SA 620)', plSign: -1, note: 'Asumsi diskonto di kisaran wajar; kompetensi & objektivitas aktuaris dievaluasi.' },
-  { id: 'E-05', name: 'Uji Penurunan Nilai Goodwill', acct: 'Goodwill', mgmt: 0, lo: 0, hi: 1800, unc: 'Tinggi', risk: 'Signifikan', method: 'Value-in-use; arus kas terdiskonto (DCF) per UPK', assump: ['Tingkat pertumbuhan terminal', 'WACC (tingkat diskonto)', 'Proyeksi arus kas 5 tahun'], approach: 'Rentang independen', plSign: -1, note: 'Tidak ada rugi penurunan nilai diakui; headroom tipis & sensitif terhadap WACC.' },
+  { id: 'E-04', name: 'Liabilitas Imbalan Kerja (PSAK 24)', acct: 'Liabilitas Imbalan Pasti', mgmt: 9650, lo: 9100, hi: 10400, unc: 'Tinggi', risk: 'Signifikan', method: 'Projected Unit Credit oleh aktuaris independen', assump: ['Tingkat diskonto (obligasi korporasi)', 'Kenaikan gaji jangka panjang', 'Tingkat mortalita & pengunduran diri'], approach: 'Gunakan pakar (SA 620)', plSign: -1, note: 'Asumsi diskonto di kisaran wajar; kompetensi & objektivitas aktuaris dievaluasi.',
+    /* rentang manual, tetapi BERALASAN — batas diambil dari tabel sensitivitas
+       laporan aktuaris, bukan dari pertimbangan tim (TIER C: modelnya di luar). */
+    derivation: { method: 'manual', rationale: 'Batas diambil dari tabel sensitivitas laporan aktuaris independen (diskonto ±50 bps → DBO ∓Rp 550/750 jt). Model aktuaria di luar lingkup aplikasi (SA 620).' } },
+  /* Rentang E-05 TIDAK diketik: ia diturunkan HIDUP dari mesin nilai pakai
+     PSAK 48 (Tier B). Mengubah WACC di PSAK 48 menggerakkan rentang ini dan,
+     bila titik manajemen keluar rentang, salah saji di SAD. `lo`/`hi` di bawah
+     hanya jaring bila hasil PSAK 48 tak tersedia. */
+  { id: 'E-05', name: 'Uji Penurunan Nilai Goodwill', acct: 'Goodwill', mgmt: 0, lo: 0, hi: 1800, unc: 'Tinggi', risk: 'Signifikan', method: 'Value-in-use; arus kas terdiskonto (DCF) per UPK', assump: ['Tingkat pertumbuhan terminal', 'WACC (tingkat diskonto)', 'Proyeksi arus kas 5 tahun'], approach: 'Rentang independen', plSign: -1, note: 'Tidak ada rugi penurunan nilai diakui; headroom tipis & sensitif terhadap WACC.',
+    derivation: { method: 'viu' } },
 ];
 
 /* ---- Indikator bias manajemen (¶32) ---- */
@@ -156,6 +173,10 @@ export function estimateMisstatement(mgmt: number, lo: number, hi: number, plSig
 export interface DerivedSadRow extends SadEntry {
   desc: string; type: string; fsli: string; assertion: string; initiator: string;
   derived: true; estimateId: string; basis: MisstatementBasis;
+  /** false bila rentang yang MENGHASILKAN salah saji ini sendiri tak berdasar
+   *  (diketik tanpa alasan). Salah saji tetap diakumulasi — menyembunyikannya
+   *  justru menghapus temuan nyata — tetapi dasarnya harus terbaca. */
+  rangeGrounded: boolean;
 }
 
 export const ESTIMATE_SAD_PREFIX = 'EST-';
@@ -184,7 +205,10 @@ export function estimateMisstatements(register: Estimate[] | null | undefined): 
   const out: DerivedSadRow[] = [];
   for (const e of list) {
     if (!e || !e.id) continue;
-    const m = estimateMisstatement(e.mgmt, e.lo, e.hi, e.plSign);
+    /* PR-4 — rentang yang berlaku bisa TERDERIVASI dari skenario; `lo`/`hi` yang
+       diketik hanya dipakai bila tak ada dasar terhitung. */
+    const rng = effectiveRange(e);
+    const m = estimateMisstatement(e.mgmt, rng.lo, rng.hi, e.plSign);
     if (!m.amount) continue;
     const full = Math.round(m.amount * JUTA);
     out.push({
@@ -199,7 +223,7 @@ export function estimateMisstatements(register: Estimate[] | null | undefined): 
       disp: 'uncorrected',
       aje: ESTIMATE_SAD_AJE_REF,
       qual: ['estimate'],
-      derived: true, estimateId: e.id, basis: m.basis,
+      derived: true, estimateId: e.id, basis: m.basis, rangeGrounded: rng.grounded,
     });
   }
   return out;

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useFirm } from './contexts';
 import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
@@ -13,6 +13,12 @@ import {
 } from './canon_expert_eval';
 import { estimateSensitivity, type SensDriver } from './estimate_sensitivity';
 import { EST_SEED, estimateMisstatement, type BiasRow, type Estimate, type EstState } from './canon_estimates';
+import { AMS_CANON } from './canon';
+import {
+  derivedPerPct, effectiveRange, hydrateViuDerivations,
+  type EffectiveRange, type EstimateDerivation, type Psak48Like, type RangeScenario,
+} from './canon_range';
+import type { ViuParams } from './canon_viu';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -65,7 +71,26 @@ function SA540View() {
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'estimates.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [est, setEst] = useAmsPersist('estimates.v1', () => EST_SEED);
-  const register: Estimate[] = (est && est.register) || [];
+
+  /* PR-4 · Q3 — TAUTAN HIDUP ke mesin nilai pakai. Estimasi ber-dasar 'viu'
+     (E-05 goodwill) tidak menyimpan skenarionya; ia dibangkitkan dari hasil
+     `psak48()` pada tiap pembacaan, dengan asumsi yang SAMA (`viuParams.v1`)
+     yang dikemudikan auditor di PSAK 48. Konsekuensinya disengaja: mengubah
+     WACC di sana menggerakkan rentang auditor di sini — dan, bila titik
+     manajemen keluar rentang, salah saji di SAD Ledger.
+     Penulisan tetap mengenai `s.register` MENTAH (lihat setRegister), sehingga
+     skenario hidup tak pernah ikut ter-persist & membeku. */
+  const auditCtx = useAudit();
+  const [viuOverride] = useAmsPersist('viuParams.v1', () => ({} as Partial<ViuParams>));
+  const p48 = useMemo540(() => {
+    const wtb = (auditCtx && auditCtx.wtb && auditCtx.wtb.length) ? auditCtx.wtb : ((AMS && AMS.WTB) || []);
+    const aje = (auditCtx && auditCtx.aje) ? auditCtx.aje : undefined;
+    return AMS_CANON.psak48(wtb, aje, 'reported', viuOverride) as unknown as Psak48Like;
+  }, [auditCtx, viuOverride]);
+  const register: Estimate[] = useMemo540(
+    () => hydrateViuDerivations((est && est.register) || [], p48),
+    [est, p48],
+  );
   const bias: BiasRow[] = (est && est.bias) || [];
   /* backward-compat: state lama tak punya sensitivity → seed */
   const sensitivity: Record<string, SensDriver[]> = (est && est.sensitivity) || EST_SEED.sensitivity;
@@ -157,7 +182,9 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
   const [selId, setSelId] = useState540('E-01');
   const sel = register.find(e => e.id === selId) || register[0] || null;
   const uncKind = (u: string) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
-  const pos = sel && sel.hi > sel.lo ? Math.max(0, Math.min(100, ((sel.mgmt - sel.lo) / (sel.hi - sel.lo)) * 100)) : 50;
+  /* rentang yang BERLAKU — terhitung dari skenario bila ada dasarnya, bukan lo/hi ketik */
+  const rng: EffectiveRange = sel ? effectiveRange(sel) : { lo: 0, hi: 0, source: 'manual', method: 'manual', grounded: false, legacy: true, scenarioCount: 0 };
+  const pos = sel && rng.hi > rng.lo ? Math.max(0, Math.min(100, ((sel.mgmt - rng.lo) / (rng.hi - rng.lo)) * 100)) : 50;
   const patch = (id: string, p: Partial<Estimate>) => setRegister(l => l.map(e => e.id === id ? { ...e, ...p, by: me, at: estToday() } : e));
   const add = () => {
     const id = nextEId(register);
@@ -205,8 +232,16 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                   <div className="field"><label>Titik Mgmt</label><input className="input mono" type="number" value={sel.mgmt} onChange={(e: Ev) => patch(sel.id, { mgmt: +e.target.value })} style={{ textAlign: 'right' }} /></div>
-                  <div className="field"><label>Batas Bawah</label><input className="input mono" type="number" value={sel.lo} onChange={(e: Ev) => patch(sel.id, { lo: +e.target.value })} style={{ textAlign: 'right' }} /></div>
-                  <div className="field"><label>Batas Atas</label><input className="input mono" type="number" value={sel.hi} onChange={(e: Ev) => patch(sel.id, { hi: +e.target.value })} style={{ textAlign: 'right' }} /></div>
+                  <div className="field">
+                    <label>Batas Bawah{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
+                    <input className="input mono" type="number" value={rng.lo} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
+                      onChange={(e: Ev) => patch(sel.id, { lo: +e.target.value })} style={{ textAlign: 'right' }} />
+                  </div>
+                  <div className="field">
+                    <label>Batas Atas{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
+                    <input className="input mono" type="number" value={rng.hi} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
+                      onChange={(e: Ev) => patch(sel.id, { hi: +e.target.value })} style={{ textAlign: 'right' }} />
+                  </div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <div className="field"><label>Ketidakpastian</label><select className="select" value={sel.unc} onChange={(e: Ev) => patch(sel.id, { unc: e.target.value })}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select></div>
@@ -226,7 +261,9 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
               <div style={{ position: 'absolute', top: 6, left: `calc(${pos}% - 1px)`, width: 2, height: 18, background: 'var(--navy-solid)' }} />
               <div style={{ position: 'absolute', top: -2, left: `${pos}%`, transform: 'translateX(-50%)' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{sel.mgmt.toLocaleString('id-ID')}</span></div>
             </div>
-            <div className="row jb tiny mono muted" style={{ marginBottom: 12 }}><span>{sel.lo.toLocaleString('id-ID')}</span><span>rentang independen auditor</span><span>{sel.hi.toLocaleString('id-ID')}</span></div>
+            <div className="row jb tiny mono muted" style={{ marginBottom: 8 }}><span>{rng.lo.toLocaleString('id-ID')}</span><span>rentang independen auditor</span><span>{rng.hi.toLocaleString('id-ID')}</span></div>
+
+            <RangeBasis est={sel} rng={rng} patch={patch} locked={locked} />
 
             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Asumsi Signifikan {!locked && <span className="muted" style={{ textTransform: 'none' }}>(satu per baris)</span>}</div>
             {locked ? sel.assump.map((a, i) => (
@@ -244,6 +281,100 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
             {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
           </div>
         </Panel>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Dasar rentang (PR-4) ----------------
+   Menjawab "dari mana rentang itu berasal?". Tiga keadaan:
+     terhitung dari skenario · manual beralasan · TAK BERDASAR.
+   Yang terakhir tetap dipakai (menghapusnya akan menghapus salah saji nyata
+   dari SA 450) tetapi tak boleh lagi menyamar sebagai rentang yang teruji. */
+const RANGE_METHOD_LABEL: Record<string, string> = {
+  scenarios: 'Terhitung dari skenario asumsi',
+  viu: 'Terhitung dari mesin nilai pakai (PSAK 48)',
+  manual: 'Ditetapkan auditor',
+};
+
+function RangeBasis({ est, rng, patch, locked }: { est: Estimate; rng: EffectiveRange; patch: (id: string, p: Partial<Estimate>) => void; locked: boolean }) {
+  const d: EstimateDerivation = est.derivation || { method: 'manual' };
+  const scenarios: RangeScenario[] = (d.scenarios || []);
+  const isViu = d.method === 'viu';
+  const setD = (p: Partial<EstimateDerivation>) => patch(est.id, { derivation: { ...d, ...p } });
+  const setScenarios = (fn: (l: RangeScenario[]) => RangeScenario[]) => {
+    /* skenario 'viu' dibangkitkan hidup — tak pernah disunting/disimpan di sini */
+    if (isViu) return;
+    setD({ scenarios: fn(scenarios) });
+  };
+  const addScenario = () => setScenarios(l => [...l, { id: 'sc' + (l.length + 1), label: 'Skenario baru', value: est.mgmt }]);
+
+  return (
+    <div className="panel" style={{ padding: '10px 12px', marginBottom: 12, background: 'var(--surface-2)', borderColor: rng.grounded ? 'transparent' : 'var(--amber)' }}>
+      <div className="row ac jb" style={{ marginBottom: 6 }}>
+        <span className="tiny muted upper" style={{ fontWeight: 700 }}>Dasar Rentang</span>
+        {rng.grounded
+          ? <Badge kind={rng.source === 'derived' ? 'blue' : 'green'}>{rng.source === 'derived' ? `${rng.scenarioCount} skenario` : 'Beralasan'}</Badge>
+          : <Badge kind="amber">Tak berdasar</Badge>}
+      </div>
+
+      {!locked && (
+        <div className="field" style={{ marginBottom: 8 }}>
+          <label>Metode</label>
+          <select className="select" value={d.method} onChange={(e: Ev) => setD({ method: e.target.value as EstimateDerivation['method'] })} style={{ height: 28 }}>
+            <option value="manual">Ditetapkan auditor (wajib beralasan)</option>
+            <option value="scenarios">Terhitung dari skenario asumsi</option>
+            <option value="viu">Terhitung dari mesin nilai pakai — uji penurunan nilai UPK/goodwill</option>
+          </select>
+        </div>
+      )}
+      <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.45, marginBottom: 8 }}>{RANGE_METHOD_LABEL[d.method] || d.method}</div>
+
+      {(d.method === 'scenarios' || isViu) && (
+        <>
+          <table className="dtbl" style={{ marginBottom: 6 }}>
+            <thead><tr><th>Skenario</th><th className="num" style={{ width: 84 }}>Nilai</th>{!locked && !isViu && <th style={{ width: 24 }}></th>}</tr></thead>
+            <tbody>
+              {scenarios.map((s, i) => (
+                <tr key={s.id || i}>
+                  <td style={{ whiteSpace: 'normal' }}>
+                    {locked || isViu ? <>{s.label}{s.note && <div className="tiny muted">{s.note}</div>}</>
+                      : <input className="input" value={s.label} onChange={(e: Ev) => setScenarios(l => l.map(x => x.id === s.id ? { ...x, label: e.target.value } : x))} style={{ height: 24 }} />}
+                  </td>
+                  <td className="num mono">
+                    {locked || isViu ? s.value.toLocaleString('id-ID')
+                      : <input className="input mono" type="number" value={s.value} onChange={(e: Ev) => setScenarios(l => l.map(x => x.id === s.id ? { ...x, value: +e.target.value } : x))} style={{ height: 24, width: 76, textAlign: 'right' }} />}
+                  </td>
+                  {!locked && !isViu && <td><button className="btn sm icon" title="Hapus skenario" onClick={() => setScenarios(l => l.filter(x => x.id !== s.id))}><I.x size={11} /></button></td>}
+                </tr>
+              ))}
+              {!scenarios.length && <tr><td colSpan={locked || isViu ? 2 : 3} className="tiny muted" style={{ textAlign: 'center', padding: 10 }}>Belum ada skenario — rentang belum terhitung.</td></tr>}
+            </tbody>
+          </table>
+          {!locked && !isViu && <Btn sm onClick={addScenario}><I.plus size={12} /> Skenario</Btn>}
+          {isViu && (
+            <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
+              Skenario ini <b>tidak disimpan</b> — ia dibangkitkan dari asumsi nilai pakai yang berlaku di PSAK 48. Mengubah WACC di sana menggerakkan rentang ini, dan bila titik manajemen keluar rentang, salah saji di SAD Ledger ikut bergerak.
+            </div>
+          )}
+          {scenarios.length === 1 && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 6, lineHeight: 1.45 }}>Satu skenario bukan rentang — dibutuhkan minimal dua, sehingga batas manual di atas yang dipakai.</div>}
+        </>
+      )}
+
+      {d.method === 'manual' && (
+        <>
+          <div className="tiny muted upper" style={{ marginBottom: 4 }}>Alasan batas yang dipilih</div>
+          {locked
+            ? <div style={{ fontSize: 12, lineHeight: 1.45 }}>{d.rationale || <span style={{ color: 'var(--amber)' }}>Belum dinyatakan.</span>}</div>
+            : <textarea className="input" value={d.rationale || ''} onChange={(e: Ev) => setD({ rationale: e.target.value })}
+                placeholder="Dari mana batas bawah & atas ini berasal? (mis. tabel sensitivitas laporan pakar, rentang pembanding industri…)"
+                style={{ height: 48, padding: 8, lineHeight: 1.4, resize: 'vertical' }} />}
+          {!rng.grounded && (
+            <div className="tiny" style={{ color: 'var(--amber)', marginTop: 6, lineHeight: 1.45 }}>
+              {rng.legacy ? 'Rentang warisan — belum pernah menyatakan dasarnya.' : 'Tanpa alasan, rentang ini adalah angka yang diketik.'} Ia <b>tetap dipakai</b> untuk mengukur salah saji, tetapi ditandai di SAD Ledger &amp; memo estimasi.
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -324,8 +455,12 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
   /* Dasar pengukuran = BATAS TERDEKAT (kanon `estimateMisstatement`), bukan titik
      tengah. Di dalam rentang → nol salah saji; kecondongan terhadap titik tengah
      tetap dilaporkan, tetapi sebagai indikator arah ¶32. */
-  const mis = sel ? estimateMisstatement(sel.mgmt, sel.lo, sel.hi, sel.plSign) : null;
-  const sens = sel ? estimateSensitivity(sel.mgmt, sel.lo, sel.hi, drivers) : null;
+  const rng = sel ? effectiveRange(sel) : null;
+  const mis = sel && rng ? estimateMisstatement(sel.mgmt, rng.lo, rng.hi, sel.plSign) : null;
+  const sens = sel && rng ? estimateSensitivity(sel.mgmt, rng.lo, rng.hi, drivers) : null;
+  /* butir 16 — dampak per 1% TERDERIVASI bila rentangnya punya skenario; input
+     manual hanya fallback dan harus terbaca sebagai fallback. */
+  const autoPerPct = sel ? derivedPerPct(sel.derivation, sel.mgmt) : null;
   const setDrivers = (fn: (l: SensDriver[]) => SensDriver[]) => { if (!sel || locked) return; setSensitivity(sel.id, fn(drivers)); };
   const patchD = (id: string, p: Partial<SensDriver>) => setDrivers(l => l.map(d => d.id === id ? { ...d, ...p } : d));
   const addD = () => setDrivers(l => [...l, { id: 'd' + (l.reduce((m, d) => Math.max(m, +(/(\d+)$/.exec(d.id)?.[1] || 0)), 0) + 1), label: 'Asumsi baru', deltaPct: 0, perPct: 0 }]);
@@ -357,7 +492,7 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
                 <KvBox label="Titik Manajemen" v={sel.mgmt.toLocaleString('id-ID')} />
-                <KvBox label="Rentang Auditor" v={`${sel.lo.toLocaleString('id-ID')}–${sel.hi.toLocaleString('id-ID')}`} accent="var(--blue)" />
+                <KvBox label={`Rentang Auditor${rng && rng.source === 'derived' ? ' · terhitung' : ''}`} v={`${(rng ? rng.lo : 0).toLocaleString('id-ID')}–${(rng ? rng.hi : 0).toLocaleString('id-ID')}`} accent={rng && rng.grounded ? 'var(--blue)' : 'var(--amber)'} />
                 <KvBox label="Salah Saji → SAD"
                   v={mis && mis.amount ? mis.amount.toLocaleString('id-ID') : '—'}
                   accent={mis && mis.amount < 0 ? 'var(--num-neg)' : mis && mis.amount ? 'var(--green)' : 'var(--ink-4)'} />
@@ -402,8 +537,16 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
           )}
         </Panel>
         <Panel noBody>
-          <div className="panel-h"><h3>Analisis Sensitivitas — {sel ? sel.id : '—'}</h3><div style={{ flex: 1 }} />{!locked && sel && <Btn sm onClick={addD}><I.plus size={12} /> Driver</Btn>}</div>
+          <div className="panel-h"><h3>Analisis Sensitivitas — {sel ? sel.id : '—'}</h3><div style={{ flex: 1 }} />
+            <Badge kind={autoPerPct != null ? 'blue' : 'amber'}>{autoPerPct != null ? 'dapat diturunkan' : 'input manual'}</Badge>
+            {!locked && sel && <Btn sm style={{ marginLeft: 8 }} onClick={addD}><I.plus size={12} /> Driver</Btn>}
+          </div>
           <div style={{ padding: 12 }}>
+            <div className="tiny" style={{ color: autoPerPct != null ? 'var(--ink-2)' : 'var(--amber)', lineHeight: 1.45, marginBottom: 8 }}>
+              {autoPerPct != null
+                ? <>Sebaran skenario rentang menyiratkan dampak <b>{autoPerPct.toLocaleString('id-ID')} jt per 1%</b>. {!locked && <>Pakai tombol di tiap baris untuk memakainya alih-alih mengetik.</>}</>
+                : <>Rentang estimasi ini belum punya skenario, sehingga dampak per 1% <b>diketik auditor</b> — verdict di bawah hanya sekuat angka itu.</>}
+            </div>
             <table className="dtbl" style={{ marginTop: -4 }}>
               <thead><tr><th>Asumsi</th><th className="num" style={{ width: 56 }}>Δ%</th><th className="num" style={{ width: 64 }}>per 1%</th><th className="num" style={{ width: 76 }}>Dampak</th>{!locked && <th style={{ width: 24 }}></th>}</tr></thead>
               <tbody>
@@ -411,7 +554,16 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
                   <tr key={d.id}>
                     <td style={{ whiteSpace: 'normal' }}>{locked ? d.label : <input className="input" value={d.label} onChange={(e: Ev) => patchD(d.id, { label: e.target.value })} style={{ height: 24 }} />}</td>
                     <td className="num mono">{locked ? d.deltaPct : <input className="input mono" type="number" value={d.deltaPct} onChange={(e: Ev) => patchD(d.id, { deltaPct: +e.target.value })} style={{ height: 24, width: 50, textAlign: 'right' }} />}</td>
-                    <td className="num mono">{locked ? d.perPct : <input className="input mono" type="number" value={d.perPct} onChange={(e: Ev) => patchD(d.id, { perPct: +e.target.value })} style={{ height: 24, width: 58, textAlign: 'right' }} />}</td>
+                    <td className="num mono">
+                      {locked ? d.perPct : (
+                        <span className="row ac gap6" style={{ justifyContent: 'flex-end' }}>
+                          <input className="input mono" type="number" value={d.perPct} onChange={(e: Ev) => patchD(d.id, { perPct: +e.target.value })} style={{ height: 24, width: 58, textAlign: 'right' }} />
+                          {autoPerPct != null && d.perPct !== autoPerPct && (
+                            <button className="btn sm icon" title={`Turunkan dari skenario rentang (${autoPerPct.toLocaleString('id-ID')})`} onClick={() => patchD(d.id, { perPct: autoPerPct })}><I.arrowLeft size={11} /></button>
+                          )}
+                        </span>
+                      )}
+                    </td>
                     <td className="num mono" style={{ fontWeight: 700, color: d.impact < 0 ? 'var(--red)' : d.impact > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{d.impact ? d.impact.toLocaleString('id-ID') : '—'}</td>
                     {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => delD(d.id)}><I.x size={11} /></button></td>}
                   </tr>
