@@ -367,10 +367,11 @@ dikirim.
 
 Keadaan perikatan dipulihkan (E-04 0/4, tanpa `docUid`, rantai kosong, nol lampiran hidup).
 
-**Batas jujur:** spek e2e **belum pernah dijalankan** di mesin ini — Postgres/Docker tak
-tersedia. Kebenarannya diperiksa terhadap tanda tangan helper & skema `attachment.upload`,
-dan jebakan self-review-nya diperbaiki berkat probe hidup; validasi sesungguhnya terjadi di
-CI job Playwright.
+**Batas jujur (ditutup di CI):** spek e2e tak dapat dijalankan di mesin ini — Postgres/Docker
+tak tersedia — sehingga kebenarannya semula hanya diperiksa terhadap tanda tangan helper &
+skema `attachment.upload`, plus perbaikan jebakan self-review dari probe hidup. **Job
+Playwright pada [PR #190](https://github.com/ari1945/Asseris/pull/190) kemudian menjalankannya
+di atas Postgres nyata dan HIJAU** — validasi itu kini nyata, bukan diasumsikan.
 
 **Utang PR-3:** tinjauan visual Ari belum dilakukan untuk keseluruhan arc.
 
