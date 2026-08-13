@@ -543,7 +543,7 @@ function CRServerChain({ rows, verify, nav }: any) {
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server Asseris</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (SMM 1). Menampilkan hingga 100 entri terbaru.</div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server Asseris</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (kebijakan KAP atas dokumentasi PERIKATAN — bukan angka yang ditetapkan SMM 1; retensi dokumentasi SISTEM MANAJEMEN MUTU ¶60 adalah rezim terpisah). Menampilkan hingga 100 entri terbaru.</div>
       </Panel>
     </>
   );
@@ -590,7 +590,7 @@ function CRRantai({ ctx }: any) {
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Arus ini adalah <b>sumber kebenaran tunggal</b> yang sama dengan modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span> — menggabungkan log aktivitas live, jejak firma kanonik &amp; peristiwa sistem. Tiap entri di-hash bersama hash entri sebelumnya (chain) sehingga perubahan retroaktif memutus rantai. Retensi 10 tahun (SMM 1).</div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Arus ini adalah <b>sumber kebenaran tunggal</b> yang sama dengan modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span> — menggabungkan log aktivitas live, jejak firma kanonik &amp; peristiwa sistem. Tiap entri di-hash bersama hash entri sebelumnya (chain) sehingga perubahan retroaktif memutus rantai. Retensi 10 tahun (kebijakan KAP atas dokumentasi PERIKATAN — bukan angka yang ditetapkan SMM 1; retensi dokumentasi SISTEM MANAJEMEN MUTU ¶60 adalah rezim terpisah).</div>
       </Panel>
     </>
   );

@@ -6,7 +6,11 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { para38Coverage, para39bBreaches, breachLabel } from './canon_smm_monitoring';
-import { SMM1_OBJECTIVE_COUNT, objectivesForComponent } from './canon_smm_objectives';
+import { SMM1_OBJECTIVE_COUNT, objectivesForComponent, objectiveCoverage, type ObjectiveWaiver, type ObjectiveLinkedRisk } from './canon_smm_objectives';
+import { smmDocCoverage, auditRetention, type RetentionPolicy } from './canon_smm_documentation';
+import { smmDocEvidence, evidencedElements, type DocEvidenceInput } from './canon_smm_doc_evidence';
+import { useFirmAttest } from './firm_attest';
+import { attestKeyFor } from './canon_firm_attest';
 import { toolkitHomes } from './canon_smm_toolkit';
 import { SoqmToolkitMap } from './view_isqm_toolkit';
 import type { SmmComponentCode } from './canon_smm_refs';
@@ -68,6 +72,35 @@ function SOQM() {
      `useState` polos, sehingga tautan ke tab mana pun selalu mendarat di
      Register — termasuk tautan "Evaluasi Tahunan" dari Governance. */
   const [tab, setTab] = useInitialTab('soqm', 'register');
+
+  /* PR-8b — status dokumentasi ¶57–60. `smmDocCoverage`/`auditRetention` sudah
+     dibangun PR-7 lalu tidak pernah dikonsumsi view mana pun; keduanya kini
+     dipasang, dengan `present` DITURUNKAN dari artefak (canon_smm_doc_evidence),
+     bukan dari daftar centang. Kesimpulan ¶54 yang dibaca adalah yang TERTULIS
+     & tersimpan — rekomendasi mesin bukan basis kesimpulan KAP (¶58(e)). */
+  /* Dibaca BERTIPE — `const A: any = AMS` akan meng-un-suppress seluruh berkas
+     terhadap ratchet no-explicit-any. */
+  const AD = AMS as unknown as {
+    QM_EVAL?: { period?: string };
+    CPE_REQ?: { year?: number };
+    QM_ROLES?: DocEvidenceInput['roles'];
+    QM_INSPECTIONS?: DocEvidenceInput['inspections'];
+    QM_INSP_FINDINGS?: DocEvidenceInput['findings'];
+    QM_NETWORK?: DocEvidenceInput['network'] & { inNetwork?: boolean };
+    QM_DOC_RETENTION?: RetentionPolicy & { basis?: string };
+    SMM_OBJECTIVE_WAIVERS?: readonly ObjectiveWaiver[];
+  };
+  const smmPeriod: string = (AD.QM_EVAL || {}).period || 'Tahun Berjalan';
+  const smmAttest = useFirmAttest(attestKeyFor('soqmAnnualEval', smmPeriod, (AD.CPE_REQ || {}).year), smmPeriod);
+  const docEvidence = smmDocEvidence({
+    roles: AD.QM_ROLES,
+    coverage: objectiveCoverage(risks as ObjectiveLinkedRisk[], AD.SMM_OBJECTIVE_WAIVERS || []),
+    risks,
+    inspections: AD.QM_INSPECTIONS,
+    findings: AD.QM_INSP_FINDINGS,
+    writtenConclusion: smmAttest.state ? smmAttest.state.conclusion : null,
+    network: AD.QM_NETWORK,
+  });
   const [sel, setSel] = useSOQM(null);
   const [openRca, setOpenRca] = useSOQM(null);
 
@@ -287,7 +320,14 @@ function SOQM() {
 
           {tab === 'lineage' && <SoqmLineage nav={nav} />}
 
-          {tab === 'toolkit' && <SoqmToolkitMap nav={nav} />}
+          {tab === 'toolkit' && (
+            <SoqmToolkitMap
+              nav={nav}
+              evidence={docEvidence}
+              coverage={smmDocCoverage(evidencedElements(docEvidence), Boolean(AD.QM_NETWORK && AD.QM_NETWORK.inNetwork))}
+              retention={{ ...auditRetention(AD.QM_DOC_RETENTION), basis: (AD.QM_DOC_RETENTION || {}).basis }}
+            />
+          )}
         </Panel>
         {tab === 'register' && <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Pendekatan berbasis risiko SMM 1 (¶23–27 · ¶35–47): tetapkan tujuan mutu → identifikasi & nilai risiko mutu (Likelihood × Dampak) → rancang & terapkan respons → pantau efektivitas → remediasi defisiensi dengan analisis akar masalah.</div>}
       </div></div>

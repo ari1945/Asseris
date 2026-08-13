@@ -47,7 +47,7 @@ const IMPORT = (function () {
       mapping: [['ID Dokumen', 'document_token'], ['Penandatangan', 'signer_email'], ['Status', 'sign_status'], ['Sertifikat', 'cert_serial']],
       syncs: [['2026-03-09 16:48', 'success', 1, 32], ['2026-03-09 11:20', 'success', 1, 29], ['2026-03-08 14:05', 'success', 3, 41]],
       webhooks: [['document.signed', true], ['document.declined', true]] },
-    { id: 'dms', name: 'Document Management (SharePoint)', cat: 'Penyimpanan', target: 'workpapers', desc: 'Arsip kertas kerja & retensi 10 tahun sesuai SMM.', status: 'connected', last: '5 menit lalu', icon: 'layers', uptime: 99.8, latency: 350, vol: 38420, schedule: 'Real-time (delta sync)', endpoint: 'graph.microsoft.com/v1.0/sites', auth: 'OAuth 2.0 · Azure AD', expiry: '2027-01-20',
+    { id: 'dms', name: 'Document Management (SharePoint)', cat: 'Penyimpanan', target: 'workpapers', desc: 'Arsip kertas kerja & retensi 10 tahun (kebijakan KAP atas dokumentasi perikatan, SA 230 — bukan SMM 1 ¶60).', status: 'connected', last: '5 menit lalu', icon: 'layers', uptime: 99.8, latency: 350, vol: 38420, schedule: 'Real-time (delta sync)', endpoint: 'graph.microsoft.com/v1.0/sites', auth: 'OAuth 2.0 · Azure AD', expiry: '2027-01-20',
       scopes: ['Files.ReadWrite.All', 'Sites.Read.All'],
       mapping: [['Indeks WP', 'item_id'], ['Engagement', 'folder_path'], ['Versi', 'version'], ['Retensi', 'retention_label']],
       syncs: [['2026-03-10 08:55', 'success', 24, 12], ['2026-03-10 08:50', 'success', 9, 11], ['2026-03-10 08:40', 'success', 31, 14]],

@@ -7,6 +7,11 @@ import {
   toolkitHomes, objectivesForDoc,
   type ToolkitDoc, type ToolkitHome,
 } from './canon_smm_toolkit';
+import {
+  SMM_DOC_ELEMENT_LABEL, RETENTION_DEFECT_LABEL,
+  type SmmDocCoverage, type RetentionAudit,
+} from './canon_smm_documentation';
+import { EVIDENCE_STATE_LABEL, type ElementEvidence } from './canon_smm_doc_evidence';
 
 /* ============================================================
    Asseris — Tab "Dokumentasi SMM" · Peta Toolkit IAPI (PR-8a-1)
@@ -45,13 +50,71 @@ function ModuleChips({ doc, nav }: { doc: ToolkitDoc; nav?: (id: string, o?: unk
   );
 }
 
-function SoqmToolkitMap({ nav }: { nav?: (id: string, o?: unknown) => void }) {
+function SoqmToolkitMap({ nav, evidence, coverage, retention }: {
+  nav?: (id: string, o?: unknown) => void;
+  evidence: readonly ElementEvidence[];
+  coverage: SmmDocCoverage;
+  retention: RetentionAudit & { basis?: string };
+}) {
   const [openSection, setOpenSection] = useTK(null as number | null);
   const homes = toolkitHomes();
   const gapDocs = [...homes.partial, ...homes.none];
 
   return (
     <div style={{ padding: 14, display: 'grid', gap: 14 }}>
+      {/* ---------- ¶57–60 · status dokumentasi sistem manajemen mutu ---------- */}
+      <Panel
+        title="Kelengkapan Dokumentasi Sistem Manajemen Mutu (SMM 1 ¶57–59)"
+        sub="¶57(c) menuntut dokumentasi yang MEMBERIKAN BUKTI — keadaan tiap elemen diturunkan dari artefak, tidak ada penandaan manual"
+      >
+        <div className="row jb ac" style={{ marginBottom: 10 }}>
+          <span className="tiny muted">
+            {coverage.present.length} dari {coverage.present.length + coverage.missing.length} elemen terbukti
+          </span>
+          <Badge kind={coverage.complete ? 'green' : 'amber'}>
+            {coverage.complete ? 'Lengkap' : 'Belum lengkap'}
+          </Badge>
+        </div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          {evidence.map((e) => {
+            const clr = e.state === 'evidenced' ? 'green' : e.state === 'missing' ? 'red' : 'gray';
+            return (
+              <div key={e.element} className="panel" style={{ padding: '9px 12px', boxShadow: 'none', borderLeft: '3px solid var(--' + (clr === 'gray' ? 'ink-4' : clr) + ')' }}>
+                <div className="row jb" style={{ alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{SMM_DOC_ELEMENT_LABEL[e.element]}</div>
+                    <div className="tiny muted" style={{ lineHeight: 1.5, marginTop: 2 }}>{e.detail}</div>
+                    <div className="tiny mono" style={{ color: 'var(--ink-4)', marginTop: 2 }}>{e.source}</div>
+                  </div>
+                  <Badge kind={clr}>{EVIDENCE_STATE_LABEL[e.state]}</Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
+
+      {/* ---------- ¶60 · retensi dokumentasi SMM ---------- */}
+      <Panel
+        title="Periode Retensi Dokumentasi SMM (SMM 1 ¶60)"
+        sub="rezim TERPISAH dari retensi kertas kerja perikatan (SA 230 & peraturan akuntan publik)"
+      >
+        <div className="row jb ac">
+          <div>
+            <div style={{ fontSize: 12, lineHeight: 1.55 }}>
+              {retention.years !== null
+                ? <>Periode retensi yang <b>ditetapkan KAP</b>: <b>{retention.years} tahun</b>.</>
+                : <>Periode retensi <b>belum ditetapkan</b>.</>}
+              {' '}¶60 <b>tidak menetapkan angka apa pun</b> — ia mewajibkan KAP yang menetapkannya.
+              {retention.basis && <> Dasar: {retention.basis}.</>}
+            </div>
+            {retention.defects.map((d) => (
+              <div key={d} className="tiny" style={{ color: 'var(--red)', marginTop: 4, lineHeight: 1.45 }}>{RETENTION_DEFECT_LABEL[d]}</div>
+            ))}
+          </div>
+          <Badge kind={retention.compliant ? 'green' : 'red'}>{retention.compliant ? 'Ditetapkan' : 'Belum ditetapkan'}</Badge>
+        </div>
+      </Panel>
       {/* Kepala — batas aset, bukan proforma */}
       <div className="panel" style={{ padding: '15px 18px', background: 'var(--blue-050)', borderColor: 'transparent', boxShadow: 'none' }}>
         <div className="row ac gap8">
