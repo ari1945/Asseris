@@ -101,7 +101,7 @@
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-sa620-expert-gate-server.md | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
-| docs/prd-smm1-smm2-adoption.md | In Progress — "Proceed." 2026-08-13 (Q-2=jaringan · Q-3=A192+A191 · Q-6=visual OK); PR-1 berjalan, Q-5 masih terbuka |
+| docs/prd-smm1-smm2-adoption.md | In Progress — "Proceed." 2026-08-13 (Q-2=jaringan · Q-3=A192+A191 · Q-6=visual OK); PR-1..PR-5 MERGED (#198·#200·#201·#202·#203), master 04eb065; PR-5b/6/7 menunggu; Q-5 masih terbuka |
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-w9-coretax-connector.md | Implemented — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven |
