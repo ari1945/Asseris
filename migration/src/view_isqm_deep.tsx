@@ -6,6 +6,11 @@ import { Badge, Btn, Panel, Spark } from './ui';
 import { CAP } from './rbac';
 import { FirmAttestCard, useFirmAttest } from './firm_attest';
 import { attestKeyFor, attestChainLinks, attestChainComplete, attestVoidedRoles, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import {
+  objectiveCoverage, coverageByComponent, objectivesForComponent,
+  SMM1_OBJECTIVE_COUNT, WAIVER_DEFECT_LABEL,
+  type ObjectiveWaiver, type ObjectiveLinkedRisk,
+} from './canon_smm_objectives';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -87,24 +92,36 @@ function SoqmHeatmap({ risks, onPick }: any) {
 }
 
 /* ============================================================
-   Tab: Tujuan Mutu — Komponen SMM ↔ Tujuan ↔ Risiko (¶25–28)
+   Tab: Tujuan Mutu — 27 tujuan mandatori SMM 1 ¶28–33
+   ------------------------------------------------------------
+   Bentuk lama tab ini menghitung "Cakupan Komponen" = komponen yang
+   punya ≥1 risiko dibagi jumlah komponen. Dengan enam risiko seed —
+   satu per komponen — angkanya 100%, padahal hanya 6 dari 27 tujuan
+   mandatori tersentuh. Komponen tanpa risiko pun tidak dilaporkan
+   sebagai lubang; kalimat penutupnya justru MENORMALKAN ketiadaan
+   ("ditangani lewat kontrol entitas") — sebuah keterangan yang
+   mengubah defisiensi rancangan menjadi kewajaran.
+
+   Sekarang cakupan dihitung atas 27 TUJUAN (¶24 · ¶28–33). Tujuan
+   tanpa risiko dan tanpa waiver ¶17 yang sah dilaporkan sebagai
+   DEFISIENSI RANCANGAN, bukan sel kosong.
    ============================================================ */
 function SoqmObjectives({ risks, nav, onPick }: any) {
   const A: any = AMS;
   const comps = A.QM_COMPONENTS || [];
-  /* indeks risiko per nama komponen */
-  const byComp = {};
-  risks.forEach((r: any) => { ((byComp as any)[r.comp] = (byComp as any)[r.comp] || []).push(r); });
+  const waivers = (A.SMM_OBJECTIVE_WAIVERS || []) as ObjectiveWaiver[];
 
-  const matched = (c: any) => {
-    const k = c.name.split(' ')[0];
-    return risks.filter((r: any) => r.comp.includes(k) || c.name.includes(r.comp.split(' ')[0]));
-  };
+  const cov = objectiveCoverage(risks as ObjectiveLinkedRisk[], waivers);
+  const byComp = coverageByComponent(cov);
+  const compCov = new Map(byComp.map((c) => [c.component, c]));
 
-  const total = risks.length;
-  const withObj = risks.length;            // semua risiko punya objective
-  const compsCovered = comps.filter((c: any) => matched(c).length > 0).length;
-  const compRate = Math.round(compsCovered / (comps.length || 1) * 100);
+  /* risiko yang menautkan diri ke satu tujuan */
+  const risksFor = (objId: string) =>
+    (risks || []).filter((r: any) => (r.objectives || []).indexOf(objId) >= 0);
+
+  const waiverFor = (objId: string) => cov.waiverAudit.find((w) => w.objectiveId === objId);
+
+  const addressed = cov.covered.length + cov.waived.length;
 
   return (
     <div style={{ padding: 14, display: 'grid', gap: 14 }}>
@@ -112,63 +129,120 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
         <div className="row ac gap8">
           <span style={{ color: 'var(--blue)' }}>{I ? <I.target size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
-            SMM 1 ¶24–¶26 (tujuan mandatori ¶28–33) — firma menetapkan <b>tujuan mutu</b> untuk setiap komponen SMM, mengidentifikasi <b>risiko mutu</b> atas pencapaiannya, lalu merancang & menerapkan <b>respons</b>. Tujuan, risiko & respons di bawah ditarik dari register <span className="mono">SOQM_RISKS</span> & dipetakan langsung ke 8 komponen pada <span className="mono">QM_COMPONENTS</span> (Governance).
+            SMM 1 ¶24 mewajibkan KAP menetapkan tujuan mutu <b>yang ditentukan standar</b> — <b>{SMM1_OBJECTIVE_COUNT} tujuan mandatori</b> pada ¶28–33 (5·2·2·6·8·4) — lalu mengidentifikasi <b>risiko mutu</b> atas pencapaiannya (¶25) dan merancang <b>respons</b> (¶26). Cakupan di bawah dihitung atas ke-{SMM1_OBJECTIVE_COUNT} tujuan itu, <b>bukan</b> atas jumlah komponen. Daftar tujuan kanonik: <span className="mono">canon_smm_objectives.ts</span>.
           </div>
         </div>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-        <D2KPI label="Komponen SMM" v={comps.length} sub={compsCovered + ' memiliki risiko terdaftar'} />
-        <D2KPI label="Tujuan Mutu Tertulis" v={withObj} sub={total + ' total risiko ditautkan'} />
-        <D2KPI label="Cakupan Komponen" v={compRate + '%'} accent={compRate >= 85 ? 'var(--green)' : 'var(--amber)'} sub="rasio komponen yang punya risiko & respons" />
-        <D2KPI label="Respons Efektif" v={risks.filter((r: any) => r.monitor === 'Efektif').length + '/' + total} accent="var(--green)" sub="dari aktivitas pemantauan" />
+        <D2KPI label="Tujuan Mandatori ¶28–33" v={SMM1_OBJECTIVE_COUNT} sub="ditetapkan standar, bukan pilihan firma" />
+        <D2KPI label="Tertangani" v={addressed + '/' + SMM1_OBJECTIVE_COUNT}
+          accent={cov.complete ? 'var(--green)' : 'var(--amber)'}
+          sub={cov.covered.length + ' punya risiko · ' + cov.waived.length + ' dikesampingkan ¶17'} />
+        <D2KPI label="Defisiensi Rancangan" v={cov.uncovered.length}
+          accent={cov.uncovered.length ? 'var(--red)' : 'var(--green)'}
+          sub="tujuan tanpa risiko & tanpa waiver sah" />
+        <D2KPI label="Cakupan Tujuan" v={cov.addressedPct + '%'}
+          accent={cov.complete ? 'var(--green)' : cov.addressedPct >= 60 ? 'var(--amber)' : 'var(--red)'}
+          sub={cov.complete ? 'seluruh tujuan tertangani' : 'belum lengkap — lihat rincian'} />
       </div>
 
+      {!cov.complete && (
+        <div className="panel" style={{ padding: '13px 16px', background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+          <div className="row ac gap8" style={{ marginBottom: 4 }}>
+            <span style={{ color: 'var(--amber)' }}>{I ? <I.alert size={16} /> : null}</span>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>{cov.uncovered.length} tujuan mutu mandatori belum punya risiko & respons</span>
+          </div>
+          <div className="tiny" style={{ lineHeight: 1.5 }}>
+            Ini adalah <b>defisiensi rancangan</b> sistem manajemen mutu (¶25–26), bukan sekadar data yang belum diisi.
+            Tiap tujuan wajib punya risiko mutu &amp; respons, <b>atau</b> dikesampingkan lewat waiver ¶17 yang berjustifikasi
+            dan disetujui berjenjang (diusulkan ¶20(b), disetujui ¶20(a)).
+          </div>
+        </div>
+      )}
+
       <Panel noBody>
-        <div className="panel-h"><h3>Tujuan Mutu per Komponen SMM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
+        <div className="panel-h"><h3>Tujuan Mutu Mandatori per Komponen</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
         <div style={{ padding: 14, display: 'grid', gap: 10 }}>
           {comps.map((c: any) => {
-            const cRisks = matched(c);
-            const monEff = cRisks.filter((r: any) => r.monitor === 'Efektif').length;
-            const defs = cRisks.filter((r: any) => r.deficiency).length;
-            const eff = cRisks.length ? Math.round(monEff / cRisks.length * 100) : 100;
-            const color = eff >= 85 ? 'var(--green)' : eff >= 60 ? 'var(--amber)' : 'var(--red)';
+            const cc = compCov.get(c.id);
+            const objs = objectivesForComponent(c.id);
+            const isProcess = objs.length === 0;
+            const color = isProcess ? 'var(--ink-4)'
+              : cc && cc.uncovered === 0 ? 'var(--green)'
+              : cc && cc.uncovered < cc.total ? 'var(--amber)' : 'var(--red)';
             return (
               <div key={c.id} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid ' + color }}>
                 <div className="row jb ac" style={{ marginBottom: 6 }}>
                   <div className="row ac gap8">
                     <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{c.id} · {c.ref}</span>
                     <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
-                    <Badge kind={c.score >= 88 ? 'green' : 'amber'}>Skor {c.score}</Badge>
+                    {!isProcess && cc && (
+                      <Badge kind={cc.uncovered === 0 ? 'green' : 'amber'}>{cc.covered + cc.waived}/{cc.total} tertangani</Badge>
+                    )}
                   </div>
                   <div className="row ac gap8 tiny muted">
                     <span>Pemilik {c.owner}</span><span>·</span>
-                    {/* C2 & C8 adalah PROSES (¶23–27 · ¶35–47) — bukan pemilik tujuan mutu
-                        ¶28–33, jadi `obj` sah bernilai 0. Ditulis "proses" agar tidak terbaca
-                        sebagai komponen yang kehilangan tujuannya. */}
-                    <span style={{ color: 'var(--ink-2)' }}>{c.obj > 0 ? `${c.obj} tujuan mandatori` : 'proses (tanpa tujuan ¶28–33)'} · {cRisks.length} risiko · <span style={{ color: defs ? 'var(--amber)' : 'var(--ink-4)', fontWeight: defs ? 700 : 400 }}>{defs} defisiensi</span></span>
+                    {/* C2 & C8 adalah PROSES (¶23–27 · ¶35–47) — bukan pemilik tujuan ¶28–33. */}
+                    <span style={{ color: 'var(--ink-2)' }}>
+                      {isProcess ? 'proses — tanpa tujuan ¶28–33' : `${objs.length} tujuan mandatori`}
+                      {!isProcess && cc && cc.uncovered > 0 && <span style={{ color: 'var(--red)', fontWeight: 700 }}> · {cc.uncovered} belum tertangani</span>}
+                    </span>
                   </div>
                 </div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 8, fontStyle: 'italic' }}>{c.desc}</div>
-                {cRisks.length > 0 ? (
-                  <div className="soqm-obj-list">
-                    {cRisks.map((r: any) => (
-                      <button key={r.id} type="button" className="soqm-obj-row" onClick={() => onPick && onPick(r.id)}>
-                        <span className="soqm-obj-id mono">{r.id}</span>
-                        <span className="soqm-obj-chain">
-                          <span className="soqm-obj-cell soqm-obj-goal" title="Tujuan Mutu"><span className="tiny upper muted">Tujuan</span>{r.objective}</span>
-                          <span className="soqm-obj-arr">→</span>
-                          <span className="soqm-obj-cell soqm-obj-risk" title="Risiko Mutu"><span className="tiny upper muted">Risiko</span>{r.risk}</span>
-                          <span className="soqm-obj-arr">→</span>
-                          <span className="soqm-obj-cell soqm-obj-resp" title="Respons"><span className="tiny upper muted">Respons</span>{r.response}</span>
-                        </span>
-                        <span className="soqm-obj-status"><Badge kind={r.monitor === 'Efektif' ? 'green' : r.monitor === 'Defisiensi' ? 'red' : 'gray'}>{r.monitor}</Badge></span>
-                      </button>
-                    ))}
+
+                {isProcess ? (
+                  /* TIDAK menormalkan ketiadaan: dinyatakan apa adanya — komponen ini
+                     memang bukan pemilik tujuan ¶28–33, jadi nol bukan lubang. */
+                  <div className="tiny muted" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 4, lineHeight: 1.45 }}>
+                    Komponen ini adalah <b>proses</b> ({c.ref}), bukan pemilik tujuan mutu ¶28–33.
+                    Efektivitasnya dinilai lewat tab <b>Pemantauan &amp; Inspeksi</b> dan <b>Evaluasi Tahunan</b>.
                   </div>
                 ) : (
-                  <div className="tiny muted" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 4 }}>
-                    Tidak ada risiko mutu spesifik terdaftar — tujuan komponen ini ditangani lewat kontrol entitas (governance, etika, &amp; pemantauan umum).
+                  <div style={{ display: 'grid', gap: 5 }}>
+                    {objs.map((o) => {
+                      const linked = risksFor(o.id);
+                      const wa = waiverFor(o.id);
+                      const state = linked.length ? 'covered' : (wa && wa.valid) ? 'waived' : 'uncovered';
+                      const kind = state === 'covered' ? 'green' : state === 'waived' ? 'blue' : 'red';
+                      const label = state === 'covered' ? `${linked.length} risiko` : state === 'waived' ? 'Dikesampingkan ¶17' : 'BELUM TERTANGANI';
+                      return (
+                        <div key={o.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '2px solid var(--' + (state === 'uncovered' ? 'red' : state === 'waived' ? 'blue' : 'green') + ')' }}>
+                          <div className="row jb" style={{ alignItems: 'flex-start', gap: 10 }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div className="row ac gap6" style={{ marginBottom: 2 }}>
+                                <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>¶{o.para}({o.item})</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{o.title}</span>
+                              </div>
+                              {o.aspects && (
+                                <ul style={{ margin: '3px 0 0 16px', padding: 0 }}>
+                                  {o.aspects.map((a, ai) => (
+                                    <li key={ai} className="tiny muted" style={{ lineHeight: 1.45 }}>{a}</li>
+                                  ))}
+                                </ul>
+                              )}
+                              {linked.length > 0 && (
+                                <div className="row ac gap6" style={{ marginTop: 5, flexWrap: 'wrap' }}>
+                                  {linked.map((r: any) => (
+                                    <button key={r.id} type="button" className="soqm-src" onClick={() => onPick && onPick(r.id)} title={r.risk}>
+                                      <span className="tiny mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</span>
+                                      <Badge kind={r.monitor === 'Efektif' ? 'green' : r.monitor === 'Defisiensi' ? 'red' : 'gray'}>{r.monitor}</Badge>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              {wa && !wa.valid && (
+                                <div className="tiny" style={{ marginTop: 5, color: 'var(--red)', lineHeight: 1.45 }}>
+                                  Waiver ¶17 <b>tidak sah</b> — {wa.defects.map((d) => WAIVER_DEFECT_LABEL[d]).join(' · ')}. Tujuan tetap dihitung defisiensi.
+                                </div>
+                              )}
+                            </div>
+                            <Badge kind={kind}>{label}</Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

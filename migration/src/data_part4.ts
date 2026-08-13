@@ -166,6 +166,15 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { id: 'C7', name: 'Informasi & Komunikasi', ref: componentParaLabel('C7'), score: 90, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C7').length, risks: 3, defs: 0, trend: [85, 87, 89, 90], desc: 'Arus informasi mutu internal & dengan jaringan/pihak eksternal yang relevan.' },
     { id: 'C8', name: 'Pemantauan & Remediasi', ref: componentParaLabel('C8'), score: 81, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C8').length, risks: 4, defs: 1, trend: [76, 78, 80, 81], desc: 'Aktivitas pemantauan, evaluasi temuan, komunikasi & remediasi defisiensi secara tepat waktu.' },
   ];
+  /* Waiver ¶17 atas tujuan mutu mandatori — SENGAJA KOSONG.
+     ¶17 membolehkan KAP tidak menerapkan ketentuan yang tak relevan dengan sifat
+     & kondisinya, tetapi pengesampingan tujuan MANDATORI adalah pertimbangan
+     profesional tingkat firma: ia sah hanya bila berjustifikasi DAN berjenjang
+     (diusulkan ¶20(b), disetujui ¶20(a) — lihat `canon_smm_objectives.ts`).
+     Registri ini tidak diisi contoh karangan: mengisinya akan MENUTUP tujuan
+     mandatori secara palsu, persis cacat yang arc ini perbaiki. */
+  const SMM_OBJECTIVE_WAIVERS: Array<{ objectiveId: string; justification?: string; proposedBy?: string; approvedBy?: string }> = [];
+
   const QM_ROLES = [
     { role: 'Tanggung Jawab Akhir atas SMM', person: 'Hartono Wijaya, CPA', title: 'Managing Partner', ref: 'SMM 1 ¶20(a)', since: '2019', note: 'Akuntabilitas tertinggi atas Sistem Manajemen Mutu firma.' },
     { role: 'Tanggung Jawab Operasional SMM', person: 'Anindya Pramesti, CPA', title: 'Quality Management Leader', ref: 'SMM 1 ¶20(b)', since: '2023', note: 'Pengelolaan operasional harian SMM & koordinasi evaluasi tahunan.' },
@@ -475,4 +484,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
