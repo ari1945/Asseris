@@ -149,8 +149,7 @@ function SoqmComponents({ risks, nav }: any) {
       </div>
       <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>
         Angka atas tiap kartu adalah <b>cakupan tujuan mandatori</b> ¶28–33 komponen itu, bukan skor
-        efektivitas — SMM 1 tidak mengenal skor komponen. C2 &amp; C8 adalah <b>proses</b>
-        (¶23–27 · ¶35–47), bukan pemilik tujuan.
+        efektivitas — SMM 1 tidak mengenal skor komponen. C2 &amp; C8 adalah <b>proses</b> (¶23–27 · ¶35–47), bukan pemilik tujuan.
       </div>
     </div>
   );

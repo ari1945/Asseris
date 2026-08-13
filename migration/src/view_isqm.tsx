@@ -1,12 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { para38Coverage, para39bBreaches, breachLabel } from './canon_smm_monitoring';
 import { SMM1_OBJECTIVE_COUNT, objectivesForComponent } from './canon_smm_objectives';
+import { toolkitHomes } from './canon_smm_toolkit';
+import { SoqmToolkitMap } from './view_isqm_toolkit';
 import type { SmmComponentCode } from './canon_smm_refs';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
@@ -62,7 +64,10 @@ function SOQM() {
   const inspFindings: any = AMS.QM_INSP_FINDINGS;
   const monActivities: any = AMS.QM_MON_ACTIVITIES;
   const engMeta: any = AMS.engMeta || ((): any => null);
-  const [tab, setTab] = useSOQM('register');
+  /* Deep-link tab: `#/soqm?tab=toolkit` & `nav('soqm',{tab})`. Sebelumnya
+     `useState` polos, sehingga tautan ke tab mana pun selalu mendarat di
+     Register — termasuk tautan "Evaluasi Tahunan" dari Governance. */
+  const [tab, setTab] = useInitialTab('soqm', 'register');
   const [sel, setSel] = useSOQM(null);
   const [openRca, setOpenRca] = useSOQM(null);
 
@@ -86,6 +91,10 @@ function SOQM() {
     { id: 'complaints', label: 'Keluhan & Tuduhan', count: complaints.filter((c: any) => c.status !== 'Selesai').length },
     { id: 'evaluation', label: 'Evaluasi Tahunan SMM' },
     { id: 'lineage', label: 'Tarikan Data Lintas-Modul' },
+    /* PR-8a-1 — peta Toolkit IAPI. Hitungannya adalah CELAH (dokumen tanpa
+       artefak di Asseris), sejalan dengan tab Defisiensi & Keluhan yang juga
+       menghitung hal yang menuntut tindakan. */
+    { id: 'toolkit', label: 'Dokumentasi SMM', count: toolkitHomes().partial.length + toolkitHomes().none.length },
   ];
   const sevColor = (l: any, i: any) => { const s = l * i; return s >= 12 ? 'var(--red)' : s >= 6 ? 'var(--amber)' : 'var(--green)'; };
   const selRisk = sel ? risks.find((r: any) => r.id === sel) : null;
@@ -277,6 +286,8 @@ function SOQM() {
           )}
 
           {tab === 'lineage' && <SoqmLineage nav={nav} />}
+
+          {tab === 'toolkit' && <SoqmToolkitMap nav={nav} />}
         </Panel>
         {tab === 'register' && <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Pendekatan berbasis risiko SMM 1 (¶23–27 · ¶35–47): tetapkan tujuan mutu → identifikasi & nilai risiko mutu (Likelihood × Dampak) → rancang & terapkan respons → pantau efektivitas → remediasi defisiensi dengan analisis akar masalah.</div>}
       </div></div>

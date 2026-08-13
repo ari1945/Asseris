@@ -17,6 +17,7 @@ import {
 } from './canon_smm_evaluation';
 import { collectSmmDeficiencies, originOf } from './canon_smm_deficiencies';
 import { componentMetrics } from './canon_smm_component_metrics';
+import { toolkitDocsFor, danglingDocsFor } from './canon_smm_toolkit';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -241,6 +242,30 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
                               {wa && !wa.valid && (
                                 <div className="tiny" style={{ marginTop: 5, color: 'var(--red)', lineHeight: 1.45 }}>
                                   Waiver ¶17 <b>tidak sah</b> — {wa.defects.map((d) => WAIVER_DEFECT_LABEL[d]).join(' · ')}. Tujuan tetap dihitung defisiensi.
+                                </div>
+                              )}
+                              {/* PR-8a-1 — dokumen Toolkit IAPI yang menjadi ILUSTRASI
+                                  respons bagi tujuan ini. Saran, bukan ketentuan: Matriks
+                                  melarang memakainya tanpa pertimbangan relevansi. */}
+                              {toolkitDocsFor(o.id).length > 0 && (
+                                <div className="row ac gap6" style={{ marginTop: 5, flexWrap: 'wrap' }}>
+                                  <span className="tiny muted">Ilustrasi respons (Toolkit IAPI):</span>
+                                  {toolkitDocsFor(o.id).map((d) => (
+                                    <button
+                                      key={d.no}
+                                      type="button"
+                                      className="soqm-src"
+                                      title={d.title + ' — ' + (d.home === 'mapped' ? 'ada modul penampung' : 'CELAH: ' + (d.gap || ''))}
+                                      onClick={() => nav && nav(d.modules[0], { from: 'soqm' })}
+                                    >
+                                      <span className="tiny mono" style={{ fontWeight: 700, color: d.home === 'mapped' ? 'var(--blue)' : 'var(--amber)' }}>{d.no}</span>
+                                    </button>
+                                  ))}
+                                  {danglingDocsFor(o.id).map((no) => (
+                                    <span key={no} className="tiny mono" style={{ color: 'var(--ink-4)' }} title="Dirujuk Matriks tetapi tidak ada di Toolkit V3">
+                                      {no} ⚠
+                                    </span>
+                                  ))}
                                 </div>
                               )}
                             </div>
