@@ -32,7 +32,7 @@ import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, ajeDueAt, buildAje
   const cliById = (id: any) => (A.CLIENTS || []).find((c: any) => c.id === id) || null;
   const short = A.shortName || ((s: any) => (s || '').replace(/^PT\s+/, ''));
 
-  /* peran tetap firma (ISQM) — diisi dari penugasan kanonik bila ada */
+  /* peran tetap firma (SMM) — diisi dari penugasan kanonik bila ada */
   const MANAGING = 'Hartono Wijaya, CPA';
   const EQR_REV = 'Rudi Gunawan, CPA';
   const QUALITY = 'Rudi Gunawan, CPA';

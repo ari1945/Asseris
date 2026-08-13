@@ -87,7 +87,7 @@ export interface AjeChainResult {
   contentHash: string;
 }
 
-/** Ambang nilai yang menuntut langkah EQR (ISQM 2 / SA 220.36). */
+/** Ambang nilai yang menuntut langkah EQR (SMM 2 / SA 220.36). */
 export const AJE_EQR_THRESHOLD = 2e9;
 /** Ambang nilai yang menaikkan prioritas antrean (bukan menambah langkah). */
 export const AJE_MID_THRESHOLD = 5e8;
@@ -339,7 +339,7 @@ export function stepAuthority(it: AjeApprovalItemLite, user: AjeSessionUser): { 
   /* PR-E — SATU ORANG, SATU LANGKAH. Kapabilitas bukan identitas: `EQR_REVIEW`
      ada pada PARTNER_BASE, sehingga partner yang telah menandatangani langkah
      Engagement Partner masih lolos di langkah EQR pada jurnal yang SAMA. Itu
-     menghapus arti penelaahan pengendalian mutu (ISQM 2 / SA 220.36).
+     menghapus arti penelaahan pengendalian mutu (SMM 2 / SA 220.36).
      Hanya langkah ber-status `approved` yang dihitung: rantai membawa NAMA
      penerima tugas pada langkah yang masih menunggu, dan nama itu bukan
      tanda tangan. */
@@ -349,7 +349,7 @@ export function stepAuthority(it: AjeApprovalItemLite, user: AjeSessionUser): { 
   if (priorSignature) {
     return {
       ok: false,
-      reason: `Anda telah menandatangani langkah "${priorSignature.role}" pada rantai ini; satu orang tidak dapat mengisi dua langkah (ISQM 2 / SA 220.36).`,
+      reason: `Anda telah menandatangani langkah "${priorSignature.role}" pada rantai ini; satu orang tidak dapat mengisi dua langkah (SMM 2 / SA 220.36).`,
     };
   }
   if (it.kind !== 'AJE') {

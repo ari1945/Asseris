@@ -17,7 +17,7 @@ import { STANDARDS_REGISTRY } from './data_knowledge';
 const { useState: useStateMX, useMemo: useMemoMX } = React;
 
 /* type → badge kind */
-const STD_TYPE_KIND = { SA: 'blue', PSAK: 'green', SAK: 'green', SPR: 'amber', SJAH: 'amber', SPA: 'amber', SPM: 'navy', KEPAP: 'navy' };
+const STD_TYPE_KIND = { SA: 'blue', PSAK: 'green', SAK: 'green', SPR: 'amber', SJAH: 'amber', SPA: 'amber', SMM: 'navy', KEPAP: 'navy' };
 const PHASE_ORDER = ['Perencanaan', 'Pelaksanaan', 'Pelaporan', 'Perikatan Lain', 'Mutu', 'Akuntansi'];
 
 /* Penomoran PSAK selaras-IFRS (efektif 2024) — alias atas nomor lama.
@@ -83,7 +83,7 @@ function ComplianceMatrix() {
   const isApplicable = (code: any) => appl[code] !== false;
   const toggleAppl = (code: any) => setAppl((a: any) => ({ ...a, [code]: a[code] === false ? true : false }));
 
-  const types = ['Semua', 'SA', 'PSAK', 'SAK', 'SPR', 'SJAH', 'SPM', 'SPA', 'KEPAP'];
+  const types = ['Semua', 'SA', 'PSAK', 'SAK', 'SPR', 'SJAH', 'SMM', 'SPA', 'KEPAP'];
   const covs = [['Semua', 'Semua'], ['checklist', 'Checklist'], ['module', 'Modul'], ['gap', 'Belum']];
 
   const rows = useMemoMX(() => STANDARDS_REGISTRY.filter(r => {

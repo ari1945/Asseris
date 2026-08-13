@@ -1,6 +1,6 @@
 /* ============================================================
    Asseris — Atestasi Mutu Firma: ATURAN (murni)
-   ISQM 1 / SPM 1 ¶20 · ¶53–54 — SUMBER KEBENARAN TUNGGAL.
+   SMM 1 ¶20 · ¶53–54 — SUMBER KEBENARAN TUNGGAL.
    ------------------------------------------------------------
    Tiga cacat yang ditutup modul ini (PRD Kesiapan P2PK · PR-3):
 
@@ -9,7 +9,7 @@
       baca server hanya menerima empat digit
       (`/^firmAttest\.soqmAnnualEval\.\d{4}$/`). `state.get` menolak 403, dan
       penolakan itu ditelan `.catch()` di `useServerState` sebagai "offline" —
-      sehingga tanda tangan evaluasi SPM tahunan hanya hidup di localStorage
+      sehingga tanda tangan evaluasi SMM tahunan hanya hidup di localStorage
       browser penandatangannya. `attestYear()` menormalisasi kuncinya.
 
    2. TANDA TANGAN TAK TERIKAT ISI. `saveConclusion` menyalin `chain` apa
@@ -148,10 +148,10 @@ export const FA_LINK_LABEL: Record<FaLinkStatus, string> = {
    dapat menyimpang antara layar dan penegakan.
    ============================================================ */
 
-/** Evaluasi tahunan SPM — dua lapis sesuai pembagian ISQM 1 ¶20. */
+/** Evaluasi tahunan SMM — dua lapis sesuai pembagian SMM 1 ¶20. */
 export const SOQM_ANNUAL_ROLES: readonly FaRole[] = [
-  { id: 'leader', label: 'Pimpinan SOQM — tanggung jawab operasional (ISQM 1 ¶20(b))', cap: CAP.SIGNOFF_REVIEWER },
-  { id: 'approver', label: 'Managing Partner — tanggung jawab akhir (ISQM 1 ¶20(a))', cap: CAP.FIRM_ADMIN, needsPrev: 'leader' },
+  { id: 'leader', label: 'Pimpinan SOQM — tanggung jawab operasional (SMM 1 ¶20(b))', cap: CAP.SIGNOFF_REVIEWER },
+  { id: 'approver', label: 'Managing Partner — tanggung jawab akhir (SMM 1 ¶20(a))', cap: CAP.FIRM_ADMIN, needsPrev: 'leader' },
 ];
 
 /** Rantai untuk sebuah kunci atestasi (`firmAttest.<name>.<tahun>` atau `<name>.<tahun>`). */

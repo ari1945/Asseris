@@ -151,7 +151,7 @@ function F2400Continuum() {
             {[
               'Kerangka pelaporan keuangan dapat diterima (mis. SAK / SAK EP)',
               'Persetujuan atas premis tanggung jawab manajemen',
-              'Independensi & etika terpenuhi (SPM 1 / kode etik)',
+              'Independensi & etika terpenuhi (SMM 1 / kode etik)',
               'Tidak ada pembatasan lingkup yang menghalangi simpulan',
             ].map((t, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>

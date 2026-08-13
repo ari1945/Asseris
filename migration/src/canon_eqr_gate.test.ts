@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { eqrGateFor, eqrGateDetail, EQR_GATE_LABEL, type EqrReviewRow } from './canon_eqr_gate';
 
 /* ============================================================
-   Gerbang EQR (ISQM 2 / SPM 2) — aturan gagal-TERTUTUP.
+   Gerbang EQR (SMM 2 / SMM 2) — aturan gagal-TERTUTUP.
 
    Uji inti di sini adalah "PIE tanpa baris EQR". Terhadap logika
    lama (wp_signoff.eqrStatusFor + view_opinion_parts) kasus itu

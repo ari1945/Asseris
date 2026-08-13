@@ -25,7 +25,7 @@ import {
 } from './continuance_engine';
 
 /* ============================================================
-   Asseris — Keberlanjutan Klien (ISQM 1 ¶33–34 / SA 220)
+   Asseris — Keberlanjutan Klien (SMM 1 ¶30 · ¶34(d) / SA 220)
    Register pengawasan KEBERLANJUTAN atas portofolio klien aktif
    (bukan penerimaan klien baru — itu modul `onboarding`). Pemicu
    diturunkan dari kanon via continuance_engine; penilaian berbobot +
@@ -57,7 +57,7 @@ const CONTINUANCE_SEED: Record<string, StoredDecision> = {
 const DECISIONS: ContinuanceDecision[] = ['Lanjut', 'Lanjut dengan Syarat', 'Tidak Dilanjutkan'];
 
 /* Riwayat keputusan keberlanjutan siklus-siklus sebelumnya (read-only) —
-   memperlihatkan kontinuitas penilaian tahunan (ISQM 1: reasesmen berulang). */
+   memperlihatkan kontinuitas penilaian tahunan (SMM 1: reasesmen berulang). */
 type CycleEntry = { decision: ContinuanceDecision; approver: string; date: string };
 const CONTINUANCE_HISTORY: Record<string, Record<string, CycleEntry>> = {
   '2025': {
@@ -420,7 +420,7 @@ function ContinuanceRegister() {
                   <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 7 }}>
                     <Btn sm variant="ghost" onClick={() => nav('onboarding', { from: 'continuance' })}><I.flag size={13} /> PMPJ / Engagement Letter (SA 210)</Btn>
                     <Btn sm variant="ghost" onClick={() => nav('pppk', { from: 'continuance' })}><I.report size={13} /> Rotasi AP & Pelaporan PPPK</Btn>
-                    <Btn sm variant="ghost" onClick={() => nav('governance', { from: 'continuance' })}><I.building size={13} /> ISQM 1 · Komponen C4</Btn>
+                    <Btn sm variant="ghost" onClick={() => nav('governance', { from: 'continuance' })}><I.building size={13} /> SMM 1 · Komponen C4</Btn>
                   </div>
                 </Panel>
               </div>
@@ -433,7 +433,7 @@ function ContinuanceRegister() {
               <div className="panel-h">
                 <h3>Kertas Kerja Keberlanjutan — {sel.client.replace('PT ', '')}</h3>
                 <div style={{ flex: 1 }} />
-                <span className="tiny muted">SA 220 · ISQM 1 ¶34 · siklus {REF_YEAR}</span>
+                <span className="tiny muted">SA 220 · SMM 1 ¶34 · siklus {REF_YEAR}</span>
               </div>
               <div className="grid" style={{ gridTemplateColumns: '1.35fr 1fr', gap: 0 }}>
                 {/* KIRI — penilaian berbobot */}
@@ -497,7 +497,7 @@ function ContinuanceRegister() {
                             ? <Btn sm variant="primary" onClick={approveWp}><I.check size={13} /> Setujui &amp; Kunci</Btn>
                             : <Btn sm variant="ghost" onClick={reopenWp}><I.sync size={13} /> Buka kembali</Btn>}
                         </div>
-                        <div className="tiny muted" style={{ marginTop: 6 }}>Persetujuan atas nama Anda ({me}) — SA 220 / ISQM 1.</div>
+                        <div className="tiny muted" style={{ marginTop: 6 }}>Persetujuan atas nama Anda ({me}) — SA 220 / SMM 1.</div>
                       </>
                     ) : (
                       <div className="tiny muted">Hanya Partner (otoritas firma) yang mengunci keputusan. Anda dapat menilai & menelaah.</div>

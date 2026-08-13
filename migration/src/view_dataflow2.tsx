@@ -196,7 +196,7 @@ function DFJejak() {
           <div style={{ padding: 14 }}>
             <HBars rows={byUser.map((u: any) => ({ label: u.user, value: u.n, right: u.n + ' aksi', color: 'var(--navy)' }))} />
             <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent', marginTop: 12 }}>
-              <div className="tiny" style={{ lineHeight: 1.5 }}><I.lock size={11} /> Jejak audit bersifat append-only & tak-terhapus (ISQM 1) — mendukung penelusuran perubahan data lintas-modul.</div>
+              <div className="tiny" style={{ lineHeight: 1.5 }}><I.lock size={11} /> Jejak audit bersifat append-only & tak-terhapus (SMM 1) — mendukung penelusuran perubahan data lintas-modul.</div>
             </div>
           </div>
         </Panel>

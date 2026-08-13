@@ -101,7 +101,7 @@ import { AMS_CANON } from './canon';
       { k: 'e-Meterai dibubuhkan pada dokumen perdata/perjanjian', std: 'UU 10/2020 jo. PP 86/2021', status: summary.meteraiPending ? 'Parsial' : 'Aktif', ev: summary.meteraiAffixed + '/' + summary.meteraiReq + ' surat perikatan bermeterai' },
       { k: 'Pemeriksaan validitas sertifikat (chain & masa berlaku)', std: 'PP 71/2019', status: 'Aktif', ev: 'Verifikasi otomatis saat penandatanganan' },
       { k: 'Stempel waktu tepercaya (trusted timestamp)', std: 'ISO/IEC 18014', status: 'Aktif', ev: 'Melekat pada setiap TTE' },
-      { k: 'Penyimpanan bukti segel & berita acara TTE', std: 'SA 230 / ISQM 1', status: 'Aktif', ev: 'Tertaut ke Document Management (WORM)' },
+      { k: 'Penyimpanan bukti segel & berita acara TTE', std: 'SA 230 / SMM 1', status: 'Aktif', ev: 'Tertaut ke Document Management (WORM)' },
     ];
 
     return { asOf: ASOF, providers, docs, summary, controls };

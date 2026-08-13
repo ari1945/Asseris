@@ -58,9 +58,9 @@ const CKP_MILESTONES = [
   { n: 4, name: 'Eksekusi Prosedur Substantif', phase: 'Eksekusi', date: '2026-03-20', owner: 'Tim Lapangan', status: 'active', sa: 'SA 330 · SA 500' },
   { n: 5, name: 'Penyelesaian Area Spesifik (ECL · Sewa · GC)', phase: 'Specifics', date: '2026-03-24', owner: 'Sinta Wulandari', status: 'active', sa: 'PSAK 71/73 · SA 570' },
   { n: 6, name: 'Draft Laporan Keuangan & SAD', phase: 'Finalisasi', date: '2026-03-27', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 450' },
-  { n: 7, name: 'Review Partner & EQR (ISQM)', phase: 'Finalisasi', date: '2026-03-29', owner: 'Hartono Wijaya', status: 'upcoming', sa: 'ISQM 2 · SA 220' },
+  { n: 7, name: 'Review Partner & EQR (SMM)', phase: 'Finalisasi', date: '2026-03-29', owner: 'Hartono Wijaya', status: 'upcoming', sa: 'SMM 2 · SA 220' },
   { n: 8, name: 'Tanda Tangan Opini & Penerbitan', phase: 'Finalisasi', date: '2026-03-31', owner: 'Hartono Wijaya', status: 'upcoming', sa: 'SA 700' },
-  { n: 9, name: 'Arsip Dokumentasi (ISQM · 60 hari)', phase: 'Arsip', date: '2026-04-30', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 230' },
+  { n: 9, name: 'Arsip Dokumentasi (SMM · 60 hari)', phase: 'Arsip', date: '2026-04-30', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 230' },
 ];
 
 /* per-member effort weighting (aligned to TEAM order) */
@@ -481,7 +481,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
                 </div>
               </div>
             ))}
-            <div className="ckp-info" style={{ marginTop: 8 }}><I.lock size={13} /> Arsip dokumentasi wajib selesai ≤60 hari setelah tanggal opini (ISQM 1 · SA 230).</div>
+            <div className="ckp-info" style={{ marginTop: 8 }}><I.lock size={13} /> Arsip dokumentasi wajib selesai ≤60 hari setelah tanggal opini (SMM 1 · SA 230).</div>
           </div>
         </Panel>
       </div>
@@ -717,7 +717,7 @@ function TabRisiko({ D, e, nav }: any) {
               <Gauge pct={ready / gate.length * 100} size={58} stroke={8} tone={ready === gate.length ? 'green' : ready >= gate.length * 0.6 ? 'amber' : 'red'} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{ready} / {gate.length} kriteria siap</div>
-                <div className="tiny muted">Gate penerbitan laporan auditor (SA 700 · ISQM 2)</div>
+                <div className="tiny muted">Gate penerbitan laporan auditor (SA 700 · SMM 2)</div>
               </div>
             </div>
             {/* rekap kelengkapan kertas kerja auditable (sign-off + bukti kanonik) */}

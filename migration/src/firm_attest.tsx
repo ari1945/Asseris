@@ -2,7 +2,7 @@
    Asseris — Atestasi Mutu Firma (level FIRMA)
    ------------------------------------------------------------
    Komponen BERSAMA agar artefak mutu level-firma (mis. evaluasi
-   tahunan SOQM ISQM 1 ¶53–54, deklarasi independensi) menjadi
+   tahunan SOQM SMM 1 ¶53–54, deklarasi independensi) menjadi
    AUDITABLE: kesimpulan tertulis + rantai tanda tangan otoritas
    (RBAC-gated) + tanggal + periode — tersimpan & bertahan reload.
 
@@ -150,7 +150,7 @@ function FirmAttestCard({ attestKey, period, roles, title, engineLabel, engineHi
       )}
       {!hasConclusion && (
         <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 4 }}>
-          <I.alert size={11} /> Tanda tangan terkunci hingga kesimpulan tertulis disimpan (ISQM 1 ¶53 — dasar evaluasi terdokumentasi).
+          <I.alert size={11} /> Tanda tangan terkunci hingga kesimpulan tertulis disimpan (SMM 1 ¶53 — dasar evaluasi terdokumentasi).
         </div>
       )}
       <div style={{ borderTop: '1px solid var(--line-soft)', margin: '4px 0 2px' }} />

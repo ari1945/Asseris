@@ -1,6 +1,6 @@
 /* ============================================================
    Asseris — Gerbang Penelaahan Mutu Perikatan (EQR)
-   ISQM 2 / SPM 2 · SA 220.36 — SUMBER KEBENARAN TUNGGAL.
+   SMM 2 / SMM 2 · SA 220.36 — SUMBER KEBENARAN TUNGGAL.
    ------------------------------------------------------------
    Aturan gerbang semula terbelah dua: `eqrStatusFor` (wp_signoff)
    memutuskan "ada/lolos", lalu `view_opinion_parts` menambahkan

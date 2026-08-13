@@ -228,7 +228,7 @@ function PPPKReport() {
               </div>
               <div className="panel" style={{ padding: '12px 14px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
                 <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--blue)' }}><I.book size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Dasar Kewajiban Pelaporan</span></div>
-                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>KAP wajib menyampaikan Laporan Tahunan kepada Pusat Pembinaan Profesi Keuangan (P2PK/PPPK) Kementerian Keuangan paling lambat <b>30 April</b> setiap tahun, memuat identitas & susunan AP, daftar klien dan jasa, jumlah & jenis opini, realisasi PPL, serta gambaran Sistem Pengelolaan Mutu (SPM) — sesuai PMK 154/PMK.01/2017 sebagaimana diubah dengan <b>PMK 186/PMK.01/2021</b> dan UU 5/2011 tentang Akuntan Publik. Penyampaian dilakukan secara <b>elektronik (e-reporting PPPK)</b> dengan tanda terima elektronik sebagai bukti.</p>
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>KAP wajib menyampaikan Laporan Tahunan kepada Pusat Pembinaan Profesi Keuangan (P2PK/PPPK) Kementerian Keuangan paling lambat <b>30 April</b> setiap tahun, memuat identitas & susunan AP, daftar klien dan jasa, jumlah & jenis opini, realisasi PPL, serta gambaran Sistem Manajemen Mutu (SMM) — sesuai PMK 154/PMK.01/2017 sebagaimana diubah dengan <b>PMK 186/PMK.01/2021</b> dan UU 5/2011 tentang Akuntan Publik. Penyampaian dilakukan secara <b>elektronik (e-reporting PPPK)</b> dengan tanda terima elektronik sebagai bukti.</p>
               </div>
             </div>
           )}

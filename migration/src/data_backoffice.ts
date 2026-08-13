@@ -127,8 +127,8 @@ const BO: any = (function () {
 
   /* ---------------- Retensi & Arsip Dokumen (SA 230) ---------------- */
   const RETENTION_POLICY = [
-    { jenis: 'Kertas Kerja Audit (final)', dasar: 'SA 230 / SPM — min. 5 thn sejak laporan', years: 7, format: 'Elektronik terenkripsi', note: 'WHR menetapkan 7 tahun (melebihi minimum).' },
-    { jenis: 'File Asurans & Reviu (SPR/SJAH)', dasar: 'SPM 1', years: 7, format: 'Elektronik', note: '' },
+    { jenis: 'Kertas Kerja Audit (final)', dasar: 'SA 230 / SMM — min. 5 thn sejak laporan', years: 7, format: 'Elektronik terenkripsi', note: 'WHR menetapkan 7 tahun (melebihi minimum).' },
+    { jenis: 'File Asurans & Reviu (SPR/SJAH)', dasar: 'SMM 1', years: 7, format: 'Elektronik', note: '' },
     { jenis: 'Dokumen Perikatan & Kontrak Klien', dasar: 'Kebijakan firma', years: 10, format: 'Elektronik + fisik', note: 'Termasuk surat perikatan & representasi.' },
     { jenis: 'Dokumen Pajak & Keuangan Firma', dasar: 'UU KUP — 10 tahun', years: 10, format: 'Elektronik', note: '' },
     { jenis: 'Data Pribadi / PMPJ (AML)', dasar: 'PJK3 / POJK — 5 tahun pasca hubungan', years: 5, format: 'Elektronik terenkripsi', note: 'Tunduk UU PDP.' },
@@ -177,7 +177,7 @@ const BO: any = (function () {
     { id: 'CLM-02', polis: 'PII', polisId: 'POL-PII', litId: 'LIT-03', perihal: 'Notifikasi sengketa PT Bina Usaha (potensi klaim)', insiden: '2025-09-15', diajukan: '2025-09-22', nilai: 1_200_000_000, reserve: 950_000_000, recovered: 0, status: 'Dilaporkan' },
     { id: 'CLM-01', polis: 'Cyber', polisId: 'POL-CYB', litId: null, perihal: 'Insiden phishing — pemulihan & forensik', insiden: '2025-10-08', diajukan: '2025-10-15', nilai: 240_000_000, reserve: 0, recovered: 165_000_000, status: 'Dibayar' },
   ];
-  /* RISK_REGISTER — SSOT register risiko firma (entity-level, ISQM 1).
+  /* RISK_REGISTER — SSOT register risiko firma (entity-level, SMM 1).
      l/i = skor RESIDUAL (setelah kontrol) — tetap dipakai konsumen lama.
      il/ii = skor INHEREN (sebelum kontrol). module = modul SSOT mitigasi.
      transferId = polis yang mentransfer risiko. kri = indikator risiko kunci. */

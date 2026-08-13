@@ -15,7 +15,7 @@
         menerimanya — kapabilitas cocok, identitas tak diperiksa, tanggal
         mundur tak diperiksa.
 
-     2. `wpChainSelfReview` (ISQM 2 / SA 220.36) hanya hidup di tab Sign-off.
+     2. `wpChainSelfReview` (SMM 2 / SA 220.36) hanya hidup di tab Sign-off.
         Footer `quickSign` menembusnya, dan server tak punya padanannya sama
         sekali. WP '100' ber-preparer 'Anindya P.' yang juga Audit Manager:
         satu klik menghasilkan rantai yang preparer dan reviewer-nya orang
@@ -143,7 +143,7 @@ export function signedByActor(sig: unknown, actor: WpActor): boolean {
 }
 
 /* ============================================================
-   SATU ORANG, SATU LANGKAH (ISQM 2 / SA 220.36)
+   SATU ORANG, SATU LANGKAH (SMM 2 / SA 220.36)
    ------------------------------------------------------------
    Dipindah dari `wp_canon.ts` (di-re-export dari sana demi kompatibilitas).
    Alasannya sama seperti `stepAuthority` pada rantai AJE: gate SoD per-slot
@@ -165,7 +165,7 @@ export interface WpSelfReview {
 const FREE: WpSelfReview = { blocked: false, priorSlot: '', reason: '' };
 
 function selfReviewReason(priorSlot: string): string {
-  return `Anda sudah menandatangani slot ${WP_SLOT_LABEL[priorSlot] || priorSlot} pada kertas kerja ini — satu orang, satu langkah (ISQM 2 / SA 220.36).`;
+  return `Anda sudah menandatangani slot ${WP_SLOT_LABEL[priorSlot] || priorSlot} pada kertas kerja ini — satu orang, satu langkah (SMM 2 / SA 220.36).`;
 }
 
 /** Varian berbasis NAMA — bentuk lama, dipakai UI yang hanya punya nama sesi. */

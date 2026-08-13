@@ -11,7 +11,7 @@ import {
 } from './member_independence';
 
 /* ============================================================
-   Asseris — Independensi per-Anggota Tim (SA 220.16–24 · ISQM 1 · Kode Etik)
+   Asseris — Independensi per-Anggota Tim (SA 220.16–24 · SMM 1 · Kode Etik)
    Matriks deklarasi anggota × ancaman untuk perikatan aktif. Setiap anggota
    menandatangani deklarasinya (self); Partner (FIRM_ADMIN) dapat mengelola
    atas nama. Kesimpulan independensi tingkat-perikatan (bersih/ter-safeguard/
@@ -106,7 +106,7 @@ function MemberIndependence() {
                   {eng.clear ? 'Independensi tim bersih — prasyarat sign-off terpenuhi' : 'Independensi belum bersih — sign-off/opini diblokir'}
                 </div>
                 <div className="tiny muted" style={{ marginTop: 2 }}>
-                  SA 220.16–24 · ISQM 1 · Kode Etik/IESBA 290 — setiap anggota menyatakan ancaman & pengaman; ancaman tak-tersafeguard atau deklarasi belum ditandatangani memblok penerbitan opini.
+                  SA 220.16–24 · SMM 1 · Kode Etik/IESBA 290 — setiap anggota menyatakan ancaman & pengaman; ancaman tak-tersafeguard atau deklarasi belum ditandatangani memblok penerbitan opini.
                 </div>
               </div>
             </div>

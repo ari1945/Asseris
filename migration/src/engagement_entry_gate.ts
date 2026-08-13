@@ -1,11 +1,11 @@
 /* ============================================================
-   Asseris — Gerbang Masuk Perikatan (SA 210 / SA 220 / ISQM 1)
+   Asseris — Gerbang Masuk Perikatan (SA 210 / SA 220 / SMM 1)
    PRD: docs/prd-acceptance-to-engagement-flow-sa210.md (M1).
 
    Fungsi MURNI — tanpa `window`, React, atau I/O (fit harness node,
    pola sama `rbac.ts`). Menegakkan prasyarat transisi Perencanaan→Eksekusi:
      (1) keputusan PENERIMAAN (klien baru) / KEBERLANJUTAN (klien lanjutan)
-         disetujui — SA 220 / ISQM 1 ¶33–34, DAN
+         disetujui — SA 220 / SMM 1 ¶30 · ¶34(d), DAN
      (2) SURAT PERIKATAN ditandatangani — SA 210.
 
    Penegakan & UI = M4 (di-wire ke `engagementGate` cabang →Eksekusi,
@@ -111,8 +111,8 @@ export function engagementEntryGate(ctx: EngagementEntryContext | null | undefin
     {
       key: 'accepted',
       label: kind === 'Keberlanjutan'
-        ? 'Keputusan keberlanjutan klien disetujui (ISQM 1 ¶33–34 / SA 220)'
-        : 'Keputusan penerimaan klien disetujui (SA 220 / ISQM 1)',
+        ? 'Keputusan keberlanjutan klien disetujui (SMM 1 ¶30 · ¶34(d) / SA 220)'
+        : 'Keputusan penerimaan klien disetujui (SA 220 / SMM 1)',
       met: accepted,
       detail: acceptanceDetail(c.acceptanceRef, accepted),
       view: kind === 'Keberlanjutan' ? 'continuance' : 'onboarding',

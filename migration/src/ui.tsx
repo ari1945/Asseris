@@ -248,7 +248,7 @@ function LockBanner() {
   return (
     <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
       <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
-      <span style={{ fontSize: 12, fontWeight: 600 }}>Engagement diarsipkan — kertas kerja terkunci (read-only) sesuai ISQM. Buka kembali fase untuk mengubah.</span>
+      <span style={{ fontSize: 12, fontWeight: 600 }}>Engagement diarsipkan — kertas kerja terkunci (read-only) sesuai SMM. Buka kembali fase untuk mengubah.</span>
     </div>
   );
 }

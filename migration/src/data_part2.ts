@@ -153,7 +153,7 @@ import { fmt } from './data_base';
     },
   };
 
-  /* ---- ISQM 1/2: SOQM operasional, EQR, PPPK ---- */
+  /* ---- SMM 1/2: SOQM operasional, EQR, PPPK ---- */
   /* Quality objective → quality risk → response → control → monitoring → remediation */
   const SOQM_RISKS = [
     { id: 'QR-01', comp: 'Penerimaan & Keberlanjutan', objective: 'Menerima/melanjutkan hanya perikatan yang dapat dilaksanakan dengan kompeten dan beretika.', risk: 'Penilaian integritas klien tidak memadai untuk klien sektor berisiko tinggi.', lik: 3, imp: 4, response: 'Wajib EDD + persetujuan partner kedua untuk klien risiko tinggi/PEP.', owner: 'Rudi Gunawan', monitor: 'Efektif', deficiency: null },
@@ -202,7 +202,7 @@ import { fmt } from './data_base';
       { t: 'Daftar klien & jenis jasa (Lampiran)', status: 'Lengkap' },
       { t: 'Jumlah & jenis opini diterbitkan', status: 'Lengkap' },
       { t: 'Realisasi PPL seluruh AP/staf', status: 'Perlu Perhatian' },
-      { t: 'Sistem pengendalian mutu (ISQM)', status: 'Lengkap' },
+      { t: 'Sistem pengendalian mutu (SMM)', status: 'Lengkap' },
       { t: 'Perikatan emiten & kepentingan publik', status: 'Lengkap' },
       { t: 'Laporan keuangan KAP', status: 'Belum' },
     ],
@@ -267,7 +267,7 @@ import { fmt } from './data_base';
       versions: [{ ver: 1, by: 'Hartono Wijaya', date: '2026-03-07', sizeMB: 3, note: 'Memo reviu pengendalian mutu perikatan.' }],
       access: [['Hartono Wijaya', 'edit', '2026-03-07 11:20'], ['Legal KAP', 'lock', '2026-03-07 18:00']], linkedWP: ['X-900 Ringkasan Reviu'] },
     { id: 'DOC-0701', name: 'Template Audit Methodology v4.2', eng: '—', client: 'Firma (Internal)', type: 'Template', ver: 4, classification: 'Internal', owner: 'KAP', modified: '2026-01-02', sizeMB: 8, retentionYears: 3, archivedOn: '2026-01-02', legalHold: false, assembly: 'n/a',
-      versions: [{ ver: 3, by: 'Tim Metodologi', date: '2025-01-04', sizeMB: 7, note: 'Selaras ISA 2023.' }, { ver: 4, by: 'Tim Metodologi', date: '2026-01-02', sizeMB: 8, note: 'Pembaruan ISQM & SA 315 (revisi).' }],
+      versions: [{ ver: 3, by: 'Tim Metodologi', date: '2025-01-04', sizeMB: 7, note: 'Selaras ISA 2023.' }, { ver: 4, by: 'Tim Metodologi', date: '2026-01-02', sizeMB: 8, note: 'Pembaruan SMM & SA 315 (revisi).' }],
       access: [['Anindya Pramesti', 'download', '2026-01-10 09:00'], ['Dimas Raharjo', 'download', '2026-02-01 08:30']], linkedWP: [] },
     { id: 'DOC-0205', name: 'Kertas Kerja Final — Bumi Hijau FY2021', eng: 'ENG-2021-008', client: 'PT Bumi Hijau Lestari', type: 'Kertas Kerja', ver: 2, classification: 'Rahasia', owner: 'Sari Dewanti', modified: '2022-03-30', sizeMB: 96, retentionYears: 10, archivedOn: '2022-03-30', legalHold: false, assembly: 'complete',
       versions: [{ ver: 1, by: 'Sari Dewanti', date: '2022-03-15', sizeMB: 92, note: 'Berkas dirakit.' }, { ver: 2, by: 'Sari Dewanti', date: '2022-03-30', sizeMB: 96, note: 'Final lock SA 230.' }],

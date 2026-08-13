@@ -8,7 +8,7 @@ import { LEGAL } from './data_legal';
    Asseris — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    BO.POLICIES / CLAIMS / RISK_REGISTER = sumber kebenaran
-   tunggal untuk pertanggungan & risiko entitas firma (ISQM 1).
+   tunggal untuk pertanggungan & risiko entitas firma (SMM 1).
    Lapisan ini TIDAK menyimpan angka kedua — ia MENURUNKAN tiap
    nilai dari pemiliknya & menjahit keterkaitan lintas-modul:
 
@@ -195,8 +195,8 @@ import { LEGAL } from './data_legal';
       },
       {
         id: 'soqm', title: 'Risk Register ↔ Pemantauan Mutu (SOQM)', ok: true, to: 'governance', isCount: true,
-        a: 'Risiko entitas firma (ISQM 1)', av: reg.length, b: 'Risiko diawasi Governance', bv: reg.length,
-        note: 'Register risiko firma adalah komponen "Penilaian Risiko" SOQM (ISQM 1). Governance memantau status mitigasi & KRI dari register yang sama — satu daftar, dua lensa.',
+        a: 'Risiko entitas firma (SMM 1)', av: reg.length, b: 'Risiko diawasi Governance', bv: reg.length,
+        note: 'Register risiko firma adalah komponen "Penilaian Risiko" SOQM (SMM 1). Governance memantau status mitigasi & KRI dari register yang sama — satu daftar, dua lensa.',
       },
     ];
     return out;

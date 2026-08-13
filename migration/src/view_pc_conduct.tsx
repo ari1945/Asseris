@@ -345,7 +345,7 @@ function HRCases() {
             );
           })()}
         </div>
-        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Kasus etika & independensi terkait mutu dieskalasikan ke <b>Governance (SOQM)</b> sebagai keluhan/tuduhan (ISQM 1). Tangga sanksi mengacu pada UU Ketenagakerjaan (SP-1/2/3) &amp; peraturan perusahaan.</div>
+        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Kasus etika & independensi terkait mutu dieskalasikan ke <b>Governance (SOQM)</b> sebagai keluhan/tuduhan (SMM 1). Tangga sanksi mengacu pada UU Ketenagakerjaan (SP-1/2/3) &amp; peraturan perusahaan.</div>
       </div></div>
     </>
   );

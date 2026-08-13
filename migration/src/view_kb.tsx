@@ -36,7 +36,7 @@ const KB_LEVEL = { Pengantar: 'green', Inti: 'blue', Lanjutan: 'amber' };
 function kbFamily(type: any) {
   if (type === 'SA') return 'SA';
   if (type === 'PSAK' || type === 'SAK') return 'PSAK';
-  if (type === 'SPM' || type === 'KEPAP') return 'Mutu';
+  if (type === 'SMM' || type === 'KEPAP') return 'Mutu';
   return 'Lain'; // SPR / SPA / SJAH
 }
 const KB_FAMILIES = [

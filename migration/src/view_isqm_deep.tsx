@@ -17,7 +17,7 @@ function faShowAttestAt(at: string): string {
 
 
 /* ============================================================
-   Asseris — SOQM Operasional (ISQM 1) · Pendalaman Modul
+   Asseris — SOQM Operasional (SMM 1) · Pendalaman Modul
    ------------------------------------------------------------
    Lapisan baru yang memperkaya SOQM agar mencakup:
    · SoqmObjectives    — Tujuan Mutu per komponen (¶25–28),
@@ -27,7 +27,7 @@ function faShowAttestAt(at: string): string {
                           defisiensi (¶41) — basis evaluasi tahunan
    · SoqmInfoComm      — Informasi & Komunikasi (¶33–37) — alur naik
                           /turun/lateral/eksternal (TCWG · jaringan)
-   · SoqmAnnualEval    — Evaluasi Tahunan SPM (¶53–¶54) —
+   · SoqmAnnualEval    — Evaluasi Tahunan SMM (¶53–¶54) —
                           kesimpulan ditarik LIVE dari soqmPull() +
                           QM_INSPECTIONS + QM_INSP_FINDINGS + SOQM_RISKS
                           + COMPLAINTS + QM_EVAL master.
@@ -87,7 +87,7 @@ function SoqmHeatmap({ risks, onPick }: any) {
 }
 
 /* ============================================================
-   Tab: Tujuan Mutu — Komponen ISQM ↔ Tujuan ↔ Risiko (¶25–28)
+   Tab: Tujuan Mutu — Komponen SMM ↔ Tujuan ↔ Risiko (¶25–28)
    ============================================================ */
 function SoqmObjectives({ risks, nav, onPick }: any) {
   const A: any = AMS;
@@ -112,20 +112,20 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
         <div className="row ac gap8">
           <span style={{ color: 'var(--blue)' }}>{I ? <I.target size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
-            ISQM 1 ¶25–¶28 — firma menetapkan <b>tujuan mutu</b> untuk setiap komponen SPM, mengidentifikasi <b>risiko mutu</b> atas pencapaiannya, lalu merancang & menerapkan <b>respons</b>. Tujuan, risiko & respons di bawah ditarik dari register <span className="mono">SOQM_RISKS</span> & dipetakan langsung ke 8 komponen pada <span className="mono">QM_COMPONENTS</span> (Governance).
+            SMM 1 ¶24–¶26 (tujuan mandatori ¶28–33) — firma menetapkan <b>tujuan mutu</b> untuk setiap komponen SMM, mengidentifikasi <b>risiko mutu</b> atas pencapaiannya, lalu merancang & menerapkan <b>respons</b>. Tujuan, risiko & respons di bawah ditarik dari register <span className="mono">SOQM_RISKS</span> & dipetakan langsung ke 8 komponen pada <span className="mono">QM_COMPONENTS</span> (Governance).
           </div>
         </div>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-        <D2KPI label="Komponen SPM" v={comps.length} sub={compsCovered + ' memiliki risiko terdaftar'} />
+        <D2KPI label="Komponen SMM" v={comps.length} sub={compsCovered + ' memiliki risiko terdaftar'} />
         <D2KPI label="Tujuan Mutu Tertulis" v={withObj} sub={total + ' total risiko ditautkan'} />
         <D2KPI label="Cakupan Komponen" v={compRate + '%'} accent={compRate >= 85 ? 'var(--green)' : 'var(--amber)'} sub="rasio komponen yang punya risiko & respons" />
         <D2KPI label="Respons Efektif" v={risks.filter((r: any) => r.monitor === 'Efektif').length + '/' + total} accent="var(--green)" sub="dari aktivitas pemantauan" />
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Tujuan Mutu per Komponen SPM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
+        <div className="panel-h"><h3>Tujuan Mutu per Komponen SMM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
         <div style={{ padding: 14, display: 'grid', gap: 10 }}>
           {comps.map((c: any) => {
             const cRisks = matched(c);
@@ -209,9 +209,9 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
       <div className="row jb ac" style={{ marginBottom: 8 }}>
         <div className="row ac gap8">
           <span style={{ color: 'var(--blue)' }}>{I ? <I.scale size={14} /> : null}</span>
-          <span className="tiny" style={{ fontWeight: 700 }}>Penilaian Keparahan &amp; Pervasivitas Defisiensi (ISQM 1 ¶41)</span>
+          <span className="tiny" style={{ fontWeight: 700 }}>Penilaian Keparahan &amp; Pervasivitas Defisiensi (SMM 1 ¶41)</span>
         </div>
-        <span className="tiny muted">Basis kesimpulan evaluasi tahunan SPM</span>
+        <span className="tiny muted">Basis kesimpulan evaluasi tahunan SMM</span>
       </div>
       <table className="dtbl">
         <thead><tr>
@@ -219,7 +219,7 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
           <th style={{ width: 92 }}>Keparahan</th>
           <th style={{ width: 110 }}>Pervasivitas</th>
           <th style={{ width: 130 }}>Temuan Inspeksi Terkait</th>
-          <th style={{ width: 130 }}>Implikasi pada SPM</th>
+          <th style={{ width: 130 }}>Implikasi pada SMM</th>
         </tr></thead>
         <tbody>
           {deficiencies.map((r: any) => {
@@ -233,7 +233,7 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
                 <td><Badge kind={v.sev === 'Tinggi' ? 'red' : v.sev === 'Sedang' ? 'amber' : 'gray'}>{v.sev}</Badge></td>
                 <td><Badge kind={v.pervasive ? 'red' : 'green'}>{v.pervasive ? 'Pervasif' : 'Tidak Pervasif'}</Badge></td>
                 <td className="tiny"><span className="mono" style={{ fontWeight: 700, color: v.tied ? 'var(--amber)' : 'var(--ink-4)' }}>{v.tied}</span> <span className="muted">temuan inspeksi</span></td>
-                <td className="tiny" style={{ lineHeight: 1.4 }}>{v.pervasive ? 'Berpotensi memengaruhi simpulan SPM' : 'Tidak memengaruhi simpulan keseluruhan'}</td>
+                <td className="tiny" style={{ lineHeight: 1.4 }}>{v.pervasive ? 'Berpotensi memengaruhi simpulan SMM' : 'Tidak memengaruhi simpulan keseluruhan'}</td>
               </tr>
             );
           })}
@@ -259,7 +259,7 @@ function SoqmInfoComm({ nav }: any) {
   /* kanal komunikasi — diturunkan dari sumber master */
   const channels = [
     {
-      dir: 'Naik (Personel → Pimpinan)', icon: 'trend', clr: 'var(--blue)', ref: '¶34',
+      dir: 'Naik (Personel → Pimpinan)', icon: 'trend', clr: 'var(--blue)', ref: '¶33(c)(ii)',
       flows: [
         { lbl: 'Pelaporan defisiensi & near-miss', src: 'Workspace (Review Notes)', mod: 'workspace', n: '—' },
         { lbl: 'Konsultasi & permintaan bantuan teknis', src: 'Workspace · Pelaksanaan Perikatan', mod: 'consultation', n: '—' },
@@ -267,7 +267,7 @@ function SoqmInfoComm({ nav }: any) {
       ],
     },
     {
-      dir: 'Turun (Pimpinan → Personel)', icon: 'megaphone', clr: 'var(--navy)', ref: '¶33–34',
+      dir: 'Turun (Pimpinan → Personel)', icon: 'megaphone', clr: 'var(--navy)', ref: '¶33(c)(i)',
       flows: [
         { lbl: 'Memo mutu & tone-at-the-top', src: 'DMS · Komunikasi Mutu', mod: 'dms', n: culture.find((k: any) => k.k && k.k.includes('Komunikasi'))?.v || '—' },
         { lbl: 'Pembaruan kebijakan & metodologi', src: 'Knowledge Base', mod: 'kb', n: 'Berkala' },
@@ -275,7 +275,7 @@ function SoqmInfoComm({ nav }: any) {
       ],
     },
     {
-      dir: 'Lateral (antar-tim/partner)', icon: 'users', clr: 'var(--purple)', ref: '¶34(b)',
+      dir: 'Lateral (antar-tim/partner)', icon: 'users', clr: 'var(--purple)', ref: '¶33(b)',
       flows: [
         { lbl: 'Sharing temuan inspeksi & akar masalah', src: 'QM_INSP_FINDINGS', mod: 'soqm', n: (A.QM_INSP_FINDINGS || []).length + ' temuan' },
         { lbl: 'Forum konsultasi PSAK/SA kompleks', src: 'Knowledge Base · konsultasi', mod: 'consultation', n: '—' },
@@ -283,7 +283,7 @@ function SoqmInfoComm({ nav }: any) {
       ],
     },
     {
-      dir: 'Eksternal (TCWG · Regulator · Jaringan)', icon: 'globe', clr: 'var(--green)', ref: '¶35–37',
+      dir: 'Eksternal (TCWG · Regulator · Jaringan)', icon: 'globe', clr: 'var(--green)', ref: '¶33(d) · ¶34(e)',
       flows: [
         { lbl: 'Komunikasi mutu ke TCWG / Komite Audit', src: 'SA 260 / SA 265', mod: 'mgmtletter', n: 'Per perikatan' },
         { lbl: 'Pelaporan kepada PPPK (regulator)', src: 'PPPK Report', mod: 'pppk', n: 'Tahunan' },
@@ -298,7 +298,7 @@ function SoqmInfoComm({ nav }: any) {
         <div className="row ac gap8">
           <span style={{ color: 'var(--blue)' }}>{I ? <I.mail size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
-            ISQM 1 ¶33–¶37 — firma membangun sistem informasi &amp; komunikasi mutu yang memungkinkan informasi tepat waktu mengalir <b>naik · turun · lateral · keluar</b>. Setiap kanal di bawah tertaut ke modul sumber kanonik — bukan kanal terpisah yang berisiko inkonsisten.
+            SMM 1 ¶33 · ¶34(e) — firma membangun sistem informasi &amp; komunikasi mutu yang memungkinkan informasi tepat waktu mengalir <b>naik · turun · lateral · keluar</b>. Setiap kanal di bawah tertaut ke modul sumber kanonik — bukan kanal terpisah yang berisiko inkonsisten.
           </div>
         </div>
       </div>
@@ -332,7 +332,7 @@ function SoqmInfoComm({ nav }: any) {
       </div>
 
       {/* Akuntabilitas komunikasi — QM_ROLES SSOT */}
-      <Panel title="Akuntabilitas Komunikasi Mutu" sub="ISQM 1 ¶20 — peran pimpinan ditarik dari QM_ROLES (Governance)">
+      <Panel title="Akuntabilitas Komunikasi Mutu" sub="SMM 1 ¶20 — peran pimpinan ditarik dari QM_ROLES (Governance)">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
           {roles.map((r: any, i: any) => (
             <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
@@ -351,7 +351,7 @@ function SoqmInfoComm({ nav }: any) {
 }
 
 /* ============================================================
-   Tab: Evaluasi Tahunan SPM (¶53–¶54) — kesimpulan LIVE
+   Tab: Evaluasi Tahunan SMM (¶53–¶54) — kesimpulan LIVE
    ============================================================ */
 function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: any) {
   const A: any = AMS;
@@ -379,18 +379,18 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   let conclusion = 'reasonable';
   let label = 'Efektif';
   let color = 'var(--green)';
-  let stmt = 'Sistem Pengelolaan Mutu firma memberikan keyakinan memadai (reasonable assurance) bahwa firma & personelnya memenuhi tanggung jawab profesional dan laporan yang diterbitkan telah tepat sesuai kondisinya.';
+  let stmt = 'Sistem Manajemen Mutu firma memberikan keyakinan memadai (reasonable assurance) bahwa firma & personelnya memenuhi tanggung jawab profesional dan laporan yang diterbitkan telah tepat sesuai kondisinya.';
 
   if (defsHighOpen.length > 0 || inspBad.length > 0 || cmpInvest.length > 1) {
     conclusion = 'not-reasonable';
     label = 'Belum Efektif';
     color = 'var(--red)';
-    stmt = 'Terdapat defisiensi pervasif yang belum diremediasi pada tanggal evaluasi — keyakinan memadai atas SPM secara keseluruhan belum dapat disimpulkan. Perlu eskalasi & rencana remediasi terstruktur.';
+    stmt = 'Terdapat defisiensi pervasif yang belum diremediasi pada tanggal evaluasi — keyakinan memadai atas SMM secara keseluruhan belum dapat disimpulkan. Perlu eskalasi & rencana remediasi terstruktur.';
   } else if (defs.length > 0) {
     conclusion = 'reasonable-with-exceptions';
     label = 'Efektif dengan Pengecualian';
     color = 'var(--amber)';
-    stmt = master.statement || 'Sistem Pengelolaan Mutu firma memberikan keyakinan memadai dengan pengecualian defisiensi yang teridentifikasi pada satu atau lebih komponen — defisiensi tersebut dinilai tidak berdampak pervasif terhadap simpulan menyeluruh dan tengah diremediasi.';
+    stmt = master.statement || 'Sistem Manajemen Mutu firma memberikan keyakinan memadai dengan pengecualian defisiensi yang teridentifikasi pada satu atau lebih komponen — defisiensi tersebut dinilai tidak berdampak pervasif terhadap simpulan menyeluruh dan tengah diremediasi.';
   }
 
   const factors = [
@@ -419,7 +419,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '18px 20px' }}>
             <div className="row jb ac" style={{ marginBottom: 5 }}>
-              <span className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Pengelolaan Mutu (ISQM 1 ¶53–¶54)</span>
+              <span className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Manajemen Mutu (SMM 1 ¶53–¶54)</span>
               <span className="row ac gap8">
                 <Badge kind={attestComplete ? 'green' : attestVoidedRoles(attestLinks).length ? 'red' : 'amber'}>
                   {attestComplete ? 'Diatestasi'
@@ -448,7 +448,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           </div>
         </Panel>
 
-        {/* Atestasi pimpinan SOQM (ISQM 1 ¶53) — kesimpulan tertulis + sign-off
+        {/* Atestasi pimpinan SOQM (SMM 1 ¶53) — kesimpulan tertulis + sign-off
             tersimpan (SSOT firmAttest), berdampingan dgn rekomendasi mesin ¶54. */}
         <FirmAttestCard
           attestKey={attestKey}
@@ -456,7 +456,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           roles={SOQM_ANNUAL_ROLES}
           title="Kesimpulan & Atestasi Berjenjang (¶53 · ¶20)"
           engineLabel={label}
-          placeholder="Kesimpulan pimpinan atas efektivitas SPM & dasar pertimbangan (ISQM 1 ¶53)…"
+          placeholder="Kesimpulan pimpinan atas efektivitas SMM & dasar pertimbangan (SMM 1 ¶53)…"
         />
 
         {/* faktor keputusan ¶54 */}
@@ -525,7 +525,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           </div>
         </Panel>
 
-        <Panel title="Tren Skor Komponen SPM" sub="dari Governance (QM_COMPONENTS · trend)">
+        <Panel title="Tren Skor Komponen SMM" sub="dari Governance (QM_COMPONENTS · trend)">
           <div className="grid" style={{ gap: 6 }}>
             {(A.QM_COMPONENTS || []).map((c: any) => (
               <div key={c.id}>

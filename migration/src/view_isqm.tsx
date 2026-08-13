@@ -10,7 +10,7 @@ import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   Asseris — Mutu & Regulasi: SOQM Operasional (ISQM 1)
+   Asseris — Mutu & Regulasi: SOQM Operasional (SMM 1)
    Tujuan mutu → risiko mutu → respons → pemantauan → defisiensi
    → remediasi & akar masalah · Register Keluhan & Tuduhan.
    ------------------------------------------------------------
@@ -77,7 +77,7 @@ function SOQM() {
     { id: 'remediation', label: 'Defisiensi & Remediasi', count: openRemediation },
     { id: 'infocomm', label: 'Informasi & Komunikasi' },
     { id: 'complaints', label: 'Keluhan & Tuduhan', count: complaints.filter((c: any) => c.status !== 'Selesai').length },
-    { id: 'evaluation', label: 'Evaluasi Tahunan SPM' },
+    { id: 'evaluation', label: 'Evaluasi Tahunan SMM' },
     { id: 'lineage', label: 'Tarikan Data Lintas-Modul' },
   ];
   const sevColor = (l: any, i: any) => { const s = l * i; return s >= 12 ? 'var(--red)' : s >= 6 ? 'var(--amber)' : 'var(--green)'; };
@@ -85,7 +85,7 @@ function SOQM() {
 
   return (
     <>
-      <SubBar moduleId="soqm" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 1 · SOQM</Badge><Btn sm variant={tab === 'evaluation' ? 'primary' : ''} onClick={() => setTab('evaluation')}><I.shield size={13} /> Evaluasi SOQM Tahunan</Btn></div>} />
+      <SubBar moduleId="soqm" right={<div className="row gap8 ac"><Badge kind="blue">SMM 1 · SOQM</Badge><Btn sm variant={tab === 'evaluation' ? 'primary' : ''} onClick={() => setTab('evaluation')}><I.shield size={13} /> Evaluasi SOQM Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={soqmScore + '%'} label="Respons Mutu Efektif" accent={soqmScore >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
@@ -108,13 +108,13 @@ function SOQM() {
             <div>
               <div style={{ padding: 14, borderBottom: '1px solid var(--line-soft)' }}>
                 <div className="row jb ac" style={{ marginBottom: 8 }}>
-                  <div className="tiny muted upper">Peta Panas Risiko Mutu · Likelihood × Dampak (¶26–¶27)</div>
+                  <div className="tiny muted upper">Peta Panas Risiko Mutu · Likelihood × Dampak — alat bantu prioritas firma, bukan ketentuan SMM (¶25)</div>
                   <span className="tiny muted">Klik bubble untuk membuka detail risiko</span>
                 </div>
                 <SoqmHeatmap risks={risks} onPick={(id: any) => setSel(id)} />
               </div>
               <table className="dtbl">
-                <thead><tr><th>ID</th><th>Komponen ISQM</th><th>Risiko Mutu</th><th className="num">L×D</th><th>Pemilik</th><th>Pemantauan</th></tr></thead>
+                <thead><tr><th>ID</th><th>Komponen SMM</th><th>Risiko Mutu</th><th className="num">L×D</th><th>Pemilik</th><th>Pemantauan</th></tr></thead>
                 <tbody>
                   {risks.map((r: any) => (
                     <tr key={r.id} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }} className={r.id === sel ? 'sel' : ''}>
@@ -135,7 +135,7 @@ function SOQM() {
           {tab === 'monitoring' && (
             <div style={{ padding: 14, display: 'grid', gap: 14 }}>
               <div>
-                <div className="tiny muted upper" style={{ marginBottom: 8 }}>Aktivitas Pemantauan Firma (ISQM 1 ¶38–44) — tertaut ke modul sumber</div>
+                <div className="tiny muted upper" style={{ marginBottom: 8 }}>Aktivitas Pemantauan Firma (SMM 1 ¶36–38) — tertaut ke modul sumber</div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
                   {monActivities.map((a: any, i: any) => {
                     const src = (MON_SOURCE as any)[a.act];
@@ -243,7 +243,7 @@ function SOQM() {
 
           {tab === 'complaints' && (
             <div>
-              <div className="panel-h" style={{ borderBottom: '1px solid var(--line-soft)' }}><h3>Register Keluhan & Tuduhan (ISQM 1 ¶A56)</h3><div style={{ flex: 1 }} /><Btn sm variant="primary" onClick={addComplaint}><I.plus size={13} /> Catat Keluhan</Btn></div>
+              <div className="panel-h" style={{ borderBottom: '1px solid var(--line-soft)' }}><h3>Register Keluhan & Tuduhan (SMM 1 ¶34(c))</h3><div style={{ flex: 1 }} /><Btn sm variant="primary" onClick={addComplaint}><I.plus size={13} /> Catat Keluhan</Btn></div>
               <table className="dtbl">
                 <thead><tr><th>ID</th><th>Tanggal</th><th>Sumber</th><th>Jenis</th><th>Pokok Perkara</th><th>Tingkat</th><th>Penanggung Jawab</th><th>Status</th><th></th></tr></thead>
                 <tbody>
@@ -267,7 +267,7 @@ function SOQM() {
 
           {tab === 'lineage' && <SoqmLineage nav={nav} />}
         </Panel>
-        {tab === 'register' && <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Pendekatan berbasis risiko ISQM 1 (¶25–34): tetapkan tujuan mutu → identifikasi & nilai risiko mutu (Likelihood × Dampak) → rancang & terapkan respons → pantau efektivitas → remediasi defisiensi dengan analisis akar masalah.</div>}
+        {tab === 'register' && <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Pendekatan berbasis risiko SMM 1 (¶23–27 · ¶35–47): tetapkan tujuan mutu → identifikasi & nilai risiko mutu (Likelihood × Dampak) → rancang & terapkan respons → pantau efektivitas → remediasi defisiensi dengan analisis akar masalah.</div>}
       </div></div>
 
       {selRisk && <RiskDetail r={selRisk} nav={nav} onClose={() => setSel(null)} />}
@@ -364,7 +364,7 @@ function RiskDetail({ r, nav, onClose }: any) {
           <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Mutu</div><div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'transparent', fontSize: 12, lineHeight: 1.55 }}>{r.response}</div></div>
           {comp && (
             <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
-              <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SPM {comp.id} · {comp.name}</span><span className="mono" style={{ fontWeight: 800, color: comp.score >= 85 ? 'var(--green)' : 'var(--amber)' }}>{comp.score}</span></div>
+              <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SMM {comp.id} · {comp.name}</span><span className="mono" style={{ fontWeight: 800, color: comp.score >= 85 ? 'var(--green)' : 'var(--amber)' }}>{comp.score}</span></div>
               <button type="button" className="soqm-src" onClick={() => nav && nav('governance', { from: 'soqm' })}><span className="tiny muted">Pemilik {comp.owner} · skor ditarik dari Governance</span>{I ? <I.arrowRight size={11} /> : null}</button>
             </div>
           )}

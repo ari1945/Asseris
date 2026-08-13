@@ -381,9 +381,9 @@
   const CPE_REQ = { annual: 40, structured: 30, unstructuredCap: 10, year: 2026 };
   /* per staff: structured + unstructured hours logged this year */
   const CPE_LOG = {
-    'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'ISQM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],
+    'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],
     'EMP-002': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'Etika Profesi & Independensi', type: 'Terstruktur', skp: 4, date: '2026-01-18' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
-    'EMP-003': [{ t: 'PSAK 117 (Kontrak Asuransi)', type: 'Terstruktur', skp: 8, date: '2026-02-12' }, { t: 'ISQM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Audit Berbasis Risiko', type: 'Terstruktur', skp: 8, date: '2026-02-26' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 9, date: '2026-03-05' }],
+    'EMP-003': [{ t: 'PSAK 117 (Kontrak Asuransi)', type: 'Terstruktur', skp: 8, date: '2026-02-12' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Audit Berbasis Risiko', type: 'Terstruktur', skp: 8, date: '2026-02-26' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 9, date: '2026-03-05' }],
     'EMP-007': [{ t: 'PSAK 71 Deep Dive', type: 'Terstruktur', skp: 8, date: '2026-02-15' }, { t: 'Audit Data Analytics', type: 'Terstruktur', skp: 6, date: '2026-01-30' }, { t: 'Webinar Pajak Coretax', type: 'Terstruktur', skp: 4, date: '2026-03-04' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 14, date: '2026-03-06' }],
     'EMP-021': [{ t: 'Audit Sampling MUS', type: 'Terstruktur', skp: 6, date: '2026-02-20' }, { t: 'Self-study', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
     'EMP-031': [{ t: 'Onboarding Audit Methodology', type: 'Terstruktur', skp: 12, date: '2026-01-15' }],
@@ -451,7 +451,7 @@
     { k: 'Risiko Perikatan & Industri', w: 25, s: 3, note: '', ...over[3] },
     { k: 'Etika & Proporsionalitas Imbalan', w: 10, s: 3, note: '', ...over[4] },
   ];
-  /* Faktor penilaian KEBERLANJUTAN (ISQM 1 ¶34 / SA 220.20–21) — paralel ACC_FACTORS,
+  /* Faktor penilaian KEBERLANJUTAN (SMM 1 ¶34(d) / SA 220.20–21) — paralel ACC_FACTORS,
      Σ bobot = 100; skor 1–5 + catatan diisi saat reasesmen tahunan. */
   const CONT_FACTORS = (over: Record<number, { k?: string; w?: number; s?: number; note?: string }> = {}) => [
     { k: 'Integritas & perubahan keadaan manajemen/tata kelola', w: 20, s: 3, note: '', ...over[0] },
@@ -463,7 +463,7 @@
   ];
   /* Pengalaman tahun lalu per klien — data REFERENSI (bukan kolom CRM klien;
      tidak melewati hidrasi server, jadi disimpan sebagai peta ber-clientId).
-     Dibaca modul Keberlanjutan sebagai pemicu (SA 220.A24 / ISQM 1 ¶34). */
+     Dibaca modul Keberlanjutan sebagai pemicu (SA 220.A24 / SMM 1 ¶34(d)). */
   const PRIOR_YEAR: Record<string, { fy: string; opinion: string; findings: number; findingsNote: string; uncorrected: number; changed: string; difficulties: string }> = {
     'C-014': { fy: 'FY2024', opinion: 'WTP', findings: 1, findingsNote: 'Cut-off pendapatan akhir tahun — dikoreksi', uncorrected: 0, changed: 'Tahun ke-5 partner penanggung jawab — mendekati ambang rotasi', difficulties: '' },
     'C-022': { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: '', difficulties: '' },

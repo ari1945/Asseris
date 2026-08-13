@@ -493,7 +493,7 @@ function opinionFinalized(firm: any) {
   return false;
 }
 
-/* eqrStatusFor (Q-02) — status gerbang Penelaahan Mutu Perikatan (EQR, ISQM 2)
+/* eqrStatusFor (Q-02) — status gerbang Penelaahan Mutu Perikatan (EQR, SMM 2)
    untuk satu engagement, dibaca dari SSOT persist (ams.v1.eqrReviews.v2). Murni-
    baca; pola sama dgn opinionFinalized. `applicable`=true bila ADA review EQR
    utk engagement tsb (gerbang relevan); `cleared`=true bila SEMUA review-nya
@@ -597,11 +597,11 @@ function engagementGate(audit: any, firm: any, opts: any) {
       { key: 'noOpenNotes', label: 'Seluruh catatan review terselesaikan',
         met: openNotes.length === 0, detail: `${openNotes.length} catatan terbuka`, view: 'cockpit' },
     ];
-    /* Q-02 (ISQM 2): bila engagement punya review EQR, ia WAJIB lolos gerbang
+    /* Q-02 (SMM 2): bila engagement punya review EQR, ia WAJIB lolos gerbang
        sebelum arsip — defense-in-depth atas penegakan di penerbitan opini. */
     const eqr = eqrStatusFor(firm && firm.activeEngagementId);
     if (eqr.applicable) {
-      criteria.push({ key: 'eqrCleared', label: 'Penelaahan mutu perikatan (EQR) lolos gerbang (ISQM 2)',
+      criteria.push({ key: 'eqrCleared', label: 'Penelaahan mutu perikatan (EQR) lolos gerbang (SMM 2)',
         met: eqr.cleared, detail: eqrGateDetail(eqr), view: 'eqr' });
     }
   }

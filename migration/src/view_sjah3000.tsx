@@ -324,7 +324,7 @@ function F3000Evidence({ sel }: any) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Independensi & Etika (¶20)">
           <div style={{ display: 'grid', gap: 7 }}>
-            {['Praktisi mematuhi kode etik & ketentuan independensi', 'Kompetensi & kapabilitas tim memadai untuk hal pokok', 'Pengendalian mutu perikatan diterapkan (SPM 1)'].map((t, i) => (
+            {['Praktisi mematuhi kode etik & ketentuan independensi', 'Kompetensi & kapabilitas tim memadai untuk hal pokok', 'Pengendalian mutu perikatan diterapkan (SMM 1)'].map((t, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
                 <span style={{ lineHeight: 1.4 }}>{t}</span>

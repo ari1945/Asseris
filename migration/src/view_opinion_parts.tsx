@@ -13,7 +13,7 @@ import { useMemberIndependenceGate } from './view_independence';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels
-   (SA 700 / 705 / 701 / 706 / 570 / 710 / 720 · ISQM 2 / SA 220)
+   (SA 700 / 705 / 701 / 706 / 570 / 710 / 720 · SMM 2 / SA 220)
    Shared constants, opinion-determination engine, KAM workshop,
    review & sign-off. Loaded BEFORE view_opinion.jsx.
    ============================================================ */
@@ -461,12 +461,12 @@ function KAMWorkshop({ doc, patch }: any) {
 }
 
 /* ============================================================
-   TAB 4 — Review, Completeness & Sign-off (SA 700 / 220 / ISQM 2)
+   TAB 4 — Review, Completeness & Sign-off (SA 700 / 220 / SMM 2)
    ============================================================ */
 const REVIEW_CHAIN = [
   { role: 'manager', label: 'Reviu Manajer', who: 'Anindya Pramesti', sub: 'Manajer Perikatan', std: 'SA 220' },
   { role: 'partner', label: 'Reviu Rekan Perikatan', who: 'Hartono Wijaya, CPA', sub: 'Engagement Partner', std: 'SA 220.17' },
-  { role: 'eqr', label: 'Reviu Pengendalian Mutu (EQR)', who: 'Rudi Gunawan, CPA', sub: 'Engagement Quality Reviewer', std: 'ISQM 2 · SA 220.36' },
+  { role: 'eqr', label: 'Reviu Pengendalian Mutu (EQR)', who: 'Rudi Gunawan, CPA', sub: 'Engagement Quality Reviewer', std: 'SMM 2 · SA 220.36' },
 ];
 
 function OpinionSignoff({ doc, patch }: any) {
@@ -491,7 +491,7 @@ function OpinionSignoff({ doc, patch }: any) {
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = (OPINIONS as any)[doc.type];
   const eqrRequired = !!activeClient?.listed;
-  /* Q-02 (ISQM 2): ikat penerbitan opini ke penyelesaian EQR SUBSTANTIF di modul
+  /* Q-02 (SMM 2): ikat penerbitan opini ke penyelesaian EQR SUBSTANTIF di modul
      EQR (review.cleared), bukan sekadar centang `eqr` di rantai tanda tangan.
      Berlaku bila klien PIE (wajib) ATAU ada review EQR utk engagement ini.
 
@@ -588,7 +588,7 @@ function OpinionSignoff({ doc, patch }: any) {
       </div>
 
       <div className="grid" style={{ gap: 12 }}>
-        <Panel title="Alur Tanda Tangan" sub="Reviu berjenjang — SA 220 / ISQM 2">
+        <Panel title="Alur Tanda Tangan" sub="Reviu berjenjang — SA 220 / SMM 2">
           {!eqrRequired && <div className="tiny muted" style={{ marginBottom: 9 }}>Klien non-PIE — EQR opsional sesuai kebijakan firma.</div>}
           {eqrRequired && <div className="row ac gap6 tiny" style={{ marginBottom: 9, color: 'var(--blue)', fontWeight: 600 }}><I.shield size={12} /> Klien tercatat (PIE) — EQR wajib sebelum tanggal laporan.</div>}
           <div style={{ display: 'grid', gap: 8 }}>
@@ -636,7 +636,7 @@ function OpinionSignoff({ doc, patch }: any) {
               {eqrEnforced && <Pill ok={eqrGate.cleared} label="EQR (modul) lolos" />}
             </div>
             {!doc.finalized && eqrEnforced && !eqrGate.cleared && (
-              <div className="tiny" style={{ color: eqrGate.reason === 'missing-review' ? 'var(--red)' : 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> {EQR_GATE_LABEL[eqrGate.reason]} Wajib selesai sebelum opini diterbitkan (ISQM 2 ¶19–36).</div>
+              <div className="tiny" style={{ color: eqrGate.reason === 'missing-review' ? 'var(--red)' : 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> {EQR_GATE_LABEL[eqrGate.reason]} Wajib selesai sebelum opini diterbitkan (SMM 2 ¶19–36).</div>
             )}
             {!doc.finalized && !canApprove && (
               <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> Hanya Engagement Partner yang dapat menerbitkan opini (ditegakkan di server).</div>

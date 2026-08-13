@@ -59,7 +59,7 @@ export function memoRefNo(m: MemoInput): string {
   return `No. ${m.clientId}/${isAcc(m.kind) ? 'ACC' : 'CONT'}/${yr}`;
 }
 export function memoMeta(m: MemoInput): string[] {
-  const std = isAcc(m.kind) ? 'SA 220 · SA 300 · ISQM 1 ¶30' : 'SA 220 · ISQM 1 ¶33–34 · SA 220.A24';
+  const std = isAcc(m.kind) ? 'SA 220 · SA 300 · SMM 1 ¶30' : 'SA 220 · SMM 1 ¶30 · ¶34(d) · SA 220.A24';
   return [
     `${m.client}${m.industry ? ' · ' + m.industry : ''}`,
     `Partner: ${m.partner || '—'}${m.cycle ? ' · Siklus ' + m.cycle : ''}`,

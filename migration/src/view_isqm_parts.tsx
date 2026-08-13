@@ -7,11 +7,11 @@ import { Badge } from './ui';
 import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
 
 /* ============================================================
-   Asseris — SOQM Operasional (ISQM 1) · Komponen Pendalaman
+   Asseris — SOQM Operasional (SMM 1) · Komponen Pendalaman
    ------------------------------------------------------------
    Bagian-bagian berat dari modul SOQM dipisah ke sini:
-   · SoqmFlow          — daur hidup ISQM 1 ¶25–34 sebagai pita alur
-   · SoqmComponents    — peta 8 komponen SPM (ditarik QM_COMPONENTS)
+   · SoqmFlow          — daur hidup SMM 1 ¶25–34 sebagai pita alur
+   · SoqmComponents    — peta 8 komponen SMM (ditarik QM_COMPONENTS)
    · SoqmLineage       — "Tarikan Data Lintas-Modul": rekonsiliasi
                          setiap masukan pemantauan ke SATU sumber
                          kebenaran (ENGAGEMENTS/CLIENTS/STAFF/…),
@@ -19,7 +19,7 @@ import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
    · soqmPull()        — derivasi LIVE angka pemantauan dari AMS
    Semua angka di sini DITARIK, bukan di-hardcode.
    ============================================================ */
-const { useState: useISQMP } = React;
+const { useState: useSMMP } = React;
 
 /* —— Derivasi lintas-modul dari satu sumber (AMS) —— */
 function soqmPull() {
@@ -66,7 +66,7 @@ function soqmPull() {
   };
 }
 
-/* —— Pita daur hidup pendekatan berbasis risiko ISQM 1 —— */
+/* —— Pita daur hidup pendekatan berbasis risiko SMM 1 —— */
 function SoqmFlow({ active, onPick }: any) {
   const steps = [
     { id: 'register', ic: 'target', t: 'Tujuan Mutu', s: '¶25–28', d: 'Tetapkan tujuan mutu per komponen' },
@@ -95,7 +95,7 @@ function SoqmFlow({ active, onPick }: any) {
   );
 }
 
-/* —— Peta 8 komponen Sistem Pengelolaan Mutu (tarik QM_COMPONENTS) —— */
+/* —— Peta 8 komponen Sistem Manajemen Mutu (tarik QM_COMPONENTS) —— */
 function SoqmComponents({ risks, nav }: any) {
   const comps = (AMS as any).QM_COMPONENTS || [];
   const col = (s: any) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
@@ -104,7 +104,7 @@ function SoqmComponents({ risks, nav }: any) {
   return (
     <div>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
-        <div className="tiny muted upper">8 Komponen SPM · ISQM 1 ¶25 (tarikan dari Governance)</div>
+        <div className="tiny muted upper">8 Komponen SMM · SMM 1 ¶25 (tarikan dari Governance)</div>
         <button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Buka Governance (SOQM)</button>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
@@ -151,19 +151,19 @@ function SoqmLineage({ nav }: any) {
   const pulls = [
     {
       ok: P.inspOrphan.length === 0,
-      input: 'Cakupan inspeksi perikatan', ref_: 'ISQM 1 ¶38 · ' + P.insp.length + ' perikatan terinspeksi',
+      input: 'Cakupan inspeksi perikatan', ref_: 'SMM 1 ¶38 · ' + P.insp.length + ' perikatan terinspeksi',
       source: 'ENGAGEMENTS · CLIENTS', sourceMod: 'cockpit',
       value: P.insp.length + ' tertaut · ' + P.inspOrphan.length + ' yatim',
     },
     {
       ok: P.eqrConflict.length === 0,
-      input: 'Independensi reviewer EQR (≠ partner)', ref_: 'ISQM 2 ¶18 · gerbang opini PIE',
+      input: 'Independensi reviewer EQR (≠ partner)', ref_: 'SMM 2 ¶18 · gerbang opini PIE',
       source: 'EQR_REVIEWS → STAFF', sourceMod: 'eqr',
       value: P.eqr.length + ' EQR · ' + P.eqrConflict.length + ' benturan',
     },
     {
       ok: P.eqrPieOpen.length <= 1,
-      input: 'EQR PIE belum lolos gerbang', ref_: 'ISQM 2 · wajib sebelum tanda tangan',
+      input: 'EQR PIE belum lolos gerbang', ref_: 'SMM 2 · wajib sebelum tanda tangan',
       source: 'EQR Workflow', sourceMod: 'eqr',
       value: P.eqrPieOpen.length + ' EQR PIE terbuka', warn: P.eqrPieOpen.length > 1,
     },
@@ -193,7 +193,7 @@ function SoqmLineage({ nav }: any) {
     },
     {
       ok: true,
-      input: 'Keluhan & tuduhan tertaut klien', ref_: 'ISQM 1 ¶A99 · register keluhan',
+      input: 'Keluhan & tuduhan tertaut klien', ref_: 'SMM 1 ¶A99 · register keluhan',
       source: 'COMPLAINTS → CLIENTS', sourceMod: 'crm',
       value: P.cmpLinked.length + ' dari ' + (A.COMPLAINTS || []).length + ' tertaut entitas',
     },

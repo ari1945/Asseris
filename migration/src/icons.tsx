@@ -169,7 +169,7 @@ const MODULES = [
     { id: 'engagement',label: 'Engagement Mgmt', icon: 'briefcase', deep: true },
     { id: 'onboarding',label: 'Onboarding Klien', icon: 'flag', deep: true },
     { id: 'dataflow',  label: 'Alur Data & Integritas', icon: 'link2', deep: true },
-    { id: 'continuance', label: 'Keberlanjutan Klien', icon: 'checkCircle', deep: true, tag: 'ISQM 1' },
+    { id: 'continuance', label: 'Keberlanjutan Klien', icon: 'checkCircle', deep: true, tag: 'SMM 1' },
     { id: 'teamindep', label: 'Independensi Tim', icon: 'shield', deep: true, tag: 'SA 220' },
   ]},
   { group: '1 · Perencanaan', items: [
@@ -270,7 +270,7 @@ const MODULES = [
     { id: 'fsgen',   label: 'Financial Statement Gen.', icon: 'report', deep: true },
     { id: 'disclosure', label: 'Daftar-Uji Pengungkapan', icon: 'checkCircle', tag: 'NEW', deep: true },
     { id: 'opinion', label: 'Audit Opinion Generator', icon: 'gavel', deep: true },
-    { id: 'eqr',     label: 'EQR Workflow', icon: 'checkCircle', deep: true, tag: 'ISQM 2' },
+    { id: 'eqr',     label: 'EQR Workflow', icon: 'checkCircle', deep: true, tag: 'SMM 2' },
     { id: 'mgmtletter', label: 'Management Letter', icon: 'mail', deep: true },
   ]},
   /* Referensi lintas-fase — diletakkan setelah fase 3 agar urutan 1→2→(Area Khusus)→3
@@ -303,7 +303,7 @@ MODULES.forEach(g => g.items.forEach(m => { (MODULE_INDEX as any)[m.id] = { ...m
 
 /* 2026-07-24 (PRD learning-curve R6) — auto-luruh badge "NEW". Sebelumnya 57/158 modul
    (36%) ber-tag 'NEW' → badge di sepertiga app = tak membawa sinyal & menenggelamkan tag
-   informatif (SA 315 / ISQM / WTB / ECL). Sidebar kini menampilkan badge NEW HANYA untuk id
+   informatif (SA 315 / SMM / WTB / ECL). Sidebar kini menampilkan badge NEW HANYA untuk id
    di set ini; tag non-NEW (kode standar) selalu tampil. Basis ideal = tanggal rilis; sementara
    = allowlist yang DI-REVIEW berkala. Isi konservatif: modul yang benar-benar baru siklus ini. */
 const NEW_ALLOW = new Set<string>(['restatement']);
@@ -434,12 +434,12 @@ const RELATED_SA = {
   // Perencanaan, penerimaan perikatan & kendali mutu
   programme:   [{ code: 'SA 300', title: 'Perencanaan Audit LK', phase: 'Perencanaan' }, { code: 'SA 330', title: 'Respons Auditor terhadap Risiko', phase: 'Pelaksanaan' }],
   onboarding:  [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }, { code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }],
-  continuance: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }, { code: 'ISQM 1', title: 'Penerimaan & Keberlanjutan Hubungan Klien (¶33–34)', phase: 'Tata Kelola Mutu' }],
-  teamindep: [{ code: 'SA 220', title: 'Independensi & Objektivitas Tim Perikatan (¶16–24)', phase: 'Perencanaan' }, { code: 'Kode Etik', title: 'Ancaman & Pengaman Independensi (IAPI/IESBA 290)', phase: 'Tata Kelola Mutu' }, { code: 'ISQM 1', title: 'Ketentuan Etika Relevan (¶29)', phase: 'Tata Kelola Mutu' }],
+  continuance: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }, { code: 'SMM 1', title: 'Penerimaan & Keberlanjutan Hubungan Klien (¶30)', phase: 'Tata Kelola Mutu' }],
+  teamindep: [{ code: 'SA 220', title: 'Independensi & Objektivitas Tim Perikatan (¶16–24)', phase: 'Perencanaan' }, { code: 'Kode Etik', title: 'Ancaman & Pengaman Independensi (IAPI/IESBA 290)', phase: 'Tata Kelola Mutu' }, { code: 'SMM 1', title: 'Ketentuan Etika Relevan (¶29)', phase: 'Tata Kelola Mutu' }],
   crm:         [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }],
   eqr:         [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaporan' }],
   reviewnotes: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaksanaan' }],
-  hrcase:      [{ code: 'ISQM 1', title: 'Akuntabilitas, Budaya & Tindakan Disipliner atas Pelanggaran Mutu/Etika (¶28–34)', phase: 'Tata Kelola Mutu' }, { code: 'Kode Etik', title: 'Kepatuhan Ketentuan Etika (IAPI/IESBA) & Konsekuensi Pelanggaran', phase: 'Tata Kelola Mutu' }],
+  hrcase:      [{ code: 'SMM 1', title: 'Akuntabilitas, Budaya & Tindakan Disipliner atas Pelanggaran Mutu/Etika (¶28–34)', phase: 'Tata Kelola Mutu' }, { code: 'Kode Etik', title: 'Kepatuhan Ketentuan Etika (IAPI/IESBA) & Konsekuensi Pelanggaran', phase: 'Tata Kelola Mutu' }],
   dataflow:    [{ code: 'SA 500', title: 'Bukti Audit', phase: 'Pelaksanaan' }, { code: 'SA 230', title: 'Dokumentasi Audit', phase: 'Pelaksanaan' }],
   internalaudit: [{ code: 'SA 610', title: 'Penggunaan Pekerjaan Auditor Internal', phase: 'Pelaksanaan' }],
   framework:   [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan — keberterimaan kerangka pelaporan', phase: 'Perencanaan' }, { code: 'SA 700', title: 'Perumusan Opini & Pelaporan atas LK', phase: 'Pelaporan', view: 'sa705' }, { code: 'SA 800', title: 'Pertimbangan Khusus — Kerangka Bertujuan Khusus', phase: 'Area Khusus', view: 'sa800' }],

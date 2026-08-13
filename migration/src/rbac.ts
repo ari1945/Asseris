@@ -36,12 +36,12 @@ export const CAP = {
   FIRM_ADMIN: 'firm.admin', // pengaturan firma & RBAC
   LLM_USE: 'llm.use', // W8 — panggil proxy LLM (narasi diagnostik). Bantuan baca, di-rate-limit & di-audit.
   ENGAGEMENT_VIEW_ALL: 'engagement.viewAll', // W7.5 — lihat/akses SEMUA engagement tanpa keanggotaan (oversight portofolio)
-  AUDIT_VIEW: 'audit.view', // W10 — baca jejak audit server-side append-only (oversight kepatuhan/ISQM)
+  AUDIT_VIEW: 'audit.view', // W10 — baca jejak audit server-side append-only (oversight kepatuhan/SMM)
   EXPORT: 'export.use', // W10.5 — hasilkan & segel artefak ekspor (deliverable/register). Baca-saja terhadap data yang sudah boleh dilihat; ekspor jejak audit tetap di-gate AUDIT_VIEW.
   INTEGRATION_VIEW: 'integration.view', // W9 — lihat status konektor & antrean impor (transparansi data yang dikonsumsi). Baca-saja.
   INTEGRATION_MANAGE: 'integration.manage', // W9 — kelola koneksi & picu sync (tarik data eksternal → posting ke SSOT). Sensitif: hanya oversight/firm-ops.
-  AJE_POST: 'aje.post', // PR-B — MEMPOSTING jurnal penyesuaian ke Working Trial Balance (langkah Engagement Partner pada rantai ISQM 1). SENGAJA TERPISAH dari OPINION_APPROVE: menyatukannya berarti setiap orang yang boleh memposting jurnal otomatis boleh menyetujui opini. Terpisah pula dari AJE_EDIT (menyusun/mengajukan) — penyusun bukan penyetuju.
-  EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
+  AJE_POST: 'aje.post', // PR-B — MEMPOSTING jurnal penyesuaian ke Working Trial Balance (langkah Engagement Partner pada rantai SMM 1). SENGAJA TERPISAH dari OPINION_APPROVE: menyatukannya berarti setiap orang yang boleh memposting jurnal otomatis boleh menyetujui opini. Terpisah pula dari AJE_EDIT (menyusun/mengajukan) — penyusun bukan penyetuju.
+  EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (SMM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
   PHASE_OVERRIDE: 'phase.override', // override gerbang transisi fase MESKI ada blocker (mulai Eksekusi tanpa akseptasi/surat SA 210/220; arsip dgn WP belum lengkap/opini belum final). Tindakan otoritatif ⇒ Partner-only.
   HR_MANAGE: 'hr.manage', // 2026-07-01 — tulis dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP manual, deklarasi independensi/etik) ATAS NAMA siapa pun, bukan cuma milik-sendiri. Peran 'Admin & HR Firma' + Partner (oversight). Terpisah dari ENGAGEMENT_MANAGE (itu roster klien/perikatan, bukan data personal staf).
   HR_MODULE_VIEW: 'hr.moduleView', // 2026-07-05 — LIHAT (buka) modul manajemen SDM firma: Rekrutmen & Onboarding · Pelatihan & Kompetensi · Suksesi & Karier. Data agregat SDM (bukan milik-sendiri) → kewenangan Partner + Admin & HR Firma; pegawai lain tak berkepentingan DIBLOKIR di level modul (bukan filter baris). Gate BACA, terpisah dari HR_MANAGE (tulis).
@@ -79,7 +79,7 @@ const PERSONAL_FIRM = [CAP.PERSONAL_PAYROLL_VIEW_FIRM, CAP.PERSONAL_LEAVE_VIEW_F
    AUDIT_VIEW granted to Partner + Manager only (W10 D2) — baca jejak audit server-side (oversight).
    SIGNOFF_REVIEWER (Partner + Manager) — otoritas tanda tangan REVIEWER kertas kerja & slot Reviu Manajer opini
    (mencegah Junior/Senior memalsukan sign-off reviu; dikonsumsi UI via can(), penegakan server lebih halus = fase lanjut).
-   EQR_REVIEW granted to Partner only — penanda tangan slot Penelaahan Pengendalian Mutu (EQR, ISQM 2); penelaah
+   EQR_REVIEW granted to Partner only — penanda tangan slot Penelaahan Pengendalian Mutu (EQR, SMM 2); penelaah
    independen ⇒ Manager/Senior/Junior TAK boleh menandatangani slot EQR.
    EXPORT granted to ALL four roles (W10.5) — ekspor deliverable/register = tugas auditor normal atas
    data yang sudah boleh dilihat; isolasi engagement (W7.5) tetap membatasi engagement mana yang bisa
@@ -171,8 +171,8 @@ export function capForWrite(scope: any, key: any) {
     // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal
     // SENYAP (tak tersimpan, tampak berhasil sampai reload). Sejajar roster/priorYear.
     if (key === 'capacityPlan.v1') return ENGAGEMENT_MANAGE;
-    /* 2026-08-12 (PRD Kesiapan P2PK PR-3) — atestasi mutu firma. ISQM 1 ¶20
-       MEMBAGI tanggung jawab: ¶20(b) operasional SPM ada pada Pimpinan SOQM,
+    /* 2026-08-12 (PRD Kesiapan P2PK PR-3) — atestasi mutu firma. SMM 1 ¶20
+       MEMBAGI tanggung jawab: ¶20(b) operasional SMM ada pada Pimpinan SOQM,
        yang di firma ini seorang Audit Manager — dan yang namanya justru dicetak
        sebagai penyusun evaluasi. Tanpa cabang ini kunci jatuh ke FIRM_ADMIN
        (Partner-only) sehingga ia satu-satunya orang yang TIDAK dapat menyimpan

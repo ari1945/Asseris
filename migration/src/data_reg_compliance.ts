@@ -132,7 +132,7 @@ import { AMS } from './data';
     { code: 'SA 315', title: 'Identifikasi & Penilaian Risiko Kesalahan Penyajian Material', ver: 'Revisi 2021', eff: 'Periode ≥ 15 Des 2022', key: 'Pemisahan risiko inheren & pengendalian · faktor risiko inheren · prosedur "stand-back"', module: 'riskassessment', current: true },
     { code: 'SA 540', title: 'Audit Estimasi Akuntansi & Pengungkapannya', ver: 'Revisi', eff: 'Periode ≥ 15 Des 2021', key: 'Spektrum ekspektasi · pengujian indikator bias manajemen · faktor risiko inheren', module: 'sa540', current: true },
     { code: 'SA 600', title: 'Pertimbangan Khusus — Audit Grup', ver: 'Revisi', eff: 'Periode ≥ 15 Des 2023', key: 'Keterlibatan tim grup pada penilaian risiko komponen · pelingkupan berbasis risiko (bukan sekadar komponen signifikan)', module: 'groupaudit', current: true },
-    { code: 'SA 220', title: 'Pengelolaan Mutu Audit Laporan Keuangan', ver: 'Revisi', eff: 'Periode ≥ 15 Des 2022', key: 'Selaras SPM 1/ISQM 1 · pendekatan manajemen kualitas perikatan · keterlibatan AP', module: 'soqm', current: true },
+    { code: 'SA 220', title: 'Manajemen Mutu Audit Laporan Keuangan', ver: 'Revisi', eff: 'Periode ≥ 15 Des 2022', key: 'Selaras SMM 1/SMM 1 · pendekatan manajemen kualitas perikatan · keterlibatan AP', module: 'soqm', current: true },
   ];
 
   Object.assign(AMS, {

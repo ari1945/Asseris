@@ -130,7 +130,7 @@ function OBAcceptance() {
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Registri Keputusan Penerimaan</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 220 · ISQM 1 · SA 300</span></div>
+          <div className="panel-h"><h3>Registri Keputusan Penerimaan</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 220 · SMM 1 · SA 300</span></div>
           <table className="dtbl">
             <thead><tr><th>Prospek</th><th className="num">Skor</th><th>Keputusan</th><th>Approver</th><th className="num">Tanggal</th></tr></thead>
             <tbody>

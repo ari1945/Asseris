@@ -256,7 +256,7 @@ function DiagnosticPanel({ area, title }: any) {
           ? <div className="tiny muted" style={{ padding: '4px 0' }}><I.checkCircle size={13} /> Semua temuan telah diputuskan auditor.</div>
           : <div style={{ display: 'grid', gap: 9 }}>{list.map((f: any) => <DiagFindingCard key={f.id} f={f} decision={decisions[f.id]} onDecide={decide} nav={nav} />)}</div>}
       <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
-        <I.lock size={10} /> Temuan dihitung dari data kanonik · tiap keputusan tercatat untuk reviu mutu (ISQM 1).
+        <I.lock size={10} /> Temuan dihitung dari data kanonik · tiap keputusan tercatat untuk reviu mutu (SMM 1).
       </div>
     </Panel>
   );

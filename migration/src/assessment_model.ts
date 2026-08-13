@@ -1,6 +1,6 @@
 /* ============================================================
    Asseris — Model Penilaian Berbobot Bersama (SSOT)
-   Penerimaan (SA 220 / SA 300) & Keberlanjutan (ISQM 1 ¶33–34 / SA 220).
+   Penerimaan (SA 220 / SA 300) & Keberlanjutan (SMM 1 ¶30 · ¶34(d) / SA 220).
 
    Matematika skor tunggal yang dipakai KEDUA sisi: skor berbobot faktor
    (Σ s·w / Σ w) + verdict ambang. Murni, deterministik, bebas-any.

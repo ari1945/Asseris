@@ -115,4 +115,53 @@ export default [
       'react/jsx-no-undef': 'off',
     },
   },
+
+  /* ------------------------------------------------------------------
+     PR-1 SMM — gerbang nomenklatur standar manajemen mutu.
+
+     IAPI mengesahkan SMM 1 & SMM 2 (18-09-2024, efektif 31-12-2025);
+     SMM 1 MENGGANTIKAN SPM 1. "ISQM 1/2" adalah standar IAASB — acuan
+     penyusunan, bukan standar yang mengikat KAP Indonesia.
+
+     Sebelum PR ini, nama standar yang tidak berlaku tersebar di 74
+     berkas dan tak ada yang bisa menangkapnya. Aturan di bawah adalah
+     penangkapnya: ia menyasar PERMUKAAN YANG DIBACA PENGGUNA (literal
+     string, teks JSX, template) — bukan komentar, yang tidak tampil.
+
+     Dijalankan lewat gerbang `npm run lint` yang sudah ada; tidak
+     menambah dependensi. (Alternatifnya, uji pemindai filesystem,
+     menuntut devDependency `@types/node` yang belum ada di `migration/`
+     — keputusan terpisah; lihat catatan `exclude` di tsconfig.test.json.)
+     ------------------------------------------------------------------ */
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    // Berkas yang MEMANG harus menyebut nama lama: kanon yang
+    // mendokumentasikan penggantian, dan uji yang memakainya sbg tripwire.
+    ignores: ['src/canon_smm_refs.ts', 'src/canon_smm_refs.test.ts'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        { selector: 'Literal[value=/\\bISQM\\b/]',            message: 'Pakai "SMM 1"/"SMM 2" (IAPI), bukan "ISQM" (IAASB).' },
+        { selector: 'JSXText[value=/\\bISQM\\b/]',            message: 'Pakai "SMM 1"/"SMM 2" (IAPI), bukan "ISQM" (IAASB).' },
+        { selector: 'TemplateElement[value.raw=/\\bISQM\\b/]', message: 'Pakai "SMM 1"/"SMM 2" (IAPI), bukan "ISQM" (IAASB).' },
+
+        { selector: 'Literal[value=/\\bSPM\\b/]',             message: 'SPM 1 digantikan SMM 1 sejak 31-12-2025.' },
+        { selector: 'JSXText[value=/\\bSPM\\b/]',             message: 'SPM 1 digantikan SMM 1 sejak 31-12-2025.' },
+        { selector: 'TemplateElement[value.raw=/\\bSPM\\b/]',  message: 'SPM 1 digantikan SMM 1 sejak 31-12-2025.' },
+
+        { selector: 'Literal[value=/(Sistem|Standar) Pengelolaan Mutu/]', message: 'Istilah SMM adalah "manajemen mutu", bukan "pengelolaan mutu".' },
+        { selector: 'JSXText[value=/(Sistem|Standar) Pengelolaan Mutu/]', message: 'Istilah SMM adalah "manajemen mutu", bukan "pengelolaan mutu".' },
+
+        // Penerimaan & Keberlanjutan = ¶30 (tujuan mutu) · ¶34(d) (respons spesifik).
+        // "¶33–34" menunjuk Informasi & Komunikasi + Respons Spesifik — keliru,
+        // dan keliru itu tersebar di 9 berkas sebelum PR ini.
+        { selector: 'Literal[value=/¶33[–-]34/]', message: 'Penerimaan & Keberlanjutan = ¶30 · ¶34(d), bukan ¶33–34.' },
+        { selector: 'JSXText[value=/¶33[–-]34/]', message: 'Penerimaan & Keberlanjutan = ¶30 · ¶34(d), bukan ¶33–34.' },
+
+        // Register keluhan & tuduhan = ketentuan ¶34(c), bukan materi penerapan ¶A56.
+        // Disempitkan ke konteks SMM: `SA 500 ¶A56` (IPE) & `SA 530 ¶A56` sah.
+        { selector: 'Literal[value=/SMM[^\\n]{0,20}¶A56/]', message: 'Register keluhan & tuduhan = ¶34(c), bukan ¶A56.' },
+        { selector: 'JSXText[value=/SMM[^\\n]{0,20}¶A56/]', message: 'Register keluhan & tuduhan = ¶34(c), bukan ¶A56.' },
+      ],
+    },
+  },
 ];

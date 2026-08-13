@@ -117,7 +117,7 @@ import { AMS } from './data';
         { phase: 'Perencanaan', task: 'Penerimaan & penilaian risiko', owner: e.manager.split(' ')[0] + '.', plan: Math.round(f * 0.18), actual: Math.round(f * 0.18 * Math.min(1, e.progress / 28)), status: e.progress > 28 ? 'Selesai' : 'Berjalan', pct: Math.min(100, Math.round(e.progress / 28 * 100)) },
         { phase: 'Eksekusi', task: 'Prosedur substantif inti', owner: e.manager.split(' ')[0] + '.', plan: Math.round(f * 0.5), actual: Math.round(f * 0.5 * Math.max(0, Math.min(1, (e.progress - 28) / 50))), status: e.progress > 78 ? 'Selesai' : e.progress > 28 ? 'Berjalan' : 'Belum', pct: Math.max(0, Math.min(100, Math.round((e.progress - 28) / 50 * 100))) },
         { phase: 'Finalisasi', task: 'Penyelesaian, SAD & opini', owner: e.partner.split(' ')[0] + '.', plan: Math.round(f * 0.22), actual: Math.round(f * 0.22 * Math.max(0, (e.progress - 78) / 22)), status: e.progress >= 100 ? 'Selesai' : e.progress > 78 ? 'Berjalan' : 'Belum', pct: Math.max(0, Math.round((e.progress - 78) / 22 * 100)) },
-        { phase: 'Arsip', task: 'Arsip kertas kerja (ISQM)', owner: 'Sistem', plan: Math.round(f * 0.1), actual: e.phase === 'Arsip' ? Math.round(f * 0.1) : 0, status: e.phase === 'Arsip' ? 'Selesai' : 'Belum', pct: e.phase === 'Arsip' ? 100 : 0 },
+        { phase: 'Arsip', task: 'Arsip kertas kerja (SMM)', owner: 'Sistem', plan: Math.round(f * 0.1), actual: e.phase === 'Arsip' ? Math.round(f * 0.1) : 0, status: e.phase === 'Arsip' ? 'Selesai' : 'Belum', pct: e.phase === 'Arsip' ? 100 : 0 },
       ],
       staffing: [
         { name: e.partner.split(',')[0], role: 'Partner', alloc: 7, hrs: Math.round(e.actualHrs * 0.05), rate: 2_400_000 },
@@ -207,7 +207,7 @@ import { AMS } from './data';
     { id: 'IR-07', cat: 'Otorisasi', rule: 'AJE diposting memiliki approver', severity: 'Tinggi', scope: 'Perikatan', status: 'pass', detail: 'Seluruh AJE Posted ter-review' },
     { id: 'IR-08', cat: 'Independensi', rule: 'Konfirmasi independensi tim diperoleh', severity: 'Kritis', scope: 'Firma', status: 'pass', detail: 'Semua anggota terkonfirmasi' },
     { id: 'IR-09', cat: 'Konsentrasi', rule: 'Klien tunggal < 25% pendapatan firma', severity: 'Sedang', scope: 'Firma', status: 'warn', detail: 'Klien terbesar 25,4%' },
-    { id: 'IR-10', cat: 'Retensi', rule: 'Arsip kertas kerja ≤ 60 hari pasca laporan (ISQM)', severity: 'Tinggi', scope: 'Firma', status: 'pass', detail: '1 arsip dalam tenggat' },
+    { id: 'IR-10', cat: 'Retensi', rule: 'Arsip kertas kerja ≤ 60 hari pasca laporan (SMM)', severity: 'Tinggi', scope: 'Firma', status: 'pass', detail: '1 arsip dalam tenggat' },
   ];
   const AUDIT_TRAIL = [
     { ts: '2026-03-05 09:42', user: 'Anindya P.', action: 'Mengubah skor risiko', entity: 'R-01 Pendapatan → 12', module: 'risk' },
