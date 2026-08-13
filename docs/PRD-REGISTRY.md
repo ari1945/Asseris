@@ -11,7 +11,7 @@
 | Draft | 52 |
 | Approved | 5 |
 | In Progress | 7 |
-| Implemented | 25 |
+| Implemented | 26 |
 | Superseded | 1 |
 
 ## Daftar
@@ -89,6 +89,7 @@
 | docs/prd-estimasi-terfalsifikasi.md | Implemented — PR-1..PR-5 (#182·#183·#184·#185·#186) merged 2026-08-12; K1–K13 tertutup, Q1–Q3 dijawab |
 | docs/prd-finalisation-gate-execution-completeness.md | Draft |
 | docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
+| docs/prd-lint-coverage-server-e2e.md | Implemented — dieksekusi 2026-08-13 lewat PR #207 (master e2deb29); Q1=A · Q2=langsung error · Q3=tidak |
 | docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-overlay-contract-and-addressable-objects.md | Draft |
 | docs/prd-penerimaan-keberlanjutan-detail.md | Draft — menunggu sign-off |
