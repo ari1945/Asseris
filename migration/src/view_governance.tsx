@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui';
+import { Avatar, Badge, Btn, Donut, Panel, Stat, Tabs } from './ui';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
@@ -21,6 +21,8 @@ import { assessNetwork, networkDefectLabel, ADAPTATION_LABEL,
   type NetworkItem, type NetworkMonitoringResult, type NetworkDeficiency } from './canon_smm_network';
 import { evaluateSmm } from './canon_smm_evaluation';
 import { collectSmmDeficiencies } from './canon_smm_deficiencies';
+import { componentMetrics, COMPONENT_STATUS_LABEL, type ComponentStatus } from './canon_smm_component_metrics';
+import { objectiveCoverage, coverageByComponent, type ObjectiveLinkedRisk, type ObjectiveWaiver } from './canon_smm_objectives';
 import { attestKeyFor, attestChainLinks, attestChainComplete, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
 import { useFirmAttest } from './firm_attest';
 
@@ -71,8 +73,20 @@ function Governance() {
   const concColor = evalResult.conclusion === 'reasonable' ? 'var(--green)'
     : evalResult.conclusion === 'reasonable-except-for' ? 'var(--amber)' : 'var(--red)';
 
-  const avg = Math.round(comps.reduce((s: any, c: any) => s + c.score, 0) / comps.length);
-  const effective = comps.filter((c: any) => c.status === 'Efektif').length;
+  /* Metrik komponen DITURUNKAN (V-3). `score`/`risks`/`defs`/`trend` pada
+     `QM_COMPONENTS` adalah integer seed yang tak tertaut register mana pun:
+     kartu C1 berbunyi "3 risiko · 92%" di atas register yang tak punya satu
+     pun risiko Tata Kelola. Skor tidak diganti angka lain — SMM 1 tidak
+     mengenal skor komponen, dan merekayasa formula adalah ambang karangan. */
+  const objCov = objectiveCoverage(
+    (A.SOQM_RISKS || []) as ObjectiveLinkedRisk[],
+    (A.SMM_OBJECTIVE_WAIVERS || []) as ObjectiveWaiver[],
+  );
+  const metrics = componentMetrics(comps, A.SOQM_RISKS, coverageByComponent(objCov), evaluateSmm(smmDefs), smmDefs);
+  const metricById = new Map(metrics.map((m) => [m.id, m]));
+  const statusColor = (s: ComponentStatus) => s === 'deficient' ? 'var(--red)' : s === 'attention' ? 'var(--amber)' : 'var(--green)';
+
+  const effective = metrics.filter((m) => m.status === 'effective').length;
   /* Defisiensi terbuka menurut A191 (dua syarat), bukan penjumlahan field seed
      `QM_COMPONENTS.defs` — angka itu tak pernah tertaut register mana pun. */
   const openDefs = evalResult.openPervasive.length + evalResult.openSignificant.length + evalResult.openMinor.length;
@@ -85,14 +99,16 @@ function Governance() {
     { id: 'network', label: 'Ketentuan Jaringan', count: net.items.length },
     { id: 'culture', label: 'Budaya Mutu & Evaluasi' },
   ];
-  const scoreColor = (s: any) => s >= 85 ? 'var(--green)' : s >= 75 ? 'var(--amber)' : 'var(--red)';
 
   return (
     <>
       <SubBar moduleId="governance" right={<div className="row gap8 ac"><Badge kind="blue">SMM 1 · SMM</Badge><Btn sm><I.download size={13} /> Evaluasi SMM Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avg + '%'} label="Skor Efektivitas SMM" accent={scoreColor(avg)} /></div></Panel>
+          {/* "Skor Efektivitas SMM 87%" adalah rata-rata field seed `score` yang
+              tak tertaut register mana pun. Digantikan besaran kanonik yang
+              memang bisa gagal: cakupan 27 tujuan mandatori ¶28–33. */}
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={objCov.addressedPct + '%'} label="Cakupan Tujuan Mandatori ¶28–33" accent={objCov.complete ? 'var(--green)' : objCov.addressedPct >= 50 ? 'var(--amber)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={concLabel} label={'Rekomendasi Mesin ¶54 · ' + String(evalPeriod.slice(-4) || '')} accent={concColor} /></div></Panel>
@@ -157,28 +173,33 @@ function Governance() {
           {tab === 'spm' && (
             <div style={{ padding: 12 }}>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {comps.map((c: any) => (
-                  <div key={c.id} onClick={() => setSel(c.id)} className="panel" style={{ padding: '12px 14px', cursor: 'pointer', boxShadow: 'none', borderLeft: '3px solid ' + scoreColor(c.score) }}>
+                {comps.map((c: any) => {
+                  const m = metricById.get(c.id);
+                  const st = m ? m.status : 'effective';
+                  return (
+                  <button type="button" key={c.id} onClick={() => setSel(c.id)} aria-current={c.id === sel ? 'true' : undefined} className="panel" style={{ textAlign: 'left', font: 'inherit', color: 'inherit', width: '100%', padding: '12px 14px', cursor: 'pointer', boxShadow: 'none', border: 0, borderLeft: '3px solid ' + statusColor(st) }}>
                     <div className="row jb ac" style={{ marginBottom: 4 }}>
                       <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span></div>
-                      <Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge>
+                      <Badge kind={(GOV_STAT as any)[COMPONENT_STATUS_LABEL[st]]}>{COMPONENT_STATUS_LABEL[st]}</Badge>
                     </div>
                     <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 9, minHeight: 30 }}>{c.desc}</div>
                     <div className="row jb ac">
                       <div className="row ac gap10">
-                        <span className="tiny muted">Tujuan <b style={{ color: 'var(--ink)' }}>{c.obj}</b></span>
-                        <span className="tiny muted">Risiko <b style={{ color: 'var(--ink)' }}>{c.risks}</b></span>
-                        <span className="tiny muted">Defisiensi <b style={{ color: c.defs ? 'var(--amber)' : 'var(--ink)' }}>{c.defs}</b></span>
+                        <span className="tiny muted">Tujuan <b style={{ color: 'var(--ink)' }}>{m ? m.objectivesTotal : 0}</b></span>
+                        <span className="tiny muted">Risiko <b style={{ color: 'var(--ink)' }}>{m ? m.riskCount : 0}</b></span>
+                        <span className="tiny muted">Defisiensi <b style={{ color: m && m.openDeficiencies.length ? 'var(--amber)' : 'var(--ink)' }}>{m ? m.openDeficiencies.length : 0}</b></span>
                       </div>
-                      <div className="row ac gap8">
-                        <Spark data={c.trend} width={56} height={22} color={scoreColor(c.score)} />
-                        <span className="mono" style={{ fontWeight: 700, fontSize: 15, color: scoreColor(c.score), width: 38, textAlign: 'right' }}>{c.score}%</span>
-                      </div>
+                      {/* Skor & sparkline seed dicabut. Yang tersisa adalah cakupan
+                          tujuan mandatori — besaran kanonik yang memang bisa gagal. */}
+                      <span className="mono tiny" style={{ fontWeight: 700, color: statusColor(st) }}>
+                        {m && m.isProcess ? 'proses' : (m ? m.objectivesAddressed + '/' + m.objectivesTotal : '—')}
+                      </span>
                     </div>
-                  </div>
-                ))}
+                  </button>
+                  );
+                })}
               </div>
-              <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>Pendekatan SMM 1: untuk tiap komponen, firma menetapkan <b>tujuan mutu</b>, mengidentifikasi & menilai <b>risiko mutu</b>, lalu merancang & menerapkan <b>respons</b>. Klik komponen untuk rincian kepemilikan & metrik.</div>
+              <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>Pendekatan SMM 1: untuk tiap komponen, firma menetapkan <b>tujuan mutu</b>, mengidentifikasi &amp; menilai <b>risiko mutu</b>, lalu merancang &amp; menerapkan <b>respons</b>. Angka kanan tiap kartu = <b>cakupan tujuan mandatori</b> ¶28–33; <b>bukan</b> skor efektivitas — SMM 1 tidak mengenal skor komponen, dan skor lama tidak tertaut register mana pun. Klik komponen untuk rincian kepemilikan &amp; metrik.</div>
             </div>
           )}
 
@@ -310,33 +331,49 @@ function Governance() {
         </Panel>
       </div></div>
 
-      {selComp && <GovCompDetail c={selComp} onClose={() => setSel(null)} />}
+      {selComp && <GovCompDetail c={selComp} metric={metricById.get(selComp.id)} onClose={() => setSel(null)} />}
     </>
   );
 }
 
-function GovCompDetail({ c, onClose }: any) {
+function GovCompDetail({ c, metric, onClose }: any) {
   const A: any = AMS;
   const role = A.QM_ROLES.find((r: any) => r.person.includes(c.owner)) || null;
-  const scoreColor = c.score >= 85 ? 'var(--green)' : c.score >= 75 ? 'var(--amber)' : 'var(--red)';
+  /* Donut skor & sparkline tren dicabut: `score` tak tertaut register apa pun
+     dan `trend` adalah riwayat skor yang tak pernah ada. Yang menggantikannya
+     adalah cakupan tujuan mandatori ¶28–33 — terhitung, dan bisa gagal. */
+  const m = metric || null;
+  const st: ComponentStatus = m ? m.status : 'effective';
+  const stColor = st === 'deficient' ? 'var(--red)' : st === 'attention' ? 'var(--amber)' : 'var(--green)';
+  const covPct = m && !m.isProcess && m.objectivesTotal
+    ? Math.round(m.objectivesAddressed / m.objectivesTotal * 100) : null;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>SMM 1 {c.ref}</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[COMPONENT_STATUS_LABEL[st]]}>{COMPONENT_STATUS_LABEL[st]}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>SMM 1 {c.ref}</div></div>
+          <button className="top-btn" onClick={onClose} aria-label="Tutup rincian komponen" title="Tutup"><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="row ac gap10">
-            <Donut size={76} thickness={11} segments={[{ value: c.score, color: scoreColor }, { value: 100 - c.score, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: scoreColor }}>{c.score}%</div></div>} />
-            <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Komponen</div><div style={{ fontSize: 12, lineHeight: 1.5 }}>{c.desc}</div></div>
+            {covPct !== null
+              ? <Donut size={76} thickness={11} segments={[{ value: covPct, color: stColor }, { value: 100 - covPct, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: stColor }}>{covPct}%</div></div>} />
+              : <div className="panel" style={{ width: 76, height: 76, display: 'grid', placeItems: 'center', boxShadow: 'none' }}><span className="tiny muted" style={{ textAlign: 'center', lineHeight: 1.3 }}>proses<br />¶23–27<br />¶35–47</span></div>}
+            <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Tujuan Mandatori</div><div style={{ fontSize: 12, lineHeight: 1.5 }}>{c.desc}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <OKv label="Tujuan Mutu" v={c.obj} />
-            <OKv label="Risiko Mutu" v={c.risks} />
-            <OKv label="Defisiensi" v={c.defs} accent={c.defs ? 'var(--amber)' : 'var(--green)'} />
+            <OKv label="Tujuan Mutu ¶28–33" v={m ? m.objectivesTotal : 0} />
+            <OKv label="Risiko Mutu" v={m ? m.riskCount : 0} />
+            <OKv label="Defisiensi Terbuka" v={m ? m.openDeficiencies.length : 0} accent={m && m.openDeficiencies.length ? 'var(--amber)' : 'var(--green)'} />
           </div>
-          <div><div className="tiny muted upper" style={{ marginBottom: 5 }}>Tren Efektivitas (4 periode)</div><div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}><Spark data={c.trend} width={360} height={48} color={scoreColor} /></div></div>
+          {m && !m.isProcess && m.objectivesAddressed < m.objectivesTotal && (
+            <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none', borderLeft: '3px solid var(--amber)' }}>
+              <div className="tiny" style={{ lineHeight: 1.5 }}>
+                <b>{m.objectivesTotal - m.objectivesAddressed}</b> tujuan mandatori komponen ini belum punya risiko &amp; respons,
+                dan belum dikesampingkan lewat waiver ¶17 yang sah — <b>defisiensi rancangan</b> (¶25–26).
+              </div>
+            </div>
+          )}
           {role && (
             <div><div className="tiny muted upper" style={{ marginBottom: 5 }}>Pemilik Komponen</div>
               <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none' }}>

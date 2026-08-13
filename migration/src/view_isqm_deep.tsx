@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { Badge, Btn, Panel, Spark } from './ui';
+import { Badge, Btn, Panel } from './ui';
 import { CAP } from './rbac';
 import { FirmAttestCard, useFirmAttest } from './firm_attest';
 import { attestKeyFor, attestChainLinks, attestChainComplete, attestVoidedRoles, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
@@ -16,6 +16,7 @@ import {
   type PervasivenessIndicator,
 } from './canon_smm_evaluation';
 import { collectSmmDeficiencies, originOf } from './canon_smm_deficiencies';
+import { componentMetrics } from './canon_smm_component_metrics';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -477,6 +478,15 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   const smmDefs = collectSmmDeficiencies({ risks, network: A.QM_NETWORK });
   const evalResult = evaluateSmm(smmDefs);
   const netDefIds = smmDefs.filter((d) => d.origin === 'network').map((d) => d.id);
+  /* Metrik komponen DITURUNKAN — menggantikan "Tren Skor Komponen SMM" yang
+     memplot `QM_COMPONENTS.trend`, riwayat skor yang tak pernah ada. */
+  const compMetrics = componentMetrics(
+    A.QM_COMPONENTS,
+    risks,
+    coverageByComponent(objectiveCoverage(risks as ObjectiveLinkedRisk[], (A.SMM_OBJECTIVE_WAIVERS || []) as ObjectiveWaiver[])),
+    evaluateSmm(smmDefs),
+    smmDefs,
+  );
   const withOrigin = (ids: readonly string[]) => ids
     .map((id) => id + (originOf(smmDefs, id) === 'network' ? ' (jaringan)' : ''))
     .join(' · ');
@@ -688,17 +698,28 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           </div>
         </Panel>
 
-        <Panel title="Tren Skor Komponen SMM" sub="dari Governance (QM_COMPONENTS · trend)">
+        {/* Panel ini dulu berjudul "Tren Skor Komponen SMM" dan memplot
+            `QM_COMPONENTS.trend` — riwayat skor yang tak pernah ada, di layar
+            evaluasi ¶53 yang justru paling dituntut berbasis bukti. Skor & tren
+            dicabut; yang tersisa adalah cakupan tujuan mandatori ¶28–33, yang
+            terhitung dan bisa gagal. */}
+        <Panel title="Cakupan Tujuan Mandatori per Komponen" sub="¶28–33 — dihitung dari register risiko & waiver ¶17, bukan skor seed">
           <div className="grid" style={{ gap: 6 }}>
-            {(A.QM_COMPONENTS || []).map((c: any) => (
-              <div key={c.id}>
-                <div className="row jb ac" style={{ marginBottom: 2 }}>
-                  <span className="tiny" style={{ fontWeight: 600 }}>{c.id} · {c.name}</span>
-                  <span className="mono tiny" style={{ fontWeight: 700, color: c.score >= 88 ? 'var(--green)' : c.score >= 80 ? 'var(--amber)' : 'var(--red)' }}>{c.score}</span>
+            {compMetrics.map((m) => {
+              const pct = m.isProcess || !m.objectivesTotal ? null : Math.round(m.objectivesAddressed / m.objectivesTotal * 100);
+              const clr = m.status === 'deficient' ? 'var(--red)' : m.status === 'attention' ? 'var(--amber)' : 'var(--green)';
+              return (
+                <div key={m.id}>
+                  <div className="row jb ac" style={{ marginBottom: 2 }}>
+                    <span className="tiny" style={{ fontWeight: 600 }}>{m.id} · {m.name}</span>
+                    <span className="mono tiny" style={{ fontWeight: 700, color: pct === null ? 'var(--ink-3)' : clr }}>
+                      {pct === null ? 'proses' : m.objectivesAddressed + '/' + m.objectivesTotal}
+                    </span>
+                  </div>
+                  {pct !== null && <div className="pbar"><span style={{ width: pct + '%', background: clr }} /></div>}
                 </div>
-                {window.Spark ? <Spark data={c.trend} h={18} color={c.score >= 88 ? 'var(--green)' : 'var(--amber)'} /> : <div className="pbar"><span style={{ width: c.score + '%', background: c.score >= 88 ? 'var(--green)' : 'var(--amber)' }} /></div>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Panel>
       </div>

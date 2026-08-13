@@ -5,13 +5,19 @@ import { capacityModel, seedForwardPlan } from './canon_capacity';
 import { I } from './icons';
 import { Badge } from './ui';
 import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
+import { componentMetrics, coverageText, COMPONENT_STATUS_LABEL } from './canon_smm_component_metrics';
+import { objectiveCoverage, coverageByComponent, type ObjectiveLinkedRisk, type ObjectiveWaiver } from './canon_smm_objectives';
+import { evaluateSmm } from './canon_smm_evaluation';
+import { collectSmmDeficiencies, type RiskRowLike } from './canon_smm_deficiencies';
 
 /* ============================================================
    Asseris — SOQM Operasional (SMM 1) · Komponen Pendalaman
    ------------------------------------------------------------
    Bagian-bagian berat dari modul SOQM dipisah ke sini:
-   · SoqmFlow          — daur hidup SMM 1 ¶25–34 sebagai pita alur
-   · SoqmComponents    — peta 8 komponen SMM (ditarik QM_COMPONENTS)
+   · SoqmFlow          — daur hidup SMM 1 ¶24–¶44 sebagai pita alur
+   · SoqmComponents    — peta 8 komponen SMM; cakupan tujuan, jumlah
+                         risiko & defisiensi DITURUNKAN (canon_smm_
+                         component_metrics), bukan field seed
    · SoqmLineage       — "Tarikan Data Lintas-Modul": rekonsiliasi
                          setiap masukan pemantauan ke SATU sumber
                          kebenaran (ENGAGEMENTS/CLIENTS/STAFF/…),
@@ -68,11 +74,20 @@ function soqmPull() {
 
 /* —— Pita daur hidup pendekatan berbasis risiko SMM 1 —— */
 function SoqmFlow({ active, onPick }: any) {
+  /* Rujukan paragraf diperbaiki (V-3 arc induk terulang di sini).
+     Yang tertulis sebelumnya: Tujuan Mutu '¶25–28' — ¶25 adalah RISIKO,
+     bukan tujuan; Respons '¶32–34' — ¶32 & ¶33 adalah paragraf TUJUAN
+     (Sumber Daya · Informasi & Komunikasi), bukan respons. Pita ini
+     berbunyi "Tujuan Mutu ¶25–28" tepat di atas panel yang berbunyi
+     "¶24 … 27 tujuan mandatori pada ¶28–33".
+
+     Yang TIDAK diubah: Defisiensi ¶41 & Remediasi ¶42–44 — tidak ada
+     bukti keduanya keliru, jadi tidak diutak-atik. */
   const steps = [
-    { id: 'register', ic: 'target', t: 'Tujuan Mutu', s: '¶25–28', d: 'Tetapkan tujuan mutu per komponen' },
-    { id: 'register', ic: 'shield', t: 'Risiko Mutu', s: '¶25–27', d: 'Identifikasi & nilai (L×D)' },
-    { id: 'register', ic: 'sliders', t: 'Respons', s: '¶32–34', d: 'Rancang & terapkan kontrol' },
-    { id: 'monitoring', ic: 'search2', t: 'Pemantauan', s: '¶38–44', d: 'Inspeksi & aktivitas pemantauan' },
+    { id: 'objectives', ic: 'target', t: 'Tujuan Mutu', s: '¶24 · ¶28–33', d: 'Tetapkan tujuan mutu per komponen' },
+    { id: 'register', ic: 'shield', t: 'Risiko Mutu', s: '¶25', d: 'Identifikasi & nilai (L×D)' },
+    { id: 'register', ic: 'sliders', t: 'Respons', s: '¶26 · ¶34', d: 'Rancang & terapkan kontrol' },
+    { id: 'monitoring', ic: 'search2', t: 'Pemantauan', s: '¶36–40', d: 'Inspeksi & aktivitas pemantauan' },
     { id: 'remediation', ic: 'alert', t: 'Defisiensi', s: '¶41', d: 'Evaluasi keparahan & akar masalah' },
     { id: 'remediation', ic: 'check', t: 'Remediasi', s: '¶42–44', d: 'Tindakan & evaluasi tahunan' },
   ];
@@ -97,27 +112,45 @@ function SoqmFlow({ active, onPick }: any) {
 
 /* —— Peta 8 komponen Sistem Manajemen Mutu (tarik QM_COMPONENTS) —— */
 function SoqmComponents({ risks, nav }: any) {
-  const comps = (AMS as any).QM_COMPONENTS || [];
-  const col = (s: any) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
-  /* hitung risiko mutu operasional yang terpetakan ke tiap komponen via nama */
-  const mapName = (compName: any) => risks.filter((r: any) => compName.includes(r.comp) || r.comp.includes(compName.split(' ')[0])).length;
+  const A: any = AMS;
+  const comps = A.QM_COMPONENTS || [];
+  /* Angka kartu DITURUNKAN. Bentuk lama merender `c.risks` & `c.score`
+     dari seed: kartu C1 berbunyi "3 risiko · 92" padahal register tak
+     punya satu pun risiko Tata Kelola, dan tab Tujuan Mutu pada layar
+     yang sama berbunyi "C1 · 0/5 tertangani". `mapName` di sini bahkan
+     menghitung jumlah yang benar lalu tak pernah dipanggil. */
+  const cov = objectiveCoverage(risks as ObjectiveLinkedRisk[], (A.SMM_OBJECTIVE_WAIVERS || []) as ObjectiveWaiver[]);
+  const defs = collectSmmDeficiencies({ risks: risks as RiskRowLike[], network: A.QM_NETWORK });
+  const metrics = componentMetrics(comps, risks, coverageByComponent(cov), evaluateSmm(defs), defs);
+  const col = (s: string) => s === 'deficient' ? 'var(--red)' : s === 'attention' ? 'var(--amber)' : 'var(--green)';
   return (
     <div>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
-        <div className="tiny muted upper">8 Komponen SMM · SMM 1 ¶25 (tarikan dari Governance)</div>
+        <div className="tiny muted upper">8 Komponen SMM — cakupan tujuan &amp; defisiensi DITURUNKAN dari register</div>
         <button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Buka Governance (SOQM)</button>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        {comps.map((c: any) => (
-          <div key={c.id} className="panel soqm-comp" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid ' + col(c.score) }}>
-            <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{c.id}</span><span className="mono" style={{ fontSize: 13, fontWeight: 800, color: col(c.score) }}>{c.score}</span></div>
-            <div className="tiny" style={{ fontWeight: 700, lineHeight: 1.3, margin: '3px 0' }}>{c.name}</div>
-            <div className="row ac gap6 tiny muted">
-              <span>{c.risks} risiko</span><span>·</span>
-              <span style={{ color: c.defs ? 'var(--amber)' : 'var(--ink-4)', fontWeight: c.defs ? 700 : 400 }}>{c.defs} defisiensi</span>
+        {metrics.map((m) => (
+          <div key={m.id} className="panel soqm-comp" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid ' + col(m.status) }}>
+            <div className="row jb ac">
+              <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{m.id}</span>
+              <span className="mono tiny" style={{ fontWeight: 800, color: col(m.status) }}>
+                {m.isProcess ? 'proses' : m.objectivesAddressed + '/' + m.objectivesTotal}
+              </span>
             </div>
+            <div className="tiny" style={{ fontWeight: 700, lineHeight: 1.3, margin: '3px 0' }}>{m.name}</div>
+            <div className="row ac gap6 tiny muted">
+              <span>{m.riskCount} risiko</span><span>·</span>
+              <span style={{ color: m.openDeficiencies.length ? 'var(--amber)' : 'var(--ink-4)', fontWeight: m.openDeficiencies.length ? 700 : 400 }}>{m.openDeficiencies.length} defisiensi</span>
+            </div>
+            <div className="tiny" style={{ color: col(m.status), fontWeight: 600, marginTop: 2 }}>{COMPONENT_STATUS_LABEL[m.status]}</div>
           </div>
         ))}
+      </div>
+      <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>
+        Angka atas tiap kartu adalah <b>cakupan tujuan mandatori</b> ¶28–33 komponen itu, bukan skor
+        efektivitas — SMM 1 tidak mengenal skor komponen. C2 &amp; C8 adalah <b>proses</b>
+        (¶23–27 · ¶35–47), bukan pemilik tujuan.
       </div>
     </div>
   );
