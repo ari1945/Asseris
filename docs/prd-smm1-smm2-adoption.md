@@ -324,6 +324,9 @@ Tujuh PR berurutan; tiap PR hijau di `npm run verify` sebelum yang berikut.
 **Fase 5 — Aset IAPI (opsional, keputusan terpisah)**
 - **PR-8 · Peta Toolkit IAPI (1.1–9.7) → modul Asseris + status kelengkapan dokumentasi ¶57–60.**
   §7.3. Nilai produk tertinggi; ruang lingkupnya perlu keputusan tersendiri.
+  → **PRD tersendiri: `docs/prd-smm-toolkit-map.md`** (Draft, 2026-08-13). Dipecah menjadi
+  PR-8a (peta Toolkit) & PR-8b (memasang mesin dokumentasi ¶57–60 yang PR-7 tinggalkan
+  sebagai kode mati + mencabut misatribusi "retensi 10 tahun (SMM 1)" yang tersisa).
 
 Setiap PR: `npm run verify` hijau · baris status di `docs/PRD-REGISTRY.md` diperbarui ·
 `lint:any-baseline` disinkronkan bila perlu.
