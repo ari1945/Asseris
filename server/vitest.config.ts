@@ -13,6 +13,19 @@ export default defineConfig({
     // Production is single-process (the audit append queue assumes it), so serial files match
     // the real concurrency model rather than papering over a test-only multi-worker race.
     fileParallelism: false,
+    /* Default vitest 5 dtk dikalibrasi untuk uji unit. Suite ini adalah uji
+       INTEGRASI atas SQLite yang menjalankan scrypt — fungsi yang SENGAJA mahal
+       (hardening W7). `auth.test.ts` mengukur ~1,2–1,7 dtk per uji TOTP saat
+       mesin senggang, yaitu ~35% dari budget 5 dtk; di bawah kontensi (verify
+       penuh menjalankan build frontend berbarengan) keduanya sudah pernah
+       TIMEOUT — bukan karena hang, melainkan karena marginnya tipis.
+
+       15 dtk memberi margin ~9× terhadap kasus terburuk yang terukur, tanpa
+       menyembunyikan hang sungguhan terlalu lama. Kelambatannya inheren pada
+       desain scrypt, jadi menaikkan batas adalah perbaikan yang tepat — bukan
+       menutupi uji yang lambat karena cacat. */
+    testTimeout: 15_000,
+    hookTimeout: 30_000,
     coverage: {
       provider: 'v8',
       // Tahap 7 — coverage CI bertahap untuk tujuh area kunci. Threshold per-glob di bawah

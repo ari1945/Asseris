@@ -5,16 +5,13 @@
     "strict": false,
     "strictNullChecks": false,
     "noImplicitAny": false,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "//exclude": "BASELINE (ratchet — kecilkan, jangan besarkan). setup.ts SENGAJA memalsukan env browser di node (globalThis.window = globalThis) sehingga tak akan pernah lolos tsc; tiga sisanya mengimpor builtin node ('node:crypto'/'node:fs'/'node:path'/'node:url') dan hanya butuh devDependency @types/node — keputusan dependensi, bukan cacat. Menambah berkas ke daftar ini berarti membutakan gerbang; utamakan memperbaiki berkasnya.",
+  "//exclude": "BASELINE (ratchet — kecilkan, jangan besarkan). Hanya setup.ts yang tersisa: ia SENGAJA memalsukan env browser di node (globalThis.window = globalThis) sehingga tak akan pernah lolos tsc. Tiga berkas lain (export_pdf/export_xlsx/materiality_single_door) DIKELUARKAN dari daftar ini setelah @types/node ditambahkan sebagai devDependency migration/ — gerbang kini menjangkau ketiganya. Menambah berkas ke daftar ini berarti membutakan gerbang; utamakan memperbaiki berkasnya.",
   "exclude": [
     "node_modules",
     "dist",
-    "src/__tests__/setup.ts",
-    "src/export_pdf.test.ts",
-    "src/export_xlsx.test.ts",
-    "src/materiality_single_door.test.ts"
+    "src/__tests__/setup.ts"
   ]
 }

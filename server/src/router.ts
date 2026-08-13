@@ -439,7 +439,7 @@ export const appRouter = router({
         let result;
         try {
           result = await complete(cfg, { system, user });
-        } catch (e) {
+        } catch {
           await logLlmEvent('ERROR', { userId: ctx.user.id, provider: cfg.provider, model: cfg.model });
           // Generic — never surface the key or raw upstream body to the client.
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'llm-request-failed' });

@@ -1,5 +1,6 @@
-# W10 — CI gates mirroring the per-wave Definition of Done: server (typecheck + vitest) and
-# migration (lint + typecheck + vitest + build). Same checks run locally before every commit.
+# W10 — CI gates mirroring the per-wave Definition of Done: server (typecheck + vitest),
+# migration (lint + typecheck + vitest + build), dan backend/e2e lint. Same checks run
+# locally before every commit via `npm run verify` (R-7: keduanya WAJIB identik).
 name: CI
 
 on:
@@ -26,6 +27,24 @@ jobs:
       - run: npm run typecheck
       # globalSetup pushes the schema to an isolated sqlite test.db before the suite.
       - run: npm test
+
+  # PRD prd-lint-coverage-server-e2e — `migration` job hanya melint `migration/src`.
+  # Tanpa job ini `server/` & `e2e/` tak pernah dilint sama sekali, termasuk kode
+  # penjaga di signoff.ts. ESLint hidup di ROOT (opsi A PRD §11 Q1) agar gerbang
+  # seluruh repo tak terkopel pada isi migration/node_modules.
+  # R-7: langkah ini WAJIB cermin `tools/verify.mjs` ['backend & e2e lint'].
+  lint-backend-e2e:
+    name: backend & e2e lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run lint
 
   migration:
     name: migration (lint + typecheck + tests + build)

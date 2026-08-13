@@ -20,7 +20,6 @@ import { bootstrapFirm } from './bootstrapFirm';
 import { assertProdConfig } from './prodConfig';
 import { loadSecretsIntoEnv } from './secrets';
 import { mutateStateDoc } from './stateMutation';
-import { hashPassword } from './auth/password';
 
 async function main(): Promise<void> {
   await loadSecretsIntoEnv();

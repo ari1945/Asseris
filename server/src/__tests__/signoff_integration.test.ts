@@ -17,7 +17,7 @@ const mk = (id: string, role: string, name: string) =>
   createCallerFactory(appRouter)({ user: { id, name, role } as unknown as User, token: 'test' });
 const manager = mk('TEST-MGR', 'Audit Manager', 'Mira Gunawan');
 const partner = mk('TEST-PTR', 'Engagement Partner', 'Toni Prasetyo');
-const senior = mk('TEST-SNR', 'Senior Auditor', 'Bagas Winata');
+const _senior = mk('TEST-SNR', 'Senior Auditor', 'Bagas Winata');
 
 
 /* ============================================================

@@ -7,7 +7,7 @@
 // Budget default 8.000 ms sudah longgar untuk CI (build/API lokal); nilai
 // dapat dinaikkan via env E2E_HYDRATION_BUDGET_MS bila runner sangat lambat.
 import { expect, test } from '@playwright/test';
-import { login, USERS } from '../helpers';
+import { USERS } from '../helpers';
 
 test.describe('Tahap 8 — budget hidrasi frontend', () => {
   test('login fresh → aplikasi terhidrasi dalam budget waktu', async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe('Tahap 8 — budget hidrasi frontend', () => {
     await expect(page.locator('.user-chip .u-name')).toContainText('Anindya');
 
     const elapsed = Date.now() - start;
-    // eslint-disable-next-line no-console
+     
     console.log(`[hydrasi] login → topbar: ${elapsed} ms (budget ${budget} ms)`);
     expect(elapsed, `hidrasi ${elapsed} ms melewati budget ${budget} ms`).toBeLessThanOrEqual(budget);
   });

@@ -24,6 +24,12 @@ const checks = [
   ['frontend tests', 'migration', 'node_modules/vitest/vitest.mjs', ['run']],
   ['frontend build', 'migration', 'node_modules/vite/bin/vite.js', ['build']],
   ['frontend bundle budget', 'migration', 'scripts/check-bundle.mjs', []],
+  /* PRD prd-lint-coverage-server-e2e — `migration/npm run lint` HANYA menjangkau
+     `migration/src`; `server/` & `e2e/` tak pernah dilint sama sekali, termasuk
+     kode penjaga (`signoff.ts`) yang justru paling menentukan integritas data.
+     ESLint hidup di ROOT (opsi A pada PRD §11 Q1) agar gerbang seluruh repo tak
+     terkopel pada isi `migration/node_modules`. */
+  ['backend & e2e lint', '.', 'node_modules/eslint/bin/eslint.js', ['server', 'e2e', 'tools']],
   ['backend typecheck', 'server', 'node_modules/typescript/bin/tsc', ['--noEmit']],
   ['backend tests', 'server', 'node_modules/vitest/vitest.mjs', ['run']],
 ];
