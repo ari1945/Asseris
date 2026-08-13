@@ -188,6 +188,48 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { name: 'Pakar Penilai (KJPP Mitra)', type: 'Penyedia Jasa Eksternal', reliance: 'Penilaian nilai wajar aset spesifik', evaluated: '2025-12', status: 'Memadai', note: 'Kompetensi, objektivitas & kapabilitas dievaluasi per SA 620.' },
     { name: 'Penyedia Konfirmasi Digital', type: 'Penyedia Jasa Eksternal', reliance: 'Konfirmasi eksternal terstandar', evaluated: '2025-09', status: 'Pemantauan', note: 'Kontrol keamanan penyedia ditinjau ulang setelah pembaruan sistem.' },
   ];
+  /* ---- SMM 1 ¶48–52: ketentuan jaringan & jasa jaringan ----
+     Sebelumnya jaringan hanya SATU BARIS VENDOR di QM_PROVIDERS dengan
+     kolom `status: 'Memadai'` — bentuk yang tak dapat menyatakan apa pun
+     tentang ¶48(c) tanggung jawab KAP, ¶49(b) evaluasi adaptasi,
+     ¶51(b) hasil pemantauan tahunan, atau ¶52 jalur defisiensi balik ke
+     jaringan. Baris vendor itu DIPERTAHANKAN untuk tampilan penyedia
+     jasa; wadah kepatuhan ¶48–52 ada di sini.
+
+     Toolkit & Matriks Ilustrasi IAPI ditulis untuk KAP NON-JARINGAN,
+     jadi wadah ini bersandar langsung pada teks SMM 1. */
+  const QM_NETWORK = {
+    inNetwork: true,
+    name: 'AGN-Asia (Jaringan Afiliasi Global)',
+    /* tahun cakupan = periode evaluasi SMM (QM_EVAL.period) */
+    year: 2025,
+    items: [
+      { id: 'NR-01', kind: 'requirement', title: 'Metodologi audit jaringan (WHR v4.2)', component: 'Sumber Daya',
+        firmResponsibility: 'Anindya Pramesti, CPA', adaptation: 'adapted',
+        adaptationBasis: 'Diadaptasi ke SA & PSAK Indonesia: program pajak, PSAK 71/72/73 dan format kertas kerja lokal.' },
+      { id: 'NR-02', kind: 'requirement', title: 'Kebijakan independensi & rotasi jaringan', component: 'Ketentuan Etika',
+        firmResponsibility: 'Sari Dewanti, CPA', adaptation: 'supplemented',
+        adaptationBasis: 'Ditambah batas rotasi PP 20/2015 (5 th) & POJK 13/2017 (3 th, sektor jasa keuangan) yang lebih ketat dari ketentuan jaringan.' },
+      { id: 'NR-03', kind: 'requirement', title: 'Pelatihan wajib jaringan (metodologi & etika)', component: 'Sumber Daya',
+        firmResponsibility: 'Anindya Pramesti, CPA', adaptation: 'as-is',
+        adaptationBasis: 'Setara ketentuan PPL IAPI; tidak memerlukan adaptasi. Realisasi dipantau register PPL.' },
+      { id: 'NS-01', kind: 'service', title: 'Portal metodologi & template perikatan', component: 'Sumber Daya',
+        firmResponsibility: 'Anindya Pramesti, CPA', adaptation: 'as-is',
+        adaptationBasis: 'Dipakai apa adanya; template lokal ditumpangkan pada level perikatan.' },
+      /* ¶49(b) BELUM dievaluasi — cacat nyata, sengaja tidak ditutup. */
+      { id: 'NS-02', kind: 'service', title: 'Inspeksi lintas-batas oleh jaringan', component: 'Pemantauan & Remediasi',
+        firmResponsibility: 'Citra Halim, CPA', adaptation: null, adaptationBasis: null },
+    ],
+    monitoring: [
+      { year: 2025, obtainedAt: '2026-02-14', communicatedToTeams: true, effectConsidered: true },
+    ],
+    deficiencies: [
+      /* ¶52(b) BELUM ada tindakan remedial KAP — cacat nyata. */
+      { id: 'ND-01', itemId: 'NR-01', description: 'Template jaringan belum mengakomodasi PSAK 117 (kontrak asuransi) untuk klien sektor asuransi.',
+        communicatedToNetwork: true, remedialAction: '' },
+    ],
+  };
+
   const QM_CULTURE = [
     { k: 'Bobot mutu dalam evaluasi & remunerasi partner', v: '40%', accent: 'green', note: 'Mutu sebagai komponen utama penilaian kinerja partner.' },
     { k: 'Komunikasi mutu pimpinan (YTD)', v: '7', accent: 'blue', note: 'Town hall, memo mutu & sesi tone-at-the-top tahun berjalan.' },
@@ -484,4 +526,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
