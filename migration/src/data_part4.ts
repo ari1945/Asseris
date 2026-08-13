@@ -157,14 +157,14 @@ import { objectivesForComponent } from './canon_smm_objectives';
      mana pun. C2 & C8 kini 0: keduanya PROSES (¶23–27 · ¶35–47), bukan pemilik
      tujuan ¶28–33. */
   const QM_COMPONENTS = [
-    { id: 'C1', name: 'Tata Kelola & Kepemimpinan', ref: componentParaLabel('C1'), score: 92, status: 'Efektif', owner: 'Hartono Wijaya', obj: objectivesForComponent('C1').length, risks: 3, defs: 0, trend: [86, 88, 90, 92], desc: 'Komitmen mutu, akuntabilitas pimpinan, struktur organisasi & alokasi sumber daya.' },
-    { id: 'C2', name: 'Proses Penilaian Risiko Firma', ref: componentParaLabel('C2'), score: 87, status: 'Efektif', owner: 'Anindya Pramesti', obj: objectivesForComponent('C2').length, risks: 6, defs: 1, trend: [80, 82, 85, 87], desc: 'Penetapan tujuan mutu, identifikasi & penilaian risiko mutu, perancangan respons.' },
-    { id: 'C3', name: 'Ketentuan Etika Relevan', ref: componentParaLabel('C3'), score: 96, status: 'Efektif', owner: 'Sari Dewanti', obj: objectivesForComponent('C3').length, risks: 4, defs: 0, trend: [94, 95, 95, 96], desc: 'Independensi, objektivitas, kerahasiaan, rotasi, kepatuhan kode etik IAPI.' },
-    { id: 'C4', name: 'Penerimaan & Keberlanjutan', ref: componentParaLabel('C4'), score: 88, status: 'Efektif', owner: 'Rudi Gunawan', obj: objectivesForComponent('C4').length, risks: 4, defs: 0, trend: [84, 85, 87, 88], desc: 'Penilaian integritas klien, kompetensi & kapasitas firma, pertimbangan etika sebelum menerima/melanjutkan.' },
-    { id: 'C5', name: 'Pelaksanaan Perikatan', ref: componentParaLabel('C5'), score: 84, status: 'Efektif', owner: 'Hartono Wijaya', obj: objectivesForComponent('C5').length, risks: 5, defs: 0, trend: [81, 82, 83, 84], desc: 'Arahan, supervisi, reviu, konsultasi, perbedaan pendapat, EQR & dokumentasi perikatan.' },
-    { id: 'C6', name: 'Sumber Daya', ref: componentParaLabel('C6'), score: 79, status: 'Perlu Perhatian', owner: 'Anindya Pramesti', obj: objectivesForComponent('C6').length, risks: 6, defs: 1, trend: [83, 81, 80, 79], desc: 'SDM, teknologi, sumber daya intelektual (metodologi), & penyedia jasa eksternal.' },
-    { id: 'C7', name: 'Informasi & Komunikasi', ref: componentParaLabel('C7'), score: 90, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C7').length, risks: 3, defs: 0, trend: [85, 87, 89, 90], desc: 'Arus informasi mutu internal & dengan jaringan/pihak eksternal yang relevan.' },
-    { id: 'C8', name: 'Pemantauan & Remediasi', ref: componentParaLabel('C8'), score: 81, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C8').length, risks: 4, defs: 1, trend: [76, 78, 80, 81], desc: 'Aktivitas pemantauan, evaluasi temuan, komunikasi & remediasi defisiensi secara tepat waktu.' },
+    { id: 'C1', name: 'Tata Kelola & Kepemimpinan', ref: componentParaLabel('C1'), owner: 'Hartono Wijaya', obj: objectivesForComponent('C1').length, desc: 'Komitmen mutu, akuntabilitas pimpinan, struktur organisasi & alokasi sumber daya.' },
+    { id: 'C2', name: 'Proses Penilaian Risiko Firma', ref: componentParaLabel('C2'), owner: 'Anindya Pramesti', obj: objectivesForComponent('C2').length, desc: 'Penetapan tujuan mutu, identifikasi & penilaian risiko mutu, perancangan respons.' },
+    { id: 'C3', name: 'Ketentuan Etika Relevan', ref: componentParaLabel('C3'), owner: 'Sari Dewanti', obj: objectivesForComponent('C3').length, desc: 'Independensi, objektivitas, kerahasiaan, rotasi, kepatuhan kode etik IAPI.' },
+    { id: 'C4', name: 'Penerimaan & Keberlanjutan', ref: componentParaLabel('C4'), owner: 'Rudi Gunawan', obj: objectivesForComponent('C4').length, desc: 'Penilaian integritas klien, kompetensi & kapasitas firma, pertimbangan etika sebelum menerima/melanjutkan.' },
+    { id: 'C5', name: 'Pelaksanaan Perikatan', ref: componentParaLabel('C5'), owner: 'Hartono Wijaya', obj: objectivesForComponent('C5').length, desc: 'Arahan, supervisi, reviu, konsultasi, perbedaan pendapat, EQR & dokumentasi perikatan.' },
+    { id: 'C6', name: 'Sumber Daya', ref: componentParaLabel('C6'), owner: 'Anindya Pramesti', obj: objectivesForComponent('C6').length, desc: 'SDM, teknologi, sumber daya intelektual (metodologi), & penyedia jasa eksternal.' },
+    { id: 'C7', name: 'Informasi & Komunikasi', ref: componentParaLabel('C7'), owner: 'Citra Halim', obj: objectivesForComponent('C7').length, desc: 'Arus informasi mutu internal & dengan jaringan/pihak eksternal yang relevan.' },
+    { id: 'C8', name: 'Pemantauan & Remediasi', ref: componentParaLabel('C8'), owner: 'Citra Halim', obj: objectivesForComponent('C8').length, desc: 'Aktivitas pemantauan, evaluasi temuan, komunikasi & remediasi defisiensi secara tepat waktu.' },
   ];
   /* Waiver ¶17 atas tujuan mutu mandatori — SENGAJA KOSONG.
      ¶17 membolehkan KAP tidak menerapkan ketentuan yang tak relevan dengan sifat
@@ -253,11 +253,21 @@ import { objectivesForComponent } from './canon_smm_objectives';
     basis: ['Hasil pemantauan & inspeksi perikatan siklus 2025', 'Evaluasi efektivitas respons atas seluruh risiko mutu', 'Status remediasi defisiensi teridentifikasi', 'Keluhan & tuduhan yang diterima dan penyelesaiannya'],
   };
 
-  /* ---- SOQM monitoring: inspeksi perikatan & aktivitas pemantauan ---- */
+  /* ---- SOQM monitoring: inspeksi perikatan & aktivitas pemantauan ----
+     JENIS inspeksi harus KONSISTEN dengan status perikatannya. Bentuk lama
+     melabeli INS-25-01 & INS-25-03 "Pasca-Terbit (Cold)" atas ENG-2025-040
+     (status `Planning`) dan ENG-2025-022 (`Fieldwork`) — inspeksi pasca-terbit
+     atas perikatan yang laporannya belum terbit adalah keadaan yang mustahil.
+     Gerbang ¶38(c) benar menolak keduanya karena perikatannya belum selesai,
+     tetapi tabel di bawahnya menampilkan label yang bertentangan dengan
+     penolakan itu. Keduanya kini "Berjalan (Hot)", sesuai status perikatan.
+
+     Yang TIDAK diubah: gerbang ¶38(c) tetap GAGAL. Seed memang dirancang
+     gagal — belum ada satu pun perikatan SELESAI yang diinspeksi. */
   const QM_INSPECTIONS = [
-    { id: 'INS-25-01', eng: 'ENG-2025-040', type: 'Inspeksi Pasca-Terbit (Cold)', inspector: 'Citra Halim', date: '2026-02-18', grade: 'Memuaskan', findings: 0 },
+    { id: 'INS-25-01', eng: 'ENG-2025-040', type: 'Inspeksi Berjalan (Hot)', inspector: 'Citra Halim', date: '2026-02-18', grade: 'Memuaskan', findings: 0 },
     { id: 'INS-25-02', eng: 'ENG-2025-014', client: 'PT Sentosa Makmur Tbk', type: 'Inspeksi Berjalan (Hot)', partner: 'Hartono Wijaya', inspector: 'Citra Halim', date: '2026-03-02', grade: 'Perlu Perbaikan', findings: 2, scope: 'PIE · manufaktur' },
-    { id: 'INS-25-03', eng: 'ENG-2025-022', client: 'PT Cahaya Logistik Nusantara', type: 'Inspeksi Pasca-Terbit (Cold)', partner: 'Sari Dewanti', inspector: 'Bayu Saputra', date: '2026-01-30', grade: 'Memuaskan', findings: 1, scope: 'Non-PIE · logistik' },
+    { id: 'INS-25-03', eng: 'ENG-2025-022', client: 'PT Cahaya Logistik Nusantara', type: 'Inspeksi Berjalan (Hot)', partner: 'Sari Dewanti', inspector: 'Bayu Saputra', date: '2026-01-30', grade: 'Memuaskan', findings: 1, scope: 'Non-PIE · logistik' },
     { id: 'INS-25-04', eng: 'ENG-2025-031', client: 'PT Bumi Hijau Agrindo', type: 'Inspeksi Berjalan (Hot)', partner: 'Hartono Wijaya', inspector: 'Citra Halim', date: '2026-03-06', grade: 'Dijadwalkan', findings: 0, scope: 'PIE · agribisnis' },
   ];
   const QM_INSP_FINDINGS = [

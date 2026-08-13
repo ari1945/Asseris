@@ -6,6 +6,8 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { para38Coverage, para39bBreaches, breachLabel } from './canon_smm_monitoring';
+import { SMM1_OBJECTIVE_COUNT, objectivesForComponent } from './canon_smm_objectives';
+import type { SmmComponentCode } from './canon_smm_refs';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding';
@@ -72,7 +74,11 @@ function SOQM() {
   const inspDone = inspections.filter((i: any) => i.grade !== 'Dijadwalkan');
   const totalInspFindings = inspections.reduce((s: any, i: any) => s + i.findings, 0);
   const tabs = [
-    { id: 'objectives', label: 'Tujuan Mutu', count: risks.length },
+    /* Hitungan badge = jumlah TUJUAN MANDATORI ¶28–33, sejajar dengan
+       "Register Risiko Mutu" yang menghitung isi registernya sendiri.
+       Sebelumnya `risks.length` — badge berbunyi "6" di atas panel yang
+       menyatakan 27 tujuan dan 5/27 tertangani. */
+    { id: 'objectives', label: 'Tujuan Mutu', count: SMM1_OBJECTIVE_COUNT },
     { id: 'register', label: 'Register Risiko Mutu', count: risks.length },
     { id: 'monitoring', label: 'Pemantauan & Inspeksi', count: totalInspFindings },
     { id: 'remediation', label: 'Defisiensi & Remediasi', count: openRemediation },
@@ -453,8 +459,11 @@ function RiskDetail({ r, nav, onClose }: any) {
           <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Mutu</div><div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'transparent', fontSize: 12, lineHeight: 1.55 }}>{r.response}</div></div>
           {comp && (
             <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
-              <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SMM {comp.id} · {comp.name}</span><span className="mono" style={{ fontWeight: 800, color: comp.score >= 85 ? 'var(--green)' : 'var(--amber)' }}>{comp.score}</span></div>
-              <button type="button" className="soqm-src" onClick={() => nav && nav('governance', { from: 'soqm' })}><span className="tiny muted">Pemilik {comp.owner} · skor ditarik dari Governance</span>{I ? <I.arrowRight size={11} /> : null}</button>
+              {/* Skor seed dicabut: tak ada sumber jujur untuk "skor efektivitas
+                  komponen", dan SMM 1 tidak mengenalnya. Yang ditampilkan adalah
+                  jumlah tujuan mandatori ¶28–33 komponen ini — besaran kanonik. */}
+              <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SMM {comp.id} · {comp.name}</span><span className="mono tiny" style={{ fontWeight: 800, color: 'var(--ink-3)' }}>{objectivesForComponent(comp.id as SmmComponentCode).length || '—'} tujuan ¶28–33</span></div>
+              <button type="button" className="soqm-src" onClick={() => nav && nav('governance', { from: 'soqm' })}><span className="tiny muted">Pemilik {comp.owner} · komponen ditarik dari Governance</span>{I ? <I.arrowRight size={11} /> : null}</button>
             </div>
           )}
           <OKv label="Pemilik Kontrol" v={r.owner} />
