@@ -25,7 +25,7 @@ import { wpChainViolations, signatureAttributionViolations } from '../../migrati
 /* PRD Kesiapan P2PK PR-1 — aturan gerbang EQR (ISQM 2). Modul MURNI yang sama
    dipakai UI, agar "lolos di layar" dan "lolos di server" tak dapat menyimpang. */
 import { eqrGateFor, type EqrReviewRow } from '../../migration/src/canon_eqr_gate';
-import { assessReviewerEligibility, eqrClearGate, ELIGIBILITY_DEFECT_LABEL,
+import { assessReviewerEligibility, ELIGIBILITY_DEFECT_LABEL,
   type EligibilityDefect } from '../../migration/src/canon_eqr_eligibility';
 /* PRD Kesiapan P2PK PR-3 — aturan atestasi mutu firma (ISQM 1 ¶20 · ¶53–54). */
 import { attestContentHash, attestRolesFor, attestRoleCap } from '../../migration/src/canon_firm_attest';

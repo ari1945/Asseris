@@ -51,7 +51,7 @@ export function redactSemanticText(value: unknown, report: RedactionReport = EMP
   };
 
   // Both legacy formatted 15-digit NPWP and the newer label + 16-digit form.
-  replace(/\b(?:NPWP\s*[:#-]?\s*)?(?:\d{2}[.\- ]?\d{3}[.\- ]?\d{3}[.\- ]?\d[\- ]?\d{3}[.\- ]?\d{3}|\d{16})\b/giu, '[NPWP]', 'npwp');
+  replace(/\b(?:NPWP\s*[:#-]?\s*)?(?:\d{2}[. -]?\d{3}[. -]?\d{3}[. -]?\d[ -]?\d{3}[. -]?\d{3}|\d{16})\b/giu, '[NPWP]', 'npwp');
   // Common Indonesian journal identifiers (AJE-01, PAJE-03, JE/2026/0042, JV_18).
   replace(/\b(?:P?AJE|JE|JV|JRN|JRNL)[\s#:/_.-]*[A-Z0-9][A-Z0-9/_.-]*\b/giu, '[ID_JURNAL]', 'journalId');
   // Explicit currency/scale values first, then grouped rupiah-style numbers.

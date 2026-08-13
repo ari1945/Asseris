@@ -28,11 +28,11 @@ async function scanAndAssert(page: import('@playwright/test').Page, label: strin
   const critical = results.violations.filter((v) => v.impact === 'critical');
   const serious = results.violations.filter((v) => v.impact === 'serious');
 
-  // eslint-disable-next-line no-console
+   
   console.log(`[axe] ${label}: ${results.violations.length} pelanggaran ` +
     `(critical=${critical.length}, serious=${serious.length})`);
   for (const v of results.violations) {
-    // eslint-disable-next-line no-console
+     
     console.log(`[axe]   ${v.impact} ${v.id}: ${v.help} — ${v.nodes.length} node`);
   }
 
@@ -40,7 +40,7 @@ async function scanAndAssert(page: import('@playwright/test').Page, label: strin
     expect(critical, `axe ${label}: pelanggaran critical tidak boleh ada`).toHaveLength(0);
   }
   if (SERIOUS_LOG && serious.length > 0) {
-    // eslint-disable-next-line no-console
+     
     console.warn(`[axe] ${label}: ${serious.length} pelanggaran serious belum ditutup (bukan gerbang).`);
   }
 }

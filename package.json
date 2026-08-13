@@ -2,6 +2,12 @@
   "name": "asseris-audit-system",
   "private": true,
   "scripts": {
-    "verify": "node tools/verify.mjs"
+    "verify": "node tools/verify.mjs",
+    "lint": "eslint server e2e tools"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "globals": "^15.15.0",
+    "typescript-eslint": "^8.67.0"
   }
 }
