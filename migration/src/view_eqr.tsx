@@ -8,6 +8,7 @@ import { Badge, Btn, Panel, Stat } from './ui';
 import { assessReviewerEligibility, eqrClearGate, impairmentAction,
   ELIGIBILITY_DEFECT_LABEL, CLEAR_BLOCKER_LABEL, IMPAIRMENT_ACTION_LABEL,
   type EligibilityDefect, type ClearBlocker, type PartnerTenureRow } from './canon_eqr_eligibility';
+import { auditEqrDocumentation, EQR_DOC_DEFECT_LABEL, type EqrDocDefect } from './canon_smm_documentation';
 
 /* ============================================================
    Asseris — EQR Workflow (SMM 2)  ·  Pelaporan PPPK
@@ -57,6 +58,9 @@ function EQRWorkflow() {
     checklistComplete: allChecked, openFindings, alreadyCleared: !!r.cleared, eligibility: elig,
   });
   const canClear = gate.canClear;
+
+  /* SMM 2 ¶30(a)–(e) — kelengkapan dokumentasi penelaahan. */
+  const docAudit = auditEqrDocumentation({ reviewer: r.reviewer, ...(meta.documentation || {}) });
 
   const toggleCheck = (i: any) => setReview(r.id, (pr: any) => ({ ...pr, checklist: pr.checklist.map((c: any, j: any) => j === i ? { ...c, ok: !c.ok } : c), status: 'Berjalan' }));
   const clearGate = () => setReview(r.id, (pr: any) => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: pr.reviewer, clearedDate: new Date().toISOString().slice(0, 10) }));
@@ -203,6 +207,37 @@ function EQRWorkflow() {
                   </div>
                 </div>
               )}
+
+              {/* Dokumentasi penelaahan (SMM 2 ¶28–30). Registri lama hanya
+                  menyimpan clearedBy + clearedDate; tiga dari lima butir ¶30
+                  tak punya tempat sama sekali. */}
+              <div style={{ marginBottom: 16 }}>
+                <div className="row jb ac" style={{ marginBottom: 8 }}>
+                  <div className="tiny muted upper">Dokumentasi Penelaahan (SMM 2 ¶30)</div>
+                  <Badge kind={docAudit.complete ? 'green' : 'amber'}>{docAudit.complete ? 'Lengkap' : docAudit.defects.length + ' butir kurang'}</Badge>
+                </div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
+                    <div className="tiny muted upper" style={{ marginBottom: 2 }}>Penelaah &amp; pembantu ¶30(a)</div>
+                    <div className="tiny" style={{ lineHeight: 1.45 }}>{r.reviewer}
+                      {(meta.documentation || {}).assisted
+                        ? ' · dibantu ' + ((meta.documentation || {}).assistants || []).join(', ')
+                        : ' · tanpa pembantu'}</div>
+                  </div>
+                  <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
+                    <div className="tiny muted upper" style={{ marginBottom: 2 }}>Dokumentasi yang ditelaah ¶30(b)</div>
+                    <div className="tiny" style={{ lineHeight: 1.45 }}>
+                      {(((meta.documentation || {}).documentsReviewed) || []).join(' · ') || <span style={{ color: 'var(--red)' }}>belum diidentifikasi</span>}</div>
+                  </div>
+                </div>
+                {docAudit.defects.length > 0 && (
+                  <div className="panel" style={{ padding: '10px 12px', marginTop: 8, boxShadow: 'none', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+                    {docAudit.defects.map((d: EqrDocDefect) => (
+                      <div key={d} className="tiny" style={{ lineHeight: 1.5 }}>· {EQR_DOC_DEFECT_LABEL[d]}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {r.cleared ? (
                 <div className="panel" style={{ padding: '12px 14px', background: 'var(--green-bg)', borderColor: 'transparent' }}>

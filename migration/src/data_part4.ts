@@ -230,6 +230,15 @@ import { objectivesForComponent } from './canon_smm_objectives';
     ],
   };
 
+  /* ---- SMM 1 ¶60: periode retensi dokumentasi SISTEM MANAJEMEN MUTU ----
+     ¶60 TIDAK menetapkan angka — KAP yang menetapkan. Lima tahun adalah
+     keputusan firma (Ari, Q-5 PRD 2026-08-13).
+
+     BUKAN periode retensi dokumentasi PERIKATAN/kertas kerja, yang tunduk pada
+     rezim berbeda (SA 230 & peraturan akuntan publik). Mencampur keduanya
+     adalah kekeliruan yang sudah ada di aplikasi. */
+  const QM_DOC_RETENTION = { years: 5, regulatoryMinimumYears: null, basis: 'Kebijakan KAP (SMM 1 ¶60)' };
+
   const QM_CULTURE = [
     { k: 'Bobot mutu dalam evaluasi & remunerasi partner', v: '40%', accent: 'green', note: 'Mutu sebagai komponen utama penilaian kinerja partner.' },
     { k: 'Komunikasi mutu pimpinan (YTD)', v: '7', accent: 'blue', note: 'Town hall, memo mutu & sesi tone-at-the-top tahun berjalan.' },
@@ -286,6 +295,14 @@ import { objectivesForComponent } from './canon_smm_objectives';
       competence: 'Hartono Wijaya, CPA — kompetensi & otoritas memadai (Partner, 16 thn)', compOk: true,
       objectivity: 'Tidak ada ancaman objektivitas teridentifikasi', objOk: true,
       appointedBy: 'QM Leader', appointedDate: '2026-01-20',
+      /* Penelaahan BERJALAN dengan temuan terbuka: ¶26 menuntut pemberitahuan
+         kekhawatiran kepada rekan perikatan. Belum tercatat — cacat nyata. */
+      documentation: {
+        assisted: false, assistants: ([] as string[]),
+        documentsReviewed: ['WP-4100 Konsultasi PSAK 72'],
+        completionBasis: '', concernsRaised: true, notifiedConcerns: '',
+        notifiedCompletion: '', completionDate: '',
+      },
       /* ¶18 berstruktur — dinilai, bukan dinarasikan. Jeda ¶19 TIDAK ada di sini:
          ia DITURUNKAN dari EQR_PARTNER_HISTORY. */
       eligibility: { competenceAssessed: true, sufficientTime: true, authorityEstablished: true,
@@ -322,6 +339,18 @@ import { objectivesForComponent } from './canon_smm_objectives';
       competence: 'Hartono Wijaya, CPA — kompetensi & otoritas memadai (Partner senior, independen dari tim)', compOk: true,
       objectivity: 'Tidak ada ancaman objektivitas teridentifikasi', objOk: true,
       appointedBy: 'QM Leader', appointedDate: '2026-01-12',
+      /* SMM 2 ¶30(a)–(e). Registri lama hanya punya clearedBy + clearedDate;
+         tiga butir — (a) nama pembantu, (b) dokumentasi yang ditelaah,
+         (d) pemberitahuan ¶26/¶27 — tak punya tempat sama sekali. */
+      documentation: {
+        assisted: true, assistants: ['Bayu Saputra'],
+        documentsReviewed: ['WP-3100 Pengakuan Pendapatan', 'WP-5200 Estimasi & Cadangan',
+          'Memo pertimbangan signifikan v2', 'Laporan auditor draf v3'],
+        completionBasis: 'Seluruh prosedur ¶25(a)–(g) dilaksanakan; tidak ada kekhawatiran yang tersisa.',
+        concernsRaised: false, notifiedConcerns: null,
+        notifiedCompletion: 'Diberitahukan kepada rekan perikatan pada 2026-02-22 (¶27).',
+        completionDate: '2026-02-22',
+      },
       eligibility: { competenceAssessed: true, sufficientTime: true, authorityEstablished: true,
         objectivityThreat: false, independenceConfirmed: true, regulatoryEligible: true, impaired: false },
       timeline: [
@@ -550,4 +579,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, QM_DOC_RETENTION, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };

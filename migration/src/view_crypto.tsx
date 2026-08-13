@@ -502,7 +502,7 @@ function CRServerChain({ rows, verify, nav }: any) {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Jejak Audit Server — Append-only (tamper-evident)',
         meta: [`Model AuditLog · ${rows.length} entri terbaru · verifikasi server: ${ok ? 'TERVERIFIKASI' : 'TERPUTUS #' + (verify && verify.brokenAt)}`,
-          'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (SMM 1)'],
+          'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (kebijakan KAP atas dokumentasi perikatan — bukan angka yang ditetapkan SMM 1)'],
         sheets: [{
           name: 'Jejak Audit Server',
           columns: ['#', 'Waktu', 'Peran', 'Pelaku (userId)', 'Aksi', 'Sasaran', 'Detail', 'Prev Hash', 'Hash'],
