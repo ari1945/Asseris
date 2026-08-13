@@ -202,7 +202,7 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
             <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
           </div>
-          <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penerimaan Klien (SA 220 / ISQM)</div>
+          <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penerimaan Klien (SA 220 / SMM)</div>
           <div style={{ display: 'grid', gap: 0, marginBottom: 16 }}>
             {accept.map((a, i) => (
               <div key={i} className="row gap8 ac" style={{ padding: '8px 0', borderBottom: i < accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>

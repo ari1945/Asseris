@@ -1,5 +1,5 @@
 /* ============================================================
-   Asseris — Independensi per-Anggota Tim (SA 220.16–24 · ISQM 1 · Kode Etik/IESBA 290)
+   Asseris — Independensi per-Anggota Tim (SA 220.16–24 · SMM 1 · Kode Etik/IESBA 290)
 
    Mesin murni & deterministik: setiap anggota tim perikatan menyatakan
    independensi untuk perikatan tertentu — mengidentifikasi ancaman (5

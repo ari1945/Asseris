@@ -128,7 +128,7 @@ describe('deriveWpStatus — exec-aware setelah unifikasi (plan 002)', () => {
   });
 });
 
-describe('wpChainSelfReview — satu orang, satu langkah (ISQM 2 / SA 220.36)', () => {
+describe('wpChainSelfReview — satu orang, satu langkah (SMM 2 / SA 220.36)', () => {
   const HW = 'Hartono W.';
 
   it('rantai kosong → tidak memblokir siapa pun', () => {
@@ -185,7 +185,7 @@ describe('wpChainSelfReview — satu orang, satu langkah (ISQM 2 / SA 220.36)', 
    signedCount/fullySigned, dasbor SA 230, dan jejak audit. 924 uji melewatkannya
    karena semuanya menguji seed, tempat status dan tanggal kebetulan sejalan.
    ============================================================ */
-describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/ISQM)', () => {
+describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/SMM)', () => {
   /* Tipe rantai ditarik dari sumbernya (wp_chain), bukan ditulis ulang di sini:
      `WpSignature.by` OPSIONAL karena tanda tangan warisan bisa tak beridentitas.
      Menyalinnya sebagai wajib membuat uji ini berbohong tentang tipe yang diuji. */

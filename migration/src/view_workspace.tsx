@@ -14,7 +14,7 @@ import { WP_REFS, collectWpNotes } from './wp_canon';
    Asseris — Review Notes (review-clearance workspace)
    Threaded notes · type taxonomy · open→responded→cleared
    workflow · aging & SLA · clearance-readiness gate (ISA 230 /
-   ISQM 1) · grouping · master–detail conversation
+   SMM 1) · grouping · master–detail conversation
    ============================================================ */
 const { useState: useStateWS2, useMemo: useMemoWS2 } = React;
 
@@ -345,7 +345,7 @@ function RN_Stat({ icon, val, lbl, sub, c }: any) {
   );
 }
 
-/* ---- clearance-readiness gate (ISA 230 / ISQM 1) ---- */
+/* ---- clearance-readiness gate (ISA 230 / SMM 1) ---- */
 function RN_ClearanceCard({ M, aging }: any) {
   const ready = M.blocking === 0;
   const maxA = Math.max(1, ...aging.map((b: any) => b.n));
@@ -378,7 +378,7 @@ function RN_ClearanceCard({ M, aging }: any) {
         </div>
         <div className="tiny muted" style={{ lineHeight: 1.45, borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>
           <I.shield size={11} style={{ verticalAlign: '-1px', marginRight: 4, color: 'var(--ink-4)' }} />
-          ISA 230 / ISQM 1 — seluruh catatan review wajib dituntaskan & dikliring sebelum dokumentasi audit difinalisasi (assembly 60 hari). Coaching note tidak menghambat kliring.
+          ISA 230 / SMM 1 — seluruh catatan review wajib dituntaskan & dikliring sebelum dokumentasi audit difinalisasi (assembly 60 hari). Coaching note tidak menghambat kliring.
         </div>
       </div>
     </div>

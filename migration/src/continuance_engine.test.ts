@@ -1,5 +1,5 @@
 /* ============================================================
-   Keberlanjutan Klien (ISQM 1 ¶33–34 / SA 220) — mesin pemicu.
+   Keberlanjutan Klien (SMM 1 ¶30 · ¶34(d) / SA 220) — mesin pemicu.
    Memastikan: pemicu turun dari data kanonik, hanya klien aktif,
    keputusan tersimpan ter-merge, urutan (belum-diputuskan & perhatian
    tinggi dulu), dan integrasi seed nyata.
@@ -72,7 +72,7 @@ describe('continuanceFlags — keputusan tersimpan & urutan', () => {
   });
 });
 
-describe('pemicu pengalaman tahun lalu (SA 220.A24 / ISQM 1 ¶34)', () => {
+describe('pemicu pengalaman tahun lalu (SA 220.A24 / SMM 1 ¶34(d))', () => {
   const base = { id: 'C-9', name: 'PT Delta', industry: 'Jasa', partner: 'P. Empat', risk: 'Low', listed: false, since: 2023, status: 'Active' };
 
   it('opini modifikasian (WDP) → pemicu opiniLY severity high & perhatian Tinggi', () => {

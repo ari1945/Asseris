@@ -12,7 +12,7 @@ import { api } from './api';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
-   Asseris — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)
+   Asseris — Retensi & Arsip (modul mendalam · SA 230 / SMM 1 / SMM)
    ------------------------------------------------------------
    UI murni penyaji. Seluruh angka ditarik dari window.RETENTION
    (lapisan kanonik) yang sendirinya menderivasi dari DMS_DOCS,
@@ -295,7 +295,7 @@ function RRRecon({ nav }: any) {
     { id: 'legal', ic: 'gavel', lbl: 'Kontrak & Legal', rel: 'Sengketa litigasi (LIT-03) → perintah legal hold' },
     { id: 'procurement', ic: 'cart', lbl: 'Pengadaan & Vendor', rel: 'PO pemusnahan arsip jatuh tempo (V-037)' },
     { id: 'firmops', ic: 'building', lbl: 'Cockpit Operasi', rel: 'Tenggat pemusnahan → kalender kewajiban terpadu' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan retensi & disposal — ISQM 1' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan retensi & disposal — SMM 1' },
     { id: 'pppk', ic: 'report', lbl: 'Pelaporan PPPK', rel: 'Ketertelusuran arsip untuk inspeksi regulator' },
   ];
   return (
@@ -403,7 +403,7 @@ function RecordsRetention() {
       kind: 'firm-records', scope: 'firm',
       fileName: 'Register Arsip & Retensi.xlsx',
       firm: 'KAP Wijaya Hartono & Rekan',
-      title: 'Register Arsip & Kebijakan Retensi (SA 230 / SPM 1 / ISQM)',
+      title: 'Register Arsip & Kebijakan Retensi (SA 230 / SMM 1 / SMM)',
       meta: [`${m.total} arsip · ${m.sizeGB.toFixed(1)} GB · ${m.locked} terkunci · ${m.due} jatuh tempo pemusnahan · ${m.holds} legal hold aktif`],
       sheets: [
         { name: 'Register Arsip', columns: ['Kotak', 'Klien', 'Perikatan', 'FY', 'Sumber', 'Berkas', 'Ukuran', 'Diarsip', 'Retensi s/d', 'Status'], rows: boxRows, colWidths: [12, 26, 14, 8, 10, 8, 10, 14, 14, 12] },
@@ -414,7 +414,7 @@ function RecordsRetention() {
 
   return (
     <>
-      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SPM 1 · ISQM</span><Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn></div>} />
+      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SMM 1 · SMM</span><Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={m.total} label={'Arsip Terkelola · ' + m.sizeGB.toFixed(1) + ' GB'} />
@@ -540,12 +540,12 @@ Object.assign(window, { RecordsRetention, ArchiveDrawer, RetentionBar });
 /* ---- lineage dock dua-arah untuk modul Retensi & Arsip ---- */
 if (window.LINEAGE) {
   window.LINEAGE.records = {
-    std: 'Backoffice · Retensi & Arsip (SA 230 / SPM 1 / ISQM)',
+    std: 'Backoffice · Retensi & Arsip (SA 230 / SMM 1 / SMM)',
     up: [
       { id: 'dms', ic: 'archive', lbl: 'Document Management', rel: 'Dokumen, versi & klasifikasi → kotak arsip dirakit live' },
       { id: 'engagement', ic: 'briefcase', lbl: 'Engagement Mgmt', rel: 'Identitas perikatan & klien (sumber tunggal)' },
       { id: 'legal', ic: 'gavel', lbl: 'Kontrak & Legal', rel: 'Sengketa litigasi (LIT-03) → perintah legal hold' },
-      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan retensi & disposal (ISQM 1)' },
+      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan retensi & disposal (SMM 1)' },
     ],
     down: [
       { id: 'procurement', ic: 'cart', lbl: 'Pengadaan & Vendor', rel: 'Kotak jatuh tempo → PO pemusnahan (V-037)' },

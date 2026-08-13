@@ -296,7 +296,7 @@ function RecordsRetentionLegacy() {
   ];
   return (
     <>
-      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SPM 1</span><Btn sm><I.download size={13} /> Ekspor Register</Btn></div>} />
+      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SMM 1</span><Btn sm><I.download size={13} /> Ekspor Register</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={B.ARCHIVES.length} label="Arsip Terkelola" />

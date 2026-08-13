@@ -1,5 +1,5 @@
 /* ============================================================
-   Gerbang Masuk Perikatan (SA 210/220 · ISQM 1) — jaring regresi.
+   Gerbang Masuk Perikatan (SA 210/220 · SMM 1) — jaring regresi.
    Mengunci semantik prasyarat Perencanaan→Eksekusi (M1) sebelum
    di-wire ke engagementGate (M4). Pure → fit harness node.
    ============================================================ */

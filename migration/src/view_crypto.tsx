@@ -258,7 +258,7 @@ function CRPostur({ ctx }: any) {
               );
             })}
           </div>
-          <div className="tiny muted" style={{ padding: '0 16px 14px', lineHeight: 1.5 }}>Status tiap kontrol dihitung dari sumber kebenaran live — bukan dinilai manual. Lihat tab <b>Kontrol &amp; Kepatuhan</b> untuk pemetaan ke ISQM 1 / ISO 27001.</div>
+          <div className="tiny muted" style={{ padding: '0 16px 14px', lineHeight: 1.5 }}>Status tiap kontrol dihitung dari sumber kebenaran live — bukan dinilai manual. Lihat tab <b>Kontrol &amp; Kepatuhan</b> untuk pemetaan ke SMM 1 / ISO 27001.</div>
         </Panel>
 
         {/* integrity donut + recent crypto events */}
@@ -337,7 +337,7 @@ function CRDokumen({ ctx }: any) {
               <RowKv label="Bukti audit ter-hash" v={evidence.length + ' berkas'} />
               <RowKv label="Algoritma sidik jari" v="SHA-256" />
               <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none', background: 'var(--green-bg)', borderColor: 'transparent', marginTop: 2 }}>
-                <div className="tiny" style={{ color: 'var(--green)', lineHeight: 1.5 }}><I.shield size={11} /> Seluruh dokumen klien dienkripsi at-rest &amp; in-transit. Berkas final dikunci write-once (WORM) sesuai SA 230 / ISQM 1.</div>
+                <div className="tiny" style={{ color: 'var(--green)', lineHeight: 1.5 }}><I.shield size={11} /> Seluruh dokumen klien dienkripsi at-rest &amp; in-transit. Berkas final dikunci write-once (WORM) sesuai SA 230 / SMM 1.</div>
               </div>
             </div>
           </Panel>
@@ -502,7 +502,7 @@ function CRServerChain({ rows, verify, nav }: any) {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Jejak Audit Server — Append-only (tamper-evident)',
         meta: [`Model AuditLog · ${rows.length} entri terbaru · verifikasi server: ${ok ? 'TERVERIFIKASI' : 'TERPUTUS #' + (verify && verify.brokenAt)}`,
-          'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (ISQM 1)'],
+          'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (SMM 1)'],
         sheets: [{
           name: 'Jejak Audit Server',
           columns: ['#', 'Waktu', 'Peran', 'Pelaku (userId)', 'Aksi', 'Sasaran', 'Detail', 'Prev Hash', 'Hash'],
@@ -543,7 +543,7 @@ function CRServerChain({ rows, verify, nav }: any) {
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server Asseris</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (ISQM 1). Menampilkan hingga 100 entri terbaru.</div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server Asseris</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (SMM 1). Menampilkan hingga 100 entri terbaru.</div>
       </Panel>
     </>
   );
@@ -590,7 +590,7 @@ function CRRantai({ ctx }: any) {
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Arus ini adalah <b>sumber kebenaran tunggal</b> yang sama dengan modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span> — menggabungkan log aktivitas live, jejak firma kanonik &amp; peristiwa sistem. Tiap entri di-hash bersama hash entri sebelumnya (chain) sehingga perubahan retroaktif memutus rantai. Retensi 10 tahun (ISQM 1).</div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Arus ini adalah <b>sumber kebenaran tunggal</b> yang sama dengan modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span> — menggabungkan log aktivitas live, jejak firma kanonik &amp; peristiwa sistem. Tiap entri di-hash bersama hash entri sebelumnya (chain) sehingga perubahan retroaktif memutus rantai. Retensi 10 tahun (SMM 1).</div>
       </Panel>
     </>
   );
@@ -609,7 +609,7 @@ function crControlFamilies(ctx: any) {
   const holds = docs.filter((d: any) => d.legalHold).length;
 
   return [
-    { id: 'crypto', name: 'Kriptografi & Enkripsi', std: 'ISO 27001 A.10 · ISQM 1', ic: 'lock', controls: [
+    { id: 'crypto', name: 'Kriptografi & Enkripsi', std: 'ISO 27001 A.10 · SMM 1', ic: 'lock', controls: [
       { k: 'Enkripsi data at-rest (AES-256-GCM)', status: 'Aktif', ev: docs.length + ' dokumen', src: 'dms', srcLbl: 'Document Mgmt' },
       { k: 'Enkripsi transit (TLS 1.3)', status: 'Aktif', ev: 'Semua sesi & PBC', src: 'clientportal', srcLbl: 'Portal Klien' },
       { k: 'Hashing integritas (SHA-256)', status: 'Aktif', ev: (docs.length + evidence.length) + ' objek', src: 'evidence', srcLbl: 'Evaluasi Bukti' },
@@ -621,19 +621,19 @@ function crControlFamilies(ctx: any) {
       { k: 'Pemisahan tugas (preparer ≠ approver)', status: ruleStatus('IR-07'), ev: ruleOf('IR-07').detail || '—', src: 'aje', srcLbl: 'AJE' },
       { k: 'Konfirmasi independensi tim', status: ruleStatus('IR-08'), ev: ruleOf('IR-08').detail || '—', src: 'independence', srcLbl: 'Independensi' },
     ]},
-    { id: 'integritas', name: 'Integritas Data', std: 'ISQM 1 · Referensial', ic: 'sliders', controls: [
+    { id: 'integritas', name: 'Integritas Data', std: 'SMM 1 · Referensial', ic: 'sliders', controls: [
       { k: 'WTB seimbang (debit = kredit)', status: ruleStatus('IR-04'), ev: ruleOf('IR-04').detail || '—', src: 'wtb', srcLbl: 'Working TB' },
       { k: 'Materialitas ditetapkan sebelum eksekusi', status: ruleStatus('IR-03'), ev: ruleOf('IR-03').detail || '—', src: 'materiality', srcLbl: 'Materiality' },
       { k: 'Integritas referensial klien–perikatan', status: ruleStatus('IR-01'), ev: ruleOf('IR-01').detail || '—', src: 'dataflow', srcLbl: 'Alur Data' },
       { k: 'RoMM dinilai tiap perikatan aktif', status: ruleStatus('IR-06'), ev: ruleOf('IR-06').detail || '—', src: 'risk', srcLbl: 'Risk Assessment' },
     ]},
-    { id: 'retensi', name: 'Retensi & Arsip', std: 'SA 230 · ISQM 1', ic: 'archive', controls: [
-      { k: 'Arsip kertas kerja ≤ 60 hari (ISQM)', status: ruleStatus('IR-10'), ev: ruleOf('IR-10').detail || '—', src: 'records', srcLbl: 'Retensi & Arsip' },
+    { id: 'retensi', name: 'Retensi & Arsip', std: 'SA 230 · SMM 1', ic: 'archive', controls: [
+      { k: 'Arsip kertas kerja ≤ 60 hari (SMM)', status: ruleStatus('IR-10'), ev: ruleOf('IR-10').detail || '—', src: 'records', srcLbl: 'Retensi & Arsip' },
       { k: 'Imutabilitas berkas final (WORM)', status: 'Aktif', ev: sealed + ' berkas terkunci', src: 'dms', srcLbl: 'Document Mgmt' },
       { k: 'Legal hold atas sengketa', status: 'Aktif', ev: holds + ' hold aktif', src: 'legal', srcLbl: 'Kontrak & Legal' },
       { k: 'Klasifikasi & DLP data klien', status: 'Parsial', ev: 'Auto-klasifikasi sebagian', src: 'dms', srcLbl: 'Document Mgmt' },
     ]},
-    { id: 'pemantauan', name: 'Pemantauan & Jejak', std: 'ISQM 1 · Tamper-Evident', ic: 'pulse', controls: [
+    { id: 'pemantauan', name: 'Pemantauan & Jejak', std: 'SMM 1 · Tamper-Evident', ic: 'pulse', controls: [
       { k: 'Jejak audit append-only (hash-chain)', status: 'Aktif', ev: chain.length + ' entri tertaut', src: 'audittrail', srcLbl: 'Audit Trail' },
       { k: 'Cek integritas terjadwal', status: 'Aktif', ev: rules.length + ' aturan dievaluasi', src: 'dataflow', srcLbl: 'Alur Data' },
       { k: 'Backup harian & DR site', status: 'Aktif', ev: 'RPO 24 jam', src: 'integrations', srcLbl: 'Integrations' },

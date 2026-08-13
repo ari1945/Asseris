@@ -8,7 +8,7 @@
    Hartono Wijaya menandatangani sebagai Engagement Partner (08 Mei),
    lalu tombol "Setujui & Finalkan" untuk langkah EQR aktif penuh.
 
-   ISQM 2 / SA 220.36 menuntut penelaah yang independen dari tim
+   SMM 2 / SA 220.36 menuntut penelaah yang independen dari tim
    perikatan; yang paling tidak independen adalah orang yang baru saja
    menyetujuinya sendiri.
    ============================================================ */

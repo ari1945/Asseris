@@ -117,7 +117,7 @@ describe('pplFromEntries — ringkas dari catatan SKP', () => {
     /* Bentuk nyata `CPE_LOG`: membawa `t` (judul kegiatan) di samping type/skp. */
     const r = pplFromEntries([
       { t: 'Update SA', type: 'Terstruktur', skp: 8 },
-      { t: 'ISQM 1', type: 'Terstruktur', skp: 6 },
+      { t: 'SMM 1', type: 'Terstruktur', skp: 6 },
       { t: 'Jurnal', type: 'Tidak Terstruktur', skp: 10 },
     ] satisfies SkpEntry[]);
     expect(r).toEqual({ structured: 14, unstructured: 10 });

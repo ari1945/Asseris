@@ -79,7 +79,7 @@ function FirmInsurance() {
     <>
       <SubBar moduleId="insurance" right={
         <div className="row gap8 ac">
-          <span className="chip tiny"><I.link2 size={11} /> SSOT · premi → Cockpit & Legal · ISQM 1</span>
+          <span className="chip tiny"><I.link2 size={11} /> SSOT · premi → Cockpit & Legal · SMM 1</span>
           <Btn sm onClick={onExport}><I.download size={13} /> Risk Register</Btn>
           <span className="chip tiny muted" title="Read-only — pelaporan klaim dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
@@ -460,7 +460,7 @@ function InsLineage({ IRM, firm, nav }: any) {
     { id: 'firmops', ic: 'layers', lbl: 'Cockpit Operasi', rel: 'Premi → pos overhead biaya operasi' },
     { id: 'legal', ic: 'gavel', lbl: 'Kontrak & Legal', rel: 'Polis → kontrak OPS-POL-* (nilai = premi)' },
     { id: 'facilities', ic: 'building', lbl: 'Aset & Fasilitas', rel: 'Nilai aset → dasar cover Property All-Risk' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Register risiko → penilaian risiko ISQM 1' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Register risiko → penilaian risiko SMM 1' },
     { id: 'firmtax', ic: 'report', lbl: 'Pajak Firma', rel: 'Premi (overhead) → rekonsiliasi fiskal' },
     { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', rel: 'FR-01 → EQR wajib (mitigasi mutu)' },
   ];
@@ -519,12 +519,12 @@ function InsLineage({ IRM, firm, nav }: any) {
    window.LINEAGE), seperti pola view_facilities2.jsx. */
 if (window.LINEAGE) {
   window.LINEAGE.insurance = {
-    std: 'Backoffice · Asuransi (PII) & Manajemen Risiko (ISQM 1)',
+    std: 'Backoffice · Asuransi (PII) & Manajemen Risiko (SMM 1)',
     up: [
       { id: 'legal', ic: 'gavel', lbl: 'Kontrak & Legal', rel: 'Litigasi (LIT-03) → notifikasi & dasar klaim PII (CLM-02)' },
       { id: 'facilities', ic: 'building', lbl: 'Aset & Fasilitas', rel: 'Nilai perolehan aset (PSAK 16) → dasar pertanggungan Property All-Risk' },
       { id: 'integrations', ic: 'link2', lbl: 'Integrations', rel: 'Insiden siber & kontrol TI → risiko FR-03 (Cyber)' },
-      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'ISQM 1 — kebijakan mutu menetapkan selera & ambang risiko' },
+      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'SMM 1 — kebijakan mutu menetapkan selera & ambang risiko' },
     ],
     down: [
       { id: 'firmops', ic: 'layers', lbl: 'Cockpit Operasi', rel: 'Premi tahunan → pos overhead Komposisi Biaya Operasi' },

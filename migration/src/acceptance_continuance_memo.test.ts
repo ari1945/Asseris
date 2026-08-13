@@ -40,7 +40,11 @@ describe('judul / refNo / meta per-jenis', () => {
   });
   it('meta memuat basis standar sesuai jenis', () => {
     expect(memoMeta(ACC).join(' ')).toMatch(/SA 300/);
-    expect(memoMeta(CONT).join(' ')).toMatch(/ISQM 1 ¶33–34/);
+    /* String, BUKAN regex literal: `(d)` di dalam /…/ adalah capture group yang
+       mencocokkan huruf `d`, sehingga pola diam-diam berubah makna menjadi
+       "¶34d" dan tak pernah cocok. `toMatch(string)` = pencocokan substring. */
+    expect(memoMeta(CONT).join(' ')).toMatch('SMM 1 ¶30 · ¶34(d)');
+    expect(memoMeta(ACC).join(' ')).toMatch('SMM 1 ¶30');
   });
 });
 

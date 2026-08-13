@@ -6,7 +6,7 @@ import {
 } from './canon_firm_attest';
 
 /* ============================================================
-   Atestasi mutu firma (ISQM 1 ¶20 · ¶53–54).
+   Atestasi mutu firma (SMM 1 ¶20 · ¶53–54).
 
    Uji inti: (1) kunci ber-4-digit agar lolos allow-list server, dan
    (2) tanda tangan GUGUR saat kesimpulan diubah sesudah ditandatangani —

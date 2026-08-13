@@ -149,7 +149,7 @@ function SADLedger() {
   }, [wtb]);
   /* PR-C — DULU `aje: AMS.AJE` (seed modul, beku) dan `aje` tak ada di deps: setiap
      perubahan status jurnal — termasuk persetujuan partner yang memposting lewat rantai
-     ISQM 1 — tidak menggerakkan rekonsiliasi ini, dan jurnal buatan auditor tak pernah
+     SMM 1 — tidak menggerakkan rekonsiliasi ini, dan jurnal buatan auditor tak pernah
      masuk hitungan sama sekali. Kelas cache-dingin yang sama dengan #129/PR-6b, tetapi
      yang basi di sini adalah POPULASI SALAH SAJI YANG MENENTUKAN OPINI. */
   const recon: UncorrResult = useMemoSD(() => reconcileUncorrectedMisstatements({

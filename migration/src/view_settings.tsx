@@ -1164,7 +1164,7 @@ function SecAI({ s, setGroup, flash }: any) {
           </SRow>
         </div>
         <div style={{ padding: '10px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
-          <div className="tiny muted" style={{ lineHeight: 1.5 }}><I.shield size={12} style={{ verticalAlign: '-2px', color: 'var(--blue)' }} /> Tata kelola ISQM 1: keluaran AI bersifat asistif; ekstraksi dokumen tetap melewati persetujuan auditor (SA 230) sebelum masuk kertas kerja.</div>
+          <div className="tiny muted" style={{ lineHeight: 1.5 }}><I.shield size={12} style={{ verticalAlign: '-2px', color: 'var(--blue)' }} /> Tata kelola SMM 1: keluaran AI bersifat asistif; ekstraksi dokumen tetap melewati persetujuan auditor (SA 230) sebelum masuk kertas kerja.</div>
         </div>
       </Panel>
     </>

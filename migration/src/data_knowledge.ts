@@ -67,8 +67,8 @@ export const STANDARDS_REGISTRY = [
   { code: 'SA 805', title: 'Audit LK Tunggal & Elemen Tertentu', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa805' },
   { code: 'SA 810', title: 'Perikatan Pelaporan atas Ringkasan LK', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa810' },
   // ——— Mutu firma & etika ———
-  { code: 'SPM 1', title: 'Pengelolaan Mutu (SOQM)', type: 'SPM', phase: 'Mutu', coverage: 'module', module: 'governance' },
-  { code: 'SPM 2', title: 'Reviu Pengendalian Mutu Perikatan (EQR)', type: 'SPM', phase: 'Mutu', coverage: 'module', module: 'eqr' },
+  { code: 'SMM 1', title: 'Manajemen Mutu Bagi KAP', type: 'SMM', phase: 'Mutu', coverage: 'module', module: 'governance' },
+  { code: 'SMM 2', title: 'Penelaahan Mutu Perikatan (EQR)', type: 'SMM', phase: 'Mutu', coverage: 'module', module: 'eqr' },
   { code: 'KEPAP', title: 'Kode Etik Profesi Akuntan Publik — Independensi & Etika', type: 'KEPAP', phase: 'Mutu', coverage: 'module', module: 'governance' },
   // ——— Perikatan selain audit ———
   { code: 'SPR 2400', title: 'Perikatan Reviu atas LK Historis', type: 'SPR', phase: 'Perikatan Lain', coverage: 'module', module: 'spr2400' },
@@ -116,7 +116,7 @@ export const STANDARDS_REGISTRY = [
     SPR:  { label: 'Perikatan Reviu (SPR)',        kind: 'amber', blurb: 'Standar Perikatan Reviu' },
     SPA:  { label: 'Jasa Terkait (SPA)',           kind: 'amber', blurb: 'Standar Perikatan Audit lain / jasa terkait' },
     SJAH: { label: 'Asurans (SJAH)',               kind: 'amber', blurb: 'Standar Perikatan Asurans' },
-    SPM:  { label: 'Mutu (SPM)',                   kind: 'navy',  blurb: 'Standar Pengelolaan Mutu' },
+    SMM:  { label: 'Mutu (SMM)',                   kind: 'navy',  blurb: 'Standar Manajemen Mutu' },
     KEPAP:{ label: 'Etika (KEPAP)',                kind: 'navy',  blurb: 'Kode Etik Profesi Akuntan Publik' },
   };
 
@@ -163,9 +163,9 @@ export const STANDARDS_REGISTRY = [
       sections: [
         S('Tanggung jawab rekan perikatan', 'Rekan perikatan bertanggung jawab atas mutu menyeluruh: menetapkan budaya yang berfokus pada mutu, memastikan independensi, dan menilai kompetensi tim secara kolektif.'),
         S('Reviu & konsultasi', 'Pekerjaan ditelaah berjenjang sebelum laporan diterbitkan; hal sulit/kontroversial dikonsultasikan. Bila kriteria terpenuhi, telaah pengendalian mutu perikatan (EQR) dilakukan penelaah independen.'),
-        S('Selaras SPM 1', 'Prosedur tingkat perikatan bersandar pada sistem pengelolaan mutu firma (SPM 1). Bila ada indikasi sistem tidak berfungsi, eskalasi sesuai kebijakan firma.'),
+        S('Selaras SMM 1', 'Prosedur tingkat perikatan bersandar pada sistem manajemen mutu firma (SMM 1). Bila ada indikasi sistem tidak berfungsi, eskalasi sesuai kebijakan firma.'),
       ],
-      points: ['Tetapkan tone-at-the-top atas mutu perikatan', 'Pastikan independensi & kompetensi tim', 'Lakukan reviu berjenjang dan EQR bila perlu', 'Selaraskan dengan sistem mutu firma (SPM 1)'],
+      points: ['Tetapkan tone-at-the-top atas mutu perikatan', 'Pastikan independensi & kompetensi tim', 'Lakukan reviu berjenjang dan EQR bila perlu', 'Selaraskan dengan sistem mutu firma (SMM 1)'],
     },
     'SA 240': {
       read: 10, level: 'Lanjutan', hot: true, tags: ['fraud', 'kecurangan', 'management override', 'journal entry', 'presumed risk'],
@@ -357,15 +357,36 @@ export const STANDARDS_REGISTRY = [
       ],
       points: ['Baca seluruh informasi lain yang tersedia', 'Identifikasi inkonsistensi material', 'Minta koreksi & eskalasi bila perlu', 'Sertakan paragraf Informasi Lain'],
     },
-    'SPM 1': {
-      read: 8, level: 'Lanjutan', hot: true, tags: ['ISQM 1', 'SOQM', 'pengelolaan mutu', 'risiko mutu', 'monitoring'],
-      summary: 'Sistem pengelolaan mutu firma berbasis risiko (SOQM): menetapkan tujuan mutu, mengidentifikasi risiko mutu, merancang respons, serta memantau dan memperbaikinya.',
+    'SMM 1': {
+      /* Dua penyebutan "SPM 1" di bawah SENGAJA dipertahankan: entri knowledge base
+         inilah tempat yang tepat untuk mencatat bahwa SMM 1 MENGGANTIKAN SPM 1.
+         Pembaca yang mencari "SPM 1" harus mendarat di sini. Ini satu-satunya
+         pengecualian gerbang nomenklatur di luar berkas kanon. */
+      /* eslint-disable-next-line no-restricted-syntax */
+      read: 8, level: 'Lanjutan', hot: true, tags: ['SMM 1', 'SOQM', 'manajemen mutu', 'risiko mutu', 'monitoring', 'menggantikan SPM 1'],
+      /* eslint-disable-next-line no-restricted-syntax */
+      summary: 'Sistem manajemen mutu firma berbasis risiko: menetapkan tujuan mutu, mengidentifikasi risiko mutu, merancang respons, serta memantau dan memperbaikinya. Disahkan IAPI 18-09-2024, berlaku efektif 31-12-2025 — menggantikan SPM 1.',
       sections: [
-        S('Pendekatan berbasis risiko', 'Firma menetapkan tujuan mutu, mengidentifikasi & menilai risiko mutu yang menghambatnya, lalu merancang respons. Delapan komponen mencakup tata kelola, etika, penerimaan, pelaksanaan, sumber daya, informasi-komunikasi, hingga proses pemantauan.'),
-        S('Pemantauan & remediasi', 'Aktivitas pemantauan (termasuk inspeksi perikatan) mendeteksi defisiensi; firma mengevaluasi tingkat keparahan & akar masalah, lalu meremediasi.'),
-        S('Evaluasi tahunan SOQM', 'Pihak yang ditugasi menyimpulkan apakah sistem memberikan asurans memadai bahwa tujuan mutu tercapai — dasar bagi mutu tingkat perikatan (SA 220).'),
+        S('Pendekatan berbasis risiko (¶23–27)', 'Firma menetapkan tujuan mutu, mengidentifikasi & menilai risiko mutu yang menghambatnya, lalu merancang respons yang responsif terhadap alasan penilaian risiko tersebut.'),
+        S('Enam komponen & dua proses', 'Komponen: tata kelola & kepemimpinan (¶28), ketentuan etika (¶29), penerimaan & keberlanjutan (¶30), pelaksanaan perikatan (¶31), sumber daya (¶32), informasi & komunikasi (¶33). Ditambah dua proses: penilaian risiko (¶23–27) dan pemantauan & remediasi (¶35–47).'),
+        S('Respons spesifik (¶34)', 'Sebagian respons diwajibkan standar, antara lain konfirmasi independensi tahunan (¶34(b)), penanganan keluhan & tuduhan (¶34(c)), dan penetapan perikatan yang wajib menjalani penelaahan mutu perikatan sesuai SMM 2 (¶34(f)).'),
+        S('Pemantauan & remediasi (¶35–47)', 'Aktivitas pemantauan — termasuk inspeksi atas perikatan yang telah selesai, sekurangnya satu per rekan perikatan per siklus (¶38(c)) — mendeteksi defisiensi; firma menginvestigasi akar masalah, menilai signifikansi & pervasivitas (¶41), lalu meremediasi.'),
+        S('Evaluasi tahunan (¶53–56)', 'Pemegang tanggung jawab tertinggi menyimpulkan, sekurangnya setahun sekali, salah satu dari tiga: (a) memberikan keyakinan memadai; (b) memadai kecuali untuk defisiensi signifikan tak pervasif; atau (c) tidak memberikan keyakinan memadai.'),
       ],
-      points: ['Tetapkan tujuan & nilai risiko mutu', 'Rancang respons atas tiap risiko', 'Pantau, deteksi & remediasi defisiensi', 'Simpulkan evaluasi SOQM tahunan'],
+      points: ['Tetapkan 27 tujuan mutu mandatori (¶28–33)', 'Identifikasi & nilai risiko mutu atas tiap tujuan', 'Rancang respons, termasuk respons spesifik ¶34', 'Pantau, investigasi akar masalah & remediasi', 'Simpulkan evaluasi tahunan dalam salah satu dari tiga bentuk (¶54)'],
+    },
+    'SMM 2': {
+      read: 6, level: 'Lanjutan', hot: true, tags: ['SMM 2', 'EQR', 'penelaahan mutu perikatan', 'eligibilitas', 'cooling-off'],
+      summary: 'Penelaahan mutu perikatan: evaluasi objektif atas pertimbangan signifikan tim perikatan dan kesimpulan yang dihasilkannya, diselesaikan pada atau sebelum tanggal laporan. Disahkan IAPI 18-09-2024, berlaku efektif 31-12-2025.',
+      sections: [
+        S('Penunjukan & eligibilitas (¶17–21)', 'Penelaah bukan anggota tim perikatan, memiliki kompetensi, kapabilitas, waktu cukup & wewenang yang tepat (¶18(a)), memenuhi ketentuan etika termasuk objektivitas & independensi (¶18(b)). Individu yang membantu penelaah tunduk pada kriteria eligibilitasnya sendiri (¶20).'),
+        S('Periode jeda dua tahun (¶19)', 'Mantan rekan perikatan tidak boleh menjadi penelaah mutu perikatan atas perikatan yang sama sebelum melewati jeda dua tahun — atau lebih lama bila diharuskan peraturan atau ketentuan etika.'),
+        S('Penurunan eligibilitas (¶22–23)', 'Bila eligibilitas penelaah menurun: tolak penunjukan bila penelaahan belum dimulai, atau hentikan pelaksanaannya bila sudah berjalan; KAP menunjuk pengganti.'),
+        S('Pelaksanaan (¶25)', 'Penelaah membaca informasi tim & hasil pemantauan KAP, mendiskusikan hal signifikan dengan rekan perikatan, menelaah dokumentasi terpilih, mengevaluasi dasar penentuan rekan atas independensi (¶25(d)) dan kecukupan keterlibatan rekan (¶25(f)), serta menelaah laporan keuangan & laporan auditor.'),
+        S('Gerbang tanggal laporan (¶24(b) · ¶26–27)', 'Rekan perikatan tidak boleh menentukan tanggal laporan sebelum menerima pemberitahuan bahwa penelaahan selesai. Bila kekhawatiran penelaah tidak terselesaikan, penelaah memberi tahu KAP bahwa penelaahan TIDAK DAPAT diselesaikan.'),
+        S('Dokumentasi (¶28–30)', 'Memuat nama penelaah & individu yang membantu, identifikasi dokumentasi perikatan yang ditelaah, dasar penentuan penyelesaian, pemberitahuan yang diberikan, dan tanggal penyelesaian.'),
+      ],
+      points: ['Penelaah bukan anggota tim & eligible (¶18)', 'Jeda 2 tahun bagi mantan rekan perikatan (¶19)', 'Eligibilitas turun ⇒ tolak atau hentikan (¶22–23)', 'Tanggal laporan terkunci sampai penelaahan selesai (¶24(b))', 'Dokumentasikan kelima butir ¶30'],
     },
     'KEPAP': {
       read: 6, level: 'Inti', tags: ['kode etik', 'independensi', 'ancaman', 'pengamanan', 'integritas'],

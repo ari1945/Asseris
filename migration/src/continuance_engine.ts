@@ -1,5 +1,5 @@
 /* ============================================================
-   Asseris — Keberlanjutan Klien (ISQM 1 ¶33–34 / SA 220)
+   Asseris — Keberlanjutan Klien (SMM 1 ¶30 · ¶34(d) / SA 220)
 
    Mesin pemicu murni & deterministik untuk keputusan KEBERLANJUTAN
    (continuance) atas portofolio klien AKTIF — bukan penerimaan klien
@@ -7,7 +7,7 @@
    data kanonik (CLIENTS · INDEPENDENCE · INVOICES); keputusan tersimpan
    di-merge dari state firm-scope. Tidak ada angka hardcode.
 
-   Pemicu (ISQM 1 ¶33–34, SA 220, Kode Etik):
+   Pemicu (SMM 1 ¶30 · ¶34(d), SA 220, Kode Etik):
      · rotasi AP (tenur vs batas; PIE 5th / jasa-keuangan 3th)  → ancaman
      · konflik kepentingan terdeklarasi                          → ancaman
      · risiko klien tinggi · emiten/PIE                          → eskalasi
@@ -165,7 +165,7 @@ export function continuanceFlags(
     const assoc = c.since != null ? refYear - c.since : 0;
     if (assoc >= LONG_ASSOC_YEARS) triggers.push({ key: 'asosiasi', label: 'Asosiasi panjang', severity: 'low', detail: `${assoc} th hubungan — ancaman kedekatan (familiarity)` });
 
-    // Pengalaman tahun lalu (SA 220.A24 / ISQM 1 ¶34) — pemicu dari data kanonik.
+    // Pengalaman tahun lalu (SA 220.A24 / SMM 1 ¶34(d)) — pemicu dari data kanonik.
     const py = c.priorYear;
     if (py) {
       if (isOpinionModified(py.opinion)) {

@@ -416,7 +416,7 @@ function RoutingRulesModal({ onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.scale size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Aturan Routing Persetujuan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Matriks otorisasi berbasis jenis & nilai — sesuai kebijakan ISQM firma</div></div>
+          <I.scale size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Aturan Routing Persetujuan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Matriks otorisasi berbasis jenis & nilai — sesuai kebijakan SMM firma</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>

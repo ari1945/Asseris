@@ -31,9 +31,9 @@ const { useState: useStateD2, useMemo: useMemoD2 } = React;
 const D2_REF = new Date('2026-03-09');
 /* F2/PR-F — konstanta perikatan (tgl laporan/perakitan/retensi) & atestasi kelengkapan
    kini TERSIMPAN di sa230Doc.v1 (bukan hardcode modul-level). Rollup kelengkapan tetap
-   turunan dari WP kanonik (useDocCanon). Nilai di bawah = seed default (¶A21 · SPM 1). */
+   turunan dari WP kanonik (useDocCanon). Nilai di bawah = seed default (¶A21 · SMM 1). */
 const DEFAULT_REPORT_DATE = '2026-03-20';   // tanggal laporan terencana (kanonik di DMS DOC-0623)
-const DEFAULT_RETENTION_YEARS = 10;         // SPM 1 / kebijakan firma (Pengaturan)
+const DEFAULT_RETENTION_YEARS = 10;         // SMM 1 / kebijakan firma (Pengaturan)
 const DEFAULT_ASSEMBLY_DAYS = 60;           // SA 230 ¶A21
 interface Sa230Attest { signed: boolean; signer: string; date: string; memo: string }
 interface Sa230Doc { reportDate: string; assemblyDays: number; retentionYears: number; attestation: Sa230Attest }
@@ -736,7 +736,7 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
               <input type="number" min={1} className="input" style={{ width: '100%' }} value={doc.retentionYears} onChange={(e: { target: { value: string } }) => patch({ retentionYears: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
             </div>
           </div>
-          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>SA 230 ¶A21 — perakitan berkas final umumnya ≤ 60 hari setelah tanggal laporan; retensi mengikuti SPM 1 / kebijakan firma.</div>
+          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>SA 230 ¶A21 — perakitan berkas final umumnya ≤ 60 hari setelah tanggal laporan; retensi mengikuti SMM 1 / kebijakan firma.</div>
         </Panel>
 
         {/* atestasi kelengkapan dokumentasi (F2/PR-F) */}
@@ -798,12 +798,12 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
             <D2KV label="Mulai retensi" v={d2fmtDate(reportDate)} />
-            <D2KV label="Dasar kebijakan" v="SPM 1 / Pengaturan Firma" />
+            <D2KV label="Dasar kebijakan" v="SMM 1 / Pengaturan Firma" />
             <D2KV label="Format arsip" v="Elektronik · AES-256" />
           </div>
         </Panel>
 
-        <Panel title="Kepemilikan & Kerahasiaan" sub="SPM 1 / SA 230 ¶A23">
+        <Panel title="Kepemilikan & Kerahasiaan" sub="SMM 1 / SA 230 ¶A23">
           <div style={{ display: 'grid', gap: 8 }}>
             <D2Doc icon="shield" t="Kepemilikan berkas" d="Dokumentasi audit adalah milik firma (KAP)." />
             <D2Doc icon="lock" t="Kerahasiaan" d="Akses dibatasi & terenkripsi; setiap akses tercatat dalam jejak audit." />
@@ -915,7 +915,7 @@ function D2Keterkaitan({ C }: any) {
       art: 'Perakitan berkas final & retensi',
       val: `${agg.docPct}% siap rakit`, pct: agg.docPct, c: stamp(agg.docPct === 100, agg.docPct < 100),
       rel: 'Berkas final dirakit ≤60 hari, dikunci WORM, retensi 10 tahun (kanonik di DMS).' },
-    { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', para: 'SA 220 / ISQM 1',
+    { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', para: 'SA 220 / SMM 1',
       art: 'Telaah mutu perikatan',
       val: ready ? 'Siap ditelaah' : `${agg.blocking} penghambat`, pct: ready ? 100 : Math.max(10, agg.docPct), c: stamp(ready, !ready),
       rel: 'Pereviu mutu menelaah kecukupan dokumentasi sebelum opini diterbitkan.' },

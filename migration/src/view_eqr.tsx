@@ -7,7 +7,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
 
 /* ============================================================
-   Asseris — EQR Workflow (ISQM 2)  ·  Pelaporan PPPK
+   Asseris — EQR Workflow (SMM 2)  ·  Pelaporan PPPK
    Engagement Quality Review sebagai gerbang wajib penerbitan
    opini · Laporan Tahunan KAP ke P2PK/PPPK Kemenkeu.
    ============================================================ */
@@ -36,7 +36,7 @@ function EQRWorkflow() {
 
   return (
     <>
-      <SubBar moduleId="eqr" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 2 · SA 220</Badge></div>} />
+      <SubBar moduleId="eqr" right={<div className="row gap8 ac"><Badge kind="blue">SMM 2 · SA 220</Badge></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.length} label="EQR Aktif" /></div></Panel>
@@ -66,10 +66,10 @@ function EQRWorkflow() {
               <div className="row jb ac"><div><div style={{ fontSize: 15, fontWeight: 700 }}>{r.client}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.id} · {r.eng} · Partner {r.partner} · Reviewer {r.reviewer.split(',')[0]}</div></div>{r.cleared ? <Badge kind="green"><I.checkCircle size={12} /> Gerbang Lolos</Badge> : <Badge kind="amber">Gerbang Terkunci</Badge>}</div>
             </div>
             <div style={{ padding: 16 }}>
-              {/* Kelayakan & penunjukan reviewer (ISQM 2 ¶18–20) */}
+              {/* Kelayakan & penunjukan reviewer (SMM 2 ¶18–20) */}
               {(meta.coolingOff || meta.competence) && (
                 <div style={{ marginBottom: 16 }}>
-                  <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kelayakan & Penunjukan Reviewer (ISQM 2 ¶18–20)</div>
+                  <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kelayakan & Penunjukan Reviewer (SMM 2 ¶18–20)</div>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {[{ ok: meta.coolingOk, label: 'Cooling-off / Independensi', v: meta.coolingOff }, { ok: meta.compOk, label: 'Kompetensi & Otoritas', v: meta.competence }, { ok: meta.objOk, label: 'Objektivitas', v: meta.objectivity }].map((e, i) => (
                       <div key={i} className="panel" style={{ padding: '10px 11px', boxShadow: 'none' }}>
@@ -124,7 +124,7 @@ function EQRWorkflow() {
                 </div>
               ) : <div className="tiny muted" style={{ marginBottom: 16 }}>Tidak ada temuan terbuka.</div>}
 
-              {/* Konsultasi & perbedaan pendapat (ISQM 2 ¶21–22) */}
+              {/* Konsultasi & perbedaan pendapat (SMM 2 ¶25(e)) */}
               {meta.consults && meta.consults.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Konsultasi atas Hal Sulit / Kontroversial</div>
@@ -162,7 +162,7 @@ function EQRWorkflow() {
                 <div className="panel" style={{ padding: '12px 14px', background: canClear ? 'var(--blue-050)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                   <div className="row ac gap8" style={{ marginBottom: canClear ? 10 : 0 }}>
                     <span style={{ color: canClear ? 'var(--blue)' : 'var(--amber)' }}>{canClear ? <I.shield size={16} /> : <I.lock size={16} />}</span>
-                    <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{canClear ? 'Seluruh checklist terpenuhi & tidak ada temuan terbuka. Reviewer dapat menutup EQR.' : 'Opini tidak dapat diterbitkan sebelum EQR selesai (gerbang wajib ISQM 2). Lengkapi checklist & selesaikan temuan.'}</span>
+                    <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{canClear ? 'Seluruh checklist terpenuhi & tidak ada temuan terbuka. Reviewer dapat menutup EQR.' : 'Opini tidak dapat diterbitkan sebelum EQR selesai (gerbang wajib SMM 2). Lengkapi checklist & selesaikan temuan.'}</span>
                   </div>
                   {canClear && <Btn sm variant="primary" onClick={clearGate}><I.check size={13} /> Tutup EQR sebagai {r.reviewer.split(',')[0]}</Btn>}
                 </div>

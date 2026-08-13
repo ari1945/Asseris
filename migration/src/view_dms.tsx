@@ -63,7 +63,7 @@ function UploadModal({ onClose, onAdd }: any) {
   };
   const cls = okFiles[0] && (window as any).classifyDoc ? (window as any).classifyDoc(okFiles[0].name, {}, 0) : null;
   return (
-    <PModal icon="upload" title="Unggah Dokumen ke DMS" sub="Terenkripsi AES-256 · klasifikasi & retensi otomatis sesuai ISQM" onClose={onClose} width={560}
+    <PModal icon="upload" title="Unggah Dokumen ke DMS" sub="Terenkripsi AES-256 · klasifikasi & retensi otomatis sesuai SMM" onClose={onClose} width={560}
       footer={<><Btn onClick={onClose}>Batal</Btn><Btn variant="primary" disabled={!valid} onClick={() => valid && onAdd({ ...f, files: okFiles })}><I.upload size={14} /> Unggah & Arsipkan</Btn></>}>
       <FileDropField onFiles={onFiles} />
       <FileList files={files} onRemove={(i: any) => setFiles((list: any) => list.filter((_: any, k: any) => k !== i))} />
@@ -298,7 +298,7 @@ function DocManagement() {
 
   return (
     <>
-      <SubBar moduleId="dms" right={<div className="row gap8 ac"><span className="chip tiny"><I.lock size={10} /> AES-256 · ISQM</span><Btn sm variant="primary" onClick={() => setShowUpload(true)}><I.upload size={13} /> Unggah Dokumen</Btn></div>} />
+      <SubBar moduleId="dms" right={<div className="row gap8 ac"><span className="chip tiny"><I.lock size={10} /> AES-256 · SMM</span><Btn sm variant="primary" onClick={() => setShowUpload(true)}><I.upload size={13} /> Unggah Dokumen</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={docs.length} label="Total Dokumen" /></div></Panel>

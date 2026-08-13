@@ -129,9 +129,9 @@ function amsCrossChecks(ctx: any) {
   const noRev = wps.filter((w: any) => w.reviewer === '—' || !w.reviewer);
   if (noRev.length) {
     out.push({
-      id: 'wp-noreviewer', sev: 'med', std: 'SA 230 · ISQM 1',
+      id: 'wp-noreviewer', sev: 'med', std: 'SA 230 · SMM 1',
       title: `${noRev.length} kertas kerja belum memiliki reviewer`,
-      detail: `${noRev.map((w: any) => w.ref + ' ' + (w.title || '')).join(' · ')}. Reviu kertas kerja wajib selesai sebelum gate kesiapan opini (SA 220/ISQM).`,
+      detail: `${noRev.map((w: any) => w.ref + ' ' + (w.title || '')).join(' · ')}. Reviu kertas kerja wajib selesai sebelum gate kesiapan opini (SA 220/SMM).`,
       modules: ['workpapers'], refs: ['workpapers'],
     });
   }
@@ -272,7 +272,7 @@ function AiInsightPanel({ scope, title, embedded }: any) {
             <AiInsightCard key={ins.id} ins={ins} decision={decisions[ins.id]} onDecide={decide} onOpen={nav} />
           ))}
       </div>
-      <div className="aiins-foot"><I.lock size={10} /> Temuan dihitung dari data langsung · setiap keputusan tercatat untuk reviu mutu (ISQM 1)</div>
+      <div className="aiins-foot"><I.lock size={10} /> Temuan dihitung dari data langsung · setiap keputusan tercatat untuk reviu mutu (SMM 1)</div>
     </div>
   );
 }

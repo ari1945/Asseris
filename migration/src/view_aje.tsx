@@ -409,7 +409,7 @@ function AjeRegister({ model, locked }: any) {
                 <td style={{ verticalAlign: 'top', paddingTop: 5 }}>
                   {/* PR-B - badge TIDAK LAGI interaktif. Dulu satu klik di sini memposting
                       jurnal ke WTB (atau menariknya kembali) tanpa persetujuan, alasan,
-                      maupun jejak - melewati rantai ISQM 1 yang dinyatakan tab sebelah. */}
+                      maupun jejak - melewati rantai SMM 1 yang dinyatakan tab sebelah. */}
                   <Badge>{a.status}</Badge>
                 </td>
               </tr>
@@ -1056,7 +1056,7 @@ function AjeApprovals() {
               </div>
             )}
             <div className="tiny muted" style={{ lineHeight: 1.5 }}>
-              Panjang rantai mengikuti nilai jurnal: di atas Rp 2 M diperlukan langkah <b>EQR</b> (ISQM 2 / SA 220.36).
+              Panjang rantai mengikuti nilai jurnal: di atas Rp 2 M diperlukan langkah <b>EQR</b> (SMM 2 / SA 220.36).
               Status jurnal adalah HASIL rantai ini, bukan saklar — dan keputusan mengikat versi jurnal yang disetujuinya.
             </div>
             <Btn sm onClick={() => nav('approvals', { from: 'aje' })}><I.arrowRight size={12} /> Antrean lintas-modul</Btn>
@@ -1194,7 +1194,7 @@ function AjeFinalisation({ model, wtb, onExportXlsx, exporting }: any) {
   return (
     <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Kesiapan Finalisasi Register</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 450 · ISQM 1</span></div>
+        <div className="panel-h"><h3>Kesiapan Finalisasi Register</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 450 · SMM 1</span></div>
         <div style={{ padding: '12px 16px', display: 'grid', gap: 9 }}>
           {checks.map((c, i) => (
             <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>

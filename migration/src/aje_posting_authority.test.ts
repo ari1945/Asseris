@@ -1,5 +1,5 @@
 /* ============================================================
-   PR-B — Gerbang otorisasi posting jurnal (ISQM 1 · SA 450).
+   PR-B — Gerbang otorisasi posting jurnal (SMM 1 · SA 450).
 
    Cacat yang ditutup: `addAje` melahirkan entri berstatus 'Posted', dan
    `buildApprovals` lalu menghitung `doneTo = posted ? steps.length : 1`,

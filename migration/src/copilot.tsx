@@ -15,7 +15,7 @@ import { amsLLMConfig } from './llm_providers';
         dokumen (dipakai evidence.jsx, view_dms.jsx, view_clientportal.jsx)
      2. <Copilot open onClose route> — panel asisten:
         chat AI (window.claude.complete + fallback Mode demo),
-        intake & klasifikasi dokumen, panel tata kelola ISQM 1.
+        intake & klasifikasi dokumen, panel tata kelola SMM 1.
    ATURAN ANTI-TABRAKAN: alias hook unik (…CP), tanpa `const styles`,
    ekspor lewat Object.assign(window, …). Lihat CLAUDE.md §2.
    ============================================================ */
@@ -225,7 +225,7 @@ function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
 }
 
 /* ------------------------------------------------------------
-   4 · PANEL TATA KELOLA AI (ISQM 1)
+   4 · PANEL TATA KELOLA AI (SMM 1)
    ------------------------------------------------------------ */
 function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }: any) {
   const queries = log.length;
@@ -239,7 +239,7 @@ function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }: a
   return (
     <div className="copilot-gov">
       <div className="gov-h">
-        <span><I.shield size={15} /> Tata Kelola AI · ISQM 1</span>
+        <span><I.shield size={15} /> Tata Kelola AI · SMM 1</span>
         <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
       <div className="gov-body">
@@ -628,7 +628,7 @@ function Copilot({ open, onClose, route }: any) {
           <div style={{ fontSize: 11, opacity: .8 }}>{share ? 'Konteks: ' + moduleLabel : 'Mode anonim'} · {llm ? llm.modelLabel : 'asistif'}</div>
         </div>
         <button className="top-btn" title="Insight lintas-modul (kontradiksi)" style={{ color: '#fff', background: showIns ? 'rgba(255,255,255,.18)' : 'transparent', borderRadius: 7 }} onClick={() => setShowIns((v: any) => !v)}><I.target size={17} /></button>
-        <button className="top-btn" title="Tata kelola AI (ISQM 1)" style={{ color: '#fff' }} onClick={() => setGov(true)}><I.shield size={17} /></button>
+        <button className="top-btn" title="Tata kelola AI (SMM 1)" style={{ color: '#fff' }} onClick={() => setGov(true)}><I.shield size={17} /></button>
         <button className="top-btn" title="Tutup" style={{ color: '#fff' }} onClick={onClose}><I.x size={17} /></button>
       </div>
 

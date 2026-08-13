@@ -28,9 +28,9 @@ import { AMS } from './data';
     .map(m => ({ id: m.id, ic: m.ic, lbl: m.lbl, rel: m.n > 1 ? m.n + ' template · mis. ' + m.sample : m.sample }));
 
   LINEAGE.templates = {
-    std: 'Referensi & Indeks · Registri Template (IAPI / ISQM)',
+    std: 'Referensi & Indeks · Registri Template (IAPI / SMM)',
     up: [
-      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'ISQM 1 — metodologi & kebijakan mutu yang membakukan template' },
+      { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'SMM 1 — metodologi & kebijakan mutu yang membakukan template' },
       { id: 'kb', ic: 'book', lbl: 'Knowledge Base', rel: 'Panduan standar & praktik yang menjadi dasar isi template' },
       { id: 'compmatrix', ic: 'table', lbl: 'Matriks Kepatuhan', rel: 'Pemetaan standar → ketertelusuran template ke prosedur' },
       { id: 'dms', ic: 'archive', lbl: 'Document Management', rel: 'Versi & retensi pack metodologi yang dikendalikan' },
@@ -45,7 +45,7 @@ LINEAGE.kb = {
   std: 'Referensi & Indeks · Basis Pengetahuan Standar (SA/PSAK)',
   up: [
     { id: 'compmatrix', ic: 'table',    lbl: 'Matriks Kepatuhan', rel: 'Registri standar kanonik — sumber tunggal katalog artikel KB' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)',  rel: 'ISQM 1 — kebijakan & metodologi mutu yang dirujuk panduan' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)',  rel: 'SMM 1 — kebijakan & metodologi mutu yang dirujuk panduan' },
     { id: 'templates',  ic: 'template', lbl: 'Template Library',   rel: 'Berkas yang mengimplementasikan standar terkait (tarikan live)' },
   ],
   down: [
@@ -169,7 +169,7 @@ LINEAGE.clientportal = {
     { id: 'workpapers', ic: 'layers',  lbl: 'Working Papers',      rel: 'Berkas diterima → bukti substantif pada lead schedule (WP)' },
     { id: 'confirm',    ic: 'mail',    lbl: 'Confirmation Hub',    rel: 'Daftar piutang/bank → dasar konfirmasi eksternal (SA 505)' },
     { id: 'evidence',   ic: 'search2', lbl: 'Evaluasi Bukti',      rel: 'Klasifikasi otomatis → bukti per area & asersi (SA 500)' },
-    { id: 'dms',        ic: 'archive', lbl: 'Document Management', rel: 'Arsip terenkripsi AES-256, klasifikasi & retensi (ISQM)' },
+    { id: 'dms',        ic: 'archive', lbl: 'Document Management', rel: 'Arsip terenkripsi AES-256, klasifikasi & retensi (SMM)' },
   ],
 };
 
@@ -179,7 +179,7 @@ LINEAGE.clientportal = {
    entitas kanonik yang sama yang dibaca modul-modul ini.
    ============================================================ */
 LINEAGE.approvals = {
-  std: 'Platform Firma ·Otorisasi & Persetujuan (ISQM 1)',
+  std: 'Platform Firma ·Otorisasi & Persetujuan (SMM 1)',
   up: [
     { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Jurnal Proposed → persetujuan; final → posting ke WTB' },
     { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'Faktur Draft / termin besar → otorisasi penerbitan' },
@@ -190,13 +190,13 @@ LINEAGE.approvals = {
   down: [
     { id: 'audittrail', ic: 'lock', lbl: 'Audit Trail', rel: 'Setiap keputusan tercatat permanen (tamper-evident)' },
     { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'AJE disetujui → saldo WTB & laporan keuangan ter-update' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti otorisasi mutu — pemantauan ISQM' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti otorisasi mutu — pemantauan SMM' },
   ],
 };
 LINEAGE.integrations = {
   std: 'Platform Firma ·Impor & Integrasi Data (gerbang masuk SSOT)',
   up: [
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan keamanan, retensi & gerbang kontrol data (ISQM 1)' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan keamanan, retensi & gerbang kontrol data (SMM 1)' },
     { id: 'settings', ic: 'sliders', lbl: 'Pengaturan Firma', rel: 'Kredensial, scope & jadwal sinkron konektor' },
     { id: 'approvals', ic: 'checkCircle', lbl: 'Approvals', rel: 'Otorisasi & gerbang total kontrol sebelum posting' },
     { id: 'dataflow', ic: 'link2', lbl: 'Alur Data & Integritas', rel: 'Peta modul pemilik data (feedCounts) → tujuan posting' },
@@ -205,7 +205,7 @@ LINEAGE.integrations = {
     { id: 'firmtax', ic: 'report', lbl: 'Pajak Firma', rel: 'e-Faktur & SPT masa (DJP Coretax) → di-posting; Σ PPN = total kontrol' },
     { id: 'cashbank', ic: 'building', lbl: 'Kas, Bank & Rekonsiliasi', rel: 'Bank feed → mutasi rekening; saldo = total kontrol' },
     { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'e-Signature (PrivyID) → tanda tangan laporan & opini' },
-    { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'SharePoint → indeks kertas kerja (retensi ISQM)' },
+    { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'SharePoint → indeks kertas kerja (retensi SMM)' },
     { id: 'onboarding', ic: 'flag', lbl: 'Onboarding & PMPJ', rel: 'AHU Online → verifikasi badan hukum klien' },
     { id: 'audittrail', ic: 'lock', lbl: 'Audit Trail', rel: 'Tiap impor → entri jejak SYNC tamper-evident' },
   ],
@@ -219,7 +219,7 @@ LINEAGE.audittrail = {
     { id: 'dataflow', ic: 'link2', lbl: 'Alur Data & Integritas', rel: 'Propagasi materialitas & tarikan WTB' },
   ],
   down: [
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti pemantauan & remediasi mutu (ISQM 1)' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti pemantauan & remediasi mutu (SMM 1)' },
     { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', rel: 'Jejak telaah mutu perikatan' },
     { id: 'pppk', ic: 'report', lbl: 'Pelaporan PPPK', rel: 'Ketertelusuran untuk inspeksi regulator' },
     { id: 'compmatrix', ic: 'table', lbl: 'Matriks Kepatuhan', rel: 'Ketertelusuran aksi → standar' },
@@ -241,7 +241,7 @@ LINEAGE.sa230 = {
   ],
   down: [
     { id: 'dms',        ic: 'archive',     lbl: 'Manajemen Dokumen', rel: '¶14–16 — perakitan berkas final ≤60 hari, kunci WORM & retensi 10 thn' },
-    { id: 'eqr',        ic: 'checkCircle', lbl: 'EQR Workflow',      rel: 'SA 220 / ISQM 1 — telaah mutu atas kecukupan dokumentasi sebelum opini' },
+    { id: 'eqr',        ic: 'checkCircle', lbl: 'EQR Workflow',      rel: 'SA 220 / SMM 1 — telaah mutu atas kecukupan dokumentasi sebelum opini' },
     { id: 'sad',        ic: 'scale',       lbl: 'SAD Ledger',        rel: '¶11 · SA 450 — pengecualian/inkonsistensi prosedur → akumulasi salah saji' },
     { id: 'opinion',    ic: 'gavel',       lbl: 'Audit Opinion',     rel: 'SA 700 — dokumentasi memadai sebagai fondasi kesimpulan & opini' },
     { id: 'audittrail', ic: 'lock',        lbl: 'Audit Trail',       rel: '¶16 — perubahan pasca-perakitan tercatat tamper-evident' },
@@ -255,12 +255,12 @@ Object.assign(window, { LINEAGE });
    Hulu: Document Mgmt (dokumen & hash), Evaluasi Bukti (berkas
    ter-hash), Alur Data (aturan integritas), Audit Trail (arus
    jejak hash-chain), Audit Opinion & Onboarding (e-signature).
-   Hilir: Governance/ISQM, Retensi & Arsip, Matriks Kepatuhan.
+   Hilir: Governance/SMM, Retensi & Arsip, Matriks Kepatuhan.
    Modul ini TIDAK menyimpan data sendiri — seluruhnya ditarik
    dari sumber kebenaran tunggal di atas.
    ============================================================ */
 LINEAGE.crypto = {
-  std: 'Mutu, Risiko & Regulasi · Keamanan, Integritas & Kriptografi (ISQM 1 · ISO 27001 · SA 230)',
+  std: 'Mutu, Risiko & Regulasi · Keamanan, Integritas & Kriptografi (SMM 1 · ISO 27001 · SA 230)',
   up: [
     { id: 'dms',       ic: 'archive', lbl: 'Document Management', rel: 'Dokumen, versi & hash SHA-256 → register integritas (AES-256 / WORM)' },
     { id: 'evidence',  ic: 'search2', lbl: 'Evaluasi Bukti',      rel: 'Berkas bukti ter-hash → objek integritas terpantau' },
@@ -269,7 +269,7 @@ LINEAGE.crypto = {
     { id: 'opinion',   ic: 'gavel',   lbl: 'Audit Opinion',       rel: 'e-Signature opini & kertas kerja → sertifikat PrivyID' },
   ],
   down: [
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti kontrol keamanan & integritas data (ISQM 1)' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Bukti kontrol keamanan & integritas data (SMM 1)' },
     { id: 'records',    ic: 'archive',  lbl: 'Retensi & Arsip',   rel: 'Imutabilitas WORM & legal hold → kebijakan retensi (SA 230)' },
     { id: 'compmatrix', ic: 'table',    lbl: 'Matriks Kepatuhan', rel: 'Ketertelusuran kontrol → standar profesi & regulasi' },
   ],
@@ -341,7 +341,7 @@ LINEAGE.firmtax = {
 };
 LINEAGE.independence = {
   std: 'SDM & Kepatuhan · Independensi Firma & Rotasi Rekan',
-  up: [{ id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan independensi & rotasi (ISQM 1)' }],
+  up: [{ id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan independensi & rotasi (SMM 1)' }],
   down: [{ id: 'teamindep', ic: 'shield', lbl: 'Independensi Tim', rel: 'Sudut per-perikatan (bukan duplikat): penerapan SA 220 di tingkat anggota tim' }],
 };
 LINEAGE.teamindep = {
@@ -373,7 +373,7 @@ LINEAGE.travel = {
     { id: 'firmfinance', ic: 'coins', lbl: 'Firm Finance', rel: 'Beban langsung perikatan → terserap di P&L firma' },
     { id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Alokasi biaya per perikatan → beban vs anggaran' },
     { id: 'payroll', ic: 'coins', lbl: 'Payroll & PPh 21', rel: 'Kelebihan per diem di atas plafon → objek PPh 21' },
-    { id: 'approvals', ic: 'checkCircle', lbl: 'Approvals', rel: 'Approval perjalanan & klaim lewat plafon → otorisasi (ISQM)' },
+    { id: 'approvals', ic: 'checkCircle', lbl: 'Approvals', rel: 'Approval perjalanan & klaim lewat plafon → otorisasi (SMM)' },
     { id: 'firmops', ic: 'layers', lbl: 'Cockpit Operasi Firma', rel: 'Tren biaya → komposisi biaya operasi firma' },
   ],
 };
@@ -384,7 +384,7 @@ Object.assign(window, { LINEAGE });
    Hulu: HCM (AP holder), CPE/PPL (SKP), Independence (rotasi),
    Engagement/CRM (cakupan emiten), Governance (kebijakan mutu).
    Hilir: PPPK (pelaporan), Firm Finance (iuran→biaya), Cockpit
-   Operasi (kalender kewajiban), Governance (pemantauan ISQM).
+   Operasi (kalender kewajiban), Governance (pemantauan SMM).
    ============================================================ */
 LINEAGE.licensing = {
   std: 'Operasi Firma · Lisensi & Perizinan (PPPK · IAPI · OJK)',
@@ -393,7 +393,7 @@ LINEAGE.licensing = {
     { id: 'cpe', ic: 'book', lbl: 'CPE / PPL Tracker', rel: 'SKP terstruktur & total (CPE_LOG) → kecukupan PPL izin AP' },
     { id: 'independence', ic: 'shield', lbl: 'Independence & Rotasi', rel: 'Masa penugasan & batas rotasi AP → status kepatuhan' },
     { id: 'cockpit', ic: 'briefcase', lbl: 'Engagement Mgmt', rel: 'Perikatan klien emiten (listed) → dasar registrasi OJK' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan mutu & kompetensi (ISQM 1) → prasyarat izin' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan mutu & kompetensi (SMM 1) → prasyarat izin' },
   ],
   down: [
     { id: 'pppk', ic: 'report', lbl: 'Pelaporan PPPK', rel: 'Izin KAP & AP, PPL & rotasi → laporan tahunan regulator' },
@@ -411,7 +411,7 @@ Object.assign(window, { LINEAGE });
    Diberi dock "Keterkaitan Modul" dua-arah agar masuk ke graf lineage.
    ============================================================ */
 LINEAGE.hrcase = {
-  std: 'SDM & Kepatuhan · Sanksi & Disiplin (Kode Etik · ISQM 1)',
+  std: 'SDM & Kepatuhan · Sanksi & Disiplin (Kode Etik · SMM 1)',
   up: [
     { id: 'hcm', ic: 'users', lbl: 'Human Capital', rel: 'Master pegawai & jenjang → subjek perkara disiplin' },
     { id: 'ethics', ic: 'scale', lbl: 'Kode Etik & AML/PMPJ', rel: 'Temuan pelanggaran kode etik / PMPJ → pembukaan kasus' },
@@ -421,13 +421,13 @@ LINEAGE.hrcase = {
   ],
   down: [
     { id: 'hcm', ic: 'users', lbl: 'Human Capital', rel: 'Catatan disiplin & status → berkas kepegawaian' },
-    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Rekap pelanggaran & sanksi → pemantauan budaya mutu (ISQM 1)' },
+    { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Rekap pelanggaran & sanksi → pemantauan budaya mutu (SMM 1)' },
     { id: 'learning', ic: 'flask', lbl: 'Pelatihan & Kompetensi', rel: 'Sanksi → pelatihan remedial / etika wajib' },
     { id: 'cpe', ic: 'book', lbl: 'CPE / PPL Tracker', rel: 'Sanksi kompetensi → target PPL remedial & pemantauan pemenuhan SKP' },
   ],
 };
 LINEAGE.soqm = {
-  std: 'Mutu, Risiko & Regulasi · SOQM Operasional (ISQM 1)',
+  std: 'Mutu, Risiko & Regulasi · SOQM Operasional (SMM 1)',
   up: [
     { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan, tujuan & risiko mutu firma → dasar respons operasional' },
     { id: 'independence', ic: 'shield', lbl: 'Independence & Rotasi', rel: 'Status independensi & rotasi → input pemantauan mutu' },
@@ -437,7 +437,7 @@ LINEAGE.soqm = {
     { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', rel: 'Pemicu reviu mutu perikatan untuk perikatan berisiko tinggi' },
     { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Defisiensi & remediasi → evaluasi tata kelola mutu' },
     { id: 'pppk', ic: 'report', lbl: 'Pelaporan PPPK', rel: 'Hasil pemantauan sistem mutu → laporan regulator' },
-    { id: 'compmatrix', ic: 'table', lbl: 'Matriks Kepatuhan', rel: 'Status pemenuhan SPM 1 / ISQM 1 → ketertelusuran' },
+    { id: 'compmatrix', ic: 'table', lbl: 'Matriks Kepatuhan', rel: 'Status pemenuhan SMM 1 / SMM 1 → ketertelusuran' },
   ],
 };
 LINEAGE.sakep = {

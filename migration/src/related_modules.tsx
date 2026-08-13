@@ -70,7 +70,7 @@ function StandardLinkback({ moduleId }: any) {
      (mis. risk → SA 315). Hanya dipakai bila std diawali kode standar resmi
      agar entri sisi-firma (mis. "ERP Firma · General Ledger") tidak ikut. */
   const linStd = (window.LINEAGE && window.LINEAGE[moduleId] && window.LINEAGE[moduleId].std) || '';
-  const linIsStd = /^(SA|PSAK|ISA|ISAE|ISQM|SPR|SPM|SPAP|SJAH|SAK)\b/.test(linStd);
+  const linIsStd = /^(SA|PSAK|ISA|ISAE|SMM|SPR|SMM|SPAP|SJAH|SAK)\b/.test(linStd);
 
   /* Tampil untuk: (a) halaman SA — telusur balik prosedur; atau
      (b) modul fungsional yang menerapkan/merujuk standar audit. */

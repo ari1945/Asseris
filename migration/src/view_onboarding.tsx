@@ -129,7 +129,7 @@ function ClientOnboarding() {
     <>
       <SubBar moduleId="onboarding" right={
         <div className="row gap8 ac">
-          <span className="tiny muted">Penerimaan klien & perikatan — SA 220 · ISQM 1 · APU-PPT</span>
+          <span className="tiny muted">Penerimaan klien & perikatan — SA 220 · SMM 1 · APU-PPT</span>
           <Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Prospek Baru</Btn>
         </div>
       } />
@@ -267,7 +267,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
 }
 
 /* ============================================================
-   STEP 1 — Akseptasi & Keberlanjutan (SA 220 / ISQM 1)
+   STEP 1 — Akseptasi & Keberlanjutan (SA 220 / SMM 1)
    ============================================================ */
 type AccTrail = { action: string; by: string; at: string };
 function StepAcceptance({ p, onPatch }: any) {
@@ -314,7 +314,7 @@ function StepAcceptance({ p, onPatch }: any) {
     <div>
       <div className="row jb ac" style={{ marginBottom: 4 }}>
         <div><div style={{ fontSize: 15, fontWeight: 700 }}>Penilaian {p.kind === 'Keberlanjutan' ? 'Keberlanjutan' : 'Penerimaan'} Klien</div>
-          <div className="tiny muted">Matriks faktor berbobot — SA 220 ¶12–13 · ISQM 1 ¶30. Skala 1 (buruk) – 5 (sangat baik).</div></div>
+          <div className="tiny muted">Matriks faktor berbobot — SA 220 ¶12–13 · SMM 1 ¶30. Skala 1 (buruk) – 5 (sangat baik).</div></div>
         <Badge kind="purple">{p.kind === 'Keberlanjutan' ? 'Continuance' : 'Acceptance'}</Badge>
       </div>
 

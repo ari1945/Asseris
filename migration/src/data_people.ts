@@ -32,7 +32,7 @@ import { AMS } from './data';
   const STAFF_PROFILE = {
     'EMP-001': { phone: '0811-1900-001', location: 'Jakarta (HQ)', birth: '1981-04-12', gender: 'L', empType: 'Tetap', band: 'P4', salaryBand: 'Rp 90–105 jt', nik: '3174••••0012', npwp: '08.221.••.•-091', bpjsKes: 'Aktif', bpjsTk: 'Aktif',
       emergency: { name: 'Lestari Wijaya', rel: 'Pasangan', phone: '0812-•••-4410' },
-      skills: [['Audit Emiten/PIE', 5], ['ISQM & Mutu', 5], ['PSAK 71/72', 4], ['Kepemimpinan', 5], ['Pajak Korporasi', 3]],
+      skills: [['Audit Emiten/PIE', 5], ['SMM & Mutu', 5], ['PSAK 71/72', 4], ['Kepemimpinan', 5], ['Pajak Korporasi', 3]],
       docs: [['Sertifikat CPA (IAPI)', 'Valid s.d. 2027'], ['Izin Akuntan Publik', 'Valid'], ['KTP & NPWP', 'Lengkap'], ['Kontrak Kerja', 'PKWTT 2009']],
       timeline: [['2009', 'Bergabung sebagai Manager'], ['2014', 'Promosi Partner'], ['2019', 'Managing Partner'], ['2019', 'Pemegang izin AP'] ] },
     'EMP-021': { phone: '0813-2100-021', location: 'Jakarta (HQ)', birth: '1995-09-03', gender: 'L', empType: 'Tetap', band: 'S2', salaryBand: 'Rp 22–28 jt', nik: '3174••••0024', npwp: '09.551.••.•-091', bpjsKes: 'Aktif', bpjsTk: 'Aktif',
@@ -80,7 +80,7 @@ import { AMS } from './data';
         { id: 'EMP-002', readiness: 'Siap sekarang', gaps: 'Eksposur regulator PPPK' },
         { id: 'EMP-003', readiness: 'Siap 1–2 th', gaps: 'Skala portofolio PIE' },
       ] },
-    { id: 'SR-02', role: 'Quality Management Leader (ISQM)', incumbent: 'EMP-007', critical: 'Kritikal', riskOfLoss: 'Sedang', vacancyImpact: 'Tinggi',
+    { id: 'SR-02', role: 'Quality Management Leader (SMM)', incumbent: 'EMP-007', critical: 'Kritikal', riskOfLoss: 'Sedang', vacancyImpact: 'Tinggi',
       successors: [
         { id: 'EMP-012', readiness: 'Siap 1–2 th', gaps: 'Sertifikasi spesialis mutu' },
         { id: 'EMP-008', readiness: 'Siap 2–3 th', gaps: 'Pengalaman remediasi SOQM' },
@@ -105,7 +105,7 @@ import { AMS } from './data';
     { grade: 'Junior', years: '0–2 th', next: 'Senior', criteria: ['CA / lulus 2 mata ujian CPA', 'Skor kinerja ≥ 3,8', '≥ 1.500 jam audit', 'Kuasai kertas kerja inti'] },
     { grade: 'Senior', years: '2–5 th', next: 'Manager', criteria: ['CPA penuh', 'Skor kinerja ≥ 4,2', 'Memimpin ≥ 2 perikatan', 'Supervisi tim & reviu'] },
     { grade: 'Manager', years: '5–9 th', next: 'Partner', criteria: ['Izin AP (untuk tanda tangan)', 'Skor kinerja ≥ 4,4', 'Pengembangan bisnis / portofolio', 'Kepemimpinan mutu'] },
-    { grade: 'Partner', years: '9+ th', next: 'Managing Partner', criteria: ['Track record PIE', 'Tanggung jawab SPM', 'Kepemimpinan firma'] },
+    { grade: 'Partner', years: '9+ th', next: 'Managing Partner', criteria: ['Track record PIE', 'Tanggung jawab SMM', 'Kepemimpinan firma'] },
   ];
   /* individual development plans for high-potentials */
   const IDP = {
@@ -154,7 +154,7 @@ import { AMS } from './data';
     { id: 'CO-02', name: 'PSAK / Pelaporan Keuangan', cat: 'Teknis' },
     { id: 'CO-03', name: 'Audit Data Analytics', cat: 'Teknis' },
     { id: 'CO-04', name: 'Perpajakan', cat: 'Teknis' },
-    { id: 'CO-05', name: 'Mutu & ISQM', cat: 'Teknis' },
+    { id: 'CO-05', name: 'Mutu & SMM', cat: 'Teknis' },
     { id: 'CO-06', name: 'Supervisi & Kepemimpinan', cat: 'Perilaku' },
     { id: 'CO-07', name: 'Komunikasi Klien', cat: 'Perilaku' },
   ];
@@ -179,7 +179,7 @@ import { AMS } from './data';
     { id: 'TR-02', title: 'PSAK 71/72/73 Deep Dive', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Daring', skp: 8, hours: 16, date: '2026-04-24', seats: 40, enrolled: 18, comp: 'CO-02' },
     { id: 'TR-03', title: 'Audit Data Analytics (Caseware IDEA)', provider: 'Internal', mode: 'Terstruktur', fmt: 'Daring', skp: 6, hours: 12, date: '2026-05-08', seats: 25, enrolled: 25, comp: 'CO-03' },
     { id: 'TR-04', title: 'Pajak Coretax & PPh Badan 2026', provider: 'DJP / IKPI', mode: 'Terstruktur', fmt: 'Daring', skp: 4, hours: 8, date: '2026-03-28', seats: 50, enrolled: 31, comp: 'CO-04' },
-    { id: 'TR-05', title: 'ISQM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, enrolled: 9, comp: 'CO-05' },
+    { id: 'TR-05', title: 'SMM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, enrolled: 9, comp: 'CO-05' },
     { id: 'TR-06', title: 'Coaching & Review Skills untuk Senior', provider: 'Internal', mode: 'Tidak Terstruktur', fmt: 'Luring', skp: 4, hours: 8, date: '2026-06-05', seats: 15, enrolled: 7, comp: 'CO-06' },
   ];
 
