@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Stat } from './ui';
+import { Badge, Btn, Check, Panel, Stat } from './ui';
 import { assessReviewerEligibility, eqrClearGate, impairmentAction,
   ELIGIBILITY_DEFECT_LABEL, CLEAR_BLOCKER_LABEL, IMPAIRMENT_ACTION_LABEL,
   type EligibilityDefect, type ClearBlocker, type PartnerTenureRow } from './canon_eqr_eligibility';
@@ -82,11 +82,13 @@ function EQRWorkflow() {
             <div className="panel-h"><h3>Daftar EQR</h3></div>
             <div style={{ display: 'grid' }}>
               {reviews.map((x: any) => (
-                <div key={x.id} onClick={() => setSel(x.id)} style={{ padding: '11px 13px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (x.id === sel ? 'var(--blue)' : 'transparent'), background: x.id === sel ? 'var(--blue-050)' : 'transparent' }}>
+                /* Tombol native: daftar EQR sebelumnya `<div onClick>`, sehingga
+                   berpindah antar penelaahan mustahil lewat keyboard. */
+                <button key={x.id} type="button" onClick={() => setSel(x.id)} aria-current={x.id === sel ? 'true' : undefined} title={'Buka ' + x.id + ' — ' + x.client} style={{ textAlign: 'left', font: 'inherit', color: 'inherit', width: '100%', padding: '11px 13px', cursor: 'pointer', border: 0, borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (x.id === sel ? 'var(--blue)' : 'transparent'), background: x.id === sel ? 'var(--blue-050)' : 'transparent' }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</span><Badge kind={(EQR_STAT as any)[x.status]}>{x.status}</Badge></div>
                   <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{x.client.replace('PT ', '')}</div>
                   <div className="row jb ac" style={{ marginTop: 3 }}><span className="tiny muted">{x.reviewer.split(',')[0]}</span><span className="badge tiny" style={{ background: x.type.includes('PIE') ? 'var(--red-bg)' : 'var(--surface-3)', color: x.type.includes('PIE') ? 'var(--red)' : 'var(--ink-3)' }}>{x.type}</span></div>
-                </div>
+                </button>
               ))}
             </div>
           </Panel>
@@ -161,9 +163,20 @@ function EQRWorkflow() {
               <div className="row jb ac" style={{ marginBottom: 10 }}><div className="tiny muted upper">Checklist Telaah Mutu Perikatan</div><span className="mono tiny" style={{ fontWeight: 700 }}>{doneN}/{r.checklist.length}</span></div>
               <div style={{ display: 'grid', gap: 6, marginBottom: 16 }}>
                 {r.checklist.map((c: any, i: any) => (
-                  <div key={i} onClick={r.cleared ? undefined : () => toggleCheck(i)} className="panel" style={{ padding: '9px 12px', cursor: r.cleared ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: 'none' }}>
-                    <span style={{ width: 20, height: 20, borderRadius: 5, display: 'grid', placeItems: 'center', background: c.ok ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 20px' }}>{c.ok && <I.check size={13} />}</span>
-                    <span style={{ fontSize: 12, fontWeight: 500 }}>{c.k}</span>
+                  /* Kontrol NATIVE (CLAUDE.md §3 no. 7). Bentuk lama adalah
+                     `<div onClick>` — tak terjangkau keyboard dan tanpa peran
+                     apa pun, padahal justru kontrol inilah yang menggerakkan
+                     `allChecked` → `canClear` → gerbang penerbitan opini.
+                     Gerbang axe melewatkannya karena elemen itu tidak mengaku
+                     sebagai kontrol sama sekali. */
+                  <div key={i} className="panel" style={{ padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: 'none' }}>
+                    <Check
+                      on={!!c.ok}
+                      disabled={!!r.cleared}
+                      onChange={() => toggleCheck(i)}
+                      label={c.k}
+                      title={r.cleared ? 'Penelaahan sudah ditutup — checklist terkunci' : 'Tandai butir telaah mutu perikatan'}
+                    />
                   </div>
                 ))}
               </div>

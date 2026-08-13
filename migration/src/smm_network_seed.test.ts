@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { AMS } from './data';
 import { assessNetwork, type NetworkItem, type NetworkMonitoringResult, type NetworkDeficiency } from './canon_smm_network';
+import { collectSmmDeficiencies, originOf, type RiskRowLike } from './canon_smm_deficiencies';
+import { evaluateSmm } from './canon_smm_evaluation';
 
 /* ============================================================
    ¶48–52 DI ATAS DATA NYATA.
@@ -82,5 +84,45 @@ describe('¶48 — ketentuan jaringan yang lebih ketat tidak boleh diturunkan', 
     const nr02 = NET.items.find((i) => i.id === 'NR-02');
     expect(nr02?.adaptation).toBe('supplemented');
     expect(nr02?.adaptationBasis).toMatch('POJK 13/2017');
+  });
+});
+
+/* ============================================================
+   V-6 (tinjauan visual 2026-08-13) — defisiensi jaringan HARUS
+   sampai ke kesimpulan ¶54.
+
+   Cacat yang dipaku: panel "Faktor Keputusan ¶54" menyatakan
+   "Tidak ada defisiensi lain yang terbuka — Nihil (0)" sementara
+   layar Governance untuk firma & periode yang sama menampilkan
+   ND-01 TERBUKA tanpa tindakan remedial. Aplikasi menegaskan hal
+   yang tidak benar, lalu menyimpulkan ¶54 di atasnya.
+   ============================================================ */
+describe('¶52 → ¶54 di atas seed nyata', () => {
+  const RISKS = (AMS as unknown as { SOQM_RISKS: RiskRowLike[] }).SOQM_RISKS;
+  const all = collectSmmDeficiencies({ risks: RISKS, network: NET });
+  const ev = evaluateSmm(all);
+
+  it('ND-01 seed ikut terkumpul sebagai defisiensi SMM', () => {
+    expect(all.map((d) => d.id)).toContain('ND-01');
+    expect(originOf(all, 'ND-01')).toBe('network');
+  });
+
+  it('ND-01 TERBUKA — ¶52(b) tanpa tindakan remedial tidak bisa disebut diremediasi', () => {
+    expect(ev.carveOut).not.toContain('ND-01');
+    expect([...ev.openPervasive, ...ev.openSignificant, ...ev.openMinor]).toContain('ND-01');
+  });
+
+  it('TRIPWIRE — ND-01 signifikan (rancangan tanpa kompensasi, A163) & mengikat ¶54(b)', () => {
+    /* NR-01 diadaptasi, BUKAN ditambah kontrol KAP ⇒ tak ada respons
+       kompensasi ⇒ lantai signifikansi A163 tertembus. Bila suatu saat
+       NR-01 menjadi 'supplemented' atau ND-01 memperoleh remedialAction,
+       uji ini harus diperbarui SECARA SADAR — bukan dilonggarkan. */
+    expect(ev.openSignificant).toContain('ND-01');
+    expect(ev.conclusion).toBe('reasonable-except-for');
+  });
+
+  it('mencabut jaringan MENURUNKAN jumlah defisiensi terbuka — bukti ia benar-benar mengikat', () => {
+    const tanpa = evaluateSmm(collectSmmDeficiencies({ risks: RISKS, network: null }));
+    expect(ev.openSignificant.length).toBeGreaterThan(tanpa.openSignificant.length);
   });
 });
