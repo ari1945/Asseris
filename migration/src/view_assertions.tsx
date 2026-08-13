@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { wtbOn } from './canon_base';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useMateriality, useNav } from './contexts';
 import {
   assertionCoverage, assertionsByGroup, groupForAccountCode, ASSERTION_STATUS_META,
 } from './canon_selectors';
@@ -35,11 +35,18 @@ function AssertionMatrix() {
   const { fmt, rp } = AMS;
   const audit = useAudit();
   const { wtb, risks, aje } = audit;
-  const { activeEngagement, activeClient } = useFirm();
+  const { activeEngagement } = useFirm();
   const nav = useNav();
   const [sel, setSel] = useStateAX(null as { lead: string; id: AssertionId } | null);
 
-  const om = activeEngagement.materiality, pm = Math.round(om * 0.75);
+  /* P0-fix (SSOT): PM dari satu pintu useMateriality() (contexts.tsx) — canon
+     materiality() dengan konfigurasi ter-hidrasi server, BUKAN Math.round(om * 0.75)
+     yang membekukan asumsi 75% di view dan tak mengikuti pmPct konfigurasi.
+     Fallback (pola view_materiality.tsx:103-104): canon belum resolve (WTB belum
+     ter-hidrasi / tanpa override) → nilai admin baris perikatan × pmPct canon. */
+  const mat = useMateriality();
+  const omFull = mat.omFull != null ? mat.omFull : (activeEngagement?.materiality ?? 0);
+  const pm: number | null = mat.pmFull != null ? mat.pmFull : Math.round(omFull * mat.pmPct / 100);
 
   /* lead schedule terkumpul dari WTB + flag risiko asersi-level */
   const leads: LeadInfo[] = useMemoAX(() => {
@@ -64,8 +71,9 @@ function AssertionMatrix() {
     return [...map.values()];
   }, [wtb, risks]);
 
-  /* signifikan: pos > PM ∪ akun ber-risiko asersi-level (Q-a default) */
-  const significant = leads.filter(l => l.maxAbs >= pm || l.hasAsrRisk);
+  /* signifikan: pos > PM ∪ akun ber-risiko asersi-level (Q-a default).
+     Saat PM belum ditetapkan (null) kriteria ambang dinonaktifkan — hanya risiko. */
+  const significant = leads.filter(l => (pm != null && l.maxAbs >= pm) || l.hasAsrRisk);
 
   /* cakupan per lead (SSOT) */
   const covByLead = useMemoAX(() => {
@@ -101,7 +109,7 @@ function AssertionMatrix() {
       <SubBar moduleId="asersi" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 315 · 330</Badge>
-          <span className="tiny muted mono">PM Rp {fmt(pm / 1e6, 0)} jt</span>
+          <span className="tiny muted mono">PM {pm != null ? `Rp ${fmt(pm / 1e6, 0)} jt` : '—'}</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -134,7 +142,7 @@ function AssertionMatrix() {
 /* ---- satu matriks (saldo / transaksi) ---- */
 function MatrixTable({ title, group, leads, covByLead, sel, onPick, fmt, pm }: {
   title: string; group: AssertionGroup; leads: LeadInfo[]; covByLead: Map<string, LeadAssertionCoverage>;
-  sel: { lead: string; id: AssertionId } | null; onPick: (s: { lead: string; id: AssertionId }) => void; fmt: any; pm: number;
+  sel: { lead: string; id: AssertionId } | null; onPick: (s: { lead: string; id: AssertionId }) => void; fmt: any; pm: number | null;
 }) {
   const cols = assertionsByGroup(group);
   if (!leads.length) return null;
