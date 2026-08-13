@@ -199,6 +199,14 @@ export interface ObjectiveWaiver {
 
 export type WaiverDefect = 'no-justification' | 'not-proposed' | 'not-approved' | 'unknown-objective';
 
+/** Kalimat siap-tampil per cacat waiver (UI Bahasa Indonesia). */
+export const WAIVER_DEFECT_LABEL: Record<WaiverDefect, string> = {
+  'no-justification': 'tanpa justifikasi tertulis',
+  'not-proposed': 'belum diusulkan pemegang tanggung jawab operasional (¶20(b))',
+  'not-approved': 'belum disetujui pemegang tanggung jawab tertinggi (¶20(a))',
+  'unknown-objective': 'menunjuk tujuan mutu yang tidak dikenal',
+};
+
 export interface WaiverAudit {
   readonly objectiveId: string;
   readonly valid: boolean;
