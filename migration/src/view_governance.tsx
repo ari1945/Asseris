@@ -16,9 +16,20 @@ const { useState: useGov } = React;
 const GOV_STAT = { 'Efektif': 'green', 'Perlu Perhatian': 'amber', 'Defisiensi': 'red' };
 const PRV_STAT = { 'Memadai': 'green', 'Pemantauan': 'amber', 'Tidak Memadai': 'red' };
 
+import { assessNetwork, networkDefectLabel, ADAPTATION_LABEL,
+  type NetworkItem, type NetworkMonitoringResult, type NetworkDeficiency } from './canon_smm_network';
+
+/** Wadah jaringan ¶48–52 sebagaimana tersimpan di AMS.QM_NETWORK. */
+interface GovNetwork {
+  inNetwork: boolean; name: string; year: number;
+  items: NetworkItem[]; monitoring: NetworkMonitoringResult[]; deficiencies: NetworkDeficiency[];
+}
+
 function Governance() {
   const A: any = AMS;
   const comps = A.QM_COMPONENTS, roles = A.QM_ROLES, providers = A.QM_PROVIDERS, culture = A.QM_CULTURE, ev = A.QM_EVAL;
+  const net: GovNetwork = A.QM_NETWORK || { inNetwork: false, name: '', year: 0, items: [], monitoring: [], deficiencies: [] };
+  const netA = assessNetwork(net.inNetwork, net.items, net.monitoring, net.deficiencies, net.year);
   const [tab, setTab] = useGov('spm');
   const [sel, setSel] = useGov(null);
 
@@ -31,6 +42,7 @@ function Governance() {
     { id: 'spm', label: 'Komponen SMM', count: comps.length },
     { id: 'roles', label: 'Akuntabilitas & Peran', count: roles.length },
     { id: 'resources', label: 'Sumber Daya & Penyedia', count: providers.length },
+    { id: 'network', label: 'Ketentuan Jaringan', count: net.items.length },
     { id: 'culture', label: 'Budaya Mutu & Evaluasi' },
   ];
   const scoreColor = (s: any) => s >= 85 ? 'var(--green)' : s >= 75 ? 'var(--amber)' : 'var(--red)';
@@ -43,7 +55,7 @@ function Governance() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={avg + '%'} label="Skor Efektivitas SMM" accent={scoreColor(avg)} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value="Memadai" label="Simpulan Evaluasi 2025" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={ev && ev.conclusion === 'reasonable' ? 'Memadai' : ev && ev.conclusion === 'reasonable-with-exceptions' ? 'Dgn Pengecualian' : 'Belum Memadai'} label={'Simpulan Evaluasi ' + String((ev && ev.period ? ev.period : '').slice(-4) || '')} accent={ev && ev.conclusion === 'reasonable' ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
         </div>
 
         {/* Annual evaluation conclusion — centerpiece of SMM 1 */}
@@ -122,6 +134,77 @@ function Governance() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {tab === 'network' && (
+            <div style={{ padding: 14, display: 'grid', gap: 12 }}>
+              <div className="panel" style={{ padding: '12px 14px', background: netA.compliant ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+                <div className="row jb ac" style={{ marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>{net.name}</span>
+                  <Badge kind={netA.compliant ? 'green' : 'amber'}>{netA.compliant ? 'Lengkap' : netA.allDefects.length + ' jenis cacat'}</Badge>
+                </div>
+                <div className="tiny" style={{ lineHeight: 1.5 }}>
+                  SMM 1 ¶48–52 — KAP <b>tetap bertanggung jawab</b> atas sistem manajemen mutunya dan tidak boleh
+                  membiarkan kepatuhan pada ketentuan jaringan melanggar ketentuan SMM. Toolkit &amp; Matriks IAPI
+                  ditulis untuk KAP non-jaringan, jadi wadah ini bersandar langsung pada teks standar.
+                </div>
+              </div>
+
+              {/* ¶51(b) hasil pemantauan jaringan tahunan */}
+              <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none', borderLeft: '3px solid var(--' + (netA.monitoringDefects.length ? 'red' : 'green') + ')' }}>
+                <div className="row jb ac">
+                  <span className="tiny" style={{ fontWeight: 700 }}>Hasil Pemantauan Jaringan {net.year} (¶51(b))</span>
+                  <Badge kind={netA.monitoringDefects.length ? 'red' : 'green'}>{netA.monitoringDefects.length ? 'Belum lengkap' : 'Diperoleh & ditindaklanjuti'}</Badge>
+                </div>
+                {netA.monitoringDefects.map((d) => (
+                  <div key={d} className="tiny" style={{ color: 'var(--red)', marginTop: 4, lineHeight: 1.45 }}>{networkDefectLabel(d)}</div>
+                ))}
+              </div>
+
+              {/* ¶48(a)(b)(c) + ¶49(b) */}
+              <table className="dtbl">
+                <thead><tr><th>Ketentuan / Jasa Jaringan</th><th>Jenis</th><th>Penanggung Jawab KAP (¶48(c))</th><th>Evaluasi Adaptasi (¶49(b))</th><th>Status</th></tr></thead>
+                <tbody>
+                  {net.items.map((it) => {
+                    const au = netA.items.find((x) => x.itemId === it.id);
+                    return (
+                      <tr key={it.id}>
+                        <td style={{ fontSize: 12, fontWeight: 600 }}>{it.title}
+                          <div className="tiny muted" style={{ fontWeight: 400 }}>{it.id}{it.component ? ' · ' + it.component : ''}</div></td>
+                        <td className="tiny">{it.kind === 'requirement' ? 'Ketentuan' : 'Jasa'}</td>
+                        <td className="tiny">{it.firmResponsibility || <span style={{ color: 'var(--red)' }}>belum ditetapkan</span>}</td>
+                        <td className="tiny muted" style={{ maxWidth: 320 }}>
+                          {it.adaptation
+                            ? <><b style={{ color: 'var(--ink-2)' }}>{ADAPTATION_LABEL[it.adaptation]}</b><div style={{ lineHeight: 1.4 }}>{it.adaptationBasis}</div></>
+                            : <span style={{ color: 'var(--red)' }}>belum dievaluasi</span>}
+                        </td>
+                        <td><Badge kind={au && au.compliant ? 'green' : 'red'}>{au && au.compliant ? 'Lengkap' : 'Cacat'}</Badge></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* ¶52 defisiensi DALAM ketentuan/jasa jaringan */}
+              <div>
+                <div className="tiny muted upper" style={{ marginBottom: 6 }}>Defisiensi dalam Ketentuan/Jasa Jaringan (¶52)</div>
+                {net.deficiencies.length ? net.deficiencies.map((d) => {
+                  const au = netA.deficiencies.find((x) => x.deficiencyId === d.id);
+                  return (
+                    <div key={d.id} className="panel" style={{ padding: '10px 12px', boxShadow: 'none', marginBottom: 6, borderLeft: '3px solid var(--' + (au && au.compliant ? 'green' : 'red') + ')' }}>
+                      <div className="row jb ac" style={{ marginBottom: 3 }}>
+                        <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id} · {d.itemId}</span>
+                        <Badge kind={au && au.compliant ? 'green' : 'red'}>{au && au.compliant ? 'Ditangani' : 'Belum tuntas'}</Badge>
+                      </div>
+                      <div className="tiny" style={{ lineHeight: 1.45 }}>{d.description}</div>
+                      {au && au.defects.map((c) => (
+                        <div key={c} className="tiny" style={{ color: 'var(--red)', marginTop: 3 }}>{networkDefectLabel(c)}</div>
+                      ))}
+                    </div>
+                  );
+                }) : <div className="tiny muted">Tidak ada defisiensi jaringan teridentifikasi.</div>}
               </div>
             </div>
           )}
