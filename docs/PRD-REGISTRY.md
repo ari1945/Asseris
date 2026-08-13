@@ -82,6 +82,7 @@
 | docs/PRD-excel-engagement-pack.md | Implemented — SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh) 2026-07-09 |
 | docs/prd-acceptance-to-engagement-flow-sa210.md | Draft — menunggu sign-off |
 | docs/prd-add-staff-user-cli.md | Implemented — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
+| docs/prd-addressable-tabs.md | Draft — V-9 (tinjauan visual 2026-08-14): ganti tab tidak menulis hash & `hashchange` abaikan `loc.tab`; Q-1..Q-3 terbuka, menunggu sign-off ("Proceed.") |
 | docs/prd-aje-immutability-live-approvals.md | Implemented — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
 | docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |
 | docs/prd-backup-restore-dr-hardening.md | Draft |
