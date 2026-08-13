@@ -147,7 +147,7 @@ function AuditTrail() {
             </tbody>
           </table>
         </Panel>
-        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Arus ini menyatukan tiga sumber kanonik: <b>log aktivitas live</b> (mis. persetujuan di modul Approvals), <b>jejak firma</b>, dan <b>peristiwa sistem</b> — satu sumber kebenaran, tanpa duplikasi. Setiap entri di-hash dan ditautkan ke entri sebelumnya (hash-chain) sehingga perubahan retroaktif terdeteksi. Klik entri untuk detail & navigasi ke modul sumber. Retensi 10 tahun sesuai SMM.</div>
+        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Arus ini menyatukan tiga sumber kanonik: <b>log aktivitas live</b> (mis. persetujuan di modul Approvals), <b>jejak firma</b>, dan <b>peristiwa sistem</b> — satu sumber kebenaran, tanpa duplikasi. Setiap entri di-hash dan ditautkan ke entri sebelumnya (hash-chain) sehingga perubahan retroaktif terdeteksi. Klik entri untuk detail & navigasi ke modul sumber. Retensi 10 tahun (kebijakan KAP atas dokumentasi perikatan, SA 230 — bukan angka yang ditetapkan SMM 1 ¶60).</div>
       </div></div>
       {sel && <AuditEntryDrawer e={sel} onClose={() => setSelIdx(null)} nav={nav} />}
     </>
