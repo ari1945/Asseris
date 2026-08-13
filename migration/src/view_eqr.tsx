@@ -5,6 +5,9 @@ import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
+import { assessReviewerEligibility, eqrClearGate, impairmentAction,
+  ELIGIBILITY_DEFECT_LABEL, CLEAR_BLOCKER_LABEL, IMPAIRMENT_ACTION_LABEL,
+  type EligibilityDefect, type ClearBlocker, type PartnerTenureRow } from './canon_eqr_eligibility';
 
 /* ============================================================
    Asseris — EQR Workflow (SMM 2)  ·  Pelaporan PPPK
@@ -29,7 +32,31 @@ function EQRWorkflow() {
   const doneN = r.checklist.filter((c: any) => c.ok).length;
   const allChecked = doneN === r.checklist.length;
   const openFindings = r.findings.filter((f: any) => f.status === 'Terbuka').length;
-  const canClear = allChecked && openFindings === 0 && !r.cleared;
+
+  /* SMM 2 ¶17–23 — eligibilitas kini BAGIAN DARI SYARAT penutupan.
+     Bentuk lama: `canClear = allChecked && openFindings === 0 && !r.cleared`
+     — eligibilitas tidak ikut sama sekali, sehingga penelaah yang tak memenuhi
+     syarat dapat membuka gerbang penerbitan opini. Jeda ¶19 kini DITURUNKAN
+     dari EQR_PARTNER_HISTORY, bukan boolean seed. */
+  /* Dibaca BERTIPE — `const A: any = AMS` akan meng-un-suppress seluruh berkas
+     terhadap ratchet no-explicit-any. */
+  const A = AMS as unknown as {
+    ENGAGEMENTS?: Array<{ id?: string; clientId?: string; partner?: string; manager?: string }>;
+    EQR_PARTNER_HISTORY?: PartnerTenureRow[];
+  };
+  const eng = (A.ENGAGEMENTS || []).find((e) => e.id === r.eng);
+  const elig = assessReviewerEligibility(
+    { reviewer: r.reviewer, appointedBy: meta.appointedBy, ...(meta.eligibility || {}) },
+    eng ? { partner: eng.partner || null, manager: eng.manager || null } : null,
+    r.eng, eng ? (eng.clientId || null) : null,
+    A.EQR_PARTNER_HISTORY || [], new Date().getFullYear(),
+  );
+  const reviewStarted = r.status !== 'Belum Mulai';
+  const impaired = impairmentAction(!!(meta.eligibility || {}).impaired, reviewStarted);
+  const gate = eqrClearGate({
+    checklistComplete: allChecked, openFindings, alreadyCleared: !!r.cleared, eligibility: elig,
+  });
+  const canClear = gate.canClear;
 
   const toggleCheck = (i: any) => setReview(r.id, (pr: any) => ({ ...pr, checklist: pr.checklist.map((c: any, j: any) => j === i ? { ...c, ok: !c.ok } : c), status: 'Berjalan' }));
   const clearGate = () => setReview(r.id, (pr: any) => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: pr.reviewer, clearedDate: new Date().toISOString().slice(0, 10) }));
@@ -67,20 +94,44 @@ function EQRWorkflow() {
             </div>
             <div style={{ padding: 16 }}>
               {/* Kelayakan & penunjukan reviewer (SMM 2 ¶18–20) */}
-              {(meta.coolingOff || meta.competence) && (
-                <div style={{ marginBottom: 16 }}>
-                  <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kelayakan & Penunjukan Reviewer (SMM 2 ¶18–20)</div>
-                  <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-                    {[{ ok: meta.coolingOk, label: 'Cooling-off / Independensi', v: meta.coolingOff }, { ok: meta.compOk, label: 'Kompetensi & Otoritas', v: meta.competence }, { ok: meta.objOk, label: 'Objektivitas', v: meta.objectivity }].map((e, i) => (
-                      <div key={i} className="panel" style={{ padding: '10px 11px', boxShadow: 'none' }}>
-                        <div className="row ac gap6" style={{ marginBottom: 4 }}><span style={{ color: e.ok ? 'var(--green)' : 'var(--amber)' }}>{e.ok ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span><span className="tiny" style={{ fontWeight: 700 }}>{e.label}</span></div>
-                        <div className="tiny muted" style={{ lineHeight: 1.4 }}>{e.v}</div>
-                      </div>
+              {/* Eligibilitas penelaah (SMM 2 ¶17–23) — DITURUNKAN, selalu tampil.
+                  Bentuk lama hanya dirender bila `meta.coolingOff || meta.competence`,
+                  sehingga EQR tanpa meta tak menampilkan apa pun dan tetap bisa ditutup. */}
+              <div style={{ marginBottom: 16 }}>
+                <div className="row jb ac" style={{ marginBottom: 8 }}>
+                  <div className="tiny muted upper">Eligibilitas Penelaah (SMM 2 ¶17–23)</div>
+                  <Badge kind={elig.eligible ? 'green' : 'red'}>{elig.eligible ? 'Memenuhi syarat' : elig.defects.length + ' syarat tak terpenuhi'}</Badge>
+                </div>
+
+                <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none', marginBottom: 8, borderLeft: '3px solid var(--' + (elig.coolingOff.elapsed ? 'green' : 'red') + ')' }}>
+                  <div className="row jb ac">
+                    <span className="tiny" style={{ fontWeight: 700 }}>Periode jeda {elig.coolingOff.requiredYears} tahun (¶19)</span>
+                    <Badge kind={elig.coolingOff.elapsed ? 'green' : 'red'}>{elig.coolingOff.elapsed ? 'Terlampaui' : 'BELUM terlampaui'}</Badge>
+                  </div>
+                  <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.45 }}>
+                    {elig.coolingOff.lastServedYear === null
+                      ? 'Penelaah tidak pernah menjabat rekan perikatan atas perikatan/klien ini.'
+                      : `Menjabat rekan perikatan pada ${elig.coolingOff.lastServedYear} — ${elig.coolingOff.yearsSince} tahun lalu.`}
+                    <span style={{ color: 'var(--ink-4)' }}> Diturunkan dari riwayat penugasan rekan, bukan pernyataan manual.</span>
+                  </div>
+                </div>
+
+                {elig.defects.length > 0 && (
+                  <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none', background: 'var(--red-bg)', borderColor: 'transparent' }}>
+                    {elig.defects.map((d: EligibilityDefect) => (
+                      <div key={d} className="tiny" style={{ lineHeight: 1.5 }}>· {ELIGIBILITY_DEFECT_LABEL[d]}</div>
                     ))}
                   </div>
-                  {meta.appointedBy && <div className="tiny muted" style={{ marginTop: 6 }}>Ditunjuk oleh <b style={{ color: 'var(--ink-2)' }}>{meta.appointedBy}</b> pada {meta.appointedDate}.</div>}
-                </div>
-              )}
+                )}
+
+                {impaired !== 'none' && (
+                  <div className="panel" style={{ padding: '10px 12px', marginTop: 8, boxShadow: 'none', background: 'var(--red-bg)', borderColor: 'transparent' }}>
+                    <div className="tiny" style={{ fontWeight: 700, lineHeight: 1.5 }}>{IMPAIRMENT_ACTION_LABEL[impaired]}</div>
+                  </div>
+                )}
+
+                {meta.appointedBy && <div className="tiny muted" style={{ marginTop: 6 }}>Ditunjuk oleh <b style={{ color: 'var(--ink-2)' }}>{meta.appointedBy}</b> pada {meta.appointedDate} (¶17).</div>}
+              </div>
 
               {/* Lini masa reviu */}
               {meta.timeline && (
@@ -162,7 +213,7 @@ function EQRWorkflow() {
                 <div className="panel" style={{ padding: '12px 14px', background: canClear ? 'var(--blue-050)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                   <div className="row ac gap8" style={{ marginBottom: canClear ? 10 : 0 }}>
                     <span style={{ color: canClear ? 'var(--blue)' : 'var(--amber)' }}>{canClear ? <I.shield size={16} /> : <I.lock size={16} />}</span>
-                    <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{canClear ? 'Seluruh checklist terpenuhi & tidak ada temuan terbuka. Reviewer dapat menutup EQR.' : 'Opini tidak dapat diterbitkan sebelum EQR selesai (gerbang wajib SMM 2). Lengkapi checklist & selesaikan temuan.'}</span>
+                    <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{canClear ? 'Seluruh syarat terpenuhi — penelaah dapat menutup penelaahan (¶27).' : gate.blockers.map((b: ClearBlocker) => CLEAR_BLOCKER_LABEL[b]).join(' ')}</span>
                   </div>
                   {canClear && <Btn sm variant="primary" onClick={clearGate}><I.check size={13} /> Tutup EQR sebagai {r.reviewer.split(',')[0]}</Btn>}
                 </div>

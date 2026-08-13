@@ -25,6 +25,8 @@ import { wpChainViolations, signatureAttributionViolations } from '../../migrati
 /* PRD Kesiapan P2PK PR-1 — aturan gerbang EQR (ISQM 2). Modul MURNI yang sama
    dipakai UI, agar "lolos di layar" dan "lolos di server" tak dapat menyimpang. */
 import { eqrGateFor, type EqrReviewRow } from '../../migration/src/canon_eqr_gate';
+import { assessReviewerEligibility, eqrClearGate, ELIGIBILITY_DEFECT_LABEL,
+  type EligibilityDefect } from '../../migration/src/canon_eqr_eligibility';
 /* PRD Kesiapan P2PK PR-3 — aturan atestasi mutu firma (ISQM 1 ¶20 · ¶53–54). */
 import { attestContentHash, attestRolesFor, attestRoleCap } from '../../migration/src/canon_firm_attest';
 /* PRD prd-sa620-expert-gate-server PR-1 — aturan gerbang pakar SA 620. Modul yang
@@ -90,6 +92,27 @@ const EQR_GATE_FIRM_SIBLINGS = ['eqrReviews.v2', 'engagements', 'clients'] as co
 
 function asArray(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
 
+/* ---- SMM 2 ¶17–23: penutupan penelaahan mutu perikatan ---------------- */
+
+interface EqrRowShape {
+  id?: string; eng?: string; reviewer?: string; cleared?: boolean;
+  appointedBy?: string;
+  eligibility?: Record<string, unknown>;
+}
+
+/** Baris yang BERUBAH dari belum-cleared menjadi cleared. */
+function eqrNewlyCleared(prev: unknown, next: unknown): EqrRowShape[] {
+  const before = new Map<string, boolean>();
+  for (const r of asArray(prev) as EqrRowShape[]) {
+    if (r && r.id) before.set(r.id, !!r.cleared);
+  }
+  return (asArray(next) as EqrRowShape[]).filter(
+    (r) => r && r.id && !!r.cleared && before.get(r.id) !== true,
+  );
+}
+
+
+
 /* --- Gerbang etik & independensi tim (PRD Kesiapan P2PK · PR-2b) -------------
    Sampai PR ini KEDUA gerbang nol penegakan server: `ethics_gate.tsx` sendiri
    mencatatnya ("Penegakan saat ini di LAPISAN UI"), dan `memberIndep.v1`
@@ -152,6 +175,13 @@ export function signoffContextNeeds(key: string, prev: unknown, next: unknown): 
       return { siblingKeys: [], attachmentCollections: [], firmSiblingKeys: EQR_GATE_FIRM_SIBLINGS };
     }
     return null;
+  }
+  /* PR-6 SMM 2 — registri EQR. Konteks HANYA diminta pada transisi menjadi
+     `cleared: true`; suntingan checklist tetap nol query (pola sama opinionDoc). */
+  if (key === 'eqrReviews.v2') {
+    return eqrNewlyCleared(prev, next).length
+      ? { siblingKeys: [], attachmentCollections: [], firmSiblingKeys: ['engagements'] }
+      : null;
   }
   /* Deklarasi Kode Etik — pernyataan PRIBADI berkunci empId. */
   if (key === 'pc.ethics') {
@@ -246,6 +276,12 @@ export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 
      dan `approvals_ov_*` tak dijaga sama sekali. Klien yang dimodifikasi — atau panggilan
      tRPC langsung — dapat menulis status 'Posted' tanpa hambatan. */
   'aje', 'approvals_ov_v4',
+  /* PR-6 SMM 2 — registri EQR. Sebelumnya ABSEN dari daftar ini: gerbang opini
+     MEMBACA `eqrReviews.v2` untuk memutuskan boleh-tidaknya finalisasi, tetapi
+     tak ada apa pun yang menjaga tulisan KE registri itu. Klien yang dimodifikasi
+     atau panggilan tRPC langsung dapat menyetel `cleared: true` dengan penelaah
+     yang tidak memenuhi syarat — gerbang yang masukannya bisa dipalsukan. */
+  'eqrReviews.v2',
   /* PR-2b — deklarasi Kode Etik & independensi anggota tim. Keduanya MENGGERBANGI
      sign-off kertas kerja dan penerbitan opini, tetapi sebelumnya tak dijaga sama
      sekali: satu-satunya gerbang server adalah capForWrite (HR_MANAGE / WP_EDIT). */
@@ -404,6 +440,47 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
            pola yang sama dengan `expert-gate:no-register`. */
         changes.push({ what: pie === null ? 'eqr-gate:pie-unknown' : 'eqr-gate:pass', cap: '' });
       }
+    }
+  } else if (key === 'eqrReviews.v2') {
+    /* SMM 2 ¶17–23 — penutupan penelaahan mutu perikatan.
+
+       Sebelum PR ini `eqrReviews.v2` TIDAK ADA di SIGNOFF_KEYS: gerbang opini
+       MEMBACA registri ini untuk memutuskan boleh-tidaknya finalisasi, tetapi
+       tak ada apa pun yang menjaga tulisan KE registri itu. Gerbang yang
+       masukannya dapat dipalsukan bukanlah gerbang. */
+    for (const row of eqrNewlyCleared(prev, next)) {
+      need(CAP.SIGNOFF_REVIEWER, `eqr:cleared:${row.id}`);
+
+      /* Identitas: yang menutup harus penelaah yang ditunjuk. */
+      const reviewer = String(row.reviewer || '');
+      if (!reviewer.trim()) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `eqr-elig:no-reviewer: penelaah tidak teridentifikasi (${row.id}).` });
+      }
+
+      const engs = ctx && ctx.firmSiblings ? asArray(ctx.firmSiblings['engagements']) : [];
+      const eng = engs.find((e) => asObj(e).id === row.eng) as Record<string, unknown> | undefined;
+
+      const elig = assessReviewerEligibility(
+        { reviewer, appointedBy: row.appointedBy, ...(row.eligibility || {}) },
+        eng ? { partner: String(eng.partner || ''), manager: String(eng.manager || '') } : null,
+        row.eng || null, eng ? String(eng.clientId || '') : null,
+        /* Riwayat penugasan rekan (¶19) TIDAK tersedia sebagai StateDoc — ia seed
+           firma. Server memverifikasi apa yang DAPAT diverifikasinya: keanggotaan
+           tim (¶18) dan penilaian ¶18(a)-(c) yang tersimpan pada baris. Ketiadaan
+           riwayat ditandai eksplisit di jejak audit, bukan ditelan senyap — pola
+           sama `eqr-gate:pie-unknown`. */
+        [], new Date().getFullYear(),
+      );
+
+      /* Jeda ¶19 dikecualikan di sisi server karena basisnya tak tersedia; UI
+         tetap menegakkannya. Cacat lain WAJIB nihil. */
+      const serverDefects = elig.defects.filter((d: EligibilityDefect) => d !== 'cooling-off-not-elapsed');
+      if (serverDefects.length > 0) {
+        const why = serverDefects.map((d: EligibilityDefect) => ELIGIBILITY_DEFECT_LABEL[d]).join(' · ');
+        throw new TRPCError({ code: 'FORBIDDEN', message: `eqr-elig:${serverDefects[0]}: ${why} (${row.id}).` });
+      }
+
+      changes.push({ what: eng ? `eqr-elig:pass:${row.id}` : `eqr-elig:no-engagement:${row.id}`, cap: CAP.SIGNOFF_REVIEWER });
     }
   } else if (key.startsWith('firmAttest.')) {
     /* Atestasi mutu firma (ISQM 1 ¶53–54). Tiga tuntutan pada setiap tanda
