@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-13 |
 | Pemilik | Ari Widodo |
-| Status | In Progress — "Proceed." 2026-08-13; PR-1 berjalan |
+| Status | Implemented — SELESAI 2026-08-13, kedelapan PR merged (master 3c57a39) |
 | Engagement ID terkait | — (lintas-firma; modul `soqm`, `eqr`, `governance`, `independence`, `pppk`) |
 | Sumber normatif | SMM 1 (IAPI, disahkan 18-09-2024) · SMM 2 (IAPI, disahkan 18-09-2024) · Toolkit Manajemen Mutu V3 (IAPI, 05-06-2025) · Matriks Ilustrasi Risiko Mutu V3 (IAPI, 16-06-2025) |
 | Tanggal efektif standar | 31 Desember 2025 (penerapan dini diperkenankan) |
@@ -390,10 +390,11 @@ serta lebih konsisten daripada membuat kapabilitas RBAC baru. Justifikasi kosong
 
 ### MASIH TERBUKA (tidak memblokir Fase 1–4)
 
-**Q-5 · Periode retensi dokumentasi SMM (¶60).** Berapa tahun untuk KAP Anda? Belum dibutuhkan
-sampai PR-7/PR-8. Sementara itu field retensi dibuat **wajib-isi**: nilai kosong dirender
-sebagai defisiensi dokumentasi, bukan diisi angka karangan. Perlu dicek juga apakah peraturan
-PPPK/PMK menetapkan minimum yang mengikat.
+**Q-5 · Periode retensi dokumentasi SMM (¶60).** ✅ **TERJAWAB: 5 tahun** (Ari, 2026-08-13).
+Diterapkan sebagai `QM_DOC_RETENTION` dan ditandai **kebijakan KAP** — ¶60 tidak menetapkan
+angka apa pun. Berlaku HANYA untuk dokumentasi **sistem manajemen mutu**; retensi kertas
+kerja **perikatan** tetap rezim terpisah (SA 230 & peraturan akuntan publik) dan TIDAK
+diubah. Ari menyetujui pemisahan ini.
 
 ---
 **Sign-off:** ditandai dengan balasan **"Proceed."**
