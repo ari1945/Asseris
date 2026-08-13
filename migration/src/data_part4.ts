@@ -263,6 +263,22 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { act: 'Pemantauan penyedia jasa & teknologi', freq: 'Tahunan', last: '2026-02', owner: 'Anindya Pramesti', cover: 'Vendor & sistem kritikal', result: 'Pemantauan' },
   ];
 
+  /* ---- SMM 2 ¶19: riwayat penugasan REKAN PERIKATAN per klien/perikatan ----
+     Basis perhitungan periode jeda dua tahun. Sebelumnya jeda hanya berupa
+     kalimat + boleean `coolingOk: true` yang ditulis tangan di seed — tak ada
+     yang bisa membantahnya. Kini diturunkan. */
+  const EQR_PARTNER_HISTORY = [
+    { eng: 'ENG-2025-063', clientId: 'C-063', partner: 'Rudi Gunawan, CPA', year: 2025 },
+    { eng: 'ENG-2025-063', clientId: 'C-063', partner: 'Rudi Gunawan, CPA', year: 2024 },
+    /* Sari Dewanti menjabat rekan perikatan Sentosa Makmur pada 2025, lalu
+       ditunjuk sebagai PENELAAH MUTU perikatan yang sama untuk 2026 — jeda dua
+       tahun ¶19 BELUM terlampaui. Cacat nyata, sengaja dipertahankan. */
+    { eng: 'ENG-2025-014', clientId: 'C-014', partner: 'Sari Dewanti, CPA', year: 2025 },
+    { eng: 'ENG-2025-014', clientId: 'C-014', partner: 'Hartono Wijaya, CPA', year: 2026 },
+    { eng: 'ENG-2025-040', clientId: 'C-040', partner: 'Rudi Gunawan, CPA', year: 2026 },
+    { eng: 'ENG-2025-022', clientId: 'C-022', partner: 'Sari Dewanti, CPA', year: 2026 },
+  ];
+
   /* ---- EQR meta: kelayakan reviewer, lini masa, konsultasi, perbedaan pendapat ---- */
   const EQR_META = {
     'EQR-063': {
@@ -270,6 +286,10 @@ import { objectivesForComponent } from './canon_smm_objectives';
       competence: 'Hartono Wijaya, CPA — kompetensi & otoritas memadai (Partner, 16 thn)', compOk: true,
       objectivity: 'Tidak ada ancaman objektivitas teridentifikasi', objOk: true,
       appointedBy: 'QM Leader', appointedDate: '2026-01-20',
+      /* ¶18 berstruktur — dinilai, bukan dinarasikan. Jeda ¶19 TIDAK ada di sini:
+         ia DITURUNKAN dari EQR_PARTNER_HISTORY. */
+      eligibility: { competenceAssessed: true, sufficientTime: true, authorityEstablished: true,
+        objectivityThreat: false, independenceConfirmed: true, regulatoryEligible: true, impaired: false },
       timeline: [
         { stage: 'Penunjukan & penilaian kelayakan', date: '2026-01-20', status: 'Selesai' },
         { stage: 'Reviu perencanaan & penilaian risiko', date: '2026-02-05', status: 'Selesai' },
@@ -285,6 +305,8 @@ import { objectivesForComponent } from './canon_smm_objectives';
       competence: 'Sari Dewanti, CPA — kompetensi memadai untuk klien manufaktur PIE', compOk: true,
       objectivity: 'Tidak ada ancaman objektivitas teridentifikasi', objOk: true,
       appointedBy: 'QM Leader', appointedDate: '2026-02-28',
+      eligibility: { competenceAssessed: true, sufficientTime: true, authorityEstablished: true,
+        objectivityThreat: false, independenceConfirmed: true, regulatoryEligible: true, impaired: false },
       timeline: [
         { stage: 'Penunjukan & penilaian kelayakan', date: '2026-02-28', status: 'Selesai' },
         { stage: 'Reviu perencanaan & penilaian risiko', date: '—', status: 'Belum Mulai' },
@@ -300,6 +322,8 @@ import { objectivesForComponent } from './canon_smm_objectives';
       competence: 'Hartono Wijaya, CPA — kompetensi & otoritas memadai (Partner senior, independen dari tim)', compOk: true,
       objectivity: 'Tidak ada ancaman objektivitas teridentifikasi', objOk: true,
       appointedBy: 'QM Leader', appointedDate: '2026-01-12',
+      eligibility: { competenceAssessed: true, sufficientTime: true, authorityEstablished: true,
+        objectivityThreat: false, independenceConfirmed: true, regulatoryEligible: true, impaired: false },
       timeline: [
         { stage: 'Penunjukan & penilaian kelayakan', date: '2026-01-12', status: 'Selesai' },
         { stage: 'Reviu perencanaan & penilaian risiko', date: '2026-01-25', status: 'Selesai' },
@@ -526,4 +550,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
