@@ -5,6 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
+import { para38Coverage, para39bBreaches, breachLabel } from './canon_smm_monitoring';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding';
@@ -134,6 +135,10 @@ function SOQM() {
 
           {tab === 'monitoring' && (
             <div style={{ padding: 14, display: 'grid', gap: 14 }}>
+              {/* ¶38(c) & ¶39(b) — dihitung, bukan diklaim. Sebelumnya cakupan
+                  per rekan hanya berupa string 'cover' pada QM_MON_ACTIVITIES,
+                  dan larangan inspeksi-diri tidak ditegakkan sama sekali. */}
+              <Para38Panel />
               <div>
                 <div className="tiny muted upper" style={{ marginBottom: 8 }}>Aktivitas Pemantauan Firma (SMM 1 ¶36–38) — tertaut ke modul sumber</div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
@@ -272,6 +277,90 @@ function SOQM() {
 
       {selRisk && <RiskDetail r={selRisk} nav={nav} onClose={() => setSel(null)} />}
     </>
+  );
+}
+
+/* ============================================================
+   ¶38(c) cakupan inspeksi per rekan perikatan · ¶39(b) larangan
+   inspeksi-diri — keduanya DIHITUNG dari register, bukan diklaim.
+
+   Sebelumnya cakupan per rekan hanya string pada QM_MON_ACTIVITIES
+   ('≥1 perikatan / partner'), dan tak ada aturan yang mencegah
+   anggota tim perikatan menginspeksi perikatannya sendiri.
+   ============================================================ */
+function Para38Panel() {
+  const A: any = AMS;
+  const cov = para38Coverage(A.ENGAGEMENTS, A.QM_INSPECTIONS);
+  const breaches = para39bBreaches(A.QM_INSPECTIONS, A.ENGAGEMENTS, A.EQR_REVIEWS);
+
+  return (
+    <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* ¶38(c) */}
+      <Panel noBody>
+        <div className="panel-h">
+          <h3>Cakupan Inspeksi per Rekan Perikatan</h3>
+          <div style={{ flex: 1 }} />
+          <Badge kind={cov.satisfied ? 'green' : 'red'}>{cov.satisfied ? 'Terpenuhi' : 'Belum Terpenuhi'}</Badge>
+        </div>
+        <div style={{ padding: '10px 14px', display: 'grid', gap: 8 }}>
+          <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+            SMM 1 ¶38(c) — sekurangnya <b>satu perikatan yang telah SELESAI</b> untuk setiap rekan perikatan,
+            secara berkala. Inspeksi atas perikatan yang masih berjalan sah sebagai pemantauan, tetapi tidak
+            memenuhi ketentuan ini.
+          </div>
+          {cov.partners.map((p) => (
+            <div key={p.partner} className="row jb ac" style={{ padding: '7px 9px', background: 'var(--surface-2)', borderRadius: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>{p.partner}</span>
+              <span className="row ac gap8">
+                <span className="tiny muted">{p.completedEngagements.length} selesai · {p.inspectedEngagements.length} diinspeksi</span>
+                <Badge kind={p.satisfied ? 'green' : p.noCompletedEngagement ? 'gray' : 'red'}>
+                  {p.satisfied ? 'Terpenuhi' : p.noCompletedEngagement ? 'Belum terterap' : 'BELUM DIINSPEKSI'}
+                </Badge>
+              </span>
+            </div>
+          ))}
+          {cov.inspectionsOfIncompleteEngagements.length > 0 && (
+            <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.5 }}>
+              {cov.inspectionsOfIncompleteEngagements.join(' · ')} menyasar perikatan yang masih berjalan —
+              tidak dihitung untuk ¶38(c).
+            </div>
+          )}
+          {cov.scheduledNotPerformed.length > 0 && (
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+              {cov.scheduledNotPerformed.join(' · ')} baru dijadwalkan — belum memberi basis identifikasi defisiensi (¶36).
+            </div>
+          )}
+        </div>
+      </Panel>
+
+      {/* ¶39(b) */}
+      <Panel noBody>
+        <div className="panel-h">
+          <h3>Objektivitas Inspektur</h3>
+          <div style={{ flex: 1 }} />
+          <Badge kind={breaches.length ? 'red' : 'green'}>{breaches.length ? breaches.length + ' pelanggaran' : 'Bersih'}</Badge>
+        </div>
+        <div style={{ padding: '10px 14px', display: 'grid', gap: 8 }}>
+          <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+            SMM 1 ¶39(b) — anggota tim perikatan atau penelaah mutu perikatan atas suatu perikatan
+            <b> dilarang</b> melaksanakan inspeksi atas perikatan tersebut.
+          </div>
+          {breaches.length ? breaches.map((b) => (
+            <div key={b.inspection} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid var(--red)' }}>
+              <div className="row ac gap6" style={{ marginBottom: 3 }}>
+                <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.inspection}</span>
+                <Badge kind="red">Objektivitas terganggu</Badge>
+              </div>
+              <div className="tiny" style={{ lineHeight: 1.5 }}>{breachLabel(b)}</div>
+            </div>
+          )) : (
+            <div className="tiny muted" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 4 }}>
+              Tidak ada inspektur yang merangkap sebagai anggota tim perikatan atau penelaah mutu pada perikatan yang diinspeksinya.
+            </div>
+          )}
+        </div>
+      </Panel>
+    </div>
   );
 }
 
