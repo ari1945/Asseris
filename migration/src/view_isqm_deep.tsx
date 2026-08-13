@@ -11,6 +11,10 @@ import {
   SMM1_OBJECTIVE_COUNT, WAIVER_DEFECT_LABEL,
   type ObjectiveWaiver, type ObjectiveLinkedRisk,
 } from './canon_smm_objectives';
+import {
+  evaluateSmm, PERVASIVENESS_LABEL,
+  type SmmDeficiency, type PervasivenessIndicator,
+} from './canon_smm_evaluation';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -446,39 +450,78 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   const leaderLink = attestLinks[0], approverLink = attestLinks[1];
   const attestComplete = attestChainComplete(attestLinks);
 
-  /* mesin keputusan ¶54 — diturunkan dari live data */
+  /* ---------------------------------------------------------------
+     Mesin keputusan ¶54 — kini DITURUNKAN, bukan dekoratif.
+
+     Bentuk lama menghitung `defsPervasive`, menampilkannya sebagai
+     "Faktor Keputusan ¶54", lalu MENGABAIKANNYA: cabang kesimpulan
+     hanya membaca defisiensi keparahan Tinggi, inspeksi tidak
+     memuaskan, dan jumlah tuduhan. Defisiensi pervasif karena itu tak
+     pernah menghasilkan ¶54(c) — justru cabang yang paling menentukan.
+     Pervasivitasnya sendiri di-hardcode ke ID seed:
+         (r.id === 'QR-02') || (r.id === 'QR-04')
+     sehingga risiko mutu baru tak akan pernah dinilai pervasif.
+
+     Sekarang aturannya ada di `canon_smm_evaluation.ts`, diuji terpisah,
+     dan pervasivitas MENGIKAT (A192) dengan carve-out A191.
+     --------------------------------------------------------------- */
   const defs = risks.filter((r: any) => r.deficiency);
-  const defsPervasive = defs.filter((r: any) => (r.deficiency.sev === 'Tinggi') || (r.id === 'QR-02') || (r.id === 'QR-04'));
-  const defsHighOpen = defs.filter((r: any) => r.deficiency.sev === 'Tinggi' && r.deficiency.status !== 'Selesai');
+  const smmDefs: SmmDeficiency[] = defs.map((r: any) => ({
+    id: r.id,
+    component: r.comp,
+    locus: r.deficiency.locus ?? null,
+    compensatingResponse: r.deficiency.compensatingResponse ?? null,
+    frequency: r.deficiency.frequency ?? null,
+    severity: r.deficiency.sev ?? null,
+    significant: r.deficiency.significant ?? null,
+    pervasiveness: (r.deficiency.pervasiveness || []) as PervasivenessIndicator[],
+    /* ¶43 + A191 — DUA syarat terpisah. `status === 'Selesai'` saja tidak
+       cukup: ia menandai tindakan remedial selesai, bukan dampaknya sudah
+       dikoreksi. Field eksplisit dipakai bila ada; bila tidak, defisiensi
+       tetap dihitung TERBUKA (gagal-tertutup). */
+    remediated: r.deficiency.remediated ?? (r.deficiency.status === 'Selesai'),
+    effectCorrected: r.deficiency.effectCorrected ?? false,
+  }));
+  const evalResult = evaluateSmm(smmDefs);
+
+  const defsPervasive = defs.filter((r: any) => evalResult.openPervasive.indexOf(r.id) >= 0);
   const inspBad = inspections.filter((i: any) => i.grade === 'Tidak Memuaskan');
   const cmpInvest = complaints.filter((c: any) => c.status === 'Investigasi' && c.severity === 'Tinggi');
 
-  let conclusion = 'reasonable';
-  let label = 'Efektif';
-  let color = 'var(--green)';
-  let stmt = 'Sistem Manajemen Mutu firma memberikan keyakinan memadai (reasonable assurance) bahwa firma & personelnya memenuhi tanggung jawab profesional dan laporan yang diterbitkan telah tepat sesuai kondisinya.';
+  const conclusion = evalResult.conclusion;
+  const label = conclusion === 'not-reasonable' ? 'Belum Efektif'
+    : conclusion === 'reasonable-except-for' ? 'Efektif dengan Pengecualian' : 'Efektif';
+  const color = conclusion === 'not-reasonable' ? 'var(--red)'
+    : conclusion === 'reasonable-except-for' ? 'var(--amber)' : 'var(--green)';
+  const stmt = conclusion === 'not-reasonable'
+    ? `Terdapat defisiensi PERVASIF yang belum diremediasi pada tanggal evaluasi (${evalResult.openPervasive.join(' · ')}) — sistem manajemen mutu tidak memberikan keyakinan memadai bahwa tujuannya tercapai. Perlu eskalasi & rencana remediasi terstruktur.`
+    : conclusion === 'reasonable-except-for'
+    ? (master.statement || `Sistem manajemen mutu memberikan keyakinan memadai KECUALI UNTUK defisiensi yang berpengaruh signifikan namun tidak pervasif (${evalResult.openSignificant.join(' · ')}), yang tengah diremediasi.`)
+    : 'Sistem manajemen mutu memberikan keyakinan memadai bahwa KAP & personelnya memenuhi tanggung jawab profesional dan laporan yang diterbitkan telah tepat sesuai kondisinya.';
 
-  if (defsHighOpen.length > 0 || inspBad.length > 0 || cmpInvest.length > 1) {
-    conclusion = 'not-reasonable';
-    label = 'Belum Efektif';
-    color = 'var(--red)';
-    stmt = 'Terdapat defisiensi pervasif yang belum diremediasi pada tanggal evaluasi — keyakinan memadai atas SMM secara keseluruhan belum dapat disimpulkan. Perlu eskalasi & rencana remediasi terstruktur.';
-  } else if (defs.length > 0) {
-    conclusion = 'reasonable-with-exceptions';
-    label = 'Efektif dengan Pengecualian';
-    color = 'var(--amber)';
-    stmt = master.statement || 'Sistem Manajemen Mutu firma memberikan keyakinan memadai dengan pengecualian defisiensi yang teridentifikasi pada satu atau lebih komponen — defisiensi tersebut dinilai tidak berdampak pervasif terhadap simpulan menyeluruh dan tengah diremediasi.';
-  }
-
+  /* Faktor yang MENENTUKAN kesimpulan (¶54) dipisahkan dari faktor yang
+     hanya menginformasikan. Sebelumnya keduanya bercampur, sehingga
+     "Tidak ada defisiensi pervasif" tampil gagal sementara kesimpulan
+     tak bergerak — pembaca tak punya cara tahu mana yang mengikat. */
   const factors = [
-    { ok: defs.length === 0, t: 'Tidak ada defisiensi terbuka', v: defs.length + ' defisiensi', detail: defs.map((d: any) => d.id).join(' · ') || 'Nihil' },
-    { ok: defsHighOpen.length === 0, t: 'Tidak ada defisiensi keparahan Tinggi terbuka', v: defsHighOpen.length, detail: defsHighOpen.map((d: any) => d.id).join(' · ') || 'Nihil' },
-    { ok: defsPervasive.length === 0, t: 'Tidak ada defisiensi pervasif', v: defsPervasive.length, detail: defsPervasive.map((d: any) => d.id).join(' · ') || 'Nihil' },
-    { ok: inspBad.length === 0, t: 'Tidak ada inspeksi "Tidak Memuaskan"', v: inspBad.length, detail: inspBad.map((i: any) => i.id).join(' · ') || 'Nihil' },
-    { ok: cmpInvest.length === 0, t: 'Tidak ada tuduhan tingkat tinggi dalam investigasi', v: cmpInvest.length, detail: cmpInvest.map((c: any) => c.id).join(' · ') || 'Nihil' },
-    { ok: risks.filter((r: any) => r.monitor === 'Belum Diuji').length === 0, t: 'Seluruh respons mutu telah dipantau', v: risks.filter((r: any) => r.monitor === 'Belum Diuji').length + ' belum diuji', detail: risks.filter((r: any) => r.monitor === 'Belum Diuji').map((r: any) => r.id).join(' · ') || 'Nihil' },
+    { binding: true, ok: evalResult.openPervasive.length === 0, t: 'Tidak ada defisiensi PERVASIF terbuka (A192) — pemaksa ¶54(c)', v: evalResult.openPervasive.length, detail: evalResult.openPervasive.join(' · ') || 'Nihil' },
+    { binding: true, ok: evalResult.openSignificant.length === 0, t: 'Tidak ada defisiensi SIGNIFIKAN tak pervasif terbuka (A163) — pemaksa ¶54(b)', v: evalResult.openSignificant.length, detail: evalResult.openSignificant.join(' · ') || 'Nihil' },
+    { binding: false, ok: evalResult.openMinor.length === 0, t: 'Tidak ada defisiensi lain yang terbuka', v: evalResult.openMinor.length, detail: evalResult.openMinor.join(' · ') || 'Nihil' },
+    { binding: false, ok: inspBad.length === 0, t: 'Tidak ada inspeksi "Tidak Memuaskan"', v: inspBad.length, detail: inspBad.map((i: any) => i.id).join(' · ') || 'Nihil' },
+    { binding: false, ok: cmpInvest.length === 0, t: 'Tidak ada tuduhan tingkat tinggi dalam investigasi', v: cmpInvest.length, detail: cmpInvest.map((c: any) => c.id).join(' · ') || 'Nihil' },
+    { binding: false, ok: risks.filter((r: any) => r.monitor === 'Belum Diuji').length === 0, t: 'Seluruh respons mutu telah dipantau', v: risks.filter((r: any) => r.monitor === 'Belum Diuji').length + ' belum diuji', detail: risks.filter((r: any) => r.monitor === 'Belum Diuji').map((r: any) => r.id).join(' · ') || 'Nihil' },
   ];
   const factorOk = factors.filter(f => f.ok).length;
+
+  /* Alasan pervasivitas per defisiensi — supaya kesimpulan ¶54(c) dapat
+     ditelusuri ke indikator A192 yang memicunya, bukan sekadar diumumkan. */
+  const pervasiveReasons: Array<{ id: string; reasons: string[] }> = defs
+    .filter((r: any) => evalResult.openPervasive.indexOf(r.id) >= 0)
+    .map((r: any) => ({
+      id: String(r.id),
+      reasons: ((r.deficiency.pervasiveness || []) as PervasivenessIndicator[])
+        .map((p) => PERVASIVENESS_LABEL[p]).filter(Boolean),
+    }));
 
   const inspSumm = {
     total: inspections.length,
@@ -509,7 +552,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
             <div className="row ac gap12" style={{ marginBottom: 8 }}>
               <span style={{ display: 'inline-flex', width: 12, height: 12, borderRadius: '50%', background: color, boxShadow: '0 0 0 4px rgba(255,255,255,.15)' }} />
               <span style={{ fontSize: 22, fontWeight: 700 }}>{label}</span>
-              <Badge kind="blue">{conclusion}</Badge>
+              <Badge kind="blue">{evalResult.paragraph}</Badge>
             </div>
             <div className="tiny" style={{ color: '#cfe2ed', lineHeight: 1.55, maxWidth: 720 }}>{stmt}</div>
           </div>
@@ -542,14 +585,49 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           <div style={{ padding: '4px 0 8px' }}>
             {factors.map((f, i) => (
               <div key={i} className="soqm-factor-row">
-                <span style={{ color: f.ok ? 'var(--green)' : 'var(--amber)', display: 'inline-flex', flex: '0 0 18px' }}>{I ? (f.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />) : null}</span>
-                <span className="soqm-factor-t" style={{ fontSize: 12, fontWeight: 600 }}>{f.t}</span>
+                <span style={{ color: f.ok ? 'var(--green)' : f.binding ? 'var(--red)' : 'var(--amber)', display: 'inline-flex', flex: '0 0 18px' }}>{I ? (f.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />) : null}</span>
+                <span className="soqm-factor-t" style={{ fontSize: 12, fontWeight: 600 }}>
+                  {f.t}
+                  {f.binding && <span className="tiny mono" style={{ marginLeft: 6, color: 'var(--red)', fontWeight: 700 }}>MENGIKAT</span>}
+                </span>
                 <span className="soqm-factor-d tiny muted">{f.detail}</span>
-                <span className="mono tiny" style={{ fontWeight: 700, color: f.ok ? 'var(--green)' : 'var(--amber)' }}>{f.v}</span>
+                <span className="mono tiny" style={{ fontWeight: 700, color: f.ok ? 'var(--green)' : f.binding ? 'var(--red)' : 'var(--amber)' }}>{f.v}</span>
               </div>
             ))}
           </div>
+          <div className="tiny muted" style={{ padding: '0 14px 12px', lineHeight: 1.5 }}>
+            Hanya faktor bertanda <b style={{ color: 'var(--red)' }}>MENGIKAT</b> yang menentukan kesimpulan ¶54;
+            sisanya menginformasikan. Sebelumnya keduanya bercampur, sehingga pervasivitas dapat tampil gagal
+            tanpa menggerakkan kesimpulan.
+          </div>
         </Panel>
+
+        {/* Ketertelusuran ¶54(c): indikator A192 mana yang memicunya */}
+        {pervasiveReasons.length > 0 && (
+          <Panel title="Dasar Penilaian Pervasivitas (A192)" sub="kesimpulan ¶54(c) tertelusur ke indikator, bukan diumumkan">
+            <div style={{ display: 'grid', gap: 8 }}>
+              {pervasiveReasons.map((p) => (
+                <div key={p.id} className="panel" style={{ padding: '10px 12px', boxShadow: 'none', borderLeft: '3px solid var(--red)' }}>
+                  <div className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', marginBottom: 4 }}>{p.id}</div>
+                  <ul style={{ margin: '0 0 0 16px', padding: 0 }}>
+                    {p.reasons.map((r, ri) => <li key={ri} className="tiny" style={{ lineHeight: 1.5 }}>{r}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        )}
+
+        {/* A191 — wajib tercantum dalam basis (¶58(e)) meski tak menurunkan kesimpulan */}
+        {evalResult.carveOut.length > 0 && (
+          <Panel title="Defisiensi Signifikan yang Sudah Diremediasi (A191)" sub="tidak menurunkan kesimpulan, tetapi wajib menjadi bagian basis ¶58(e)">
+            <div className="tiny" style={{ lineHeight: 1.55 }}>
+              {evalResult.carveOut.join(' · ')} — telah diremediasi dengan tepat <b>dan</b> dampaknya dikoreksi
+              pada tanggal evaluasi, sehingga tidak menurunkan kesimpulan ¶54. Keduanya adalah syarat terpisah:
+              tindakan remedial yang selesai tetapi dampaknya belum dikoreksi <b>tidak</b> memperoleh carve-out ini.
+            </div>
+          </Panel>
+        )}
 
         {/* basis kesimpulan */}
         <Panel title="Basis Kesimpulan" sub="sumber data per faktor — semuanya ditarik dari modul kanonik">
