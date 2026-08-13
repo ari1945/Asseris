@@ -281,6 +281,80 @@ export function objectiveCoverage(
   };
 }
 
+/** Risiko mutu yang tertaut tujuan DAN membawa keadaan pemantauan responsnya. */
+export interface MonitoredObjectiveRisk extends ObjectiveLinkedRisk {
+  /** Keadaan pemantauan respons: `'Efektif'` · `'Defisiensi'` · `'Belum Diuji'`. */
+  readonly monitor?: string | null;
+}
+
+export interface EffectiveResponseCoverage {
+  /** Tujuan yang SELURUH risiko tertautnya dipantau `'Efektif'`. */
+  readonly effective: readonly string[];
+  /** Tujuan yang punya risiko, tetapi ada yang defisiensi/belum diuji. */
+  readonly notEffective: readonly string[];
+  /** Tujuan tanpa risiko & tanpa waiver sah — responsnya belum ada sama sekali. */
+  readonly noResponse: readonly string[];
+  /** Tujuan yang dikesampingkan ¶17 secara sah — tidak menuntut respons. */
+  readonly waived: readonly string[];
+  /** 27 − waived: tujuan yang benar-benar menuntut respons efektif. */
+  readonly requiring: number;
+  /** effective / requiring, dibulatkan. 100 bila tak ada yang menuntut respons. */
+  readonly effectivePct: number;
+}
+
+/**
+ * Berapa TUJUAN MANDATORI yang responsnya terbukti efektif.
+ *
+ * Dipisahkan dari `objectiveCoverage` karena menjawab pertanyaan yang lebih
+ * keras: bukan "apakah tujuan ini punya risiko" melainkan "apakah responsnya
+ * bekerja". Sebuah tujuan hanya dihitung efektif bila SELURUH risiko tertautnya
+ * dipantau `'Efektif'` — satu respons yang defisiensi membatalkan tujuannya,
+ * sebab tujuan itu tidak terlindungi sepenuhnya.
+ *
+ * Metrik lama di header SOQM membagi `risiko efektif / jumlah risiko terdaftar`.
+ * Penyebut itu menyembunyikan dua hal sekaligus: (1) tujuan mandatori yang
+ * responsnya belum ada sama sekali tak pernah masuk hitungan, dan (2) risiko
+ * yang tak menunjuk tujuan ¶28–33 mana pun (mis. risiko proses ¶35–47) tetap
+ * menaikkan pembilang. Hasilnya angka tinggi di atas cakupan rendah — cacat
+ * yang sama sudah ditutup di header Governance.
+ */
+export function effectiveResponseCoverage(
+  risks: readonly MonitoredObjectiveRisk[] | null | undefined,
+  waivers: readonly ObjectiveWaiver[] | null | undefined,
+): EffectiveResponseCoverage {
+  /* Tujuan → apakah SEMUA risiko tertautnya efektif. Hanya tujuan mandatori
+     yang dikenal yang dicatat; risiko tanpa tujuan sah tidak berkontribusi. */
+  const allEffective = new Map<string, boolean>();
+  for (const r of risks || []) {
+    const ok = r?.monitor === 'Efektif';
+    for (const id of r?.objectives || []) {
+      if (!SMM1_OBJECTIVE_BY_ID.has(id)) continue;
+      allEffective.set(id, (allEffective.get(id) ?? true) && ok);
+    }
+  }
+
+  const validWaived = new Set(
+    (waivers || []).filter(Boolean).map(auditWaiver).filter((a) => a.valid).map((a) => a.objectiveId),
+  );
+
+  const effective: string[] = [];
+  const notEffective: string[] = [];
+  const noResponse: string[] = [];
+  const waived: string[] = [];
+
+  for (const o of SMM1_OBJECTIVES) {
+    if (allEffective.has(o.id)) (allEffective.get(o.id) ? effective : notEffective).push(o.id);
+    else if (validWaived.has(o.id)) waived.push(o.id);
+    else noResponse.push(o.id);
+  }
+
+  const requiring = SMM1_OBJECTIVE_COUNT - waived.length;
+  return {
+    effective, notEffective, noResponse, waived, requiring,
+    effectivePct: requiring === 0 ? 100 : Math.round(effective.length / requiring * 100),
+  };
+}
+
 /** Rincian cakupan per komponen — untuk kartu komponen di UI. */
 export interface ComponentCoverage {
   readonly component: SmmComponentCode;
