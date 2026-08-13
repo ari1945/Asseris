@@ -13,8 +13,9 @@ import {
 } from './canon_smm_objectives';
 import {
   evaluateSmm, PERVASIVENESS_LABEL,
-  type SmmDeficiency, type PervasivenessIndicator,
+  type PervasivenessIndicator,
 } from './canon_smm_evaluation';
+import { collectSmmDeficiencies, originOf } from './canon_smm_deficiencies';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -466,25 +467,20 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
      dan pervasivitas MENGIKAT (A192) dengan carve-out A191.
      --------------------------------------------------------------- */
   const defs = risks.filter((r: any) => r.deficiency);
-  const smmDefs: SmmDeficiency[] = defs.map((r: any) => ({
-    id: r.id,
-    component: r.comp,
-    locus: r.deficiency.locus ?? null,
-    compensatingResponse: r.deficiency.compensatingResponse ?? null,
-    frequency: r.deficiency.frequency ?? null,
-    severity: r.deficiency.sev ?? null,
-    significant: r.deficiency.significant ?? null,
-    pervasiveness: (r.deficiency.pervasiveness || []) as PervasivenessIndicator[],
-    /* ¶43 + A191 — DUA syarat terpisah. `status === 'Selesai'` saja tidak
-       cukup: ia menandai tindakan remedial selesai, bukan dampaknya sudah
-       dikoreksi. Field eksplisit dipakai bila ada; bila tidak, defisiensi
-       tetap dihitung TERBUKA (gagal-tertutup). */
-    remediated: r.deficiency.remediated ?? (r.deficiency.status === 'Selesai'),
-    effectCorrected: r.deficiency.effectCorrected ?? false,
-  }));
-  const evalResult = evaluateSmm(smmDefs);
+  /* Pemetaan risiko→defisiensi DAN defisiensi jaringan (¶52) kini berasal
+     dari `canon_smm_deficiencies`, dipakai bersama `view_governance`.
 
-  const defsPervasive = defs.filter((r: any) => evalResult.openPervasive.indexOf(r.id) >= 0);
+     Sebelumnya pemetaan tinggal di dalam JSX ini dan defisiensi jaringan
+     tak pernah ikut: panel di bawah MENYATAKAN "tidak ada defisiensi lain
+     yang terbuka" sementara Governance menampilkan ND-01 terbuka tanpa
+     tindakan remedial (¶52(b)) untuk firma & periode yang sama. */
+  const smmDefs = collectSmmDeficiencies({ risks, network: A.QM_NETWORK });
+  const evalResult = evaluateSmm(smmDefs);
+  const netDefIds = smmDefs.filter((d) => d.origin === 'network').map((d) => d.id);
+  const withOrigin = (ids: readonly string[]) => ids
+    .map((id) => id + (originOf(smmDefs, id) === 'network' ? ' (jaringan)' : ''))
+    .join(' · ');
+
   const inspBad = inspections.filter((i: any) => i.grade === 'Tidak Memuaskan');
   const cmpInvest = complaints.filter((c: any) => c.status === 'Investigasi' && c.severity === 'Tinggi');
 
@@ -504,9 +500,9 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
      "Tidak ada defisiensi pervasif" tampil gagal sementara kesimpulan
      tak bergerak — pembaca tak punya cara tahu mana yang mengikat. */
   const factors = [
-    { binding: true, ok: evalResult.openPervasive.length === 0, t: 'Tidak ada defisiensi PERVASIF terbuka (A192) — pemaksa ¶54(c)', v: evalResult.openPervasive.length, detail: evalResult.openPervasive.join(' · ') || 'Nihil' },
-    { binding: true, ok: evalResult.openSignificant.length === 0, t: 'Tidak ada defisiensi SIGNIFIKAN tak pervasif terbuka (A163) — pemaksa ¶54(b)', v: evalResult.openSignificant.length, detail: evalResult.openSignificant.join(' · ') || 'Nihil' },
-    { binding: false, ok: evalResult.openMinor.length === 0, t: 'Tidak ada defisiensi lain yang terbuka', v: evalResult.openMinor.length, detail: evalResult.openMinor.join(' · ') || 'Nihil' },
+    { binding: true, ok: evalResult.openPervasive.length === 0, t: 'Tidak ada defisiensi PERVASIF terbuka (A192) — pemaksa ¶54(c)', v: evalResult.openPervasive.length, detail: withOrigin(evalResult.openPervasive) || 'Nihil' },
+    { binding: true, ok: evalResult.openSignificant.length === 0, t: 'Tidak ada defisiensi SIGNIFIKAN tak pervasif terbuka (A163) — pemaksa ¶54(b)', v: evalResult.openSignificant.length, detail: withOrigin(evalResult.openSignificant) || 'Nihil' },
+    { binding: false, ok: evalResult.openMinor.length === 0, t: 'Tidak ada defisiensi lain yang terbuka (register risiko & ketentuan jaringan ¶52)', v: evalResult.openMinor.length, detail: withOrigin(evalResult.openMinor) || 'Nihil' },
     { binding: false, ok: inspBad.length === 0, t: 'Tidak ada inspeksi "Tidak Memuaskan"', v: inspBad.length, detail: inspBad.map((i: any) => i.id).join(' · ') || 'Nihil' },
     { binding: false, ok: cmpInvest.length === 0, t: 'Tidak ada tuduhan tingkat tinggi dalam investigasi', v: cmpInvest.length, detail: cmpInvest.map((c: any) => c.id).join(' · ') || 'Nihil' },
     { binding: false, ok: risks.filter((r: any) => r.monitor === 'Belum Diuji').length === 0, t: 'Seluruh respons mutu telah dipantau', v: risks.filter((r: any) => r.monitor === 'Belum Diuji').length + ' belum diuji', detail: risks.filter((r: any) => r.monitor === 'Belum Diuji').map((r: any) => r.id).join(' · ') || 'Nihil' },
@@ -515,11 +511,11 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
 
   /* Alasan pervasivitas per defisiensi — supaya kesimpulan ¶54(c) dapat
      ditelusuri ke indikator A192 yang memicunya, bukan sekadar diumumkan. */
-  const pervasiveReasons: Array<{ id: string; reasons: string[] }> = defs
-    .filter((r: any) => evalResult.openPervasive.indexOf(r.id) >= 0)
-    .map((r: any) => ({
-      id: String(r.id),
-      reasons: ((r.deficiency.pervasiveness || []) as PervasivenessIndicator[])
+  const pervasiveReasons: Array<{ id: string; reasons: string[] }> = smmDefs
+    .filter((d) => evalResult.openPervasive.indexOf(d.id) >= 0)
+    .map((d) => ({
+      id: String(d.id) + (d.origin === 'network' ? ' (jaringan)' : ''),
+      reasons: ((d.pervasiveness || []) as readonly PervasivenessIndicator[])
         .map((p) => PERVASIVENESS_LABEL[p]).filter(Boolean),
     }));
 
@@ -652,6 +648,16 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
               <span style={{ fontSize: 12 }}>{complaints.length} register · {complaints.filter((c: any) => c.type === 'Tuduhan').length} tuduhan · {complaints.filter((c: any) => c.status === 'Selesai').length} selesai</span>
               <span className="tiny mono" style={{ color: 'var(--blue)' }}>COMPLAINTS</span>
             </button>
+            {/* ¶52 — defisiensi ketentuan/jasa jaringan adalah defisiensi SMM KAP
+                (¶48: KAP TETAP bertanggung jawab). Sebelumnya tak pernah muncul
+                di basis kesimpulan mana pun. */}
+            {netDefIds.length > 0 && (
+              <button type="button" className="soqm-basis" onClick={() => nav('governance', { from: 'soqm', tab: 'network' })}>
+                <span className="tiny upper muted">Ketentuan Jaringan (¶52)</span>
+                <span style={{ fontSize: 12 }}>{netDefIds.length} defisiensi jaringan · {netDefIds.filter((id) => evalResult.carveOut.indexOf(id) < 0).length} terbuka</span>
+                <span className="tiny mono" style={{ color: 'var(--blue)' }}>QM_NETWORK</span>
+              </button>
+            )}
           </div>
           {master.basis && (
             <div style={{ marginTop: 10 }}>
@@ -669,7 +675,9 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
         <Panel noBody>
           <div className="panel-h"><h3>Tindakan Pasca-Evaluasi</h3></div>
           <div style={{ padding: '10px 14px', display: 'grid', gap: 8 }}>
-            <D2Action ok={defs.length === 0} t="Lanjutkan remediasi defisiensi terdaftar" v={defs.filter((d: any) => d.deficiency.status !== 'Selesai').length + ' aktif'} />
+            {/* "aktif" = TERBUKA menurut A191 (diremediasi DAN dampaknya dikoreksi),
+                mencakup defisiensi jaringan — bukan sekadar status teks 'Selesai'. */}
+            <D2Action ok={evalResult.openPervasive.length + evalResult.openSignificant.length + evalResult.openMinor.length === 0} t="Lanjutkan remediasi defisiensi terdaftar" v={(evalResult.openPervasive.length + evalResult.openSignificant.length + evalResult.openMinor.length) + ' aktif'} />
             <D2Action ok={inspBad.length === 0} t="Eskalasi inspeksi tidak memuaskan" v={inspBad.length + ' kasus'} />
             <D2Action ok={true} t="Komunikasikan hasil ke seluruh personel" v="Memo & town hall" />
             <D2Action ok={true} t="Laporkan ke PPPK & TCWG terkait" v="Sesuai jadwal" />

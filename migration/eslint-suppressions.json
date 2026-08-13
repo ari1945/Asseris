@@ -566,7 +566,7 @@
   },
   "src/view_governance.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 24
+      "count": 22
     }
   },
   "src/view_groupaudit.tsx": {
@@ -621,7 +621,7 @@
   },
   "src/view_isqm_deep.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 54
+      "count": 49
     }
   },
   "src/view_isqm_parts.tsx": {

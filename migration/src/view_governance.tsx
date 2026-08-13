@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui';
@@ -18,6 +19,10 @@ const PRV_STAT = { 'Memadai': 'green', 'Pemantauan': 'amber', 'Tidak Memadai': '
 
 import { assessNetwork, networkDefectLabel, ADAPTATION_LABEL,
   type NetworkItem, type NetworkMonitoringResult, type NetworkDeficiency } from './canon_smm_network';
+import { evaluateSmm } from './canon_smm_evaluation';
+import { collectSmmDeficiencies } from './canon_smm_deficiencies';
+import { attestKeyFor, attestChainLinks, attestChainComplete, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import { useFirmAttest } from './firm_attest';
 
 /** Wadah jaringan ¶48–52 sebagaimana tersimpan di AMS.QM_NETWORK. */
 interface GovNetwork {
@@ -26,16 +31,51 @@ interface GovNetwork {
 }
 
 function Governance() {
+  const nav = useNav();
   const A: any = AMS;
   const comps = A.QM_COMPONENTS, roles = A.QM_ROLES, providers = A.QM_PROVIDERS, culture = A.QM_CULTURE, ev = A.QM_EVAL;
   const net: GovNetwork = A.QM_NETWORK || { inNetwork: false, name: '', year: 0, items: [], monitoring: [], deficiencies: [] };
   const netA = assessNetwork(net.inNetwork, net.items, net.monitoring, net.deficiencies, net.year);
-  const [tab, setTab] = useGov('spm');
+  /* Deep-link tab (`#/governance?tab=network` & `nav('governance',{tab})`) —
+     sebelumnya `useState` polos, sehingga tautan ke panel Ketentuan Jaringan
+     selalu mendarat di tab default. */
+  const [tab, setTab] = useInitialTab('governance', 'spm');
   const [sel, setSel] = useGov(null);
+
+  /* ---------------------------------------------------------------
+     Simpulan ¶54 & atestasi ¶20 — DITURUNKAN, tidak lagi dari seed.
+
+     Bentuk lama membaca `QM_EVAL` mentah: `by`/`approvedBy`/`date`
+     adalah string seed, sehingga layar ini menampilkan atestasi
+     BERTANDA TANGAN & BERTANGGAL yang tidak pernah terjadi —
+     sementara SOQM untuk periode yang sama menyatakan "belum
+     ditandatangani" dan mengunci tanda tangan sampai kesimpulan
+     tertulis disimpan. Badge "Keyakinan Memadai" bahkan di-hardcode,
+     sehingga tak pernah bisa berbunyi lain apa pun keadaannya.
+
+     Kini keduanya bersumber sama persis dengan SOQM: mesin ¶54
+     kanonik + rantai atestasi `firmAttest.soqmAnnualEval.<tahun>`.
+     Penandatanganan tetap dilakukan DI SOQM (satu tempat menulis);
+     layar ini hanya mencerminkan.
+     --------------------------------------------------------------- */
+  const evalMaster = ev || {};
+  const evalPeriod: string = evalMaster.period || 'Tahun Berjalan';
+  const attestKey = attestKeyFor('soqmAnnualEval', evalPeriod, (A.CPE_REQ || {}).year);
+  const attest = useFirmAttest(attestKey, evalPeriod);
+  const attestLinks = attestChainLinks(attest.state, SOQM_ANNUAL_ROLES);
+  const attestComplete = attestChainComplete(attestLinks);
+  const smmDefs = collectSmmDeficiencies({ risks: A.SOQM_RISKS, network: A.QM_NETWORK });
+  const evalResult = evaluateSmm(smmDefs);
+  const concLabel = evalResult.conclusion === 'reasonable' ? 'Memadai'
+    : evalResult.conclusion === 'reasonable-except-for' ? 'Dgn Pengecualian' : 'Belum Memadai';
+  const concColor = evalResult.conclusion === 'reasonable' ? 'var(--green)'
+    : evalResult.conclusion === 'reasonable-except-for' ? 'var(--amber)' : 'var(--red)';
 
   const avg = Math.round(comps.reduce((s: any, c: any) => s + c.score, 0) / comps.length);
   const effective = comps.filter((c: any) => c.status === 'Efektif').length;
-  const openDefs = comps.reduce((s: any, c: any) => s + c.defs, 0);
+  /* Defisiensi terbuka menurut A191 (dua syarat), bukan penjumlahan field seed
+     `QM_COMPONENTS.defs` — angka itu tak pernah tertaut register mana pun. */
+  const openDefs = evalResult.openPervasive.length + evalResult.openSignificant.length + evalResult.openMinor.length;
   const selComp = sel ? comps.find((c: any) => c.id === sel) : null;
 
   const tabs = [
@@ -55,7 +95,7 @@ function Governance() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={avg + '%'} label="Skor Efektivitas SMM" accent={scoreColor(avg)} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={ev && ev.conclusion === 'reasonable' ? 'Memadai' : ev && ev.conclusion === 'reasonable-with-exceptions' ? 'Dgn Pengecualian' : 'Belum Memadai'} label={'Simpulan Evaluasi ' + String((ev && ev.period ? ev.period : '').slice(-4) || '')} accent={ev && ev.conclusion === 'reasonable' ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={concLabel} label={'Rekomendasi Mesin ¶54 · ' + String(evalPeriod.slice(-4) || '')} accent={concColor} /></div></Panel>
         </div>
 
         {/* Annual evaluation conclusion — centerpiece of SMM 1 */}
@@ -63,15 +103,39 @@ function Governance() {
           <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 42, height: 42, borderRadius: 11, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: '0 0 42px' }}><I.shield size={22} /></div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SMM Tahunan — Periode {ev.period}</div>
-              <div className="tiny" style={{ color: '#bcd6e4' }}>Disusun {ev.by} · Disetujui {ev.approvedBy}</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SMM Tahunan — Periode {evalPeriod}</div>
+              {/* Nama penandatangan HANYA dari rantai atestasi. Sebelumnya
+                  `ev.by`/`ev.approvedBy` seed ditampilkan sebagai fakta. */}
+              <div className="tiny" style={{ color: '#bcd6e4' }}>
+                {attestLinks.map((l, i) => (
+                  <span key={l.roleId}>
+                    {i > 0 && ' · '}
+                    {i === 0 ? 'Disusun ' : 'Disetujui '}
+                    <b>{l.signer && l.status !== 'voided' ? l.signer.by : 'belum ditandatangani'}</b>
+                    {l.status === 'voided' && ' (gugur — kesimpulan berubah)'}
+                  </span>
+                ))}
+              </div>
             </div>
-            <Badge kind="green"><I.checkCircle size={12} /> Keyakinan Memadai</Badge>
+            {attestComplete
+              ? <Badge kind="green"><I.checkCircle size={12} /> Atestasi Lengkap</Badge>
+              : <Badge kind="amber"><I.lock size={12} /> Menunggu Atestasi</Badge>}
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 0 }}>
             <div style={{ padding: '14px 18px', borderRight: '1px solid var(--line-soft)' }}>
-              <div className="tiny muted upper" style={{ marginBottom: 5 }}>Pernyataan Simpulan (SMM 1 ¶54)</div>
-              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>{ev.statement}</p>
+              <div className="row jb ac" style={{ marginBottom: 5 }}>
+                <span className="tiny muted upper">Pernyataan Simpulan (SMM 1 ¶54)</span>
+                <Badge kind={evalResult.conclusion === 'reasonable' ? 'green' : evalResult.conclusion === 'reasonable-except-for' ? 'amber' : 'red'}>{evalResult.paragraph}</Badge>
+              </div>
+              {attest.state && (attest.state.conclusion || '').trim()
+                ? <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>{attest.state.conclusion}</p>
+                : (
+                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-3)' }}>
+                    Belum ada kesimpulan tertulis untuk periode ini. Rekomendasi mesin: <b>{evalResult.label}</b> ({evalResult.paragraph}).
+                    Kesimpulan ¶53 disusun &amp; ditandatangani di modul{' '}
+                    <button type="button" className="lin-cta" onClick={() => nav && nav('soqm', { from: 'governance', tab: 'evaluation' })}>SOQM Operasional</button>.
+                  </p>
+                )}
             </div>
             <div style={{ padding: '14px 18px' }}>
               <div className="tiny muted upper" style={{ marginBottom: 7 }}>Dasar Simpulan</div>
