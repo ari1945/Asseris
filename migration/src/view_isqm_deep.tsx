@@ -143,7 +143,10 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
                   </div>
                   <div className="row ac gap8 tiny muted">
                     <span>Pemilik {c.owner}</span><span>·</span>
-                    <span style={{ color: 'var(--ink-2)' }}>{c.obj} tujuan · {cRisks.length} risiko · <span style={{ color: defs ? 'var(--amber)' : 'var(--ink-4)', fontWeight: defs ? 700 : 400 }}>{defs} defisiensi</span></span>
+                    {/* C2 & C8 adalah PROSES (¶23–27 · ¶35–47) — bukan pemilik tujuan mutu
+                        ¶28–33, jadi `obj` sah bernilai 0. Ditulis "proses" agar tidak terbaca
+                        sebagai komponen yang kehilangan tujuannya. */}
+                    <span style={{ color: 'var(--ink-2)' }}>{c.obj > 0 ? `${c.obj} tujuan mandatori` : 'proses (tanpa tujuan ¶28–33)'} · {cRisks.length} risiko · <span style={{ color: defs ? 'var(--amber)' : 'var(--ink-4)', fontWeight: defs ? 700 : 400 }}>{defs} defisiensi</span></span>
                   </div>
                 </div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 8, fontStyle: 'italic' }}>{c.desc}</div>

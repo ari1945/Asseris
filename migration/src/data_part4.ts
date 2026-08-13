@@ -4,6 +4,7 @@
 import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1';
 import { NONAUDIT } from './data_part2';
 import { componentParaLabel, smm1Ref } from './canon_smm_refs';
+import { objectivesForComponent } from './canon_smm_objectives';
 
   const DD_OPP  = PIPELINE.find(o => o.id === 'OPP-105')!;
   const DD_PROS = PROSPECTS.find(p => p.id === 'PROS-06')!;
@@ -148,17 +149,22 @@ import { componentParaLabel, smm1Ref } from './canon_smm_refs';
      ============================================================ */
   /* `ref` DITURUNKAN dari `canon_smm_refs` — sebelumnya ditulis tangan dan salah
      pada 7 dari 8 komponen (mis. Ketentuan Etika '¶31–32' padahal ¶29). Oracle-nya
-     ada di `canon_smm_refs.test.ts`. Field `obj` (jumlah tujuan mutu) masih berupa
-     angka seed — akan diikat ke 27 tujuan mandatori ¶28–33 pada PR-2. */
+     ada di `canon_smm_refs.test.ts`.
+
+     `obj` (jumlah tujuan mutu mandatori) juga DITURUNKAN — sebelumnya integer
+     dekoratif (4,2,5,3,6,4,2,3) yang tak tertaut daftar tujuan mana pun, sehingga
+     panel merender "4 tujuan" untuk Tata Kelola padahal tak ada empat tujuan di
+     mana pun. C2 & C8 kini 0: keduanya PROSES (¶23–27 · ¶35–47), bukan pemilik
+     tujuan ¶28–33. */
   const QM_COMPONENTS = [
-    { id: 'C1', name: 'Tata Kelola & Kepemimpinan', ref: componentParaLabel('C1'), score: 92, status: 'Efektif', owner: 'Hartono Wijaya', obj: 4, risks: 3, defs: 0, trend: [86, 88, 90, 92], desc: 'Komitmen mutu, akuntabilitas pimpinan, struktur organisasi & alokasi sumber daya.' },
-    { id: 'C2', name: 'Proses Penilaian Risiko Firma', ref: componentParaLabel('C2'), score: 87, status: 'Efektif', owner: 'Anindya Pramesti', obj: 2, risks: 6, defs: 1, trend: [80, 82, 85, 87], desc: 'Penetapan tujuan mutu, identifikasi & penilaian risiko mutu, perancangan respons.' },
-    { id: 'C3', name: 'Ketentuan Etika Relevan', ref: componentParaLabel('C3'), score: 96, status: 'Efektif', owner: 'Sari Dewanti', obj: 5, risks: 4, defs: 0, trend: [94, 95, 95, 96], desc: 'Independensi, objektivitas, kerahasiaan, rotasi, kepatuhan kode etik IAPI.' },
-    { id: 'C4', name: 'Penerimaan & Keberlanjutan', ref: componentParaLabel('C4'), score: 88, status: 'Efektif', owner: 'Rudi Gunawan', obj: 3, risks: 4, defs: 0, trend: [84, 85, 87, 88], desc: 'Penilaian integritas klien, kompetensi & kapasitas firma, pertimbangan etika sebelum menerima/melanjutkan.' },
-    { id: 'C5', name: 'Pelaksanaan Perikatan', ref: componentParaLabel('C5'), score: 84, status: 'Efektif', owner: 'Hartono Wijaya', obj: 6, risks: 5, defs: 0, trend: [81, 82, 83, 84], desc: 'Arahan, supervisi, reviu, konsultasi, perbedaan pendapat, EQR & dokumentasi perikatan.' },
-    { id: 'C6', name: 'Sumber Daya', ref: componentParaLabel('C6'), score: 79, status: 'Perlu Perhatian', owner: 'Anindya Pramesti', obj: 4, risks: 6, defs: 1, trend: [83, 81, 80, 79], desc: 'SDM, teknologi, sumber daya intelektual (metodologi), & penyedia jasa eksternal.' },
-    { id: 'C7', name: 'Informasi & Komunikasi', ref: componentParaLabel('C7'), score: 90, status: 'Efektif', owner: 'Citra Halim', obj: 2, risks: 3, defs: 0, trend: [85, 87, 89, 90], desc: 'Arus informasi mutu internal & dengan jaringan/pihak eksternal yang relevan.' },
-    { id: 'C8', name: 'Pemantauan & Remediasi', ref: componentParaLabel('C8'), score: 81, status: 'Efektif', owner: 'Citra Halim', obj: 3, risks: 4, defs: 1, trend: [76, 78, 80, 81], desc: 'Aktivitas pemantauan, evaluasi temuan, komunikasi & remediasi defisiensi secara tepat waktu.' },
+    { id: 'C1', name: 'Tata Kelola & Kepemimpinan', ref: componentParaLabel('C1'), score: 92, status: 'Efektif', owner: 'Hartono Wijaya', obj: objectivesForComponent('C1').length, risks: 3, defs: 0, trend: [86, 88, 90, 92], desc: 'Komitmen mutu, akuntabilitas pimpinan, struktur organisasi & alokasi sumber daya.' },
+    { id: 'C2', name: 'Proses Penilaian Risiko Firma', ref: componentParaLabel('C2'), score: 87, status: 'Efektif', owner: 'Anindya Pramesti', obj: objectivesForComponent('C2').length, risks: 6, defs: 1, trend: [80, 82, 85, 87], desc: 'Penetapan tujuan mutu, identifikasi & penilaian risiko mutu, perancangan respons.' },
+    { id: 'C3', name: 'Ketentuan Etika Relevan', ref: componentParaLabel('C3'), score: 96, status: 'Efektif', owner: 'Sari Dewanti', obj: objectivesForComponent('C3').length, risks: 4, defs: 0, trend: [94, 95, 95, 96], desc: 'Independensi, objektivitas, kerahasiaan, rotasi, kepatuhan kode etik IAPI.' },
+    { id: 'C4', name: 'Penerimaan & Keberlanjutan', ref: componentParaLabel('C4'), score: 88, status: 'Efektif', owner: 'Rudi Gunawan', obj: objectivesForComponent('C4').length, risks: 4, defs: 0, trend: [84, 85, 87, 88], desc: 'Penilaian integritas klien, kompetensi & kapasitas firma, pertimbangan etika sebelum menerima/melanjutkan.' },
+    { id: 'C5', name: 'Pelaksanaan Perikatan', ref: componentParaLabel('C5'), score: 84, status: 'Efektif', owner: 'Hartono Wijaya', obj: objectivesForComponent('C5').length, risks: 5, defs: 0, trend: [81, 82, 83, 84], desc: 'Arahan, supervisi, reviu, konsultasi, perbedaan pendapat, EQR & dokumentasi perikatan.' },
+    { id: 'C6', name: 'Sumber Daya', ref: componentParaLabel('C6'), score: 79, status: 'Perlu Perhatian', owner: 'Anindya Pramesti', obj: objectivesForComponent('C6').length, risks: 6, defs: 1, trend: [83, 81, 80, 79], desc: 'SDM, teknologi, sumber daya intelektual (metodologi), & penyedia jasa eksternal.' },
+    { id: 'C7', name: 'Informasi & Komunikasi', ref: componentParaLabel('C7'), score: 90, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C7').length, risks: 3, defs: 0, trend: [85, 87, 89, 90], desc: 'Arus informasi mutu internal & dengan jaringan/pihak eksternal yang relevan.' },
+    { id: 'C8', name: 'Pemantauan & Remediasi', ref: componentParaLabel('C8'), score: 81, status: 'Efektif', owner: 'Citra Halim', obj: objectivesForComponent('C8').length, risks: 4, defs: 1, trend: [76, 78, 80, 81], desc: 'Aktivitas pemantauan, evaluasi temuan, komunikasi & remediasi defisiensi secara tepat waktu.' },
   ];
   const QM_ROLES = [
     { role: 'Tanggung Jawab Akhir atas SMM', person: 'Hartono Wijaya, CPA', title: 'Managing Partner', ref: 'SMM 1 ¶20(a)', since: '2019', note: 'Akuntabilitas tertinggi atas Sistem Manajemen Mutu firma.' },
