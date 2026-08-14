@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-14 |
 | Pemilik | Ari Widodo |
-| Status | Draft — menunggu sign-off ("Proceed.") |
+| Status | Draft — **Q-1·Q-2·Q-3 TERJAWAB** (Claude atas delegasi Ari, 2026-08-14, §12); F-3 dicabut → arc menjadi dua fase; menunggu sign-off ("Proceed.") |
 | Engagement ID terkait | — (lintas-aplikasi; router `app.tsx`, hook `contexts.tsx`, 72 modul bertab) |
 | PRD terkait | Kontrak Overlay & objek beralamat (arc `route_hash.ts`) — PRD ini melanjutkannya ke sumbu tab |
 | Ditemukan | Tinjauan visual hidup 2026-08-14 (V-9), saat menutup utang tinjauan PR-8a-1/8b |
@@ -69,7 +69,9 @@ dan state mengikuti hash saat hash berubah dari luar.**
 Turunannya:
 - URL yang disalin membuka layar yang sama persis.
 - Reload mempertahankan tempat kerja.
-- Back/Forward berperilaku sesuai harapan pengguna atas sumbu tab (lihat Q-2).
+- Back/Forward memulihkan tab pada jalur yang riwayatnya memang ada — URL ditempel atau
+  tautan dibuka. Klik tab sengaja TIDAK membuat entri riwayat (Q-2 = `replaceState`),
+  sehingga Back berarti "keluar dari modul ini".
 - Kontrak tunggal, bukan 72 salinan logika per modul.
 
 ## 3. Success Criteria
@@ -84,6 +86,7 @@ Turunannya:
 | SC-6 | `?tab=` tak dikenal tidak memutih/menggantung halaman — jatuh ke fallback modul | uji unit |
 | SC-7 | Tak ada modul yang kehilangan perilaku tab yang sekarang benar | suite penuh tetap hijau |
 | SC-8 | Modul yang dimigrasi memakai SATU hook bersama, bukan salinan logika | tinjauan kode + gerbang lint/grep |
+| SC-9 | Tidak ada `nav(id, { tab })` yang menunjuk modul tanpa `useInitialTab` (Q-1) | gerbang statis grep — tautan semacam itu mendarat di tab salah secara diam |
 
 ## 4. Scope
 
@@ -93,7 +96,8 @@ Turunannya:
 - `app.tsx` — pembaca `hashchange` menghormati `loc.tab`; efek perbaikan alamat berhenti
   membuang `tab`/`sel`.
 - Uji: unit atas hook & `route_hash`, e2e atas perjalanan bagikan-tautan/reload/Back.
-- Migrasi modul bertab yang belum beralamat — **bertahap, cakupannya ditentukan Q-1.**
+- Migrasi modul bertab yang belum beralamat — **atas pemicu, bukan massal** (Q-1 §12):
+  satu baris `useState` → `useInitialTab` ketika modul benar-benar ditautkan atau diminta.
 
 ## 5. Non-Scope
 
@@ -109,8 +113,8 @@ Turunannya:
 ## 6. Constraints
 
 - **Riwayat peramban tak boleh dibanjiri.** Komentar `app.tsx:178–183` sudah memilih
-  `replaceState` untuk perpindahan intra-modul justru karena alasan ini. Q-2 memutuskan
-  apakah pilihan itu bertahan setelah tab menjadi beralamat.
+  `replaceState` untuk perpindahan intra-modul justru karena alasan ini. **Q-2 (§12)
+  mempertahankan pilihan itu** — tab adalah bagian satu kertas kerja, bukan halaman.
 - **Penjaga anti-gelung wajib dipertahankan.** Penulis dan pembaca hash saling memicu;
   disiplin yang ada ("no-op bila hash sudah cocok dengan state") harus tetap eksplisit.
 - Tanpa `window` di kanon; hook boleh menyentuh `location`/`history` dengan `try/catch`
@@ -163,21 +167,24 @@ Artinya pekerjaannya **kecil dan terpusat**, bukan penulisan ulang router.
 | # | Risiko | Mitigasi |
 |---|---|---|
 | R-1 ⚠ | **Gelung penulis↔pembaca** — `setTab` menulis hash, `hashchange` menyeed state, memicu tulis lagi. Ini membekukan aplikasi, bukan sekadar mengganggu. | No-op wajib di KEDUA sisi bila nilai sudah sama; uji khusus SC-3 menghitung entri riwayat per satu perubahan tab. |
-| R-2 | **Banjir riwayat** — 20 klik tab = 20 tekan Back sebelum keluar modul. | Q-2. Bila `pushState` dipilih, pertimbangkan hanya mem-*push* perpindahan tab yang disengaja, bukan yang lahir dari sinkronisasi. |
+| R-2 ✅ | **Banjir riwayat** — 20 klik tab = 20 tekan Back sebelum keluar modul. | **PADAM.** Q-2 memilih `replaceState`: klik tab tidak pernah membuat entri riwayat. Semantiknya menjadi Back = keluar modul. |
 | R-3 | **Regresi senyap pada 11 modul yang kini sudah benar.** | SC-7: suite penuh hijau; tambahkan e2e minimal untuk `soqm` & `wtb` yang menjadi bukti V-9. |
 | R-4 | **`?tab=` basi setelah tab di-rename** — tautan lama menunjuk id yang tak ada. | SC-6: jatuh ke fallback modul, jangan halaman kosong. |
-| R-5 | Migrasi 61 modul menyentuh banyak berkas sekaligus → tinjauan sulit. | Pecah per PR menurut ruang kerja; jangan satu PR raksasa. Q-1 boleh membatasi ke modul yang paling sering dibagikan. |
+| R-5 ✅ | Migrasi 61 modul menyentuh banyak berkas sekaligus → tinjauan sulit. | **PADAM.** Q-1 mencabut migrasi massal: hanya 4 modul yang benar-benar jadi sasaran `nav(…,{tab})`, dan keempatnya sudah dipulihkan F-1. |
 | R-6 | Perubahan router memengaruhi seluruh aplikasi; regresi di sini memutus navigasi total. | Fase 1 (hook + router) dikirim dan diverifikasi HIDUP lebih dulu, terpisah dari migrasi modul. |
 
 ## 10. Implementation Plan
 
 | Fase | Isi | Kriteria |
 |---|---|---|
-| **F-1** | Hook tab beralamat + perbaikan `app.tsx` (pembuang alamat & pembaca). Tanpa migrasi modul. | SC-1..SC-4, SC-6, SC-7 |
-| **F-2** | Uji e2e perjalanan: bagikan-tautan · reload · Back/Forward, atas `soqm` & `wtb`. | SC-2, SC-3, SC-5 |
-| **F-3** | Migrasi modul bertab yang belum beralamat, bertahap per ruang kerja. | SC-8, SC-7 |
+| **F-1** | Hook tab beralamat (`replaceState`, Q-2) + perbaikan `app.tsx` (pembuang alamat & pembaca `hashchange`). Tanpa migrasi modul. | SC-1..SC-4, SC-6, SC-7 |
+| **F-2** | Gerbang SC-9 + uji e2e perjalanan: bagikan-tautan · reload · Back/Forward, atas `soqm` & `wtb`. | SC-2, SC-3, SC-5, SC-9 |
 
-F-1 & F-2 layak satu PR (keduanya kecil dan saling membuktikan). F-3 beberapa PR.
+**Dua fase, bukan tiga** — F-3 (migrasi massal 61 modul) DICABUT oleh jawaban Q-1.
+Migrasi kini dipicu peristiwa: satu baris `useState` → `useInitialTab` ketika sebuah
+modul benar-benar ditautkan atau diminta. SC-9 menegakkan pemicu itu secara otomatis.
+
+F-1 & F-2 layak satu PR — keduanya kecil dan saling membuktikan.
 
 **Verifikasi hidup wajib**, bukan opsional: cacat ini lolos dari 1631 uji dan hanya
 terlihat saat aplikasi dijalankan. Setiap fase diverifikasi di peramban sebelum ditutup.
@@ -203,14 +210,112 @@ memakai `replaceState` ("supaya riwayat tak dibanjiri", `app.tsx:178`).
   penyeedan awal/sinkronisasi. Paling sesuai harapan, paling banyak logikanya.
 
 Ini menentukan apakah keluhan "Back tampak rusak" benar-benar tertutup atau hanya
-berkurang. Saya condong ke **(c)**, dengan **(a)** sebagai pilihan aman bila ingin
-perubahan sekecil mungkin.
+berkurang.
 
 **Q-3 · Apakah sumbu seleksi (`sel`) ikut?** Saat ini Non-Scope. Menjadikan baris terpilih
 beralamat berguna ("lihat AJE-014 yang saya maksud") tetapi mengubah kontrak one-shot
 `useInitialSelection` dan memunculkan pertanyaan baru (baris yang sudah dihapus, isolasi
 per-perikatan W7.5 atas id yang muncul di URL). Jawab **tidak** untuk sekarang, atau
 **ya** dan ia mendapat PRD sendiri?
+
+---
+
+## 12. Jawaban atas Q-1 · Q-2 · Q-3
+
+> Dijawab **Claude atas delegasi Ari, 2026-08-14** ("jawab Q1, Q2, Q3 di PRD").
+> Ini keputusan desain, bukan sekadar preferensi — alasannya ditulis agar dapat
+> dibantah. Bila Ari tidak setuju, cukup ubah bagian ini; implementasi belum dimulai
+> dan tetap menunggu **"Proceed."**.
+
+### Q-1 · Cakupan migrasi → **(c), dengan pemicu tercatat** — BUKAN migrasi massal
+
+Jawaban ini berubah setelah diukur, bukan dikira-kira. Bukti dari `migration/src`:
+
+| Ukuran | Nilai |
+|---|---|
+| View memakai `<Tabs>` | 72 |
+| View memakai `useInitialTab` (beralamat separuh) | 11 |
+| Pemanggilan `nav(…, { tab })` di SELURUH aplikasi | **5** |
+| Modul yang benar-benar jadi SASARAN deep-link tab | **4** — `wtb` (2×) · `soqm` · `sa530` · `governance` |
+
+**Keempat sasaran itu seluruhnya sudah ada di dalam 11 modul yang dipulihkan F-1.**
+Artinya F-1 saja sudah menutup 100% kebutuhan deep-link tab yang benar-benar
+dibuktikan kode. Migrasi 61 modul sisanya adalah pekerjaan tanpa permintaan yang
+terbukti, sementara R-5 justru menamai beban tinjauannya sebagai risiko.
+
+Menolak (a) dan (b) karena keduanya bersandar pada tebakan "modul mana yang sering
+dibagikan" — termasuk daftar dugaan saya sendiri di (b), yang ternyata tidak didukung
+satu pun bukti dalam kode.
+
+**Agar (c) tidak berarti "tidak pernah", migrasi dipicu oleh peristiwa, bukan jadwal.**
+Sebuah modul dimigrasikan (`useState` → `useInitialTab`, satu baris) begitu salah satu
+terjadi:
+1. ada kode yang menautkannya dengan `nav(id, { tab })`; **atau**
+2. seseorang meminta tautan yang dapat dibagikan ke tab modul itu.
+
+Pemicu (1) layak ditegakkan gerbang: `nav(id,{tab})` ke modul yang belum memakai
+`useInitialTab` adalah cacat diam — tautannya akan mendarat di tab yang salah. Ini
+menjadi **SC-9** di bawah, dan menutup kelas cacat yang sama seperti `soqm` dulu
+(deep-link "Evaluasi Tahunan" dari Governance selalu mendarat di Register).
+
+### Q-2 · Semantik riwayat → **(a) `replaceState`**
+
+Saya sempat condong ke (c) saat menulis §11; pengukuran Q-1 membalikkannya.
+
+Alasan memilih (a):
+
+1. **Tab di Asseris adalah bagian dari satu kertas kerja, bukan halaman terpisah.**
+   Auditor berpindah antar-tab terus-menerus selama bekerja. Dengan `pushState`,
+   sepuluh perpindahan menjadi sepuluh entri riwayat, dan "keluar dari modul ini"
+   menuntut sepuluh kali Back. Itu memperburuk navigasi yang sekarang sudah benar.
+2. **(a) sudah menutup KETIGA kerugian nyata** yang didokumentasikan §1: alamat yang
+   berbohong, tautan yang mendarat di layar lain, dan reload yang memindahkan pengguna.
+   Ketiganya soal *hash mencerminkan state*, bukan soal riwayat.
+3. **"Back tampak rusak" tetap tertutup untuk kasus yang riwayatnya memang ada.**
+   Ini koreksi atas cara §1 membingkainya. Ketika pengguna menempel URL atau membuka
+   tautan bertab, peramban SENDIRI membuat entri riwayat; pembaca `hashchange` F-1
+   menyinkronkan tab, sehingga Back/Forward bekerja penuh di jalur itu. Yang tidak
+   menghasilkan entri hanyalah **klik tab**, dan itu memang disengaja.
+   Hasilnya semantik yang dapat diprediksi: **Back = keluar dari modul ini.**
+4. **Risiko terkecil di tempat paling berbahaya.** R-1 (gelung penulis↔pembaca)
+   membekukan aplikasi, dan R-6 menyebut perubahan router berdampak ke seluruh modul.
+   (c) menambah cabang logika "klik disengaja vs sinkronisasi" tepat di jalur itu.
+   Manfaatnya — Back menyusuri tab — adalah kenyamanan, bukan penutupan cacat.
+
+**Konsekuensi yang diterima secara sadar:** setelah klik beberapa tab, Back tidak
+menyusuri tab yang tadi dibuka. Itu pilihan, bukan kelalaian, dan wajib disebut apa
+adanya dalam PR — bukan diklaim "Back sudah diperbaiki".
+
+### Q-3 · Sumbu seleksi (`sel`) → **tidak untuk sekarang**, tetap Non-Scope
+
+Manfaatnya nyata ("lihat AJE-014 yang saya maksud"), tetapi ia risiko kelas LAIN dan
+tidak boleh menumpang pada perbaikan routing:
+
+1. **Pengungkapan keberadaan.** Id entitas di URL ikut tersalin ke chat, tiket, dan
+   riwayat peramban. Server tetap otoritatif (W7.5) sehingga tak ada kebocoran DATA,
+   tetapi *keberadaan* AJE/klien/temuan tertentu bocor ke penerima yang tak berhak —
+   hal yang tidak sepele bagi KAP dengan kewajiban kerahasiaan.
+2. **Mengubah kontrak yang sudah teruji.** `useInitialSelection` sengaja MENGONSUMSI
+   kuncinya (one-shot) sejak PRD 2026-07-18. Menjadikannya menetap membalik kontrak
+   itu, dan hanya 2 modul memakainya — sampel terlalu tipis untuk menyimpulkan pola.
+3. **Baris yang sudah tak ada** menuntut jalur "tak ditemukan / tak dapat diakses"
+   yang benar, yang berbeda untuk tiap register.
+
+Ketiganya menuntut pertimbangan sendiri. Bila kelak diinginkan: **PRD terpisah**,
+dengan analisis kerahasiaan sebagai bagian wajib — bukan tambahan pada PRD ini.
+
+---
+
+## 13. Perubahan pada rencana akibat jawaban di atas
+
+- **§3 SC** bertambah **SC-9**: tidak boleh ada `nav(id, { tab })` yang menunjuk modul
+  yang belum memakai `useInitialTab`. Gerbang statis (grep/lint) — menutup pemicu (1)
+  Q-1 secara otomatis alih-alih mengandalkan kedisiplinan.
+- **§10 F-3** turun dari "migrasi bertahap 61 modul" menjadi **migrasi atas pemicu**.
+  Konsekuensinya arc ini menjadi **dua fase (F-1 + F-2)**, bukan tiga — lingkupnya
+  mengecil, dan R-5 (beban tinjauan migrasi massal) padam dengan sendirinya.
+- **§9 R-2** (banjir riwayat) padam: Q-2 memilih `replaceState`.
+- **§5 Non-Scope** dipertegas: sumbu seleksi tetap di luar lingkup (Q-3).
 
 ---
 
