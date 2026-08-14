@@ -29,7 +29,7 @@ function PPPKReport() {
 
   const totalOpinions = R.opinions.reduce((s: any, o: any) => s + o.n, 0);
   const ready = R.sections.filter((s: any) => s.status === 'Lengkap').length;
-  const daysLeft = Math.round((+new Date(R.dueDate) - +new Date("2026-03-09")) / 864e5);
+  const daysLeft = Math.round((+new Date(R.dueDate) - +new Date(AMS.TODAY)) / 864e5);
   const rotationDue = rotation.filter((r: any) => r.status === 'Wajib Rotasi').length;
   const pplOk = ppl.filter((p: any) => pplStatus({ structured: p.structured, unstructured: p.unstructured }).compliant).length;
   const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);

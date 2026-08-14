@@ -21,7 +21,7 @@ function FirmRevenue() {
   const invoices: any = AMS.INVOICES;
   const [tab, setTab] = useStateRV('recognition');
   const [sel, setSel] = useStateRV(null);
-  const REF = new Date('2026-03-09');
+  const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 
   /* PSAK 72 — over-time recognition by stage of completion */
   const sched = engagements.map((e: any) => {

@@ -304,7 +304,7 @@ function agingBucket(daysOver: any) {
 
 function AgingStrip({ items, getDue, getOut }: any) {
   const { fmt } = AMS;
-  const REF = new Date('2026-03-09');
+  const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const buckets = AGING_BUCKETS.map(b => ({ ...b, v: 0, n: 0 }));
   items.forEach((it: any) => {
     const out = getOut(it); if (out <= 0) return;
@@ -334,7 +334,7 @@ function FirmAPAR() {
   const [tab, setTab] = useStateF1('ap');
   const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
   const ar: any = AMS.INVOICES;
-  const REF = new Date('2026-03-09');
+  const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 
   const apOutstanding = ap.filter((x: any) => x.status !== 'Paid').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const apOverdue = ap.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);

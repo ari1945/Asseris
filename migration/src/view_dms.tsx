@@ -29,7 +29,7 @@ const DMS_ENGS = [
   { id: 'ENG-2024-014', client: 'PT Sentosa Makmur Tbk' },
   { id: 'ENG-2021-008', client: 'PT Bumi Hijau Lestari' },
 ];
-const REF = new Date('2026-03-09');
+const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 const dDate = (d: any, opt?: any) => d ? new Date(d).toLocaleDateString('id-ID', opt || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 function retentionInfo(d: any) {

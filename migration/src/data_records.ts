@@ -30,7 +30,7 @@ import { BO as BO_NS } from './data_backoffice';
    Konsumsi via window.RETENTION.
    ============================================================ */
 (function () {
-  const today = new Date('2026-03-09');
+  const today = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const daysTo = (d: any) => d ? Math.round((new Date(d).getTime() - today.getTime()) / 864e5) : null;
   const yearsLeft = (d: any) => d ? (new Date(d).getTime() - today.getTime()) / (365.25 * 864e5) : null;
   const addYears = (d: any, y: any) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };

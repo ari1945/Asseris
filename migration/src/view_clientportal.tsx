@@ -317,7 +317,7 @@ function ClientPortal() {
   const [showAdd, setShowAdd] = usePBC(false);
   const [uploadReq, setUploadReq] = usePBC(null);
 
-  const today = '2026-03-09';
+  const today = AMS.TODAY; /* K-02: klok SSOT */
   /* hanya item perikatan aktif — konsisten dengan useFirm() */
   const engReqs = useMemoPBC(() => reqs.filter((r: any) => r.eng === engId), [reqs, engId]);
   const [selId, setSelId] = usePBC(() => (engReqs[1] || engReqs[0] || {}).id);

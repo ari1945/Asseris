@@ -47,7 +47,7 @@ export function rotTier(tenure: number, limit: number): RotTier {
 
   /* fraksi tahun berjalan (untuk indikator laju PPL) */
   function yearFrac() {
-    const ref = BO().today ? new Date(BO().today) : new Date('2026-03-09');
+    const ref = BO().today ? new Date(BO().today) : new Date(AMS.TODAY);
     const start = new Date(ref.getFullYear(), 0, 1);
     return Math.min(1, Math.max(0.02, (ref.getTime() - start.getTime()) / (365 * 864e5)));
   }
