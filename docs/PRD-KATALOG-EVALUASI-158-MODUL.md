@@ -90,6 +90,15 @@ payroll run (SoD draft→paid), performance phase advance (tanpa gate peran — 
 MODULE_CAP/GROUP_CAP kosong utk grup Keuangan Firma (ERP) & OJK → semua peran bisa
 lihat firmgl/apar/revenue/treasury/cashbank/firmtax. **Keputusan RBAC:** siapa boleh
 lihat data keuangan firma (usul: Partner + Finance). Ukuran: S (config) + review view.
+**Sebagian IMPLEMENTED 2026-08-14 (Program E / SoD finansial — sisi TULIS)**: gate
+dua-lapis `can(CAP.FIRMFIN_EDIT)` (pola capacity) di 5 view — firmgl (Jurnal Baru,
+toggle posting), apar (Bayar), cashbank (toggle rekon), firmtax (Tandai Lapor),
+wipreal (write-down) & billing (Faktur Baru/Kirim/Tandai Lunas); `capForWrite`
+diselaraskan: `invoices` & `wip.adj` kini FIRMFIN_EDIT (sebelumnya FIRM_ADMIN) agar
+UI dan server satu kebijakan (tanpa silent-reject untuk Finance Firma). logActivity
+di semua aksi tulis tsb (GL_POST/AP_PAY/TAX_FILED/RECON_TOGGLE/WIP_WRITEDOWN/
+INV_CREATE/INV_SENT/INV_PAID). Sisi BACA (siapa boleh melihat modul) masih menunggu
+keputusan RBAC — MODULE_CAP tetap kosong untuk grup Keuangan.
 
 ### K-10 · Persistensi FIRM-scope bocor lintas perikatan
 `pbc.v2`/`portalMsgs.v2` (clientportal), `pfi3400.exec`/`soc3402.exec`/`ghg3410.exec`/
@@ -117,6 +126,11 @@ Hub (confirmState.v1) + populasi WP-evidence. Terkait PRD SA 505 Confirmation Hu
 ### K-14 · Posting jurnal → TB/LK nyata di firmgl
 `firmgl` TB/LK tetap seed — posting jurnal tak mengubah laporan. **Solusi:** engine
 posting nyata (pola WTB/AJE). Ukuran: L.
+**IMPLEMENTED 2026-08-14 (Program E)**: `migration/src/firm_ledger.ts` (murni,
+11 unit test) — saldo awal dianker ke jurnal SEED (`AMS.FIRM_GL`), saldo kini =
+saldo awal + Σ jurnal terposting → memposting/membatalkan jurnal LANGSUNG menggeser
+Neraca Saldo, Laporan Laba Rugi/Neraca & Buku Besar, tanpa migrasi data (fresh load
+identik dgn seed). Kode p0 + gate SoD + logActivity di `view_firmgl.tsx`.
 
 ---
 

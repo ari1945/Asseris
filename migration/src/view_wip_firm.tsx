@@ -1,13 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { KvBox } from './view_analytical';
 import { useFirmWip } from './use_firm_wip';
+import { CAP } from './rbac';
 
 /* ============================================================
    Asseris — WIP & Realisasi (Practice Operations · D+)
@@ -27,6 +28,13 @@ function WIPRealization() {
   const [view, setView] = useStateWipF('Perikatan');
   const [sel, setSel] = useStateWipF(null);
   const [adj, setAdj] = useAmsPersist('wip.adj', {});
+  /* E-2a Program E: write-down dari INPUT NILAI (bukan literal +25jt) +
+     SoD finansial (gate FIRMFIN_EDIT, server capForWrite 'wip.adj'). */
+  const [wdAmt, setWdAmt] = useStateWipF(25_000_000);
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   /* WIP — SSOT tunggal (useFirmWip): ctx + overlay jam-aktual T&B seragam antar-modul. */
   const { wip: W, liveByEng } = useFirmWip();
@@ -98,6 +106,18 @@ function WIPRealization() {
   const overdueWip = aging.filter((_: any, i: any) => i >= 2).reduce((s: any, a: any) => s + a.value, 0);
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
   const realColor = (v: any) => v >= 100 ? 'var(--green)' : v >= 92 ? 'var(--amber)' : 'var(--red)';
+
+  /* E-2a Program E: write-down memakai INPUT NILAI (bukan literal +25jt). */
+  const applyWriteDown = () => {
+    if (!canEdit || !selRow || wdAmt <= 0) return;
+    setAdj((a: Record<string, number>) => ({ ...a, [selRow.id]: (a[selRow.id] || 0) + wdAmt }));
+    logActivity && logActivity({ who, action: 'WIP_WRITEDOWN', detail: `Write-down ${selRow.id} +Rp ${fmt(wdAmt / 1e6, 0)} jt` });
+  };
+  const resetWriteDown = () => {
+    if (!canEdit || !selRow) return;
+    setAdj((a: Record<string, number>) => { const n = { ...a }; delete n[selRow.id]; return n; });
+    logActivity && logActivity({ who, action: 'WIP_WRITEDOWN', detail: `Write-down ${selRow.id} direset` });
+  };
 
   return (
     <>
@@ -196,15 +216,16 @@ function WIPRealization() {
           </div>
 
           {selRow && <WipDetail r={selRow} onClose={() => setSel(null)}
-            onWriteDown={() => setAdj((a: any) => ({ ...a, [selRow.id]: (a[selRow.id] || 0) + 25_000_000 }))}
-            onReset={() => setAdj((a: any) => { const n = { ...a }; delete n[selRow.id]; return n; })} />}
+            wdAmt={wdAmt} setWdAmt={setWdAmt} canEdit={canEdit}
+            onWriteDown={applyWriteDown}
+            onReset={resetWriteDown} />}
         </div>
       </div></div>
     </>
   );
 }
 
-function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
+function WipDetail({ r, onClose, onWriteDown, onReset, wdAmt, setWdAmt, canEdit }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const realColor = r.realization >= 100 ? 'var(--green)' : r.realization >= 92 ? 'var(--amber)' : 'var(--red)';
@@ -239,8 +260,18 @@ function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
         {r.extraWD > 0 && <div className="tiny muted" style={{ marginBottom: 8 }}>Termasuk write-down manual Rp {fmt(r.extraWD / 1e6, 0)} jt.</div>}
         <div className="row gap8" style={{ flexWrap: 'wrap' }}>
           {r.wip > 0 && <Btn sm variant="primary" onClick={() => nav('billing')}><I.receipt size={13} /> Terbitkan Faktur</Btn>}
-          <Btn sm onClick={onWriteDown}><I.trend size={13} style={{ transform: 'scaleY(-1)' }} /> + Write-down 25jt</Btn>
-          {r.extraWD > 0 && <Btn sm onClick={onReset}>Reset</Btn>}
+          {canEdit && (
+            <div className="row gap6 ac" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '2px 3px 2px 8px', background: 'var(--surface-2)' }}>
+              <span className="tiny muted">Rp</span>
+              <input className="input mono" type="number" min={0} step={1000000} value={wdAmt}
+                onChange={(e: { target: { value: string } }) => setWdAmt(Math.max(0, +e.target.value))}
+                style={{ width: 92, height: 22, fontSize: 12, textAlign: 'right', padding: '0 4px', border: 'none', background: 'transparent' }}
+                aria-label="Nilai write-down (Rp)" />
+              <Btn sm disabled={!(wdAmt > 0)} onClick={onWriteDown}><I.trend size={13} style={{ transform: 'scaleY(-1)' }} /> Write-down</Btn>
+            </div>
+          )}
+          {canEdit && r.extraWD > 0 && <Btn sm onClick={onReset}>Reset</Btn>}
+          {!canEdit && <span className="tiny muted" style={{ width: '100%' }} title="Write-down dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> Write-down dikunci (peran Finance/Partner)</span>}
         </div>
       </div>
     </Panel>

@@ -1,0 +1,114 @@
+/* ============================================================
+   Program E — P0 firmgl: komputasi saldo GL dari jurnal.
+   Memaku: (1) saldo awal dianker ke seed (jurnal demo) SEKALI →
+   saat baru dimuat saldo kini == seed (tanpa migrasi data);
+   (2) memposting / membatalkan jurnal LANGSUNG menggeser TB/LK/
+   Buku Besar; (3) TB tetap seimbang (double-entry).
+   ============================================================ */
+import { describe, it, expect } from 'vitest';
+import { FIRM_COA, FIRM_GL } from './data_part1';
+import {
+  netEffect, openingBalances, currentBalances,
+  trialBalance, statements, accountLedger,
+} from './firm_ledger';
+
+const coa = FIRM_COA;
+const seedGl = FIRM_GL;   // jurnal demo: postingsnya SUDAH termuat di coa[].bal
+const byCode = (bal: Record<string, number>, code: string) => bal[code];
+
+describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
+  it('saldo awal = seed − Σ jurnal SEED terposting (1-100 Kas: 9.795 M)', () => {
+    const open = openingBalances(coa, seedGl);
+    // JV-0312 dr +925 · JV-0311 cr −1.820 · JV-0308 cr −480 → net −1.375 M
+    expect(byCode(open, '1-100')).toBe(8_420_000_000 + 1_375_000_000);
+    expect(byCode(open, '1-200')).toBe(4_440_000_000 + 370_000_000); // net −370
+    expect(byCode(open, '5-200')).toBe(1_570_000_000 - 820_000_000); // net +820
+    expect(byCode(open, '4-100')).toBe(-11_300_000_000 + 555_000_000); // net −555
+    expect(byCode(open, '2-100')).toBe(-1_820_000_000 + 340_000_000); // net −340
+  });
+
+  it('saldo kini == seed saat app baru dimuat (gl == seedGl)', () => {
+    const cur = currentBalances(coa, seedGl, seedGl);
+    for (const a of coa) {
+      expect(byCode(cur, a.code)).toBe(a.bal);
+    }
+  });
+
+  it('jurnal draft (belum diposting) TIDAK memengaruhi saldo', () => {
+    expect(netEffect(seedGl, '2-200')).toBe(0); // JV-0307 (draft) cr 2-200
+    expect(byCode(currentBalances(coa, seedGl, seedGl), '2-200')).toBe(-940_000_000);
+  });
+
+  it('membatalkan posting jurnal menggeser TB (P0: posting berdampak)', () => {
+    const changed = seedGl.map((j) => j.id === 'JV-0312' ? { ...j, posted: false } : j);
+    const cur = currentBalances(coa, seedGl, changed);
+    expect(byCode(cur, '1-100')).toBe(8_420_000_000 - 925_000_000); // kas turun
+    expect(byCode(cur, '1-200')).toBe(4_440_000_000 + 925_000_000); // piutang naik
+  });
+
+  it('memposting jurnal draft menggeser TB', () => {
+    const changed = seedGl.map((j) => j.id === 'JV-0307' ? { ...j, posted: true } : j);
+    const cur = currentBalances(coa, seedGl, changed);
+    expect(byCode(cur, '5-100')).toBe(5_420_000_000 + 210_000_000);
+    expect(byCode(cur, '2-200')).toBe(-940_000_000 - 210_000_000);
+  });
+
+  it('TB tetap seimbang — total debit == total kredit (36.760 M)', () => {
+    const tb = trialBalance(coa, seedGl, seedGl);
+    expect(tb.balanced).toBe(true);
+    expect(tb.totalDr).toBe(36_760_000_000);
+    expect(tb.totalCr).toBe(36_760_000_000);
+    // baris TB memakai saldo turunan (bukan seed)
+    expect(tb.rows.find((r) => r.code === '1-100')?.bal).toBe(8_420_000_000);
+  });
+
+  it('TB tetap seimbang SETELAH ada jurnal baru (double-entry)', () => {
+    const withNew = [...seedGl, { id: 'JV-0999', date: '2026-03-09', desc: 'tes', dr: '1-100', cr: '4-100', amount: 100_000_000, posted: true }];
+    const tb = trialBalance(coa, seedGl, withNew);
+    expect(tb.balanced).toBe(true);
+    expect(tb.totalDr).toBe(36_860_000_000);
+    expect(tb.rows.find((r) => r.code === '1-100')?.bal).toBe(8_520_000_000);
+    expect(tb.rows.find((r) => r.code === '4-100')?.bal).toBe(-11_400_000_000);
+  });
+
+  it('LK turun dari TB: pendapatan 11.300, beban 8.500, laba 2.800, aset seimbang', () => {
+    const st = statements(coa, seedGl, seedGl);
+    expect(st.revenue).toBe(11_300_000_000);
+    expect(st.expense).toBe(8_500_000_000);
+    expect(st.netProfit).toBe(2_800_000_000);
+    expect(st.totAset).toBe(28_260_000_000);
+    expect(st.totLiab).toBe(4_020_000_000);
+    expect(st.totEkuitas).toBe(24_240_000_000); // 21.440 + laba 2.800
+    expect(st.balanced).toBe(true);
+  });
+
+  it('LK bergeser mengikuti posting jurnal baru (laba 2.900 setelah +100 pendapatan)', () => {
+    const withNew = [...seedGl, { id: 'JV-0998', date: '2026-03-09', desc: 'pendapatan tambahan', dr: '1-200', cr: '4-100', amount: 100_000_000, posted: true }];
+    const st = statements(coa, seedGl, withNew);
+    expect(st.revenue).toBe(11_400_000_000);
+    expect(st.netProfit).toBe(2_900_000_000);
+    expect(st.balanced).toBe(true);
+  });
+
+  it('buku besar: saldo awal 9.795 → berjalan → saldo akhir seed 8.420', () => {
+    const lg = accountLedger(coa, seedGl, seedGl, '1-100');
+    expect(lg.opening).toBe(9_795_000_000);
+    expect(lg.closing).toBe(8_420_000_000);
+    expect(lg.totalDr).toBe(925_000_000);  // JV-0312 dr
+    expect(lg.totalCr).toBe(2_300_000_000); // JV-0308 + JV-0311 cr
+    expect(lg.rows).toHaveLength(3);
+    expect(lg.rows[0].id).toBe('JV-0308'); // urut tanggal
+    expect(lg.rows[0].running).toBe(9_795_000_000 - 480_000_000);
+    expect(lg.rows[2].running).toBe(8_420_000_000);
+  });
+
+  it('GL kosong → saldo = SALDO AWAL (bukan seed), TB tetap seimbang', () => {
+    const tb = trialBalance(coa, seedGl, []);
+    expect(tb.balanced).toBe(true);
+    expect(tb.totalDr).toBe(35_865_000_000); // opening: Aset 30.005 + Beban 5.860
+    expect(tb.totalCr).toBe(35_865_000_000);
+    const st = statements(coa, seedGl, []);
+    expect(st.netProfit).toBe(4_885_000_000); // revenue opening 10.745 − beban 5.860
+    expect(st.balanced).toBe(true);
+  });
+});

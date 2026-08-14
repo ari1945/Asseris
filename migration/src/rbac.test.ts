@@ -132,7 +132,7 @@ describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () 
   });
 
   it('firm: dokumen Firm Finance/ERP (GL/AP/pajak firma/rekonsiliasi bank) → FIRMFIN_EDIT', () => {
-    ['firmgl', 'firmap', 'firmtax', 'bankrecon'].forEach((key) => {
+    ['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj'].forEach((key) => {
       expect(capForWrite('firm', key)).toBe(CAP.FIRMFIN_EDIT);
     });
   });
