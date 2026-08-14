@@ -11,7 +11,7 @@
 | Draft | 53 |
 | Approved | 5 |
 | In Progress | 7 |
-| Implemented | 26 |
+| Implemented | 27 |
 | Superseded | 1 |
 
 ## Daftar
@@ -83,7 +83,7 @@
 | docs/prd-acceptance-to-engagement-flow-sa210.md | Draft — menunggu sign-off |
 | docs/prd-add-staff-user-cli.md | Implemented — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
 | docs/prd-aje-immutability-live-approvals.md | Implemented — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
-| docs/prd-audit-trail-server-chain.md | Draft — baru ditulis 2026-08-13 (dari evaluasi 158 modul; K-01) |
+| docs/prd-audit-trail-server-chain.md | Implemented — P-1..P-5 selesai 2026-08-14; verify hijau + live-verified (audit.list 200 entri, badge jujur) |
 | docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |
 | docs/prd-backup-restore-dr-hardening.md | Draft |
 | docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |

@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | Draft |
+| Status | Implemented — P-1..P-5 dieksekusi 2026-08-14 (branch `feat/audit-trail-server-chain`); `npm run verify` hijau; live-verified di Edge (200 entri server, badge "Terverifikasi — Rantai server utuh" hanya setelah audit.verify true) |
 | Tanggal | 2026-08-13 |
 | Pemilik | Ari Widodo |
 | Kelas cacat | Modul integritas menampilkan klaim "Terverifikasi" tanpa memanggil verifier — UI berhias di atas data karangan (pola: `view_crypto.tsx` sudah benar, modul ini tinggal disambungkan) |
