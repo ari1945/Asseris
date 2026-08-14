@@ -19,7 +19,7 @@ import { WP_REFS, collectWpNotes } from './wp_canon';
 const { useState: useStateWS2, useMemo: useMemoWS2 } = React;
 
 /* ---- reference "today" for the active engagement (aligns with WP sign-offs) ---- */
-const RN_TODAY = new Date(2026, 2, 9); // 09 Mar 2026
+const RN_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal 09 Mar 2026 */
 const RN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const RN_fmtDate = (iso: any) => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${RN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
 const RN_days = (iso: any, ref = RN_TODAY) => { if (!iso) return null; return Math.round((+ref - +new Date(iso)) / 86400000); };

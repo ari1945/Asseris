@@ -86,7 +86,7 @@ function FirmTax() {
               <thead><tr><th>Jenis Pajak</th><th>Masa</th><th>Jatuh Tempo</th><th className="num">Jumlah</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {obs.map((o: any, i: any) => {
-                  const days = Math.round((+new Date(o.due) - +new Date('2026-03-09')) / 864e5);
+                  const days = Math.round((+new Date(o.due) - +new Date(AMS.TODAY)) / 864e5);
                   return (
                     <tr key={i}>
                       <td style={{ fontWeight: 600 }}>{o.jenis}</td>

@@ -28,7 +28,7 @@ import { WP_REFS, deriveWpStatus, collectWpNotes, openCanonicalWp } from './wp_c
 const { useState: useStateD2, useMemo: useMemoD2 } = React;
 
 /* REF "hari ini" — selaras dengan modul DMS (sumber perakitan) */
-const D2_REF = new Date('2026-03-09');
+const D2_REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 /* F2/PR-F — konstanta perikatan (tgl laporan/perakitan/retensi) & atestasi kelengkapan
    kini TERSIMPAN di sa230Doc.v1 (bukan hardcode modul-level). Rollup kelengkapan tetap
    turunan dari WP kanonik (useDocCanon). Nilai di bawah = seed default (¶A21 · SMM 1). */

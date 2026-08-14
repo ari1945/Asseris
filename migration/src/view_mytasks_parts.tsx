@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAudit, useAuditHeavy, useFirm, useCurrentAuditor } from './contexts';
+import { AMS } from './data';
 import { I, MODULES } from './icons';
 import { Badge, Btn, Panel } from './ui';
 /* Tahap 8 — catatan WP via ESM dari wp_canon (eager), bukan window.* yang
@@ -14,7 +15,7 @@ import { collectWpNotes } from './wp_canon';
 const { useState: useStateMT, useMemo: useMemoMT, useRef: useRefMT } = React;
 
 /* "today" anchored to the engagement fieldwork window (data is March 2026) */
-const MT_TODAY = new Date('2026-03-09T00:00:00');
+const MT_TODAY = new Date(AMS.TODAY + 'T00:00:00'); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
 const MT_DAY = 86400000;
 const mtStartOfDay = (d: any) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 const mtAddDays = (d: any, n: any) => new Date(mtStartOfDay(d).getTime() + n * MT_DAY);

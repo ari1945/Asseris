@@ -175,7 +175,7 @@ function Learning() {
   const gapCount = staff.reduce((n: any, s: any) => n + COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length, 0);
   const totalCells = staff.length * COMP.length;
   const coverage = Math.round((totalCells - gapCount) / totalCells * 100);
-  const upcoming = A.TRAINING_CATALOG.filter((t: any) => new Date(t.date) >= new Date('2026-03-09')).length;
+  const upcoming = A.TRAINING_CATALOG.filter((t: any) => new Date(t.date) >= new Date(AMS.TODAY)).length;
   const seatsLeft = A.TRAINING_CATALOG.reduce((s: any, t: any) => s + (t.seats - (enroll.find((e: any) => e.id === t.id) || {}).enrolled), 0);
 
   const doEnroll = (id: any) => setEnroll((list: any) => list.map((e: any) => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find((t: any) => t.id === id).seats, e.enrolled + 1) } : e));

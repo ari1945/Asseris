@@ -1,10 +1,11 @@
 /* ============================================================
    Asseris — Backoffice & Firm Mgmt: data
    KAP Wijaya Hartono & Rekan (WHR). ESM export BO (window.BO dilucuti).
-   Anchor "hari ini" = 2026-03-09 (selaras modul lain).
+   Anchor "hari ini" = AMS.TODAY (klok SSOT, K-02).
    ============================================================ */
+import { AMS } from './data';
 const BO: any = (function () {
-  const today = new Date('2026-03-09');
+  const today = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const daysTo = (d: any) => Math.round((new Date(d).getTime() - today.getTime()) / 864e5);
 
   /* ---------------- Pengadaan & Vendor (MASTER — sumber tunggal counterparty) ----------------

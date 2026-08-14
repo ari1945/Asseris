@@ -31,7 +31,7 @@ function LeaveAttendance() {
 
   const setStatus = (id: any, status: any) => setReqs((list: any) => list.map((r: any) => r.id === id ? { ...r, status } : r));
   const pending = reqs.filter((r: any) => r.status === 'Menunggu');
-  const onLeaveToday = reqs.filter((r: any) => r.status === 'Disetujui' && new Date(r.from) <= new Date('2026-03-09') && new Date(r.to) >= new Date('2026-03-09'));
+  const onLeaveToday = reqs.filter((r: any) => r.status === 'Disetujui' && new Date(r.from) <= new Date(AMS.TODAY) && new Date(r.to) >= new Date(AMS.TODAY));
   const totalEnt = staff.reduce((s: any, p: any) => s + (BAL[p.id] ? BAL[p.id].ent + BAL[p.id].carry : 0), 0);
   const totalUsed = staff.reduce((s: any, p: any) => s + (BAL[p.id] ? BAL[p.id].used : 0), 0);
 

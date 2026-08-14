@@ -27,7 +27,7 @@ import { BO as BO_NS } from './data_backoffice';
   const A = (): any => AMS || {};
   const BO = (): any => BO_NS || {};
   const R = Math.round;
-  const REFDATE = new Date('2026-03-09');
+  const REFDATE = new Date(AMS.TODAY); /* K-02: klok SSOT */
 
   /* ---------- Katalog objek pajak PPh 23 → tarif & rujukan ---------- */
   const OBJECTS = {

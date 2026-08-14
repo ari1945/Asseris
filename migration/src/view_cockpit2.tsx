@@ -69,7 +69,7 @@ const CKP_RATE = { Partner: 1_500_000, Manager: 900_000, Senior: 600_000, Junior
 const rateFor = (role: any) => /Partner/.test(role) ? CKP_RATE.Partner : /Manager/.test(role) ? CKP_RATE.Manager : /Senior/.test(role) ? CKP_RATE.Senior : CKP_RATE.Junior;
 const gradeOf = (role: any) => /Partner/.test(role) ? 'Partner' : /Manager/.test(role) ? 'Manager' : /Senior/.test(role) ? 'Senior' : 'Junior';
 
-const CKP_TODAY = new Date('2026-03-09');
+const CKP_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
 const CKP_START = new Date('2026-01-06');
 
 const idDate = (s: any) => new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });

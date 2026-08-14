@@ -18,7 +18,7 @@
    ============================================================ */
 import { AMS } from './data';
 const FIRMFIN = (function () {
-  const REFDATE = new Date('2026-03-09');
+  const REFDATE = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const BLENDED_RATE = 875_000;             // tarif blended cost/jam (biaya waktu)
   const STD_RATE = 1_250_000;               // tarif standar charge-out/jam (nilai standar WIP)
   /* matriks penyisihan WIP berbasis umur (pola ECL) — satu kebijakan, dipakai semua modul */

@@ -199,8 +199,10 @@ import { AMS_CANON } from './canon';
        - LK Tahunan Auditan: akhir bulan ke-3 (POJK 14/2022)  → 31 Mar 2026
        - Laporan Tahunan: akhir bulan ke-4 / sebelum RUPS (POJK 44/2024) → 30 Apr 2026
        - Penyampaian elektronik: SPRINT OJK + IDXnet BEI.
-       Tanggal acuan "hari ini" untuk pelacak: 17 Jun 2026. */
-    const TODAY = new Date('2026-06-17');
+       Tanggal acuan "hari ini" mengikuti klok SSOT AMS.TODAY. */
+    /* K-02: klok dari SSOT AMS.TODAY (bukan literal 17 Jun 2026 yang berbeda
+       dari klok app-wide — inkonsistensi dday lintas modul). */
+    const TODAY = new Date(AMS.TODAY);
     const dday = (d: any) => Math.round((new Date(d).getTime() - TODAY.getTime()) / 86400000);
 
     const obligations = [
