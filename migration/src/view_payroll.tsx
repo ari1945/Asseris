@@ -6,6 +6,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Switch, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — HCM: Payroll (Penggajian)
@@ -258,7 +259,46 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
-          <Btn style={{ flex: 1 }} onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={13} /> Unduh Slip (PDF)</Btn>
+          <Btn style={{ flex: 1 }} onClick={() => {
+            const ss = r.slip;
+            amsExportPdf({
+              kind: 'payslip', scope: 'firm', fileName: `Slip Gaji - ${r.name} - ${R.period}.pdf`,
+              firm: AMS.FIRM.name || 'KAP',
+              title: 'Slip Gaji · ' + R.period,
+              refNo: r.id,
+              meta: [r.name + ' · ' + r.role, 'PTKP ' + r.p.ptkp + ' · TER ' + (r.p.ter * 100).toFixed(2) + '% (Kat. ' + r.p.terCat + ')', 'Periode: ' + R.period],
+              blocks: [
+                { type: 'heading', text: 'Penghasilan' },
+                { type: 'kv', rows: [
+                  ['Gaji Pokok', 'Rp ' + fmt(r.p.gross, 0)],
+                  ['Tunjangan Tetap', 'Rp ' + fmt(r.p.allowance, 0)],
+                  ...(r.thr > 0 ? [['THR Keagamaan', 'Rp ' + fmt(r.thr, 0)]] : []),
+                  ['Penghasilan Bruto', 'Rp ' + fmt(ss.base + r.thr, 0)],
+                ] },
+                { type: 'heading', text: 'Potongan' },
+                { type: 'kv', rows: [
+                  ['BPJS Kesehatan (1%)', '− Rp ' + fmt(ss.dKes, 0)],
+                  ['BPJS JHT (2%)', '− Rp ' + fmt(ss.dJht, 0)],
+                  ['BPJS Jaminan Pensiun (1%)', '− Rp ' + fmt(ss.dJp, 0)],
+                  ['PPh 21 (TER ' + (r.p.ter * 100).toFixed(2) + '%)', '− Rp ' + fmt(ss.pph, 0)],
+                  ['Total Potongan', '− Rp ' + fmt(ss.totalDed, 0)],
+                ] },
+                { type: 'heading', text: 'Take-Home Pay' },
+                { type: 'kv', rows: [
+                  ['Take-Home Pay', 'Rp ' + fmt(ss.net + r.thr, 0)],
+                ] },
+                { type: 'heading', text: 'Kontribusi Pemberi Kerja (di luar take-home)' },
+                { type: 'kv', rows: [
+                  ['BPJS Kesehatan (4%)', 'Rp ' + fmt(ss.eKes, 0)],
+                  ['BPJS JHT (3,7%)', 'Rp ' + fmt(ss.eJht, 0)],
+                  ['BPJS JP (2%)', 'Rp ' + fmt(ss.eJp, 0)],
+                  ['BPJS JKK (0,24%)', 'Rp ' + fmt(ss.eJkk, 0)],
+                  ['BPJS JKM (0,3%)', 'Rp ' + fmt(ss.eJkm, 0)],
+                  ['Total Beban Pemberi Kerja', 'Rp ' + fmt(ss.employerCost + r.thr, 0)],
+                ] },
+              ],
+            }).catch(() => {});
+          }}><I.download size={13} /> Unduh Slip (PDF)</Btn>
           {canSend && (sent
             ? <Btn disabled style={{ flex: 1, color: 'var(--green)' }} title={'Ditandai terkirim ' + sent.at + ' oleh ' + sent.by + ' — distribusi slip dilakukan di luar aplikasi'}><I.check size={13} /> Ditandai Terkirim · {sent.at}</Btn>
             : <Btn variant="primary" style={{ flex: 1 }} onClick={() => onSend(r.id)} title="Catat atestasi distribusi slip (pengiriman aktual di luar aplikasi)"><I.check size={13} /> Tandai Terkirim</Btn>)}

@@ -248,7 +248,6 @@ function FSGenerator() {
           <span className="tiny mono" style={{ color: model.bs.balanced ? 'var(--green)' : 'var(--red)' }}>{model.bs.balanced ? '● Neraca seimbang' : '● Tidak seimbang'}</span>
           <span className="tiny mono" style={{ color: passed === checks.length ? 'var(--green)' : 'var(--amber)' }}>● {passed}/{checks.length} tie-out</span>
           <Btn sm onClick={() => nav('wtb')}><I.table size={13} /> Buka WTB</Btn>
-          <Btn sm onClick={() => window.amsPrintDoc()}><I.doc size={13} /> Cetak</Btn>
           <Btn sm variant="primary" onClick={onExportPdf} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Export PDF'}</Btn>
         </div>
       } />

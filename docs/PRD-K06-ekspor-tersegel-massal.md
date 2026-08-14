@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | Implemented — gelombang 1 (17 tombol PSAK/analitis) + gelombang lanjutan (26 tombol non-PSAK) selesai 2026-08-14 (branch `feat/k06-export-sealed-v2`); total 43 tombol; `npm run verify` hijau |
+| Status | Implemented — gelombang 1 (17 tombol PSAK/analitis) + gelombang lanjutan (26 tombol non-PSAK) selesai 2026-08-14 (branch `feat/k06-export-sealed-v2`); total 43 tombol; `npm run verify` hijau. **Perluasan 2026-08-14 (PR #229, `feat/amsprintdoc-to-amsexportpdf`)**: migrasi jalur cetak lama `amsPrintDoc` (window.print DOM, TANPA segel) → `amsExportPdf` tersegel di 9 view / 11 tombol (fsgen, opinion, onboarding2, final3, isak35, misc1, nonaudit2 ×2, payroll, pipeline) — sisa Program A. 0 `:any` baru, live-verify 6/6 PDF SEALED |
 | Tanggal | 2026-08-14 |
 | Pemilik | Ari Widodo |
 | Kelas cacat | Output tertinggal: 50+ tombol "Ekspor/Kertas Kerja" tanpa onClick (dead button) — angka SSOT matang tapi tidak bisa dikeluarkan sebagai kertas kerja |

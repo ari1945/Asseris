@@ -212,7 +212,6 @@ function AuditOpinionGen() {
           <Badge kind={o.k}>{o.short}</Badge>
           {doc.finalized && <Badge kind="green">Final</Badge>}
           <Badge kind="blue">SA 700 · 705 · 701</Badge>
-          {tab === 'builder' && <Btn sm onClick={() => window.amsPrintDoc()}><I.doc size={13} /> Cetak</Btn>}
           {tab === 'builder' && <Btn sm onClick={onExportPdf} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export PDF'}</Btn>}
           <Btn sm variant="primary" onClick={() => setTab('signoff')}><I.checkCircle size={14} /> {doc.finalized ? 'Lihat Status' : 'Finalisasi'}</Btn>
         </div>
