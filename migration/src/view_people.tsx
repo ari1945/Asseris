@@ -212,7 +212,7 @@ function CPETracker() {
   const scopedIds = new Set<string>([...Object.keys(cpeLog || {}), ...Object.keys(extraLog || {})]);
   const vstaff = canFirm ? staff : staff.filter((s: any) => scopedIds.has(s.id));
   const log = (() => { const m = {}; vstaff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((cpeLog as any)[s.id]) || [])]; }); return m; })();
-  const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
+  const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: AMS.TODAY }, ...(l[id] || [])] }));
 
   const summary = vstaff.map((s: any) => {
     const recs = (log as any)[s.id] || [];

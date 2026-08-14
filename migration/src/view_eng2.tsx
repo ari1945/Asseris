@@ -224,7 +224,8 @@ function EngJadwal() {
   const [selId, setSelId] = useEng2(engagements[0].id);
   const sel = engagements.find((e: any) => e.id === selId) || engagements[0];
 
-  const today = new Date('2026-03-05');
+  /* K-02/PR-B — "hari ini" dari klok SSOT AMS.TODAY, bukan literal beku. */
+  const today = new Date(AMS.TODAY);
   const t0 = new Date('2026-01-01').getTime();
   const t1 = new Date('2026-08-31').getTime();
   const span = t1 - t0;

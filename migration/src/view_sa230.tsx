@@ -45,7 +45,7 @@ const DEFAULT_SA230DOC: Sa230Doc = {
 };
 /* 'YYYY-MM-DD' → Date lokal (tengah hari, hindari geser zona waktu). */
 const d2parseDate = (s: string): Date => { const [y, m, d] = (s || DEFAULT_REPORT_DATE).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1, 12); };
-const D2_REF_ISO = '2026-03-09';
+const D2_REF_ISO = AMS.TODAY;
 
 const d2fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const d2addDays = (d: any, n: any) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };

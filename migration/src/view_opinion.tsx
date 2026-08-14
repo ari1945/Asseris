@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAmsPersist, useFirm, useMateriality } from './contexts';
+import { AMS } from './data';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -67,7 +68,7 @@ const DEFAULT_DOC_O = {
      dokumentasi alasan pengecualian. Diedit di sa701 (Keterkaitan & TCWG); tak masuk laporan. */
   kamExcluded: [] as { id: string; matter: string; reason: string }[],
   scope: 'sufficient', misOverride: 'auto', gcStatus: 'none', method: 'rollover',
-  reportDate: '2026-03-14', dualDate: '', signer: 'partner1',
+  reportDate: AMS.TODAY, dualDate: '', signer: 'partner1',
   signoff: { manager: (null as any), partner: (null as any), eqr: (null as any) }, checklist: {},
   opinionBasis: '', opinionDecision: (null as any),
   finalized: false, finalizedDate: '',

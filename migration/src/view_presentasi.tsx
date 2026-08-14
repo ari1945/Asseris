@@ -75,7 +75,7 @@ function prData(firm: any) {
   const op = OPN[opType] || { title: 'Wajar Tanpa Modifikasian', short: 'WTM', k: 'green' };
   const kamCount = (opDoc?.opts?.kam !== false && opType !== 'disclaimer') ? (opDoc?.kams?.length || 3) : 0;
   const opFinal = !!opDoc?.finalized;
-  const reportDate = opDoc?.reportDate || '2026-03-14';
+  const reportDate = opDoc?.reportDate || AMS.TODAY;
 
   const aje = AMS.AJE || [];
   const ajePosted = aje.filter(a => a.status === 'Posted');

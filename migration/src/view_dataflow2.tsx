@@ -167,7 +167,7 @@ function DFJejak() {
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.length} label="Total Peristiwa" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.filter((t: any) => (t.ts || '').startsWith('2026-03-05')).length} label="Hari Ini" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.filter((t: any) => (t.ts || '').startsWith(AMS.TODAY)).length} label="Hari Ini" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(all.map((t: any) => t.module)).size} label="Modul Tersentuh" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={byUser.length} label="Pengguna Aktif" /></div></Panel>
       </div>
