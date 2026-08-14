@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { RelatedNavDock } from './related_modules';
 
 /* ============================================================
    Asseris — SA 240 · Tanggung Jawab Auditor atas Kecurangan
@@ -578,16 +579,12 @@ function F240Response() {
           </div>
         </Panel>
         <Panel title="Tautan Modul">
-          <div style={{ display: 'grid', gap: 7 }}>
-            {[['Journal Entry Testing', 'flask'], ['Estimasi Akuntansi (SA 540)', 'target'], ['Pihak Berelasi (SA 550)', 'link2'], ['Representasi Tertulis (SA 580)', 'doc']].map((r, i) => {
-              const Lic = (I as any)[r[1]];
-              return (
-              <button key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer', background: 'transparent', width: '100%' }}>
-                <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>
-                <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
-              </button>
-            ); })}
-          </div>
+          <RelatedNavDock moduleId="sa240" links={[
+            { id: 'jet', label: 'Journal Entry Testing', icon: I.flask },
+            { id: 'sa540', label: 'Estimasi Akuntansi (SA 540)', icon: I.target },
+            { id: 'related', label: 'Pihak Berelasi (SA 550)', icon: I.link2 },
+            { id: 'sa580', label: 'Representasi Tertulis (SA 580)', icon: I.doc },
+          ]} />
         </Panel>
       </div>
     </div>

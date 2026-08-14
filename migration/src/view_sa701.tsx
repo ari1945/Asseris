@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useAmsPersist, useNav } from './contexts';
+import { useFirm, useAmsPersist, useNav, useInitialTab } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -31,7 +31,7 @@ function SA701View() {
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
   const listed = firm?.activeClient?.listed;
-  const [tab, setTab] = useState701('penentuan');
+  const [tab, setTab] = useInitialTab('sa701', 'penentuan');
   /* SSOT KAM bersama modul opini — engagement-scope + isolasi W7.5. Seed identik. */
   const [doc, setDoc] = useAmsPersist('opinionDoc.v1', () => DEFAULT_DOC_O);
   const patch: Patch = (p) => setDoc((d: ODoc) => ({ ...d, ...p }));

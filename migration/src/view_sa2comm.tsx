@@ -9,6 +9,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { RelatedNavDock } from './related_modules';
 
 /* ============================================================
    Asseris — SA 250 / 260 / 265
@@ -742,11 +743,12 @@ function S265Indicators() {
           </div>
         </Panel>
         <Panel title="Kaitan dengan SA Lain">
-          <div style={{ display: 'grid', gap: 6 }}>
-            {[['SA 315', 'Pemahaman pengendalian internal'], ['SA 240', 'Defisiensi terkait anti-fraud'], ['SA 260', 'Disampaikan dalam laporan TCWG'], ['Management Letter', 'Defisiensi biasa ke manajemen']].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r[0]}</span><span className="tiny muted">{r[1]}</span></div>
-            ))}
-          </div>
+          <RelatedNavDock moduleId="sa265" links={[
+            { id: 'icfr', label: 'SA 315 · Pemahaman pengendalian internal', icon: I.shield },
+            { id: 'sa240', label: 'SA 240 · Defisiensi terkait anti-fraud', icon: I.shield },
+            { id: 'sa260', label: 'SA 260 · Disampaikan dalam laporan TCWG', icon: I.mail },
+            { id: 'mgmtletter', label: 'Management Letter · Defisiensi biasa ke manajemen', icon: I.doc },
+          ]} />
         </Panel>
       </div>
     </div>

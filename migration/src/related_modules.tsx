@@ -198,7 +198,42 @@ function StandardLinkback({ moduleId }: any) {
   );
 }
 
-Object.assign(window, { ModuleLineage, StandardLinkback });
+/* ============================================================
+   Program F — RelatedNavDock: navigasi lintas modul yang BENAR-BENAR
+   menavigasi. Menggantikan panel "Tautan Modul" inline yang mati
+   (button/div tanpa onClick) di sa240/sa530/sa2comm serta div-nav
+   non-native (a11y) di sa800/sa805/sa810. Tombol native <button> +
+   nav(id, { from }) agar konteks asal tercatat (NavFromContext).
+   ============================================================ */
+export function RelatedNavDock({ moduleId, links, title }: {
+  moduleId: string;
+  links: { id: string; label: string; icon?: unknown }[];
+  title?: string;
+}) {
+  const nav = useNav();
+  if (!links || !links.length) return null;
+  return (
+    <div>
+      {title ? <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)', marginBottom: 7 }}>{title}</div> : null}
+      <div style={{ display: 'grid', gap: 7 }}>
+        {links.map((r) => {
+          const Ic = r.icon as ((props: { size?: number }) => JSX.Element) | undefined;
+          return (
+            <button key={r.id} type="button" className="row jb ac"
+              style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer', background: 'transparent', width: '100%' }}
+              title={'Buka ' + r.label}
+              onClick={() => nav(r.id, { from: moduleId })}>
+              <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}>{Ic ? <Ic size={14} /> : null}</span><span style={{ textAlign: 'left' }}>{r.label}</span></span>
+              <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { ModuleLineage, StandardLinkback, RelatedNavDock });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

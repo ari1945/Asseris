@@ -966,7 +966,7 @@
   },
   "src/view_sa240.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 6
+      "count": 5
     }
   },
   "src/view_sa501.tsx": {
@@ -981,7 +981,7 @@
   },
   "src/view_sa530.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 4
+      "count": 3
     }
   },
   "src/view_sa540.tsx": {
@@ -996,17 +996,17 @@
   },
   "src/view_sa800.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 12
+      "count": 10
     }
   },
   "src/view_sa805.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 12
+      "count": 10
     }
   },
   "src/view_sa810.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 13
+      "count": 11
     }
   },
   "src/view_sad.tsx": {
