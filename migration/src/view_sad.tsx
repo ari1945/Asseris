@@ -13,6 +13,7 @@ import type { ViuParams } from './canon_viu';
 import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { amsExportPdf } from './export_pdf';
 import { RowKv } from './view_calc';
 
 /* ============================================================
@@ -684,6 +685,30 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
   ];
   const statusKind = { 'Direspons': 'green', 'Menolak': 'red', 'Terjadwal': 'amber' };
 
+  /* Program A sisa — wire tombol "Surat Representasi" (SA 580, dulu mati): ekspor PDF
+     tersegel surat representasi tertulis manajemen + lampiran daftar salah saji tak dikoreksi. */
+  const onExportRep = () => {
+    const FIRM = AMS.FIRM;
+    const repItems = calc.uncorr;
+    amsExportPdf({
+      kind: 'representation-letter', scope: 'engagement',
+      fileName: 'Surat Representasi Tertulis - Klien.pdf',
+      firm: FIRM.name, title: 'Surat Representasi Tertulis (SA 580)',
+      refNo: 'SA 580 · ' + new Date().toISOString().slice(0, 10),
+      meta: ['Kepada KAP Wijaya Hartono & Rekan', 'Daftar salah saji tidak dikoreksi terlampir', (exceedsOM ? 'Material — memengaruhi opini' : (exceedsPM ? 'Perlu evaluasi lanjut' : 'Tidak material kuantitatif'))],
+      blocks: [
+        { type: 'para', text: 'Kepada KAP Wijaya Hartono & Rekan' },
+        { type: 'para', text: 'Surat ini diberikan sehubungan dengan audit laporan keuangan untuk tahun yang berakhir 31 Desember 2025, sesuai Standar Audit (SA) 580 — Representasi Tertulis.' },
+        { type: 'para', text: 'Kami menegaskan, sejauh pengetahuan dan keyakinan kami, bahwa: (1) laporan keuangan telah disusun sesuai kerangka pelaporan keuangan yang berlaku; (2) informasi yang diberikan kepada auditor adalah lengkap dan benar; (3) seluruh transaksi telah dicatat dan mencerminkan substansi ekonominya.' },
+        { type: 'heading', text: 'Lampiran — Daftar Salah Saji Tidak Dikoreksi' },
+        { type: 'para', text: '"Kami berkeyakinan bahwa dampak dari salah saji yang tidak dikoreksi, baik secara individual maupun agregat, adalah tidak material terhadap laporan keuangan secara keseluruhan. Ikhtisar salah saji tersebut terlampir dalam representasi ini."' },
+        ...(repItems.length ? [{ type: 'table', head: ['Ref', 'FS Line', 'Efek Laba (jt)'], body: repItems.map((m: { id: string; fsli?: string; pbt?: number }) => [m.id, m.fsli || '—', m.pbt ? fmt(m.pbt / 1e6, 0) : '—']) }] : [{ type: 'para', text: 'Tidak ada salah saji tidak dikoreksi.' }]),
+        ...(exceedsOM || exceedsPM ? [{ type: 'para', text: 'Catatan: agregat salah saji tidak dikoreksi sebesar Rp ' + fmt(Math.abs(calc.rolloverNet) / 1e6, 0) + ' jt (' + (Math.abs(calc.rolloverNet) / om * 100).toFixed(0) + '% dari materialitas keseluruhan) — pertimbangan kualitatif (' + qualCount + ' faktor relevan) ikut dievaluasi.' }] : []),
+        { type: 'signature', signers: [{ name: 'Manajemen', role: 'Direksi', at: new Date().toISOString().slice(0, 10) }] },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -710,7 +735,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
             </div>
             <div className="row gap8" style={{ marginTop: 10 }}>
               <Btn sm onClick={onExportSAD} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Lampiran SUM'}</Btn>
-              <Btn sm><I.doc size={13} /> Surat Representasi</Btn>
+              <Btn sm onClick={onExportRep}><I.doc size={13} /> Surat Representasi</Btn>
             </div>
           </div>
         </Panel>

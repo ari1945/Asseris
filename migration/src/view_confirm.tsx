@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { amsExportPdf } from './export_pdf';
 import { reconcileConfirmationCoverage, type ConfCoverageResult } from './canon_validation';
 import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts';
 
@@ -27,6 +28,62 @@ function CfDetailPanel(props: any) {
   if (!sel) return null;
   const variance = sel.resp != null ? sel.resp - sel.amount : 0;
   const outstanding = sel.status === 'Sent' || sel.status === 'No Reply';
+
+  /* Program A sisa — wire tombol "Unduh" surat konfirmasi (SA 505, dulu mati): ekspor PDF
+     tersegel surat konfirmasi pihak ketiga per item. */
+  const onExportLetter = () => {
+    const FIRM = AMS.FIRM;
+    const idDate = (s: string) => { const [y, m, d] = s.split('-'); return d + ' ' + ({ '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'Mei', '06': 'Jun', '07': 'Jul', '08': 'Agu', '09': 'Sep', '10': 'Okt', '11': 'Nov', '12': 'Des' } as Record<string, string>)[m] + ' ' + y; };
+    amsExportPdf({
+      kind: 'confirmation-letter', scope: 'engagement',
+      fileName: `Surat Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`,
+      firm: FIRM.name, title: 'Surat Permintaan Konfirmasi Pihak Ketiga (SA 505)',
+      refNo: sel.id, meta: [sel.party, 'Metode ' + sel.method + ' · Kanal ' + sel.channel, 'Jatuh tempo ' + idDate(sel.due)],
+      blocks: [
+        { type: 'para', text: 'Kepada Yth. ' + sel.party },
+        { type: 'para', text: 'Dalam rangka audit laporan keuangan klien kami untuk tahun yang berakhir 31 Desember 2025, mohon konfirmasi langsung kepada kami atas saldo atau informasi berikut ini pada tanggal posisi ' + idDate(sel.sent) + '.' },
+        { type: 'heading', text: 'Saldo / Informasi yang Dikonfirmasi' },
+        { type: 'kv', rows: [
+          ['Referensi', sel.id],
+          ['Jenis', sel.type],
+          ['Saldo per Buku', sel.amount ? 'Rp ' + fmt(sel.amount / 1e6, 0) + ' jt' : '—'],
+          ['Respons', sel.resp != null ? 'Rp ' + fmt(sel.resp / 1e6, 0) + ' jt' : 'Belum diterima'],
+          ['Metode', sel.method === 'Positif' ? 'Positif — mohon jawaban dalam semua hal' : 'Negatif — mohon jawab bila berbeda'],
+          ['Kanal', sel.channel],
+          ['Kontak', sel.contact],
+          ['Dikirim', idDate(sel.sent)],
+          ['Jatuh Tempo', idDate(sel.due)],
+        ] },
+        { type: 'para', text: 'Mohon kirimkan respons langsung kepada kami melalui ' + sel.channel + '. Surat ini diterbitkan sesuai Standar Audit (SA) 505 — Konfirmasi Eksternal.' },
+        { type: 'signature', signers: [{ name: 'KAP Wijaya Hartono & Rekan', role: 'Akuntan Publik', at: idDate(sel.sent) }] },
+      ],
+    }).catch(() => {});
+  };
+
+  /* Program A sisa — wire tombol "Unduh" respons konfirmasi: PDF tersegel ringkasan respons
+     yang diterima & divalidasi (saldo per respons + reliabilitas). */
+  const onExportResponse = () => {
+    const FIRM = AMS.FIRM;
+    amsExportPdf({
+      kind: 'confirmation-response', scope: 'engagement',
+      fileName: `Respons Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`,
+      firm: FIRM.name, title: 'Respons Konfirmasi Pihak Ketiga (SA 505)',
+      refNo: sel.id, meta: [sel.party, sel.type + ' · diterima +' + sel.days + ' hari'],
+      blocks: [
+        { type: 'para', text: 'Respons konfirmasi atas ' + sel.id + ' — ' + sel.party },
+        { type: 'kv', rows: [
+          ['Referensi', sel.id],
+          ['Jenis', sel.type],
+          ['Saldo per Buku', sel.amount ? 'Rp ' + fmt(sel.amount / 1e6, 0) + ' jt' : '—'],
+          ['Saldo per Respons', sel.resp != null ? 'Rp ' + fmt(sel.resp / 1e6, 0) + ' jt' : '—'],
+          ['Selisih', (sel.resp != null && sel.amount) ? 'Rp ' + fmt(Math.abs(sel.resp - sel.amount) / 1e6, 0) + ' jt' : '—'],
+          ['Status', sel.status],
+        ] },
+        ...(sel.resp != null ? [{ type: 'para', text: 'Respons telah diterima dan divalidasi. Selisih dengan saldo per buku dievaluasi pada kertas kerja rekonsiliasi konfirmasi (SA 505).' }] : []),
+        { type: 'signature', signers: [{ name: 'KAP Wijaya Hartono & Rekan', role: 'Akuntan Publik', at: sel.sent }] },
+      ],
+    }).catch(() => {});
+  };
 
   return (
     <Panel noBody>
@@ -82,7 +139,8 @@ function CfDetailPanel(props: any) {
                 <div className="truncate" style={{ fontSize: 12, fontWeight: 600, color: f.ok ? 'var(--ink)' : 'var(--ink-4)' }}>{f.n}</div>
                 <div className="tiny muted">{f.s}</div>
               </div>
-              {f.ok && <button className="btn sm icon" title="Unduh"><I.download size={13} /></button>}
+              {f.ok && i === 0 && <button className="btn sm icon" title="Unduh" onClick={onExportLetter}><I.download size={13} /></button>}
+              {f.ok && i > 0 && <button className="btn sm icon" title="Unduh" onClick={onExportResponse}><I.download size={13} /></button>}
             </div>
           ))}
         </div>
