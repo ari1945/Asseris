@@ -139,7 +139,9 @@ describe('rujukan MENGGANTUNG pada materi IAPI dilaporkan apa adanya', () => {
     const d = TOOLKIT_DANGLING_REFS.find((x) => x.no === '8.2');
     expect(d).toBeTruthy();
     expect(TOOLKIT_BY_NO.has('8.2')).toBe(false);
-    expect([...d!.objectives].sort()).toEqual(['QO-30b', 'QO-33a', 'QO-33c']);
+    /* PR-8a-2c — dulu berbunyi QO-33a. Yang merujuk 8.2 adalah QO-33b (risiko
+       budaya berbagi informasi); QO-33a tidak pernah merujuknya. */
+    expect([...d!.objectives].sort()).toEqual(['QO-30b', 'QO-33b', 'QO-33c']);
   });
 
   it('daftar tujuan pada entri menggantung cocok dengan peta sesungguhnya', () => {
@@ -150,7 +152,9 @@ describe('rujukan MENGGANTUNG pada materi IAPI dilaporkan apa adanya', () => {
   });
 
   it('danglingDocsFor menyingkap rujukan menggantung per tujuan', () => {
-    expect(danglingDocsFor('QO-33a')).toEqual(['8.2']);
+    /* PR-8a-2c — pemiliknya QO-33b, bukan QO-33a. */
+    expect(danglingDocsFor('QO-33b')).toEqual(['8.2']);
+    expect(danglingDocsFor('QO-33a')).toEqual([]);
     expect(danglingDocsFor('QO-28a')).toEqual([]);
   });
 });
@@ -167,13 +171,15 @@ describe('SC-5 · tujuan tanpa dokumen terlihat, bukan sel kosong', () => {
   });
 
   it('TRIPWIRE — tujuan yang hanya punya rujukan menggantung dihitung TANPA dokumen', () => {
+    /* PR-8a-2c — pemakai 8.2 berpindah ke QO-33b setelah koreksi peta. */
     const only82 = toolkitObjectiveCoverage([
-      { id: 'QO-33a', component: 'C7', para: 33, item: 'a', title: 'uji' },
+      { id: 'QO-33b', component: 'C7', para: 33, item: 'b', title: 'uji' },
     ] as never);
-    /* QO-33a punya 7.7/7.8/8.1 nyata, jadi tetap withDoc — yang diuji di sini
+    /* QO-33b punya 7.7/8.1 nyata, jadi tetap withDoc — yang diuji di sini
        adalah bahwa fungsi menyaring 8.2 lebih dulu, bukan menghitungnya. */
-    expect(only82.withDoc).toEqual(['QO-33a']);
-    expect(toolkitDocsFor('QO-33a').map((d) => d.no)).toEqual(['7.7', '7.8', '8.1']);
+    expect(only82.withDoc).toEqual(['QO-33b']);
+    expect(toolkitDocsFor('QO-33b').map((d) => d.no)).toEqual(['7.7', '8.1']);
+    expect(toolkitDocsFor('QO-33a').map((d) => d.no)).toEqual(['7.1', '7.7', '7.8', '8.1']);
   });
 });
 

@@ -196,7 +196,10 @@ export const TOOLKIT_DANGLING_REFS: readonly DanglingRef[] = [
   {
     no: '8.2',
     citedAs: 'Penilaian budaya - mutu',
-    objectives: ['QO-30b', 'QO-33a', 'QO-33c'],
+    /* PR-8a-2c — KOREKSI: QO-33a tidak pernah merujuk 8.2; yang merujuknya adalah
+       QO-33b (risiko budaya berbagi informasi). Salah tujuan ini lahir dari
+       kesalahan baca yang sama dengan koreksi peta di bawah. */
+    objectives: ['QO-30b', 'QO-33b', 'QO-33c'],
     note: 'Dirujuk Matriks V3 sebagai respons, tetapi Toolkit V3 seksi 8 hanya memuat 8.1. Rujukan menggantung pada materi IAPI, bukan pada Asseris.',
   },
 ];
@@ -235,18 +238,34 @@ export const TOOLKIT_BY_OBJECTIVE: ReadonlyMap<string, readonly string[]> = new 
   ['QO-31d', ['6.1', '6.2', '6.3', '6.4', '6.5', '6.6']],
   ['QO-31e', ['6.1', '6.2', '6.5']],
   ['QO-31f', ['1.1', '6.1']],
-  ['QO-32a', ['7.1', '7.2', '7.5', '7.7']],
+  /* PR-8a-2c — KOREKSI DELAPAN BARIS (¶32 a·e·f·g dan ¶33 a·b·c·d). Sebab yang
+     sama dengan koreksi ¶28 di 8a-2a: Matriks menyelaraskan baris respons dengan
+     baris RISIKO, bukan blok tujuan. Di ¶32 kesalahannya diperparah oleh empat
+     sub-judul (Sumber Daya Manusia/Teknologi/Intelektual/Penyedia Jasa) yang
+     berbagi halaman dengan butir tujuan; di ¶33 butir (d) membentang dua halaman.
+     Dua arah kesalahan, keduanya nyata:
+       HILANG  — 32(a) kehilangan 7.3 & 7.4; itulah sebabnya dokumen 7.3 tampil
+                 "TUJUAN —" di tab Dokumentasi SMM, seolah tak melayani tujuan
+                 mutu mana pun. 33(b) kehilangan 7.7 & 8.2; 33(d) kehilangan
+                 6.3, 6.4, 7.7 & 9.3.
+       MEREMBES — 32(e) kebagian 7.1 & 7.8 milik 32(f); 32(f) kebagian 7.5 milik
+                 32(g); 32(g) malah kebagian 7.8 & 7.9 milik 32(h); 33(a)
+                 kebagian 8.2 milik 33(b); 33(c) kebagian 6.3, 6.4 & 9.3 milik
+                 33(d).
+     Kini ke-27 tujuan tersilang-uji penuh oleh
+     `illustrative_toolkit_consistency.test.ts`. */
+  ['QO-32a', ['7.1', '7.2', '7.3', '7.4', '7.5', '7.7']],
   ['QO-32b', ['7.1', '7.2', '7.5', '9.3']],
   ['QO-32c', ['6.3', '7.1', '7.4', '7.9']],
   ['QO-32d', ['3.1', '6.1', '6.2', '7.2', '7.5', '7.7']],
-  ['QO-32e', ['6.1', '6.2', '7.1', '7.2', '7.8']],
-  ['QO-32f', ['7.1', '7.5', '7.8']],
-  ['QO-32g', ['7.1', '7.8', '7.9']],
+  ['QO-32e', ['6.1', '6.2', '7.2']],
+  ['QO-32f', ['7.1', '7.8']],
+  ['QO-32g', ['7.1', '7.5']],
   ['QO-32h', ['7.1', '7.7', '7.8', '7.9', '8.1']],
-  ['QO-33a', ['7.7', '7.8', '8.1', '8.2']],
-  ['QO-33b', ['8.1']],
-  ['QO-33c', ['6.3', '6.4', '7.7', '8.1', '8.2', '9.3']],
-  ['QO-33d', ['8.1']],
+  ['QO-33a', ['7.1', '7.7', '7.8', '8.1']],
+  ['QO-33b', ['7.7', '8.1', '8.2']],
+  ['QO-33c', ['7.7', '8.1', '8.2']],
+  ['QO-33d', ['6.3', '6.4', '7.7', '8.1', '9.3']],
 ]);
 
 /* ------------------------------------------------------------

@@ -35,10 +35,9 @@
    Penilaian Risiko KAP (¶23–27) & Pemantauan-Remediasi (¶35–47) tidak
    punya baris tujuan di sana — itu batas aset IAPI, bukan celah firma.
 
-   PR-8a-2a memuat komponen 1 (¶28) & 2 (¶29); PR-8a-2b menambah komponen
-   3 (¶30) & 4 (¶31). Komponen 5 (¶32) & 6 (¶33) menyusul di 8a-2c;
-   `illustrativeRisksFor()` mengembalikan array kosong untuk tujuan yang
-   belum dimuat, dan panel tidak menampilkan apa pun.
+   LENGKAP sejak PR-8a-2c: keenam komponen Matriks (¶28–33) termuat, 93 saran
+   atas KE-27 tujuan mandatori. Karena itu `illustrative_toolkit_consistency`
+   kini menjadi audit PENUH atas `TOOLKIT_BY_OBJECTIVE`, bukan lagi sampel.
 
    Sebagian entri merujuk dokumen 8.2 yang TIDAK ADA di Toolkit V3 (seksi 8
    berhenti di 8.1). Itu rujukan menggantung pada materi IAPI sendiri, bukan
@@ -167,11 +166,81 @@ const P31: readonly IllustrativeRisk[] = [
   R('QO-31f', 4, 'Kebijakan dan proses dokumentasi tidak dikomunikasikan dengan jelas kepada seluruh personel.', ['1.1', '6.1']),
 ];
 
+/* ------------------------------------------------------------
+   Komponen 5 · ¶32 Sumber Daya — 28 risiko
+
+   Matriks menyusun ¶32 di bawah empat sub-judul (Sumber Daya Manusia ·
+   Teknologi · Intelektual · Penyedia Jasa) yang berbagi halaman dengan
+   butir tujuan. Justru di situlah dokumen mudah merembes antar-butir —
+   lihat koreksi 32(a)/(e)/(f)/(g) di `canon_smm_toolkit.ts`.
+   ------------------------------------------------------------ */
+const P32: readonly IllustrativeRisk[] = [
+  R('QO-32a', 1, 'Kebijakan dan proses rekrutmen tidak jelas atau tidak terdokumentasi, sehingga tidak menjaring personel berpengetahuan dan berpengalaman sesuai perikatan yang dilaksanakan KAP.', ['7.1', '7.3', '7.4']),
+  R('QO-32a', 2, 'Kemampuan teknis dan pendidikan profesional personel tidak dipertahankan.', ['7.7']),
+  R('QO-32a', 3, 'Personel tidak disupervisi, dibimbing, atau dimotivasi dengan tepat untuk melaksanakan perikatan bermutu secara konsisten.', ['7.1', '7.2', '7.7']),
+  R('QO-32a', 4, 'Pelatihan internal tidak benar-benar mengembangkan kompetensi personel.', ['7.5', '7.7']),
+
+  R('QO-32b', 1, 'Evaluasi kinerja tidak dilaksanakan tepat waktu pada saat atau setelah perikatan selesai.', ['7.1', '7.5', '9.3']),
+  R('QO-32b', 2, 'Kompensasi dan insentif berfokus pada prioritas finansial dan operasional, tidak sejalan dengan pencapaian perikatan bermutu.', ['7.1', '7.5']),
+  R('QO-32b', 3, 'Evaluasi kinerja tidak jelas kaitannya dengan pencapaian hasil, kompensasi, maupun insentif.', ['7.5']),
+  R('QO-32b', 4, 'Beban kerja personel tidak diperhitungkan ketika tolok ukur kinerja terhadap tujuan mutu ditetapkan.', ['7.2', '7.5']),
+
+  R('QO-32c', 1, 'Kebijakan dan proses mutu serta pelaksanaan perikatan tidak dikomunikasikan dan disepakati dengan personel dari sumber eksternal sebelum mereka mulai bekerja.', ['6.3', '7.1', '7.9']),
+  R('QO-32c', 2, 'Personel dari sumber eksternal tidak cukup mampu atau berpengalaman untuk mematuhi sistem manajemen mutu KAP dan melaksanakan perikatan sebagaimana disyaratkan.', ['6.3', '7.9']),
+  R('QO-32c', 3, 'Tidak ada proses orientasi yang menopang personel dari sumber eksternal untuk mematuhi sistem manajemen mutu.', ['7.4']),
+
+  R('QO-32d', 1, 'Alokasi waktu dan personel per perikatan tidak memadai, dan kepemimpinan tidak menanggapinya.', ['3.1', '6.1', '6.2']),
+  R('QO-32d', 2, 'Anggota tim atau rekan perikatan tidak berkompetensi dan berkapabilitas cukup untuk melaksanakan perikatan bermutu secara konsisten.', ['7.2', '7.5', '7.7']),
+  R('QO-32d', 3, 'Indikator untuk menilai kecukupan sumber daya per perikatan tidak andal, atau tidak ada sama sekali.', ['6.1', '6.2']),
+
+  R('QO-32e', 1, 'Individu yang menjalankan aktivitas sistem manajemen mutu tidak memperoleh tanggung jawab dan sumber daya yang memadai.', ['6.2', '7.2']),
+  R('QO-32e', 2, 'Waktu untuk melakukan supervisi dan penelaahan tidak disediakan.', ['6.2']),
+  R('QO-32e', 3, 'Waktu tambahan tidak dialokasikan ketika hal-hal utama menuntutnya.', ['6.1', '6.2']),
+
+  R('QO-32f', 1, 'Sumber daya teknologi tidak mampu menopang pengoperasian sistem manajemen mutu maupun pelaksanaan perikatan.', ['7.1', '7.8']),
+  R('QO-32f', 2, 'Sumber daya teknologi yang ada tidak dimanfaatkan secara maksimal.', ['7.1', '7.8']),
+
+  R('QO-32g', 1, 'Sumber daya intelektual tidak mampu menopang pengoperasian sistem manajemen mutu maupun pelaksanaan perikatan.', ['7.1']),
+  R('QO-32g', 2, 'Sumber daya intelektual tidak dimanfaatkan maksimal, atau sudah usang.', ['7.1', '7.5']),
+  R('QO-32g', 3, 'Sumber daya intelektual tidak selaras dengan standar profesional dan peraturan yang berlaku.', ['7.1']),
+
+  R('QO-32h', 1, 'Pengadaan, pengamanan, dan implementasi sumber daya teknologi serta intelektual tidak dijalankan secara konsisten dan ketat.', ['7.1', '7.8', '7.9']),
+  R('QO-32h', 2, 'Personel direkrut untuk keterampilan khusus tetapi tidak cocok dipakai dalam sistem manajemen mutu.', ['7.1', '7.9']),
+  R('QO-32h', 3, 'Cara menerapkan dan mengamankan sumber daya teknologi serta intelektual tidak jelas dan tidak dikomunikasikan dengan tepat kepada personel.', ['7.1', '7.7', '8.1']),
+  R('QO-32h', 4, 'Sumber daya teknologi tidak dinilai secara strategis terhadap kapabilitas dan kebutuhan perikatan di masa depan.', ['7.8']),
+  R('QO-32h', 5, 'Perubahan pada sistem dan program TI tidak ditelaah dan tidak disahkan secara memadai.', ['7.8']),
+  R('QO-32h', 6, 'Personel tidak memperoleh pelatihan dan dukungan yang tepat untuk mengelola perubahan sistem TI atau teknologi baru.', ['7.1', '7.7']),
+];
+
+/* ------------------------------------------------------------
+   Komponen 6 · ¶33 Informasi dan Komunikasi — 15 risiko
+   ------------------------------------------------------------ */
+const P33: readonly IllustrativeRisk[] = [
+  R('QO-33a', 1, 'Sumber daya sudah diinvestasikan pada sistem informasi, tetapi sistemnya tidak dimanfaatkan maksimal.', ['7.1', '7.7', '8.1']),
+  R('QO-33a', 2, 'Sistem informasi tidak ditelaah dan ditingkatkan secara berkala mengikuti kebutuhan operasional dan pelaksanaan perikatan.', ['7.8']),
+  R('QO-33a', 3, 'Keamanan data pada sistem informasi tidak diuji dan tidak dievaluasi secara berkala.', ['7.8']),
+  R('QO-33a', 4, 'Pencadangan data tidak dilakukan cukup teratur, dan tidak mencakup seluruh basis data yang penting.', ['7.8']),
+
+  R('QO-33b', 1, 'Budaya KAP tidak mendorong maupun menghargai personel yang berbagi pengetahuan dan informasi andal dengan iktikad baik.', ['8.1', '8.2']),
+  R('QO-33b', 2, 'KAP tidak punya kebijakan dan proses yang memadai tentang berbagi informasi.', ['8.1']),
+  R('QO-33b', 3, 'Personel tidak cukup terlatih untuk mengenali kapan tanggung jawab bertukar informasi itu timbul.', ['7.7', '8.2']),
+
+  R('QO-33c', 1, 'KAP tidak menjalankan kebijakan dan proses yang mendorong personel berbagi informasi dengan manajer senior dan tim lain yang perlu mengetahuinya.', ['8.1']),
+  R('QO-33c', 2, 'Kebijakan, proses, maupun budaya KAP tidak mendorong personel berbagi informasi perikatan yang relevan dengan sesama anggota tim.', ['8.1']),
+  R('QO-33c', 3, 'KAP tidak menyediakan atau tidak memakai saluran komunikasi yang tepat untuk pertukaran informasi secara terbuka.', ['7.7', '8.2']),
+
+  R('QO-33d', 1, 'Komunikasi tertulis maupun lisan tidak cukup jelas bagi audiens dan kebutuhan spesifiknya.', ['7.7']),
+  R('QO-33d', 2, 'Kebijakan dan proses KAP tidak menetapkan informasi apa yang relevan dan andal untuk dikomunikasikan kepada jaringan, penyedia jasa, dan pihak eksternal.', ['8.1']),
+  R('QO-33d', 3, 'Keahlian teknis dan hukum yang andal tidak mudah tersedia ketika dibutuhkan.', ['6.3', '6.4']),
+  R('QO-33d', 4, 'Pendidikan profesional berkelanjutan, pembaruan teknis, dan pengembangan keterampilan non-teknis tidak ditekankan dalam pelatihan internal.', ['7.7', '9.3']),
+  R('QO-33d', 5, 'Tidak ada panduan bagi personel tentang cara menyajikan informasi atau menanggapi permintaan informasi dari pihak eksternal maupun yang diwajibkan peraturan dan standar profesional.', ['8.1']),
+];
+
 /* Dibekukan SUNGGUHAN, bukan sekadar `readonly`: `readonly` hanya berlaku saat
    kompilasi, sedangkan SC-14 menuntut sekat yang tak bisa ditembus pemanggil
    pada saat jalan — termasuk oleh kode yang menghindari pemeriksaan tipe. */
 export const ILLUSTRATIVE_RISKS: readonly IllustrativeRisk[] =
-  Object.freeze([...P28, ...P29, ...P30, ...P31].map((r) => Object.freeze(r)));
+  Object.freeze([...P28, ...P29, ...P30, ...P31, ...P32, ...P33].map((r) => Object.freeze(r)));
 
 /** Tujuan mutu yang sudah punya saran ilustratif termuat. */
 export const OBJECTIVES_WITH_ILLUSTRATIVE_RISKS: readonly string[] =
