@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts';
+import { RelatedNavDock } from './related_modules';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -348,12 +348,11 @@ function F800Consider({ sel }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Tautan Modul Audit">
-          <div style={{ display: 'grid', gap: 7 }}>
-            {[['materiality', 'Materiality', 'scale'], ['evidence', 'Evidence Evaluation', 'search2'], ['opinion', 'Audit Opinion Generator', 'gavel']].map((r, i) => {
-              const Ic = (I as any)[r[2]];
-              return <NavRow800 key={i} to={r[0]} label={r[1]} ic={Ic} />;
-            })}
-          </div>
+          <RelatedNavDock moduleId="sa800" links={[
+            { id: 'materiality', label: 'Materiality', icon: I.scale },
+            { id: 'evidence', label: 'Evidence Evaluation', icon: I.search2 },
+            { id: 'opinion', label: 'Audit Opinion Generator', icon: I.gavel },
+          ]} />
         </Panel>
         <Panel title="Risiko Spesifik Kerangka Khusus">
           <div style={{ display: 'grid', gap: 7 }}>
@@ -374,15 +373,6 @@ function F800Consider({ sel }: any) {
   );
 }
 
-function NavRow800({ to, label, ic: Ic }: any) {
-  const nav = useNav();
-  return (
-    <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
-      <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Ic size={14} /></span>{label}</span>
-      <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
-    </div>
-  );
-}
 
 /* ---------------- Tab: Pelaporan & Penekanan ---------------- */
 function F800Report({ sel, onExportReport, exporting }: any) {

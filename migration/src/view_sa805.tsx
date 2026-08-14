@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts';
+import { RelatedNavDock } from './related_modules';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -366,27 +366,17 @@ function F805Link({ sel }: any) {
           </div>
         </Panel>
         <Panel title="Tautan Modul">
-          <div style={{ display: 'grid', gap: 7 }}>
-            {[['materiality', 'Materiality', 'scale'], ['opinion', 'Audit Opinion Generator', 'gavel'], ['sa705', 'SA 705/706 · Modifikasi', 'doc']].map((r, i) => {
-              const Ic = (I as any)[r[2]];
-              return <NavRow805 key={i} to={r[0]} label={r[1]} ic={Ic} />;
-            })}
-          </div>
+          <RelatedNavDock moduleId="sa805" links={[
+            { id: 'materiality', label: 'Materiality', icon: I.scale },
+            { id: 'opinion', label: 'Audit Opinion Generator', icon: I.gavel },
+            { id: 'sa705', label: 'SA 705/706 · Modifikasi', icon: I.doc },
+          ]} />
         </Panel>
       </div>
     </div>
   );
 }
 
-function NavRow805({ to, label, ic: Ic }: any) {
-  const nav = useNav();
-  return (
-    <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
-      <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Ic size={14} /></span>{label}</span>
-      <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
-    </div>
-  );
-}
 
 /* ---------------- Tab: Pelaporan & Opini Terpisah ---------------- */
 function F805Report({ sel, onExportReport, exporting }: any) {

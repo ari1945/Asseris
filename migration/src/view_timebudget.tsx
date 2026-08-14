@@ -19,7 +19,9 @@ const { useState: useTB, useMemo: useTBMemo } = React;
 const TB_BILL = FIRMFIN.WIP_BILL;
 const TB_COST = FIRMFIN.WIP_COST;
 const TB_ROSTER = FIRMFIN.WIP_ROSTER_ENG['ENG-2025-014'];
-const TB_FEE = 1_520_000_000;            // fee disepakati untuk ENG-2025-014
+/* Program B lanjutan (K-07) — fee perikatan dari SSOT klien (dulu literal
+   1,52 M — drift dgn client.fee 1,85 M). Fallback utk data lama. */
+const TB_FEE_FALLBACK = 1_520_000_000;
 const TB_ROLE_COLOR = { 'Engagement Partner': '#5b3fa6', 'Audit Manager': '#005085', 'Senior Auditor': '#0a6b73', 'Junior Auditor': '#9a6a00' };
 /* phases — opening logged hours BEFORE live timesheet */
 const TB_PHASES = [
@@ -58,13 +60,15 @@ function useTBModel(timeEntries: any, e: any) {
     const costBudget = roster.reduce((s: any, r: any) => s + r.budget * r.cost, 0);
     const prog = (e.progress || 0) / 100;
     const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
-    const revRecognized = TB_FEE * prog;
+    /* fee dari SSOT klien perikatan (fallback liter 1,52 M) */
+    const fee = (AMS.CLIENTS as { id: string; fee?: number }[]).find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
+    const revRecognized = fee * prog;
     return {
       roster, phases, actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
       burn: actualTotal / budgetTotal, stdValue, costActual, stdValueBudget, costBudget,
       eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal), revRecognized,
-      fee: TB_FEE, marginNow: revRecognized - costActual,
-      marginCompletion: TB_FEE - costBudget, realization: TB_FEE / stdValueBudget,
+      fee, marginNow: revRecognized - costActual,
+      marginCompletion: fee - costBudget, realization: fee / stdValueBudget,
       blendedBill: stdValue / actualTotal, blendedCost: costActual / actualTotal,
     };
   }, [timeEntries, e]);

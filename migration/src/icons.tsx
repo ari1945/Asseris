@@ -455,6 +455,22 @@ const RELATED_SA = {
   relatedsvc:  [{ code: 'SPJ 4400/4410', title: 'Perikatan Prosedur Disepakati & Kompilasi', phase: 'Perikatan Lain' }],
   assurance:   [{ code: 'SJAH 3000', title: 'Perikatan Asurans Selain Audit/Reviu Informasi Keuangan Historis', phase: 'Perikatan Lain', view: 'sjah3000' }, { code: 'SJAH 3400', title: 'Pemeriksaan Informasi Keuangan Prospektif', phase: 'Perikatan Lain', view: 'sjah3400' }],
   duediligence:[{ code: 'SJAH 3000', title: 'Perikatan Asurans Selain Audit/Reviu Informasi Keuangan Historis', phase: 'Perikatan Lain', view: 'sjah3000' }, { code: 'SJAH 3420', title: 'Asurans Penyusunan Informasi Keuangan Proforma', phase: 'Perikatan Lain', view: 'sjah3420' }],
+  // Backfill Program F (2026-08-14) — 13 modul PSAK & SAK yang belum terdaftar + B2 (ethics/hcm).
+  psak2:       [{ code: 'SA 700', title: 'Penyajian LK — arus kas dalam kerangka pelaporan', phase: 'Pelaporan', view: 'fsgen' }, { code: 'SA 520', title: 'Prosedur Analitis (arus kas)', phase: 'Pelaksanaan', view: 'sa520' }],
+  psak22:      [{ code: 'SA 540', title: 'Audit Estimasi (alokasi harga beli — nilai wajar)', phase: 'Pelaksanaan', view: 'sa540' }, { code: 'SA 620', title: 'Pekerjaan Pakar Auditor (valuasi)', phase: 'Pelaksanaan', view: 'expert' }],
+  psak48:      [{ code: 'SA 540', title: 'Audit Estimasi Akuntansi (value in use / NRV)', phase: 'Pelaksanaan', view: 'sa540' }, { code: 'SA 500', title: 'Bukti Audit — arus kas proyeksi & tingkat diskonto', phase: 'Pelaksanaan', view: 'evidence' }],
+  psak58:      [{ code: 'SA 540', title: 'Audit Estimasi (nilai wajar dikurangi biaya pelepasan)', phase: 'Pelaksanaan', view: 'sa540' }],
+  psak65:      [{ code: 'SA 600', title: 'Audit Grup — konsolidasi & eliminasi', phase: 'Pelaksanaan', view: 'groupaudit' }, { code: 'SA 500', title: 'Bukti Audit — investasi pada entitas anak', phase: 'Pelaksanaan', view: 'evidence' }],
+  psak66:      [{ code: 'SA 600', title: 'Audit Grup — pengaturan bersama', phase: 'Pelaksanaan', view: 'groupaudit' }],
+  psak68:      [{ code: 'SA 540', title: 'Audit Estimasi (nilai wajar aset biologis)', phase: 'Pelaksanaan', view: 'sa540' }, { code: 'SA 620', title: 'Pekerjaan Pakar Auditor (penilai)', phase: 'Pelaksanaan', view: 'expert' }],
+  psak73:      [{ code: 'SA 540', title: 'Audit Estimasi (tingkat diskonto & masa sewa)', phase: 'Pelaksanaan', view: 'sa540' }, { code: 'SA 520', title: 'Prosedur Analitis (beban sewa)', phase: 'Pelaksanaan', view: 'sa520' }, { code: 'SA 500', title: 'Bukti Audit — perjanjian sewa', phase: 'Pelaksanaan', view: 'evidence' }],
+  segmen:      [{ code: 'SA 700', title: 'Penyajian & pengungkapan segmen', phase: 'Pelaporan', view: 'fsgen' }, { code: 'SA 520', title: 'Prosedur Analitis (segmen)', phase: 'Pelaksanaan', view: 'sa520' }],
+  invprop:     [{ code: 'SA 540', title: 'Audit Estimasi (nilai wajar properti investasi)', phase: 'Pelaksanaan', view: 'sa540' }, { code: 'SA 620', title: 'Pekerjaan Pakar Auditor (penilai properti)', phase: 'Pelaksanaan', view: 'expert' }],
+  assoc:       [{ code: 'SA 600', title: 'Audit Grup — pengaruh signifikan & metode ekuitas', phase: 'Pelaksanaan', view: 'groupaudit' }, { code: 'SA 500', title: 'Bukti Audit — investasi entitas asosiasi', phase: 'Pelaksanaan', view: 'evidence' }],
+  newdisc:     [{ code: 'SA 710', title: 'Informasi Komparatif — dampak penerapan standar baru', phase: 'Pelaporan', view: 'sa710' }, { code: 'SA 700', title: 'Perumusan Opini — konsistensi kebijakan', phase: 'Pelaporan', view: 'fsgen' }],
+  sakep:       [{ code: 'SA 700', title: 'Perumusan Opini atas LK SAK EP', phase: 'Pelaporan', view: 'fsgen' }, { code: 'SA 210', title: 'Keberterimaan kerangka pelaporan SAK EP', phase: 'Perencanaan', view: 'onboarding' }],
+  ethics:      [{ code: 'Kode Etik', title: 'Ketentuan Etika Relevan (IAPI/IESBA)', phase: 'Tata Kelola Mutu' }, { code: 'SMM 1', title: 'Ketentuan Etika dalam Sistem Mutu (¶29)', phase: 'Tata Kelola Mutu' }, { code: 'SA 220', title: 'Independensi Tim Perikatan', phase: 'Perencanaan', view: 'onboarding' }],
+  hcm:         [{ code: 'SMM 1', title: 'SDM & Kompetensi dalam Sistem Mutu (¶33)', phase: 'Tata Kelola Mutu' }, { code: 'SA 220', title: 'Kompetensi Tim Perikatan', phase: 'Perencanaan', view: 'onboarding' }],
 };
 
 /* I dilucuti dari window (legacy-track slice: konsumen pakai named import dari icons.jsx).

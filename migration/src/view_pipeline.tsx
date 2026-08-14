@@ -9,6 +9,11 @@ import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { amsExportPdf } from './export_pdf';
 import { CAP } from './rbac';
+import { FIRMFIN } from './data_firmfin';
+
+/* Program B lanjutan (K-07) — tarif pembagi estimasi jam anggaran prospek dari
+   SSOT FIRMFIN.WIP_BILL (dulu literal 700rb = tarif Senior — duplikat terpecah). */
+const PIPELINE_BUDGET_RATE = (FIRMFIN && FIRMFIN.WIP_BILL && FIRMFIN.WIP_BILL['Senior Auditor']) || 700_000;
 
 /* ============================================================
    Asseris — Sales Pipeline + Billing & Invoicing (Package D)
@@ -158,7 +163,7 @@ function OppDetail({ o, onClose, onMove }: any) {
       listed: false, kind: 'Klien Baru', service: o.service, standard: o.service.includes('Review') ? 'SPR 2400' : o.service.includes('Due') ? 'SJAH 3000' : 'SA',
       partner: o.owner.includes(',') ? o.owner : o.owner + ', CPA', manager: 'Bayu Saputra',
       fee: o.value, materiality: Math.round(o.value * 2.5), npwp: '—', fyEnd: '31 Desember 2025',
-      deadline: o.close, budgetHrs: Math.max(400, Math.round(o.value / 700000)), source: o.id,
+      deadline: o.close, budgetHrs: Math.max(400, Math.round(o.value / PIPELINE_BUDGET_RATE)), source: o.id,
       acceptance: { approved: false, decision: '', approver: '', date: '', safeguard: '', factors: blank },
       pmpj: { verified: false, riskRating: 'Sedang', cddLevel: 'Standar', str: false, purpose: 'Perikatan ' + o.service.toLowerCase() + '.', ubo: [], screening: [] },
       letter: { version: 0, status: 'draft', scope: 'Perikatan ' + o.service + ' FY2025.', esign: [] },

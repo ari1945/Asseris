@@ -10,6 +10,7 @@ import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan, type PopItem, type SelectedItem } from './sampling_select';
 import { reconcileSamplingTolerance, type SamplingToleranceResult } from './canon_validation';
+import { RelatedNavDock } from './related_modules';
 import { WpPanel } from './wp_signoff';
 
 /* ============================================================
@@ -547,17 +548,11 @@ function F530Evaluation({ interval, tm, findings, setFindings, me, locked }: any
             <p className="tiny muted" style={{ margin: 0, lineHeight: 1.5 }}>Auditor menyelidiki sifat & penyebab setiap penyimpangan serta mengevaluasi dampaknya pada tujuan prosedur & area audit lain. Tidak ada indikasi <b>anomali</b> (kesalahan satu kali yang bukan representatif) — semua diperlakukan representatif & diproyeksikan.</p>
           </Panel>
           <Panel title="Tautan Modul">
-            <div style={{ display: 'grid', gap: 7 }}>
-              {[['SAD Ledger — catat salah saji', 'scale'], ['Confirmation Hub (SA 505)', 'mail'], ['Materiality — TM & MK', 'target']].map((r, i) => {
-                const Lic = (I as any)[r[1]];
-                return (
-                  <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
-                    <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>
-                    <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
-                  </div>
-                );
-              })}
-            </div>
+            <RelatedNavDock moduleId="sa530" links={[
+              { id: 'sad', label: 'SAD Ledger — catat salah saji', icon: I.scale },
+              { id: 'confirm', label: 'Confirmation Hub (SA 505)', icon: I.mail },
+              { id: 'materiality', label: 'Materiality — TM & MK', icon: I.target },
+            ]} />
           </Panel>
         </div>
       </div>
