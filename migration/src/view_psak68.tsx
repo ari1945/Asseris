@@ -6,6 +6,7 @@ import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Check, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { fvDisclosureSummary, type DisclosureSummary, type Psak68Like } from './canon_fv_disclosure';
 import {
   EXPERT_EVAL_STEPS, expertEvalComplete, expertEvalDone, expertEvalMissing, expertRefsOf,
@@ -133,6 +134,7 @@ function PSAK68View() {
   const [tab, setTab] = useStateP68(() => loader('ams.psak68.tab', 'hierarki'));
   const [done, setDone] = window.useAmsPersist('psak68.done.v1', () => ({}));
   const [focus, setFocus] = useStateP68(() => loader('ams.psak68.focus', null)); // item id disorot
+  const [exporting, setExporting] = useStateP68(false);
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak68.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -165,6 +167,49 @@ function PSAK68View() {
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja V-1" (dulu mati): ekspor XLSX tersegel
+     inventaris pos nilai wajar + hierarki Level 1-3 + roll-forward Level 3 + sensitivitas. */
+  const onExportXlsx = async () => {
+    if (exporting || !p68) return;
+    setExporting(true);
+    try {
+      const itemRows = p68.items.map((it: { id: string; label: string; level: number; fv: number }) => [
+        it.id, it.label, 'Level ' + it.level, fmt(Math.round(it.fv)),
+      ]);
+      const l3Rows = [
+        ['Saldo awal — Level 3 (1 Jan 2025)', p68.l3RF.opening],
+        ['Pembelian / penambahan', p68.l3RF.additions],
+        ['Untung/(rugi) di Laba Rugi (FVTPL)', p68.l3RF.gainsPl],
+        ['Untung/(rugi) di OCI', p68.l3RF.gainsOci],
+        ['Transfer masuk ke Level 3', p68.l3RF.transfersIn],
+        ['Transfer keluar dari Level 3', -p68.l3RF.transfersOut],
+        ['Penjualan / penyelesaian', -p68.l3RF.settlements],
+        ['Saldo akhir — Level 3 (31 Des 2025)', p68.l3RF.closing],
+      ];
+      const sensRows = (p68.sens || []).map((s: { label: string; v: number }) => [s.label, fmt(Math.round(s.v))]);
+      await amsExportXlsx({
+        kind: 'psak68-kk-v1', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK V-1 Nilai Wajar (PSAK 68) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja V-1 — Pengukuran Nilai Wajar (PSAK 68) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 68 (IFRS 13)`,
+          `Total nilai wajar ${fmt(Math.round(p68.total))} jt · Level 3 ${fmt(Math.round(p68.l3Total))} jt — Rp juta`],
+        sheets: [
+          { name: 'Inventaris Pos', heading: 'Pos diukur pada nilai wajar (Rp juta)',
+            columns: ['ID', 'Pos', 'Hierarki', 'Nilai Wajar'], rows: itemRows,
+            totals: ['', 'TOTAL NILAI WAJAR', '', fmt(Math.round(p68.total))], colWidths: [10, 40, 10, 16] },
+          { name: 'Roll-Forward Level 3', heading: 'Rekonsiliasi saldo Level 3 (¶91-99) — Rp juta',
+            columns: ['Mutasi', 'Rp juta'], rows: l3Rows.map(r => [r[0], fmt(Math.round(r[1] as number))]),
+            colWidths: [56, 16] },
+          { name: 'Sensitivitas', heading: 'Analisis sensitivitas input tak teramati (Rp juta)',
+            columns: ['Skenario', 'Dampak'], rows: sensRows, colWidths: [48, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const levelSegs = p68.byLevel.map((L: any) => ({ label: (P68_LEVEL as any)[L.level].lbl, value: L.amt, color: (P68_LEVEL as any)[L.level].color }));
 
   const TABS = [
@@ -195,7 +240,7 @@ function PSAK68View() {
           <Btn sm onClick={() => nav('psak71', { from: 'psak68' })}><I.coins size={13} /> Instrumen PSAK 71</Btn>
           <Btn sm onClick={() => nav('expert', { from: 'psak68' })}><I.flask size={13} /> Penggunaan Pakar</Btn>
           <Btn sm onClick={() => nav('psak46', { from: 'psak68' })}><I.receipt size={13} /> Dampak Pajak (OCI)</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja V-1</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja V-1'}</Btn>
         </div>
       } />
       <div className="view-scroll">

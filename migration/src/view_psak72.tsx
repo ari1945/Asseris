@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { P72_ContractBal, P72_FiveStep, P72_SspTable } from './view_psak72_parts';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 72 · Pendapatan dari Kontrak dengan Pelanggan
@@ -115,6 +116,7 @@ function PSAK72View() {
   const [unit, setUnit] = useStateP72(() => loader('ams.psak72.unit', 'jutaan'));
   const [tab, setTab] = useStateP72(() => loader('ams.psak72.tab', 'ikhtisar'));
   const [dim, setDim] = useStateP72(() => loader('ams.psak72.dim', 'lini'));
+  const [exporting, setExporting] = useStateP72(false);
   const [disc, setDisc] = window.useAmsPersist('psak72.disc.v1', () => (P72_DISCLOSURE));
   const [proc, setProc] = window.useAmsPersist('psak72.proc.v1', () => (P72_PROC));
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
@@ -132,6 +134,41 @@ function PSAK72View() {
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const riskRev = (((AMS && AMS.RISKS) as any[]) || []).find(r => r.id === 'R-01');
+
+  /* K-06 gelombang 2 — wire tombol "Kertas Kerja R" (dulu mati): ekspor XLSX tersegel
+     jembatan harga transaksi + disagregasi pendapatan + tie-out. Angka Rp juta dari canon.revenue. */
+  const onExportXlsx = async () => {
+    if (exporting || !rev) return;
+    setExporting(true);
+    try {
+      const bridgeRows = rev.bridge.map((r: { label: string; v: number; cite?: string; sub?: boolean; total?: boolean }) => [
+        r.label, r.cite || '', fmt(Math.round(r.v)),
+      ]);
+      const disaggRows = rev.streams.map((r: { label: string; amount: number; timing?: string }) => [
+        r.label, r.timing === 'over' ? 'Sepanjang waktu' : 'Titik waktu', fmt(Math.round(r.amount)),
+      ]);
+      const tieOutRows = tieRows.map(r => [r.label, r.std, fmt(Math.round(r.a)), fmt(Math.round(r.b)), r.ok ? 'Menutup' : 'SELISIH']);
+      await amsExportXlsx({
+        kind: 'psak72-kk-r', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK R Pendapatan (PSAK 72) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja R — Pendapatan (PSAK 72) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 72 (IFRS 15)`,
+          `Pendapatan audited ${fmt(Math.round(rev.revAudited))} · koreksi cut-off ${fmt(Math.round(rev.cutoffRev))} — Rp juta`],
+        sheets: [
+          { name: 'Jembatan Harga', heading: 'Jembatan harga transaksi — bruto → konsiderasi variabel → neto (Rp juta)',
+            columns: ['Pos', 'Acuan', 'Rp juta'], rows: bridgeRows, colWidths: [52, 10, 16] },
+          { name: 'Disagregasi', heading: 'Disagregasi pendapatan per lini (¶114) — Rp juta',
+            columns: ['Lini', 'Saat Pengakuan', 'Rp juta'], rows: disaggRows,
+            totals: ['TOTAL', '', fmt(Math.round(rev.revBooked))], colWidths: [34, 18, 16] },
+          { name: 'Tie-out', heading: 'Rekonsiliasi lintas-laporan (Rp juta)',
+            columns: ['Pernyataan', 'Acuan', 'A', 'B', 'Status'], rows: tieOutRows, colWidths: [50, 9, 15, 15, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
@@ -412,7 +449,7 @@ function PSAK72View() {
           <Btn sm onClick={() => nav('psak71', { from: 'psak72' })}><I.coins size={13} /> PSAK 71</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak72' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak72' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja R</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja R'}</Btn>
         </div>
       } />
       <div className="view-scroll">

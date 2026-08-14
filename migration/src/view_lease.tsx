@@ -13,6 +13,7 @@ import { SliderRow } from './view_materiality';
    Asseris — PSAK 73 Lease Calculator (ROU + liability)
    ============================================================ */
 const { useState: useStateL, useMemo: useMemoL } = React;
+import { amsExportXlsx } from './export_xlsx';
 
 /* sumber kebenaran data sewa & kalkulasi → app/canon.js (dipakai juga oleh PSAK 46) */
 const LEASES = AMS_CANON.LEASES;
@@ -24,6 +25,7 @@ function LeaseCalculator() {
   const [selId, setSelId] = useStateL('LS-01');
   const [override, setOverride] = useAmsPersist('leaseOverride.v1', () => ({})); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [yearly, setYearly] = useStateL(true);
+  const [exporting, setExporting] = useStateL(false);
 
   const base = LEASES.find(l => l.id === selId);
   const cur = { ...base, ...(override[selId] || {}) };
@@ -46,6 +48,7 @@ function LeaseCalculator() {
   // schedule display (yearly summary or monthly)
   const display = useMemoL(() => {
     if (!yearly) return rows.slice(0, 14).map((r: any) => ({ ...r, label: 'Bln ' + r.m }));
+
     const years = [];
     for (let y = 0; y * 12 < rows.length; y++) {
       const slice = rows.slice(y * 12, y * 12 + 12);
@@ -61,13 +64,38 @@ function LeaseCalculator() {
     return years;
   }, [rows, yearly]);
 
+  /* K-06 gelombang 1 — wire tombol "Skedul Amortisasi" (dulu mati): ekspor XLSX tersegel
+     skedul amortisasi liabilitas sewa kontrak aktif — saldo, bunga, pokok, saldo akhir. */
+  const onExportSkedul = async () => {
+    if (exporting || !display.length) return;
+    setExporting(true);
+    try {
+      const schedRows = display.map((r: { label: string; opening: number; interest: number; pmt: number; principal: number; closing: number }) => [r.label, fmt(r.opening), fmt(r.interest), fmt(r.pmt), fmt(r.principal), fmt(r.closing)]);
+      await amsExportXlsx({
+        kind: 'psak73-skedul', scope: 'engagement', scopeId: ((AMS as { activeEngagement?: { id?: string } }).activeEngagement || {}).id,
+        fileName: `Skedul Amortisasi Sewa (PSAK 73) - ${cur.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Skedul Amortisasi — Liabilitas Sewa (PSAK 73) — ${cur.name || ''}`,
+        meta: [`${cur.id} · ${cur.termMo} bln · IBR ${cur.rate}% · ${yearly ? 'tahunan' : 'bulanan'}`,
+          `PV liabilitas ${fmt(pv)} — ROU garis lurus ${fmt(rouAmort)}/bln`],
+        sheets: [
+          { name: 'Skedul', heading: `Skedul amortisasi — ${cur.name} (${cur.id})`,
+            columns: ['Periode', 'Saldo Awal', 'Bunga', 'Pembayaran', 'Pokok', 'Saldo Akhir'],
+            rows: schedRows, colWidths: [14, 18, 16, 16, 16, 18] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="psak73" right={
         <div className="row gap8 ac">
           <Badge kind="blue">PSAK 73 · Sewa</Badge>
           <Btn sm onClick={() => nav('psak46', { from: 'psak73' })}><I.receipt size={13} /> Dampak Pajak Tangguhan</Btn>
-          <Btn sm><I.download size={13} /> Skedul Amortisasi</Btn>
+          <Btn sm onClick={onExportSkedul} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Skedul Amortisasi'}</Btn>
           <Btn sm variant="primary"><I.ledger size={14} /> Jurnal Pengakuan</Btn>
         </div>
       } />

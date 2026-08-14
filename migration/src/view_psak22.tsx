@@ -6,6 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 22 · Kombinasi Bisnis (IFRS 3)
@@ -93,6 +94,7 @@ function PSAK22View() {
   const [tab, setTab] = useStateP22(() => loader('ams.psak22.tab', 'akuisisi'));
   const [sel, setSel] = useStateP22(() => loader('ams.psak22.sel', p22.deals[1] ? p22.deals[1].id : p22.deals[0].id));
   const [done, setDone] = window.useAmsPersist('psak22.done.v1', () => ({}));
+  const [exporting, setExporting] = useStateP22(false);
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.sel', JSON.stringify(sel)); } catch (e) {} }, [sel]);
@@ -105,7 +107,40 @@ function PSAK22View() {
   const score = Math.round(doneCount / p22.proc.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
+  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const deal = p22.deals.find((d: any) => d.id === sel) || p22.deals[0];
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja G-2" (dulu mati): ekspor XLSX tersegel
+     register kombinasi bisnis (PPA per akuisisi) + rekonsiliasi. Angka Rp juta dari canon.psak22. */
+  const onExportXlsx = async () => {
+    if (exporting || !p22) return;
+    setExporting(true);
+    try {
+      const dealRows = p22.deals.map((d: { acquiree: string; acqDate: string; own: number; considTotal: number; nciAcqProp: number; fvnia: number; goodwill: number }) => [
+        d.acquiree, d.acqDate, d.own + '%', fmt(d.considTotal), fmt(d.nciAcqProp), fmt(d.fvnia), fmt(d.goodwill),
+      ]);
+      const reconRows = p22.recon.map((r: { label: string; v: number }) => [r.label, fmt(r.v)]);
+      await amsExportXlsx({
+        kind: 'psak22-kk-g2', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK G-2 Kombinasi Bisnis (PSAK 22) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja G-2 — Kombinasi Bisnis (PSAK 22) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 22 (IFRS 3)`,
+          `Imbalan ${fmt(p22.considTotal)} jt · FV aset neto ${fmt(p22.fvniaTotal)} jt · goodwill ${fmt(p22.goodwillTotal)} jt — Rp juta`],
+        sheets: [
+          { name: 'Register Akuisisi', heading: 'Alokasi harga akuisisi per deal (Rp juta)',
+            columns: ['Akuisisi', 'Tanggal', 'Kepemilikan', 'Imbalan', 'NCI', 'FV Aset Neto', 'Goodwill'],
+            rows: dealRows,
+            totals: ['TOTAL', '', '', fmt(p22.considTotal), fmt(p22.nciAcqTotal), fmt(p22.fvniaTotal), fmt(p22.goodwillTotal)],
+            colWidths: [26, 11, 11, 15, 13, 15, 15] },
+          { name: 'Rekonsiliasi', heading: 'Rekonsiliasi alokasi (Rp juta)',
+            columns: ['Pos', 'Rp juta'], rows: reconRows, colWidths: [48, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const TABS = [
     { id: 'akuisisi', label: 'Identifikasi (¶3)' },
@@ -143,7 +178,7 @@ function PSAK22View() {
           <Badge kind="blue">PSAK 22 · IFRS 3</Badge>
           <Btn sm onClick={() => nav('psak65', { from: 'psak22' })}><I.columns size={13} /> Konsolidasi (PSAK 65)</Btn>
           <Btn sm onClick={() => nav('psak48', { from: 'psak22' })}><I.scale size={13} /> Uji Goodwill (PSAK 48)</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja G-2</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja G-2'}</Btn>
         </div>
       } />
       <div className="view-scroll">

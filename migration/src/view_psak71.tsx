@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
 import { wpSignersFor } from './wp_signoff';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 71 · Instrumen Keuangan (IFRS 9)
@@ -382,6 +383,50 @@ function PSAK71View() {
 
   const stageSegs = p71.stages.map((s: any) => ({ label: (P71_STAGE_META as any)[s.stage].lbl, value: s.ecl, color: (P71_STAGE_META as any)[s.stage].color }));
 
+  /* K-06 gelombang 1 — ekspor ECL tersegel (sebelumnya TIDAK ADA kanal ekspor di modul ini;
+     tombol "Kertas Kerja B-7" hanya pindah tab). Angka Rp juta dari canon.psak71. */
+  const [exporting, setExporting] = useStateP71(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const bRows = p71.buckets.map((b: { label: string; stage: number; gross: number; rate: number; baseEcl: number; ecl: number }) => [b.label, 'Stage ' + b.stage, fmt(b.gross), b.rate.toFixed(1) + '%', fmt(b.baseEcl), fmt(b.ecl)]);
+      const sRows = p71.scenarios.map((s: { label: string; prob: number; mult: number; macro: string }) => [s.label, (s.prob * 100).toFixed(0) + '%', s.mult.toFixed(2) + '×', s.macro]);
+      const mRows = [
+        ['CKPN awal (PY audited)', p71.ckpnPy],
+        ['Beban penurunan nilai — buku klien', p71.chargeClient],
+        ['Write-off', -p71.writeOff],
+        ['Recovery', p71.recovery],
+        ['CKPN akhir — dibukukan klien', p71.ckpnBooked],
+        ['Penyesuaian audit (AJE-02)', p71.ckpnAje],
+        ['CKPN akhir — audited', p71.ckpnAudited],
+      ];
+      await amsExportXlsx({
+        kind: 'psak71-kk-b7', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK B-7 ECL (PSAK 71) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja B-7 — ECL Piutang Usaha (PSAK 71) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 71 (IFRS 9) — pendekatan disederhanakan`,
+          `Eksposur bruto ${fmt(p71.grossAudited)} · ECL model ${fmt(p71.eclModel)} · CKPN dibukukan ${fmt(p71.ckpnBooked)} — Rp juta`],
+        sheets: [
+          { name: 'Matriks Provisi', heading: 'Staging & matriks provisi — aging × loss rate (Rp juta)',
+            columns: ['Bucket Umur', 'Stage', 'Eksposur Bruto', 'Loss Rate Efektif', 'ECL Basis', 'ECL Forward'],
+            rows: bRows, totals: ['TOTAL', '', fmt(p71.grossTot), (p71.coverage * 100).toFixed(1) + '%', fmt(p71.baseTot), fmt(p71.eclModel)],
+            colWidths: [20, 10, 18, 16, 18, 18] },
+          { name: 'Forward-Looking', heading: 'Skenario makroekonomi — overlay forward-looking (¶5.5.17)',
+            columns: ['Skenario', 'Probabilitas', 'Multiplier', 'Indikator Makro'], rows: sRows,
+            totals: ['Overlay tertimbang', '', p71.overlay.toFixed(3) + '×', `dampak ECL ${fmt(p71.overlayAmt)}`],
+            colWidths: [16, 13, 13, 46] },
+          { name: 'Mutasi CKPN', heading: 'Roll-forward CKPN — menutup ke WTB 1-1210 (Rp juta)',
+            columns: ['Mutasi', 'Rp juta'], rows: mRows.map(r => [r[0], fmt(r[1] as number)]),
+            totals: ['Selisih model vs audited', fmt(p71.auditVariance)], colWidths: [40, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const TABS = [
     { id: 'klasifikasi', label: 'Klasifikasi & SPPI' },
     { id: 'matriks', label: 'Staging & Matriks ECL' },
@@ -401,6 +446,7 @@ function PSAK71View() {
           <Btn sm onClick={() => nav('ecl', { from: 'psak71' })}><I.target size={13} /> Kalkulator ECL</Btn>
           <Btn sm onClick={() => nav('psak46', { from: 'psak71' })}><I.receipt size={13} /> Dampak Pajak Tangguhan</Btn>
           <Btn sm onClick={() => setTab('kk')}><I.report size={13} /> Kertas Kerja B-7</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor B-7 (XLSX)'}</Btn>
           <Btn sm variant="primary" onClick={() => nav('aje', { from: 'psak71' })}><I.ledger size={14} /> Usulkan AJE-02</Btn>
         </div>
       } />
