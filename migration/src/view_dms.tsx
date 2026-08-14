@@ -265,9 +265,9 @@ function DocManagement() {
         attachmentId = up.id; sha256 = up.sha256; realSize = +(up.size / 1048576).toFixed(1);
       } catch (e) { /* server absen / ditolak: pertahankan catatan metadata-only */ }
     }
-    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: '2026-03-09', sizeMB: realSize, retentionYears: f.retentionYears, archivedOn: '2026-03-09', legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
+    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: AMS.TODAY, sizeMB: realSize, retentionYears: f.retentionYears, archivedOn: AMS.TODAY, legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
       sha256, attachmentId, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
-      versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: '2026-03-09', sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
+      versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: AMS.TODAY, sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
       access: [['Anindya Pramesti', 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
       linkedWP: f.linkedWP ? f.linkedWP.split(',').map((s: any) => s.trim()).filter(Boolean) : [] };
     setDocs((list: any) => [nd, ...list]); setShowUpload(false); setSelId(id);

@@ -67,7 +67,7 @@ function FirmGL() {
   const totEkuitas = -sumType('Ekuitas') + netProfit;
 
   const togglePost = (id: any) => setGl((list: any) => list.map((j: any) => j.id === id ? { ...j, posted: !j.posted } : j));
-  const addJV = (entry: any) => setGl((list: any) => [{ id: 'JV-0' + (313 + list.length), posted: true, date: '2026-03-09', ...entry }, ...list]);
+  const addJV = (entry: any) => setGl((list: any) => [{ id: 'JV-0' + (313 + list.length), posted: true, date: AMS.TODAY, ...entry }, ...list]);
 
   const tabs = [
     { id: 'journal', label: 'Jurnal Umum', count: gl.length },

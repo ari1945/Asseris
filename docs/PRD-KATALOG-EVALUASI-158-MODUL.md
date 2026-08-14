@@ -26,7 +26,12 @@ Tanggal beku `'2026-03-09'` dominan di 8 gelombang: `MT_TODAY` (tasks), `CKP_TOD
 `sa580` seed '2026-03-14', `apar`/`fixedassets`/`revenue` aging dari REF beku.
 **Dampak:** aging/SLA/due-date salah; surat ber-tanggal salah (P0 mgmtletter sudah
 ditutup terpisah). **Solusi:** satu sumber `AMS.TODAY` (audittimeline sudah memakainya).
-Ukuran: S–M.
+Ukuran: S–M. **IMPLEMENTED 2026-08-14 (PR #231, `feat/program-b-klok-ssot-sisa`)**:
+sisa 21 situs di 14 view diganti → AMS.TODAY (anchor hari ini eng2/firmtreasury/dataflow2,
+aksi baru dms/firmgl/timebudget/opening/people/workspace, auto-seed laporan
+opinion/presentasi/sa230/sa580/sa710) + P0-B1: view_profit tarif dari FIRMFIN.WIP_BILL
+(hapus RATE_CARD duplikat). Tersisa hanya data sah (rentang FY, tanggal kanonik DMS).
+0 `:any` baru; verify PASSED.
 
 ### K-03 · Tombol mati (50+ tanpa onClick) — aktifkan atau hapus
 14 tombol "Kertas Kerja…" ekspor di PSAK, 12 di ruang kerja, 8 di operasi, 6 integrations,

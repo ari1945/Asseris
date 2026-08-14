@@ -362,7 +362,7 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
 
   const submit = () => {
     if (locked || !form.task.trim() || !(+form.hours > 0)) return;
-    addTimeEntry({ member: form.member, phase: form.phase, task: form.task, hours: +form.hours, date: '2026-03-09' });
+    addTimeEntry({ member: form.member, phase: form.phase, task: form.task, hours: +form.hours, date: AMS.TODAY });
     setForm((f: any) => ({ ...f, task: '', hours: '' }));
   };
   const phaseOpts = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Pelaporan'];

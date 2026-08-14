@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useFirm, useAmsPersist } from './contexts';
+import { AMS } from './data';
 import { FileDropField } from './evidence';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
@@ -54,8 +55,8 @@ type DropMeta = { name: string; ok: boolean; sizeMB: number; sha256: string; fil
 
 function seedRep580(): Rep580Doc {
   const items: Record<string, RepItemState> = {};
-  REP_ITEMS.forEach(r => { items[r.id] = { status: r.got ? 'received' : 'requested', receivedDate: r.got ? '2026-03-14' : '', exception: '', refused: false }; });
-  return { items, letter: { date: '2026-03-14', signatory1: 'Direktur Utama', signatory2: 'Direktur Keuangan', attachmentId: '', attachmentName: '', attachmentSha: '', attachmentSizeMB: 0 } };
+  REP_ITEMS.forEach(r => { items[r.id] = { status: r.got ? 'received' : 'requested', receivedDate: r.got ? AMS.TODAY : '', exception: '', refused: false }; });
+  return { items, letter: { date: AMS.TODAY, signatory1: 'Direktur Utama', signatory2: 'Direktur Keuangan', attachmentId: '', attachmentName: '', attachmentSha: '', attachmentSizeMB: 0 } };
 }
 const EMPTY_ITEM: RepItemState = { status: 'requested', receivedDate: '', exception: '', refused: false };
 

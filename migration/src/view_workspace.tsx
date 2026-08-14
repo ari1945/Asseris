@@ -81,7 +81,7 @@ function ReviewNotes() {
   const [selId, setSelId] = useStateWS2(null);
   const [showForm, setShowForm] = useStateWS2(false);
   const [composer, setComposer] = useStateWS2('');
-  const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
+  const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: AMS.TODAY, ref: '' });
 
   const wpRefs = WP_REFS || [];
   const seedById = useMemoWS2(() => Object.fromEntries((AMS.REVIEW_NOTES || []).map((n: any) => [n.id, n])), []);
@@ -196,13 +196,13 @@ function ReviewNotes() {
   const submitNew = () => {
     if (!draft.text.trim()) return;
     if (draft.module === 'workpapers' && draft.wpRef) {
-      const note = { id: 'wn-' + Date.now(), author: me, to: draft.to, text: draft.text.trim(), type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, status: 'open', created: 'baru saja', raised: '2026-03-09' };
+      const note = { id: 'wn-' + Date.now(), author: me, to: draft.to, text: draft.text.trim(), type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, status: 'open', created: 'baru saja', raised: AMS.TODAY };
       setWp(draft.wpRef, { notes: [...((wpState[draft.wpRef] || {}).notes || []), note] });
     } else {
       const m = (MODULE_INDEX as any)[draft.module];
-      addReviewNote({ text: draft.text.trim(), module: draft.module, to: draft.to, type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, moduleLabel: m?.label || draft.module, raised: '2026-03-09' });
+      addReviewNote({ text: draft.text.trim(), module: draft.module, to: draft.to, type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, moduleLabel: m?.label || draft.module, raised: AMS.TODAY });
     }
-    setDraft({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
+    setDraft({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: AMS.TODAY, ref: '' });
     setShowForm(false);
   };
 

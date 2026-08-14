@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAmsPersist, useFirm, useNav } from './contexts';
+import { AMS } from './data';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
 import { SubBar } from './shell';
@@ -57,7 +58,7 @@ const EMPTY_SITU: SituState = { active: false, note: '' };
 
 function seedComp710(): Comp710Doc {
   const procs: Record<string, ProcState> = {};
-  PROCS_710.forEach(p => { procs[p.id] = { done: p.seed, date: p.seed ? '2026-02-20' : '', wpRef: '', note: '' }; });
+  PROCS_710.forEach(p => { procs[p.id] = { done: p.seed, date: p.seed ? AMS.TODAY : '', wpRef: '', note: '' }; });
   const situations: Record<string, SituState> = {};
   SITU_710.forEach(s => { situations[s.id] = { active: s.id === 'predPY', note: '' }; });
   return { procs, situations };
@@ -216,7 +217,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
               const s = wp.procs[p.id] || EMPTY_PROC;
               return (
                 <div key={p.id} onClick={() => setSelId(p.id)} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < PROCS_710.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: 'pointer', background: p.id === selId ? 'var(--blue-050)' : 'transparent' }}>
-                  <button className="btn sm icon" title={s.done ? 'Tandai belum' : 'Tandai selesai'} style={{ flex: '0 0 auto', marginTop: 1, height: 22, width: 22, color: s.done ? 'var(--green)' : 'var(--amber)' }} onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); setProc(p.id, { done: !s.done, date: !s.done ? (s.date || '2026-02-20') : s.date }); }}>{s.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</button>
+                  <button className="btn sm icon" title={s.done ? 'Tandai belum' : 'Tandai selesai'} style={{ flex: '0 0 auto', marginTop: 1, height: 22, width: 22, color: s.done ? 'var(--green)' : 'var(--amber)' }} onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); setProc(p.id, { done: !s.done, date: !s.done ? (s.date || AMS.TODAY) : s.date }); }}>{s.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</button>
                   <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}{s.wpRef ? <span className="mono tiny muted"> · {s.wpRef}</span> : ''}</div>
                   <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{p.ref}</span>
                 </div>
@@ -251,7 +252,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
         </div>
         <div style={{ padding: 14, display: 'grid', gap: 11 }}>
           <label className="row gap8 ac" style={{ cursor: 'pointer', fontSize: 12 }}>
-            <input type="checkbox" checked={st.done} onChange={(e: { target: { checked: boolean } }) => setProc(cat.id, { done: e.target.checked, date: e.target.checked ? (st.date || '2026-02-20') : st.date })} />
+            <input type="checkbox" checked={st.done} onChange={(e: { target: { checked: boolean } }) => setProc(cat.id, { done: e.target.checked, date: e.target.checked ? (st.date || AMS.TODAY) : st.date })} />
             <span style={{ fontWeight: 600 }}>Prosedur telah dilaksanakan</span>
           </label>
           {st.done && (

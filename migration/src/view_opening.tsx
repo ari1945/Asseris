@@ -137,7 +137,7 @@ function OpeningBalance() {
     client: clientName, clientId: (client && client.id) || engId, partner: partnerName, cycle, engType,
     predecessorName: predecessor.name, score, verdict: rv.l, factors, safeguards: s.safeguards,
     predecessorSteps: PREDECESSOR_STEPS.map((step) => ({ label: step.label, done: !!(s.predSteps || {})[step.id] })),
-    conclusion: s.conclusion, date: '2026-03-09',
+    conclusion: s.conclusion, date: AMS.TODAY,
   });
   const doExport = async (kind: 'pdf' | 'xlsx') => {
     if (busyExport) return;

@@ -352,7 +352,8 @@ function CashBank() {
    ============================================================ */
 function FixedAssets() {
   const { fmt } = AMS;
-  const REF = new Date('2026-03-01');
+  /* K-02/PR-B — anchor perhitungan depresiasi = klok SSOT AMS.TODAY (bukan literal beku). */
+  const REF = new Date(AMS.TODAY);
   const [sel, setSel] = useStateTR(null);
   const rows = (AMS as any).FIXED_ASSETS.map((a: any) => {
     const start = new Date(a.acq);
