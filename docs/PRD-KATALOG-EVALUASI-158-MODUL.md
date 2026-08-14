@@ -3,6 +3,13 @@
 > Sumber: `Asseris-Eval-Output\RINGKASAN-158.md` + 158 laporan per modul (E-1..E-8).
 > Status kandidat: **menunggu keputusan Ari** — dipromosikan ke PRD formal (Draft) hanya
 > setelah dipilih. PRD yang SUDAH ditulis penuh: [`prd-audit-trail-server-chain.md`](prd-audit-trail-server-chain.md) (Draft).
+>
+> **Pembaruan E-9 (2026-08-14):** evaluasi KEDALAMAN fitur (L0–L5) telah menambah dimensi
+> baru — lihat [`PRD-USULAN-PENGEMBANGAN-E9-KEDALAMAN.md`](PRD-USULAN-PENGEMBANGAN-E9-KEDALAMAN.md)
+> (6 program sistemik + 10 kandidat PRD baru) dan [`PRD-RINGKASAN-KEDALAMAN-E9.md`](PRD-RINGKASAN-KEDALAMAN-E9.md).
+> Katalog ini tetap berlaku sebagai daftar kandidat per-temuan; E-9 menyempurnakannya menjadi
+> program terstruktur (ekspor massal, klok-tarif-scope, integritas server, a11y, ledger-based
+> reporting, navigasi lintas modul) + daftar modul prioritas.
 
 ---
 
