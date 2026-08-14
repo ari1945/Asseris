@@ -9,6 +9,7 @@ import type { FluxState, FluxStatus } from './flux_state';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Switch } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2';
 
 /* ============================================================
@@ -160,6 +161,42 @@ function AnalyticalReview() {
   const der = useMemoAR(() => arDerive(wtb, pm, aje), [wtb, pm, aje]);
   /* satu ambang untuk seluruh tab modul ini — lihat flux_state.fluxThresholds */
   const thr = useMemoAR(() => fluxThresholds(fluxThreshold, pm), [fluxThreshold, pm]);
+  const [exporting, setExporting] = useStateAR(false);
+
+  /* K-06 gelombang 3 — wire tombol "Export Kertas Kerja" (dulu mati): ekspor XLSX tersegel
+     sinyal fluktuasi + rasio adverse + status telaah. Angka Rp juta dari arDerive (SSOT WTB). */
+  const onExportXlsx = async () => {
+    if (exporting || !der) return;
+    setExporting(true);
+    try {
+      const eng = activeEngagement;
+      const client = activeClient;
+      const fluxRows = der.flux.map((r: { code: string; label: string; cy: number; py: number; dAbs: number; dPct: number }) => [
+        r.code, r.label, fmt(Math.round(r.py / 1e6)), fmt(Math.round(r.cy / 1e6)),
+        fmt(Math.round(r.dAbs / 1e6)), (r.dPct * 100).toFixed(1) + '%',
+      ]);
+      const ratioRows = der.ratios.map((r: { code: string; label: string; y: number[]; bench: number; good: boolean }) => [
+        r.label, r.y[2] != null ? r.y[2].toFixed(2) : '—', r.bench != null ? r.bench.toFixed(2) : '—',
+        benchVerdict(r.y[2], r.bench, r.good),
+      ]);
+      await amsExportXlsx({
+        kind: 'analytical-kk', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK Prosedur Analitis (SA 520) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja — Prosedur Analitis (SA 520) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 520 (Revisi)`,
+          `Ambang: ≥ ${thr.absThr != null ? 'Rp ' + fmt(thr.absThr / 1e6, 0) + ' jt atau ' : ''}${thr.pctThr}% — Rp juta`],
+        sheets: [
+          { name: 'Sinyal Fluktuasi', heading: 'Analisis fluktuasi CY vs PY (Rp juta)',
+            columns: ['Kode', 'Akun', 'PY', 'CY', 'Selisih', 'Δ%'], rows: fluxRows, colWidths: [9, 36, 15, 15, 15, 10] },
+          { name: 'Analisis Rasio', heading: 'Rasio terhadap tolok ukur industri',
+            columns: ['Rasio', 'CY', 'Benchmark', 'Verdict'], rows: ratioRows, colWidths: [36, 14, 14, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -175,7 +212,7 @@ function AnalyticalReview() {
       <SubBar moduleId="analytical" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 520</Badge>
-          <Btn sm><I.download size={13} /> Export Kertas Kerja</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Kertas Kerja'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> Jelaskan dengan AI</Btn>
         </div>
       } />

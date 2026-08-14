@@ -6,6 +6,7 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 24 · Imbalan Kerja (Employee Benefits)
@@ -112,6 +113,7 @@ function PSAK24View() {
   const [scenario, setScenario] = useStateP24(() => loader('ams.psak24.scenario', 'avail'));
   const [doneA, setDoneA] = window.useAmsPersist('psak24.doneA.v1', () => ({}));
   const [doneN, setDoneN] = window.useAmsPersist('psak24.doneN.v1', () => ({}));
+  const [exporting, setExporting] = useStateP24(false);
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak24.scenario', JSON.stringify(scenario)); } catch (e) {} }, [scenario]);
 
@@ -128,6 +130,33 @@ function PSAK24View() {
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja H-2" (dulu mati): ekspor XLSX tersegel
+     rekonsiliasi liabilitas imbalan pasti + peta penyajian. Angka Rp juta dari canon FIG. */
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const reconRows = P24_RECON.map(r => [r.t, fmt(r.v)]);
+      const presentRows = P24_PRESENT.map(p => [p.stmt, p.ref, p.line, fmt(p.amt)]);
+      await amsExportXlsx({
+        kind: 'psak24-kk-h2', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK H-2 Imbalan Kerja (PSAK 24) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja H-2 — Imbalan Kerja (PSAK 24) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 24 / IAS 19`,
+          `Liabilitas imbalan pasti akhir ${fmt(dbo)} jt — Rp juta`],
+        sheets: [
+          { name: 'Rekonsiliasi DBO', heading: 'Rekonsiliasi liabilitas imbalan pasti (Rp juta)',
+            columns: ['Mutasi', 'Rp juta'], rows: reconRows, colWidths: [58, 16] },
+          { name: 'Penyajian', heading: 'Peta penyajian dalam laporan keuangan (Rp juta)',
+            columns: ['Pernyataan', 'Ref', 'Pos', 'Rp juta'], rows: presentRows, colWidths: [30, 9, 52, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   /* ditarik dari sumber kebenaran tunggal (WTB 2-2300 via AMS_CANON) — bukan hardcode */
   const canon24 = AMS_CANON;
   const dbo = canon24 ? canon24.FIG.dbo : 13080;
@@ -141,7 +170,7 @@ function PSAK24View() {
           <Badge kind="green">PSAK 24 · IAS 19</Badge>
           <Btn sm onClick={() => nav('sa540', { from: 'psak24' })}><I.target size={13} /> SA 540 · Estimasi</Btn>
           <Btn sm onClick={() => nav('expert', { from: 'psak24' })}><I.expert size={13} /> Evaluasi Pakar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja H-2</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja H-2'}</Btn>
         </div>
       } />
       <div className="view-scroll">

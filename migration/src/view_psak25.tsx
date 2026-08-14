@@ -6,6 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 25 · Kebijakan Akuntansi, Perubahan
@@ -102,6 +103,7 @@ function PSAK25View() {
   const [tab, setTab] = useStateP25(() => loader('ams.psak25.tab', 'klasifikasi'));
   const [proc, setProc] = window.useAmsPersist('psak25.proc.v1', () => ({}));
   const [disc, setDisc] = window.useAmsPersist('psak25.disc.v1', () => ({}));
+  const [exporting, setExporting] = useStateP25(false);
   useEffectP25(() => { try { localStorage.setItem('ams.psak25.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
 
@@ -112,6 +114,37 @@ function PSAK25View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja" (dulu mati): ekspor XLSX tersegel
+     katalog perubahan & kesalahan + register estimasi. Angka Rp juta dari canon.psak25. */
+  const onExportXlsx = async () => {
+    if (exporting || !M) return;
+    setExporting(true);
+    try {
+      const chgRows = M.changes.map((r: { item: string; treat: string; ref: string; amt: number | null }) => [
+        r.item, r.treat, r.ref, r.amt != null ? fmt(Math.round(r.amt)) : '—',
+      ]);
+      const estRows = M.estimates.map((e: { pos: string; basis: string; ref: string; carryPy: number; carryCy: number; sens: number; sensLbl: string }) => [
+        e.pos, e.basis, e.ref, fmt(Math.round(e.carryPy)), fmt(Math.round(e.carryCy)), fmt(Math.round(e.carryCy - e.carryPy)), '±' + fmt(Math.round(e.sens)) + ' · ' + e.sensLbl,
+      ]);
+      await amsExportXlsx({
+        kind: 'psak25-kk', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK Kebijakan & Estimasi (PSAK 25) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja — Kebijakan, Estimasi & Kesalahan (PSAK 25) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 25 / IAS 8`,
+          `${M.changes.length} perubahan · ${M.estimates.length} estimasi terdaftar — Rp juta`],
+        sheets: [
+          { name: 'Katalog Perubahan', heading: 'Katalog perubahan kebijakan & kesalahan (Rp juta)',
+            columns: ['Pos', 'Perlakuan', 'Ref', 'Dampak'], rows: chgRows, colWidths: [40, 24, 10, 16] },
+          { name: 'Register Estimasi', heading: 'Register estimasi akuntansi — carry vs prior year (Rp juta)',
+            columns: ['Pos', 'Basis', 'Ref', 'PY', 'CY', 'Delta', 'Sensitivitas'], rows: estRows, colWidths: [26, 30, 8, 14, 14, 14, 24] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const rt = M.restate;
 
   const procDone = P25_PROC.filter(p => proc[p.id]).length;
@@ -136,7 +169,7 @@ function PSAK25View() {
           <Badge kind="green">PSAK 25 · IAS 8</Badge>
           <Btn sm onClick={() => nav('sa540', { from: 'psak25' })}><I.target size={13} /> SA 540 · Estimasi</Btn>
           <Btn sm onClick={() => nav('sad', { from: 'psak25' })}><I.scale size={13} /> SAD Ledger</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja'}</Btn>
         </div>
       } />
       <div className="view-scroll">

@@ -6,6 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 65 · Laporan Keuangan Konsolidasian (IFRS 10)
@@ -111,6 +112,7 @@ function PSAK65View() {
   const [tab, setTab] = useStateP65(() => loader('ams.psak65.tab', 'kendali'));
   const [done, setDone] = window.useAmsPersist('psak65.done.v1', () => ({}));
   const [elimDone, setElimDone] = window.useAmsPersist('psak65.elim.v1', () => ({}));
+  const [exporting, setExporting] = useStateP65(false);
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak65.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -124,6 +126,39 @@ function PSAK65View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja G-1" (dulu mati): ekspor XLSX tersegel
+     kertas kerja konsolidasi (LPK + entitas + eliminasi). Angka Rp juta dari canon.psak65. */
+  const onExportXlsx = async () => {
+    if (exporting || !p65) return;
+    setExporting(true);
+    try {
+      const subRows = p65.subs.map((s: { id: string; name: string; own: number; cost: number; goodwill: number }) => [
+        s.id, s.name, s.own + '%', fmt(Math.round(s.cost)), fmt(Math.round(s.goodwill || 0)),
+      ]);
+      const wsRows = (p65.ws || []).map((r: { label: string; induk: number; anak: number; elim: number; konsol: number }) => [
+        r.label, fmt(Math.round(r.induk)), fmt(Math.round(r.anak)), fmt(Math.round(r.elim)), fmt(Math.round(r.konsol)),
+      ]);
+      await amsExportXlsx({
+        kind: 'psak65-kk-g1', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK G-1 Konsolidasi (PSAK 65) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja G-1 — Konsolidasi (PSAK 65) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 65 (IFRS 10)`,
+          `Goodwill ${fmt(Math.round(p65.goodwillTotal))} jt · NCI ${fmt(Math.round(p65.nciCloseTotal))} jt · laba konsolidasi ${fmt(Math.round(p65.consolNpat))} jt — Rp juta`],
+        sheets: [
+          { name: 'LPK Konsolidasi', heading: 'Laporan posisi keuangan konsolidasian (Rp juta)',
+            columns: ['Pos', 'Induk', 'Anak', 'Eliminasi', 'Konsolidasi'], rows: wsRows, colWidths: [34, 15, 15, 15, 15] },
+          { name: 'Entitas Anak', heading: 'Entitas anak — kepemilikan & goodwill (Rp juta)',
+            columns: ['ID', 'Entitas', 'Kepemilikan', 'Biaya Perolehan', 'Goodwill'], rows: subRows,
+            totals: ['TOTAL', '', '', fmt(Math.round(p65.costTotal)), fmt(Math.round(p65.goodwillTotal))],
+            colWidths: [10, 30, 13, 16, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const ctrlById = Object.fromEntries(p65.control.map((c: any) => [c.id, c]));
   const allEntities = [{ id: 'CP-01', name: client.name, role: 'Induk / Holding', own: 100 }, ...p65.subs];
@@ -153,7 +188,7 @@ function PSAK65View() {
           <Btn sm onClick={() => nav('groupaudit', { from: 'psak65' })}><I.building size={13} /> Group Audit (SA 600)</Btn>
           <Btn sm onClick={() => nav('psak48', { from: 'psak65' })}><I.scale size={13} /> Uji Goodwill (PSAK 48)</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak65' })}><I.report size={13} /> LK Konsolidasian</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja G-1</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja G-1'}</Btn>
         </div>
       } />
       <div className="view-scroll">

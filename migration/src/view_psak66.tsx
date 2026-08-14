@@ -6,6 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 66 · Pengaturan Bersama (Joint Arrangements)
@@ -85,6 +86,7 @@ function PSAK66View() {
   const [unit, setUnit] = useStateP66(() => loader('ams.psak66.unit', 'jutaan'));
   const [tab, setTab] = useStateP66(() => loader('ams.psak66.tab', 'ikhtisar'));
   const [disc, setDisc] = window.useAmsPersist('psak66.disc.v1', () => (null));
+  const [exporting, setExporting] = useStateP66(false);
   useEffectP66(() => { try { localStorage.setItem('ams.psak66.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP66(() => { try { localStorage.setItem('ams.psak66.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -95,6 +97,36 @@ function PSAK66View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja G-3" (dulu mati): ekspor XLSX tersegel
+     register pengaturan bersama (JV/JO) + informasi keuangan ringkas. Rp juta dari canon.psak66. */
+  const onExportXlsx = async () => {
+    if (exporting || !p66) return;
+    setExporting(true);
+    try {
+      const arrRows = p66.arrangements.map((a: { name: string; type: string; interest: number; collective: boolean; unanimous: boolean }) => [
+        a.name, a.type === 'jv' ? 'Ventura bersama' : 'Operasi bersama', a.interest + '%',
+        a.collective ? 'Ya' : 'Tidak', a.unanimous ? 'Ya' : 'Tidak',
+      ]);
+      const jvRows = (p66.reg || []).map((r: { label: string; v: number }) => [r.label, fmt(Math.round(r.v))]);
+      await amsExportXlsx({
+        kind: 'psak66-kk-g3', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK G-3 Pengaturan Bersama (PSAK 66) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja G-3 — Pengaturan Bersama (PSAK 66) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 66 (IFRS 11)`,
+          `${p66.counts.jv} ventura bersama · ${p66.counts.jo} operasi bersama — Rp juta`],
+        sheets: [
+          { name: 'Register Pengaturan', heading: 'Pengaturan bersama — klasifikasi (¶7)',
+            columns: ['Pengaturan', 'Jenis', 'Bagian', 'Kolektif', 'Bulat'], rows: arrRows, colWidths: [34, 18, 10, 10, 10] },
+          { name: 'Metode Ekuitas', heading: 'Ventura bersama — roll-forward metode ekuitas (Rp juta)',
+            columns: ['Mutasi', 'Rp juta'], rows: jvRows, colWidths: [48, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const discList = disc || p66.disclosure;
   const toggleDisc = (id: any) => setDisc((discList).map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
@@ -447,7 +479,7 @@ function PSAK66View() {
           <Btn sm onClick={() => nav('psak16', { from: 'psak66' })}><I.ledger size={13} /> PSAK 16 · Aset Tetap</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak66' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('groupaudit', { from: 'psak66' })}><I.users size={13} /> Group Audit</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja G-3</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja G-3'}</Btn>
         </div>
       } />
       <div className="view-scroll">

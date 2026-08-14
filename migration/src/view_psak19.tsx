@@ -7,6 +7,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 19 · Aset Takberwujud (Intangible Assets)
@@ -141,6 +142,7 @@ function PSAK19View() {
   const [disc, setDisc] = window.useAmsPersist('psak19.disc.v1', () => (P19_DISCLOSURE));
   const [impair, setImpair] = window.useAmsPersist('psak19.impair.v1', () => (P19_IMPAIR));
   const [crit, setCrit] = window.useAmsPersist('psak19.crit.v1', () => (P19_DEVCRIT));
+  const [exporting, setExporting] = useStateP19(false);
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
 
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
@@ -157,6 +159,43 @@ function PSAK19View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja E-INT" (dulu mati): ekspor XLSX tersegel
+     roll-forward nilai tercatat + klasifikasi per kelompok. Angka Rp juta dari canon.intangibles. */
+  const onExportXlsx = async () => {
+    if (exporting || !it) return;
+    setExporting(true);
+    try {
+      const rfRows = [
+        ['Saldo awal — 1 Jan 2025 (audited)', it.netOpen],
+        ['Penambahan & kapitalisasi', it.additions],
+        ['Amortisasi periode (¶97)', -it.amortAudited],
+        ['Saldo akhir — audited (31 Des 2025)', it.netClose],
+      ];
+      const clsRows = (it.classes || []).map((c: { label: string; gross: number; accum: number; carry: number; life: number | null }) => [
+        c.label, c.life ? c.life + ' th' : 'Tak terbatas', fmt(Math.round(c.gross)), fmt(Math.round(c.accum)), fmt(Math.round(c.carry)),
+      ]);
+      await amsExportXlsx({
+        kind: 'psak19-kk-eint', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK E-INT Aset Takberwujud (PSAK 19) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja E-INT — Aset Takberwujud (PSAK 19) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 19 / IAS 38`,
+          `Nilai buku neto audited ${fmt(Math.round(it.netClose))} jt · amortisasi ${fmt(Math.round(it.amortAudited))} jt — Rp juta`],
+        sheets: [
+          { name: 'Roll-forward', heading: 'Rekonsiliasi nilai tercatat (¶118e) — Rp juta',
+            columns: ['Mutasi', 'Rp juta'], rows: rfRows.map(r => [r[0], fmt(Math.round(r[1] as number))]),
+            totals: ['Nilai buku neto akhir', fmt(Math.round(it.netClose))], colWidths: [52, 16] },
+          { name: 'Klasifikasi', heading: 'Klasifikasi per kelompok — WTB 1-2400/1-2410 (Rp juta)',
+            columns: ['Kelompok', 'Umur', 'Harga Perolehan', 'Akm. Amortisasi', 'Nilai Buku'], rows: clsRows,
+            totals: ['TOTAL', '', fmt(Math.round(it.grossTot)), fmt(Math.round(it.accumTot)), fmt(Math.round(it.carryTot))],
+            colWidths: [30, 12, 18, 18, 18] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
@@ -562,7 +601,7 @@ function PSAK19View() {
           <Btn sm onClick={() => nav('sa540', { from: 'psak19' })}><I.target size={13} /> SA 540 · Estimasi</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak19' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak19' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja E-INT</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja E-INT'}</Btn>
         </div>
       } />
       <div className="view-scroll">

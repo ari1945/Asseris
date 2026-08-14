@@ -6,6 +6,7 @@ import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { type ViuField, type ViuParams } from './canon_viu';
 
 /* ============================================================
@@ -137,6 +138,7 @@ function PSAK48View() {
   const [tab, setTab] = useStateP48(() => loader('ams.psak48.tab', 'impair'));
   const [done, setDone] = window.useAmsPersist('psak48.done.v1', () => ({}));
   const [selProv, setSelProv] = useStateP48(() => loader('ams.psak48.selprov', 'LIT-02'));
+  const [exporting, setExporting] = useStateP48(false);
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak48.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -147,8 +149,46 @@ function PSAK48View() {
   const doneCount = P48_PROC.filter((p, i) => done[p.ref + i]).length;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
+  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const impaired = p48.totalImpair > 0;
   const headKind = p48.headroomPct < 0 ? 'red' : p48.headroomPct < 0.08 ? 'amber' : 'green';
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja P-48/57" (dulu mati): ekspor XLSX tersegel
+     uji penurunan nilai (UPK + lisensi) + register provisi. Angka Rp juta dari canon.psak48/psak57. */
+  const onExportXlsx = async () => {
+    if (exporting || !p48) return;
+    setExporting(true);
+    try {
+      const partsRows = p48.parts.map((pt: { id: string; label: string; val: number }) => [pt.id, pt.label, fmt(Math.round(pt.val))]);
+      const viuRows = (p48.viu.flows || []).map((f: { yr: string; fcf: number; df: number; pv: number }) => [f.yr, fmt(Math.round(f.fcf)), f.df.toFixed(3), fmt(Math.round(f.pv))]);
+      const sensRows = p48.sens.map((sn: { label: string; v: number; note: string }) => [sn.label, fmt(Math.round(sn.v)), sn.note || '']);
+      const provRows = (p57 ? p57.items : []).map((it: { kind: string; party: string; assess: string; estimate: number; likely: string }) => [
+        it.kind, it.party, it.likely, fmt(Math.round(it.estimate)), it.assess || '',
+      ]);
+      await amsExportXlsx({
+        kind: 'psak48-kk-p4857', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK P-48/57 Penurunan Nilai & Provisi - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja P-48/57 — Penurunan Nilai & Provisi (PSAK 48/57) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 48 (IAS 36) jo. PSAK 57 (IAS 37)`,
+          `UPK: tercatat ${fmt(Math.round(p48.carry))} jt · terpulihkan ${fmt(Math.round(p48.recoverable))} jt · headroom ${(p48.headroomPct * 100).toFixed(1)}% — Rp juta`],
+        sheets: [
+          { name: 'Uji Penurunan UPK', heading: 'Nilai tercatat vs jumlah terpulihkan — UPK Operasi Inti (Rp juta)',
+            columns: ['ID', 'Komponen', 'Rp juta'], rows: partsRows,
+            totals: ['', 'Nilai tercatat UPK', fmt(Math.round(p48.carry))], colWidths: [10, 40, 16] },
+          { name: 'Value-in-Use', heading: 'DCF nilai pakai (Rp juta)',
+            columns: ['Tahun', 'Arus Kas', 'Faktor Diskon', 'PV'], rows: viuRows,
+            totals: ['Jumlah terpulihkan', '', '', fmt(Math.round(p48.recoverable))], colWidths: [12, 18, 14, 18] },
+          { name: 'Sensitivitas', heading: 'Analisis sensitivitas asumsi utama (Rp juta)',
+            columns: ['Skenario', 'Dampak', 'Catatan'], rows: sensRows, colWidths: [34, 16, 40] },
+          { name: 'Register Provisi', heading: 'Register provisi & liabilitas kontinjensi (Rp juta)',
+            columns: ['Jenis', 'Pihak', 'Kemungkinan', 'Estimasi', 'Penilaian'], rows: provRows, colWidths: [12, 28, 16, 14, 40] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const TABS = [
     { id: 'impair', label: 'Penurunan Nilai · PSAK 48' },
@@ -173,7 +213,7 @@ function PSAK48View() {
           <Btn sm onClick={() => nav('sa501', { from: 'psak48' })}><I.gavel size={13} /> Litigasi SA 501</Btn>
           <Btn sm onClick={() => nav('psak46', { from: 'psak48' })}><I.receipt size={13} /> Dampak Pajak</Btn>
           <Btn sm onClick={() => nav('psak58', { from: 'psak48' })}><I.archive size={13} /> Aset Dijual (PSAK 58)</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja P-48/57</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja P-48/57'}</Btn>
         </div>
       } />
       <div className="view-scroll">

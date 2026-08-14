@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -60,6 +61,7 @@ function SA520View() {
   const nav = useNav();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useState520('substantif');
+  const [exporting, setExporting] = useState520(false);
   const locked = !!(firm && firm.locked);
   const canEdit = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked;
 
@@ -109,12 +111,43 @@ function SA520View() {
   /* selisih di atas ambang yang investigasinya SUDAH didokumentasikan auditor (¶7) */
   const investigated = rows.filter((r: { flag: boolean; note?: string }) => r.flag && !!r.note).length;
 
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja Analitis" (dulu mati): ekspor XLSX tersegel
+     telaah selisih per akun + status investigasi. Angka Rp juta dari kertas kerja SA 520. */
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const eng = firm?.activeEngagement;
+      const clientName = client;
+      const id = (v: number) => (v || 0).toLocaleString('id-ID');
+      const rowData = rows.map((r: { id: string; acct: string; assertion: string; basis: string; exp: number; act: number; diff: number; pct: number; flag: boolean; note?: string }) => [
+        r.id, r.acct, r.assertion, id(r.exp), id(r.act), (r.diff > 0 ? '+' : '') + id(r.diff),
+        (r.pct > 0 ? '+' : '') + r.pct.toFixed(1) + '%', r.flag ? (r.note ? 'Diselidiki' : 'Perlu investigasi') : 'Dalam ambang', r.note || '',
+      ]);
+      await amsExportXlsx({
+        kind: 'sa520-kk', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK Analitis Substantif (SA 520) - ${clientName}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja — Prosedur Analitis Substantif (SA 520) — ${clientName}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 520 (Revisi)`,
+          `Ambang selisih ${thr}% · ${flagged} akun ter-flag · ${investigated} investigasi terdokumentasi — Rp juta`],
+        sheets: [
+          { name: 'Telaah Selisih', heading: 'Telaah fluktuasi per akun (Rp juta)',
+            columns: ['ID', 'Akun', 'Asersi', 'Ekspektasi', 'Aktual', 'Selisih', 'Δ%', 'Status', 'Investigasi'],
+            rows: rowData, colWidths: [9, 24, 24, 14, 14, 14, 9, 16, 30] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sa520" right={
         <div className="row gap8 ac">
           <SACanonChips stdId="sa520" />
-          <Btn sm><I.download size={13} /> Kertas Kerja Analitis</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja Analitis'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />

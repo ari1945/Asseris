@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { DiagnosticPanel } from './diagnostics_panel';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 46 · Pajak Penghasilan (Income Taxes)
@@ -244,6 +245,44 @@ function PSAK46View() {
   const presentFiltered = P46_PRESENT.filter(p => stmtTab === 'all' || p.stmt === stmtTab);
   const stmtBadge = { sofp: { k: 'teal', l: 'Posisi Keuangan' }, pl: { k: 'blue', l: 'Laba Rugi' }, oci: { k: 'purple', l: 'OCI' } };
 
+  /* K-06 gelombang 1 — wire tombol "Kertas Kerja PPh" (dulu mati): ekspor XLSX tersegel
+     rekonsiliasi fiskal + beda temporer + mutasi DTA + ETR. Angka Rp juta dari canon. */
+  const [exporting, setExporting] = useStateP46(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const fiscalRows = P46_FISCAL.map(r => [r.t, (P46_FBUCKET as Record<string, { lbl: string }>)[r.bucket]?.lbl || '', fmt(r.v)]);
+      const tempRowsX = tempRows.map((r: { pos?: string; ref?: string; car: number | null; base: number | null; type: string; dt: number }) => [
+        r.pos + ' ' + (r.ref || ''), r.car != null ? fmt(r.car) : '—', r.base != null ? fmt(r.base) : '—',
+        r.type === 'tax' ? 'Kena Pajak' : 'Dpt Dikurangkan', fmt(r.dt),
+      ]);
+      const moveRows = P46_MOVE.map(m => [m.t, fmt(m.v)]);
+      const etrRows = P46_ETR.map(e => [e.t, fmt(e.v)]);
+      await amsExportXlsx({
+        kind: 'psak46-kk-pph', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK PPh (PSAK 46) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja PPh — PSAK 46 — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 46 / IAS 12`,
+          `PKP ${fmt(FR.pkp)} × 22% → pajak kini ${fmt(currentTax)} · DTA neto ${fmt(netDT)} — Rp juta`],
+        sheets: [
+          { name: 'Rekonsiliasi Fiskal', heading: 'Rekonsiliasi Fiskal — laba komersial → PKP (Rp juta)',
+            columns: ['Pos', 'Jenis', 'Rp juta'], rows: fiscalRows, colWidths: [58, 16, 14] },
+          { name: 'Beda Temporer & DT', heading: 'Perbedaan temporer — carrying vs tax base → DTA/(DTL) (Rp juta)',
+            columns: ['Pos', 'Tercatat', 'Dasar pajak', 'Jenis', 'DTA/(DTL)'], rows: tempRowsX,
+            totals: ['Aset pajak tangguhan neto', '', '', 'DTA ' + fmt(dtaTotal) + ' · DTL (' + fmt(-dtlTotal) + ')', fmt(netDT)],
+            colWidths: [44, 14, 14, 22, 14] },
+          { name: 'Mutasi DTA Neto', columns: ['Mutasi', 'Rp juta'], rows: moveRows, colWidths: [64, 14] },
+          { name: 'Rekonsiliasi ETR', heading: 'Rekonsiliasi tarif pajak efektif (¶81c)',
+            columns: ['Pos', 'Rp juta'], rows: etrRows, colWidths: [64, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="psak46" right={
@@ -251,7 +290,7 @@ function PSAK46View() {
           <Badge kind="green">PSAK 46 · IAS 12</Badge>
           <Btn sm onClick={() => nav('sa540', { from: 'psak46' })}><I.target size={13} /> SA 540 · Estimasi</Btn>
           <Btn sm onClick={() => nav('tax', { from: 'psak46' })}><I.receipt size={13} /> Modul Pajak</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja PPh</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja PPh'}</Btn>
         </div>
       } />
       <div className="view-scroll">

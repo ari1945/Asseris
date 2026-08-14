@@ -7,6 +7,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 2 · Laporan Arus Kas
@@ -114,6 +115,7 @@ function PSAK2View() {
   const [method, setMethod] = window.useAmsPersist('psak2.method.v1', () => ('indirect'));
   const [unit, setUnit] = useStateP2(() => loader('ams.psak2.unit', 'jutaan'));
   const [disc, setDisc] = window.useAmsPersist('psak2.disc.v1', () => (P2_DISCLOSURE));
+  const [exporting, setExporting] = useStateP2(false);
 
   useEffectP2(() => { try { localStorage.setItem('ams.psak2.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
 
@@ -125,6 +127,46 @@ function PSAK2View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja" (dulu mati): ekspor XLSX tersegel
+     laporan arus kas (metode aktif) + tie-out saldo. Angka Rp juta dari FSGEN/AMS_CANON. */
+  const onExportXlsx = async () => {
+    if (exporting || !cf) return;
+    setExporting(true);
+    try {
+      const cfoRows = (method === 'indirect' ? cf.cfo : directRows).map((l: { label: string; v: number }) => [l.label, fmt(Math.round(l.v / 1e6))]);
+      const cfiRows = cf.cfi.map((l: { label: string; v: number }) => [l.label, fmt(Math.round(l.v / 1e6))]);
+      const cffRows = cf.cff.map((l: { label: string; v: number }) => [l.label, fmt(Math.round(l.v / 1e6))]);
+      const tieOutRows = tieRows.map(r => [r.label, r.std, fmt(Math.round(r.a / 1e6)), fmt(Math.round(r.b / 1e6)), r.ok ? 'Menutup' : 'SELISIH']);
+      await amsExportXlsx({
+        kind: 'psak2-kk-cf', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK Arus Kas (PSAK 2) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja — Laporan Arus Kas (PSAK 2) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 2 / IAS 7 · metode ${method}`,
+          `Kas akhir ${fmt(Math.round(cf.cashClose / 1e6))} jt · kenaikan neto ${fmt(Math.round(cf.netChange / 1e6))} jt — Rp juta`],
+        sheets: [
+          { name: 'Arus Kas Operasi', heading: 'Arus kas dari aktivitas operasi (Rp juta)',
+            columns: ['Pos', 'Rp juta'], rows: cfoRows,
+            totals: ['Kas neto operasi', fmt(Math.round((method === 'indirect' ? cf.cfoTotal : cfoDirect) / 1e6))], colWidths: [56, 16] },
+          { name: 'Arus Kas Investasi', columns: ['Pos', 'Rp juta'], rows: cfiRows,
+            totals: ['Kas neto investasi', fmt(Math.round(cf.cfiTotal / 1e6))], colWidths: [56, 16] },
+          { name: 'Arus Kas Pendanaan', columns: ['Pos', 'Rp juta'], rows: cffRows,
+            totals: ['Kas neto pendanaan', fmt(Math.round(cf.cffTotal / 1e6))], colWidths: [56, 16] },
+          { name: 'Rekonsiliasi', heading: 'Kas awal + neto = kas akhir (Rp juta)',
+            columns: ['Pos', 'Rp juta'], rows: [
+              ['Kas & setara kas awal', fmt(Math.round(cf.cashOpen / 1e6))],
+              ['Kenaikan/(penurunan) neto', fmt(Math.round(cf.netChange / 1e6))],
+              ['Kas & setara kas akhir', fmt(Math.round(cf.cashClose / 1e6))],
+            ], colWidths: [56, 16] },
+          { name: 'Tie-out', heading: 'Rekonsiliasi lintas-laporan (Rp juta)',
+            columns: ['Pernyataan', 'Acuan', 'A', 'B', 'Status'], rows: tieOutRows, colWidths: [48, 9, 15, 15, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* ——— helper saldo akun dari WTB yang sama ——— */
   const by = {}; wtb.forEach((r: any) => { (by as any)[r.code] = r; });
@@ -230,7 +272,7 @@ function PSAK2View() {
           </div>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak2' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak2' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja'}</Btn>
         </div>
       } />
       <div className="view-scroll">

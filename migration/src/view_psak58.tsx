@@ -6,6 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 58 · Aset Tidak Lancar Dimiliki untuk Dijual
@@ -105,6 +106,7 @@ function PSAK58View() {
   const [tab, setTab] = useStateP58(() => loader('ams.psak58.tab', 'ikhtisar'));
   const [crit, setCrit] = window.useAmsPersist('psak58.crit.v1', () => (P58_CRITERIA));
   const [disc, setDisc] = window.useAmsPersist('psak58.disc.v1', () => (P58_DISCLOSURE));
+  const [exporting, setExporting] = useStateP58(false);
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -118,6 +120,52 @@ function PSAK58View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+
+  /* K-06 gelombang 3 — wire tombol "Kertas Kerja E-7" (dulu mati): ekspor XLSX tersegel
+     reklasifikasi disposal group + pengukuran FVLCS + operasi dihentikan. Rp juta dari canon.psak58. */
+  const onExportXlsx = async () => {
+    if (exporting || !dg) return;
+    setExporting(true);
+    try {
+      const memberRows = dg.members.map((m: { tag: string; name: string; classLabel: string; nbv: number }) => [m.tag, m.name, m.classLabel || '', fmt(Math.round(m.nbv))]);
+      const measRows = [
+        ['Jumlah tercatat grup — sebelum reklasifikasi', dg.carryBefore],
+        ['Nilai wajar grup — appraisal KJPP', dg.fairValue],
+        ['Biaya untuk menjual', dg.costToSell],
+        ['Nilai wajar dikurangi biaya menjual (FVLCS)', dg.fvlcs],
+        ['Rugi penurunan nilai reklasifikasi', dg.writedown],
+        ['Aset dimiliki untuk dijual — nilai tercatat akhir', dg.carryHFS],
+      ];
+      const discRows = [
+        ['Pendapatan segmen — ' + dg.revStreamLabel, dg.revDisc],
+        ['Hasil operasi segmen — sebelum pajak', dg.opResultDisc],
+        ['Rugi penurunan nilai pengukuran ke FVLCS', dg.writedown],
+        ['Pajak penghasilan', dg.taxDisc],
+        ['Laba/(rugi) operasi dihentikan — neto', dg.postTaxDisc],
+      ];
+      await amsExportXlsx({
+        kind: 'psak58-kk-e7', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK E-7 HFS & Operasi Dihentikan (PSAK 58) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja E-7 — Aset HFS & Operasi Dihentikan (PSAK 58) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 58 (IFRS 5)`,
+          `Nilai tercatat ${fmt(Math.round(dg.carryBefore))} jt → FVLCS ${fmt(Math.round(dg.fvlcs))} jt · rugi penurunan ${fmt(Math.round(dg.writedown))} jt — Rp juta`],
+        sheets: [
+          { name: 'Reklasifikasi', heading: 'Reklasifikasi disposal group — per nomor tag (Rp juta)',
+            columns: ['Tag', 'Aset', 'Kelas', 'Nilai Buku'], rows: memberRows,
+            totals: ['TOTAL', '', '', fmt(Math.round(dg.carryBefore))], colWidths: [10, 34, 18, 16] },
+          { name: 'Pengukuran', heading: 'Pengukuran — lower of carrying & FVLCS (¶15, ¶20) — Rp juta',
+            columns: ['Pos', 'Rp juta'], rows: measRows.map(r => [r[0], fmt(Math.round(r[1] as number))]),
+            colWidths: [58, 16] },
+          { name: 'Operasi Dihentikan', heading: 'Analisis operasi dihentikan (Rp juta)',
+            columns: ['Pos', 'Rp juta'], rows: discRows.map(r => [r[0], fmt(Math.round(r[1] as number))]),
+            totals: ['Laba bersih — operasi dilanjutkan', fmt(Math.round(dg.contProfit))], colWidths: [58, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const riskPPE = (((AMS && AMS.RISKS) || []) as any[]).find(r => r.id === 'R-04');
 
@@ -480,7 +528,7 @@ function PSAK58View() {
           <Btn sm onClick={() => nav('psak68', { from: 'psak58' })}><I.layers size={13} /> PSAK 68 · Nilai Wajar</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak58' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak58' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja E-7</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja E-7'}</Btn>
         </div>
       } />
       <div className="view-scroll">

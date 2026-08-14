@@ -2,10 +2,11 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useNav, useAmsPersist } from './contexts';
+import { useAudit, useFirm, useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — ECL Calculator (PSAK 71)
@@ -21,6 +22,7 @@ import { Badge, Btn, Donut, Panel, Stat } from './ui';
 function ECLCalculator() {
   const { fmt } = AMS;
   const nav = useNav();
+  const firm = useFirm();
   const audit = useAudit();
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
@@ -33,6 +35,7 @@ function ECLCalculator() {
     id: b.id, label: b.label, stage: b.stage, gross: Math.round(b.gross) * 1e6, rate: +b.rate.toFixed(1),
   })) : [])); // F1/PR-3: persist loss-rate (dulu useState → hilang saat reload)
   const booked = (p71 ? p71.ckpnBooked : 1980) * 1e6; // WTB 1-1210 (satu sumber)
+  const [exporting, setExporting] = React.useState(false);
 
   const setRate = (id: any, rate: any) => setBuckets((bs: any) => bs.map((b: any) => b.id === id ? { ...b, rate: Math.max(0, Math.min(100, rate)) } : b));
 
@@ -50,6 +53,34 @@ function ECLCalculator() {
   const stageColor = { 1: 'green', 2: 'amber', 3: 'red' };
   const rp = (x: any) => 'Rp ' + fmt(x);
 
+  /* K-06 gelombang 1 — wire tombol "Kertas Kerja B-7" (dulu mati): ekspor XLSX tersegel
+     matriks provisi + komposisi stage, angka penuh dari state bucket (SSOT = canon.psak71). */
+  const onExportKK = async () => {
+    if (exporting || !withEcl.length) return;
+    setExporting(true);
+    try {
+      const rows = withEcl.map((b: { label: string; stage: number; gross: number; rate: number; ecl: number }) => [b.label, 'Stage ' + b.stage, fmt(b.gross), b.rate.toFixed(1) + '%', fmt(b.ecl)]);
+      await amsExportXlsx({
+        kind: 'ecl-kk-b7', scope: 'engagement', scopeId: firm.activeEngagement?.id,
+        fileName: `KK B-7 ECL (PSAK 71) - ${firm.activeClient?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja B-7 — ECL Piutang Usaha (PSAK 71) — ${firm.activeClient?.name || ''}`,
+        meta: [`${firm.activeEngagement?.id || ''} · ${firm.activeEngagement?.fy || 'FY2025'} · PSAK 71 (IFRS 9)`,
+          `CKPN dibukukan ${rp(booked)} · selisih model ${(diff >= 0 ? '+' : '') + rp(diff)} — loss rate interaktif`],
+        sheets: [
+          { name: 'Matriks Provisi', heading: 'Kertas Kerja B-7 — Penurunan Nilai Piutang Usaha (ECL)',
+            columns: ['Bucket Umur', 'Stage', 'Eksposur Bruto (Rp)', 'Loss Rate (%)', 'ECL (Rp)'],
+            rows, totals: ['TOTAL', '', fmt(totalGross), (totalEcl / totalGross * 100).toFixed(1) + '%', fmt(totalEcl)],
+            colWidths: [22, 9, 24, 13, 24] },
+          { name: 'Komposisi Stage', columns: ['Stage', 'ECL (Rp)'],
+            rows: segs.map(s => [s.label, fmt(s.value)]), colWidths: [14, 24] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="ecl" right={
@@ -57,8 +88,8 @@ function ECLCalculator() {
           <Badge kind="blue">PSAK 71 · ECL</Badge>
           <Btn sm onClick={() => nav('psak71', { from: 'ecl' })}><I.coins size={13} /> Modul PSAK 71</Btn>
           <Btn sm onClick={() => nav('psak46', { from: 'ecl' })}><I.receipt size={13} /> Dampak Pajak Tangguhan</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja B-7</Btn>
-          <Btn sm variant="primary"><I.ledger size={14} /> Usulkan AJE</Btn>
+          <Btn sm onClick={onExportKK} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja B-7'}</Btn>
+          <Btn sm onClick={() => nav('aje', { from: 'ecl' })} variant="primary"><I.ledger size={14} /> Usulkan AJE</Btn>
         </div>
       } />
       <div className="view-scroll">

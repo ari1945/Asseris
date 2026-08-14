@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { NRVWorkingPaper } from './view_psak14_nrv';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 14 · Persediaan (Inventories)
@@ -102,6 +103,7 @@ function PSAK14View() {
   const [tab, setTab] = useInitialTab('psak14', () => loader('ams.psak14.tab', 'ikhtisar'));
   const [disc, setDisc] = window.useAmsPersist('psak14.disc.v1', () => (P14_DISCLOSURE));
   const [formula, setFormula] = window.useAmsPersist('psak14.formula.v1', () => ('wavg'));
+  const [exporting, setExporting] = useStateP14(false);
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
 
@@ -120,6 +122,47 @@ function PSAK14View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const aje01 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-01');
   const riskInv = (((AMS && AMS.RISKS) || []) as any[]).find(r => r.id === 'R-02');
+
+  /* K-06 gelombang 2 — wire tombol "Kertas Kerja C" (dulu mati): ekspor XLSX tersegel
+     roll-forward + klasifikasi + uji NRV per-SKU. Angka Rp juta dari canon.inventory. */
+  const onExportXlsx = async () => {
+    if (exporting || !inv) return;
+    setExporting(true);
+    try {
+      const rfRows = rf.map(r => [r.label, fmt(Math.round(r.v))]);
+      const mixRows = inv.mix.map((m: { label: string; pct: number; cost: number; nrv: number; reqWD: number; bookedWD: number; shortfall: number }) => [
+        m.label, (m.pct * 100).toFixed(0) + '%', fmt(Math.round(m.cost)), fmt(Math.round(m.nrv)),
+        fmt(Math.round(m.reqWD)), fmt(Math.round(m.bookedWD)), fmt(Math.round(m.shortfall)),
+      ]);
+      const itemRows = (inv.items || []).map((it: { code: string; cls: string; label: string; cost: number; sellPrice: number; costSell: number; nrv: number; lower: number; shortfall: number }) => [
+        it.code, it.cls, it.label, fmt(Math.round(it.cost)), fmt(Math.round(it.sellPrice)),
+        fmt(Math.round(it.costSell)), fmt(Math.round(it.nrv)), fmt(Math.round(it.lower)),
+        it.shortfall > 0 ? fmt(Math.round(it.shortfall)) : '—',
+      ]);
+      await amsExportXlsx({
+        kind: 'psak14-kk-c', scope: 'engagement', scopeId: eng?.id,
+        fileName: `KK C Persediaan (PSAK 14) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja C — Persediaan (PSAK 14) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 14 / IAS 2`,
+          `Saldo akhir audited ${fmt(Math.round(inv.closeNet))} · NRV shortfall ${fmt(Math.round(inv.shortfallWD))} — Rp juta`],
+        sheets: [
+          { name: 'Roll-forward', heading: 'Mutasi persediaan (¶34) — Rp juta',
+            columns: ['Mutasi', 'Rp juta'], rows: rfRows, colWidths: [58, 16] },
+          { name: 'Klasifikasi', heading: 'Klasifikasi persediaan — biaya vs NRV per kelompok (Rp juta)',
+            columns: ['Kelompok', 'Porsi', 'Biaya', 'NRV', 'Penurunan Diperlukan', 'Dibukukan', 'Shortfall'],
+            rows: mixRows,
+            totals: ['TOTAL', '100%', fmt(Math.round(inv.grossCost)), fmt(Math.round(inv.grossCost - inv.shortfallWD)), fmt(Math.round(inv.requiredWD)), fmt(Math.round(inv.bookedWD)), fmt(Math.round(inv.shortfallWD))],
+            colWidths: [22, 9, 15, 15, 19, 15, 15] },
+          { name: 'Uji NRV per-SKU', heading: 'Nilai realisasi neto per item (WP C-2, ¶28-33) — Rp juta',
+            columns: ['Kode', 'Klas', 'Item', 'Biaya', 'Harga Jual', 'Biaya Jual', 'NRV', 'Lebih Rendah', 'Shortfall'],
+            rows: itemRows, colWidths: [10, 8, 34, 14, 14, 14, 14, 14, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
@@ -473,7 +516,7 @@ function PSAK14View() {
           <Btn sm onClick={() => nav('sa501', { from: 'psak14' })}><I.search2 size={13} /> SA 501 · Opname</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak14' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak14' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja C</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja C'}</Btn>
         </div>
       } />
       <div className="view-scroll">
