@@ -1,12 +1,15 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
+import { CAP } from './rbac';
+import { accountLedger, currentBalances, statements, trialBalance } from './firm_ledger';
+import type { GlJournal } from './firm_ledger';
 
 /* ============================================================
    Asseris — Firm General Ledger + AP/AR (Package F)
@@ -17,15 +20,34 @@ const { useState: useStateF1, useMemo: useMemoF1 } = React;
 function FirmGL() {
   const { fmt } = AMS;
   const coa: any = AMS.FIRM_COA;
+  /* P0 Program E: saldo awal dianker ke jurnal SEED (AMS.FIRM_GL) — TB/LK/
+     Buku Besar diturunkan dari jurnal terposting, bukan seed statis. */
+  const seedGl = AMS.FIRM_GL as GlJournal[];
   const [gl, setGl] = useAmsPersist('firmgl', () => AMS.FIRM_GL) as any;
   const [tab, setTab] = useStateF1('journal');
   const [form, setForm] = useStateF1(false);
   const [ledAcct, setLedAcct] = useStateF1('1-100');
   const [stmt, setStmt] = useStateF1('pl');
+  /* SoD finansial (Program E): aksi tulis GL = FIRMFIN_EDIT (Partner / Finance
+     Firma). Server capForWrite sudah menegakkan — gate UI ini mencegah
+     suntingan pengguna non-privileged ditolak SENYAP oleh server. */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   const acctName = (c: any) => (coa.find((a: any) => a.code === c) || {}).name || c;
   const posted = gl.filter((j: any) => j.posted);
   const unposted = gl.filter((j: any) => !j.posted).length;
+
+  // neraca saldo, LK & saldo per akun — DITURUNKAN dari jurnal terposting (P0)
+  const tb = useMemoF1(() => trialBalance(coa, seedGl, gl), [coa, seedGl, gl]);
+  const totalDr = tb.totalDr, totalCr = tb.totalCr, balanced = tb.balanced;
+  const stmts = useMemoF1(() => statements(coa, seedGl, gl), [coa, seedGl, gl]);
+  const revenue = stmts.revenue, expense = stmts.expense, netProfit = stmts.netProfit;
+  const totAset = stmts.totAset, totLiab = stmts.totLiab, totEkuitas = stmts.totEkuitas;
+  const balMap = useMemoF1(() => currentBalances(coa, seedGl, gl), [coa, seedGl, gl]);
+  const balOf = (c: string) => balMap[c] ?? 0;
 
   // trial balance by type
   const tbByType = useMemoF1(() => {
@@ -33,41 +55,26 @@ function FirmGL() {
     coa.forEach((a: any) => { if (!(groups as any)[a.type]) (groups as any)[a.type] = []; (groups as any)[a.type].push(a); });
     return groups;
   }, [coa]);
-  const totalDr = coa.filter((a: any) => a.bal > 0).reduce((s: any, a: any) => s + a.bal, 0);
-  const totalCr = -coa.filter((a: any) => a.bal < 0).reduce((s: any, a: any) => s + a.bal, 0);
-  const balanced = Math.abs(totalDr - totalCr) < 1e6;
 
   // ---- account ledger (running balance) derived from posted journals ----
-  const ledger = useMemoF1(() => {
-    const acct = coa.find((a: any) => a.code === ledAcct) || coa[0];
-    const posts = posted.filter((j: any) => j.dr === acct.code || j.cr === acct.code)
-      .slice().sort((a: any, b: any) => +new Date(a.date) - +new Date(b.date));
-    let movement = 0;
-    const lines = posts.map((j: any) => {
-      const dr = j.dr === acct.code ? j.amount : 0;
-      const cr = j.cr === acct.code ? j.amount : 0;
-      movement += dr - cr;
-      return { ...j, dr2: dr, cr2: cr };
-    });
-    const closing = acct.bal;
-    const opening = closing - movement;
-    let run = opening;
-    const rows = lines.map((l: any) => { run += l.dr2 - l.cr2; return { ...l, running: run }; });
-    return { acct, opening, closing, rows, totalDr: lines.reduce((s: any, l: any) => s + l.dr2, 0), totalCr: lines.reduce((s: any, l: any) => s + l.cr2, 0) };
-  }, [ledAcct, gl]);
+  const ledger = useMemoF1(() => accountLedger(coa, seedGl, gl, ledAcct), [coa, seedGl, gl, ledAcct]);
   const drCr = (v: any) => (v >= 0 ? fmt(Math.abs(v) / 1e6, 0) + ' D' : fmt(Math.abs(v) / 1e6, 0) + ' K');
 
-  // ---- financial statements from COA ----
+  // ---- financial statements from TB (turunan jurnal, bukan seed) ----
   const byType = (t: any) => coa.filter((a: any) => a.type === t);
-  const sumType = (t: any) => byType(t).reduce((s: any, a: any) => s + a.bal, 0);
-  const revenue = -sumType('Pendapatan'), expense = sumType('Beban');
-  const netProfit = revenue - expense;
-  const totAset = sumType('Aset');
-  const totLiab = -sumType('Liabilitas');
-  const totEkuitas = -sumType('Ekuitas') + netProfit;
 
-  const togglePost = (id: any) => setGl((list: any) => list.map((j: any) => j.id === id ? { ...j, posted: !j.posted } : j));
-  const addJV = (entry: any) => setGl((list: any) => [{ id: 'JV-0' + (313 + list.length), posted: true, date: AMS.TODAY, ...entry }, ...list]);
+  const togglePost = (id: any) => {
+    if (!canEdit) return;
+    const j = gl.find((x: GlJournal) => x.id === id);
+    setGl((list: any) => list.map((x: GlJournal) => x.id === id ? { ...x, posted: !x.posted } : x));
+    logActivity && logActivity({ who, action: 'GL_POST', detail: `Jurnal ${id} ${j && j.posted ? 'dibatalkan posting' : 'diposting'}${j && j.desc ? ' · ' + j.desc : ''}` });
+  };
+  const addJV = (entry: any) => {
+    if (!canEdit) return;
+    const id = 'JV-0' + (313 + gl.length);
+    setGl((list: any) => [{ id, posted: true, date: AMS.TODAY, ...entry }, ...list]);
+    logActivity && logActivity({ who, action: 'GL_POST', detail: `Jurnal baru ${id} diposting · ${entry.desc}` });
+  };
 
   const tabs = [
     { id: 'journal', label: 'Jurnal Umum', count: gl.length },
@@ -82,7 +89,9 @@ function FirmGL() {
       <SubBar moduleId="firmgl" right={
         <div className="row gap8 ac">
           <span className="tiny mono" style={{ color: balanced ? 'var(--green)' : 'var(--red)' }}>● {balanced ? 'Balanced' : 'Out of balance'}</span>
-          <Btn sm variant="primary" onClick={() => setForm(true)}><I.plus size={14} /> Jurnal Baru</Btn>
+          {canEdit
+            ? <Btn sm variant="primary" onClick={() => setForm(true)}><I.plus size={14} /> Jurnal Baru</Btn>
+            : <span className="chip tiny muted" title="Posting jurnal dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> Read-only</span>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -97,7 +106,9 @@ function FirmGL() {
           <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
           {tab === 'journal' && (
-            <table className="dtbl">
+            <>
+              {unposted > 0 && <div className="tiny" style={{ padding: '6px 12px', background: 'var(--amber-bg)', color: 'var(--amber)', fontWeight: 600 }}><I.alert size={12} /> {unposted} jurnal draft belum diposting — belum masuk neraca saldo & laporan keuangan.</div>}
+              <table className="dtbl">
               <thead><tr><th>No. Voucher</th><th>Tanggal</th><th>Keterangan</th><th>Debit</th><th>Kredit</th><th className="num">Jumlah</th><th>Status</th></tr></thead>
               <tbody>
                 {gl.map((j: any) => (
@@ -108,11 +119,14 @@ function FirmGL() {
                     <td className="tiny mono muted">{j.dr} {acctName(j.dr).slice(0, 18)}</td>
                     <td className="tiny mono muted">{j.cr} {acctName(j.cr).slice(0, 18)}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(j.amount / 1e6, 0)} jt</td>
-                    <td><span onClick={() => togglePost(j.id)} style={{ cursor: 'pointer' }}><Badge kind={j.posted ? 'green' : 'amber'}>{j.posted ? 'Posted' : 'Draft'}</Badge></span></td>
+                    <td>{canEdit
+                      ? <span onClick={() => togglePost(j.id)} style={{ cursor: 'pointer' }} title="Klik untuk ubah status posting"><Badge kind={j.posted ? 'green' : 'amber'}>{j.posted ? 'Posted' : 'Draft'}</Badge></span>
+                      : <Badge kind={j.posted ? 'green' : 'amber'}>{j.posted ? 'Posted' : 'Draft'}</Badge>}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </>
           )}
 
           {tab === 'ledger' && (
@@ -121,7 +135,7 @@ function FirmGL() {
                 {coa.map((a: any) => (
                   <div key={a.code} onClick={() => setLedAcct(a.code)} className="row ac jb" style={{ padding: '7px 12px', cursor: 'pointer', background: a.code === ledAcct ? 'var(--blue-050)' : 'transparent', borderLeft: '3px solid ' + (a.code === ledAcct ? 'var(--blue)' : 'transparent') }}>
                     <div style={{ minWidth: 0 }}><div className="mono tiny muted">{a.code}</div><div className="truncate" style={{ fontSize: 12, fontWeight: a.code === ledAcct ? 700 : 500 }}>{a.name}</div></div>
-                    <span className="mono tiny" style={{ color: a.bal < 0 ? 'var(--red)' : 'var(--ink-3)' }}>{fmt(Math.abs(a.bal) / 1e6, 0)}</span>
+                    <span className="mono tiny" style={{ color: balOf(a.code) < 0 ? 'var(--red)' : 'var(--ink-3)' }}>{fmt(Math.abs(balOf(a.code)) / 1e6, 0)}</span>
                   </div>
                 ))}
               </div>
@@ -154,10 +168,12 @@ function FirmGL() {
           )}
 
           {tab === 'tb' && (
-            <table className="dtbl">
+            <>
+              <div className="tiny" style={{ padding: '6px 12px', background: 'var(--surface-2)', color: 'var(--ink-3)' }}><I.link2 size={12} /> Dihitung dari {posted.length} jurnal terposting — posting/batal posting jurnal langsung menggeser saldo.</div>
+              <table className="dtbl">
               <thead><tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th className="num">Debit</th><th className="num">Kredit</th></tr></thead>
               <tbody>
-                {coa.map((a: any) => (
+                {tb.rows.map((a: any) => (
                   <tr key={a.code} onClick={() => { setLedAcct(a.code); setTab('ledger'); }} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny muted">{a.code}</td>
                     <td style={{ fontWeight: 600 }}>{a.name}</td>
@@ -169,11 +185,12 @@ function FirmGL() {
               </tbody>
               <tfoot><tr><td colSpan={3}>TOTAL {balanced ? '· seimbang ✓' : ''}</td><td className="num">{fmt(totalDr / 1e6, 0)}</td><td className="num">{fmt(totalCr / 1e6, 0)}</td></tr></tfoot>
             </table>
+            </>
           )}
 
           {tab === 'statements' && (
             <div style={{ padding: 14 }}>
-              <div className="row gap8 ac" style={{ marginBottom: 12 }}><Seg options={[{ value: 'pl', label: 'Laba Rugi' }, { value: 'bs', label: 'Neraca' }]} value={stmt} onChange={setStmt} /><span className="tiny muted">FY2025 · dihasilkan dari neraca saldo · Rp jt</span></div>
+              <div className="row gap8 ac" style={{ marginBottom: 12 }}><Seg options={[{ value: 'pl', label: 'Laba Rugi' }, { value: 'bs', label: 'Neraca' }]} value={stmt} onChange={setStmt} /><span className="tiny muted">FY2025 · dihitung dari {posted.length} jurnal terposting · Rp jt</span></div>
               {stmt === 'pl' ? (
                 <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 14, alignItems: 'start' }}>
                   <Panel title="Laporan Laba Rugi" sub="FY2025">
@@ -182,7 +199,7 @@ function FirmGL() {
                         <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}><td style={{ padding: '7px 9px' }}>Pendapatan Jasa</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(revenue / 1e6, 0)}</td></tr>
                         <tr className="group-row"><td colSpan={2}>Beban Usaha</td></tr>
                         {byType('Beban').map((a: any) => (
-                          <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px', color: 'var(--red)' }}>({fmt(a.bal / 1e6, 0)})</td></tr>
+                          <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px', color: 'var(--red)' }}>({fmt(balOf(a.code) / 1e6, 0)})</td></tr>
                         ))}
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Beban Usaha</td><td className="num" style={{ padding: '7px 9px', color: 'var(--red)' }}>({fmt(expense / 1e6, 0)})</td></tr>
                         <tr style={{ fontWeight: 800, background: 'var(--green-bg)' }}><td style={{ padding: '9px' }}>LABA OPERASI</td><td className="num" style={{ padding: '9px', color: 'var(--green)' }}>{fmt(netProfit / 1e6, 0)}</td></tr>
@@ -195,8 +212,8 @@ function FirmGL() {
                     <Panel title="Komposisi Beban">
                       {byType('Beban').map((a: any) => (
                         <div key={a.code} style={{ marginBottom: 9 }}>
-                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{a.name}</span><span className="mono" style={{ fontWeight: 700 }}>{(a.bal / expense * 100).toFixed(0)}%</span></div>
-                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (a.bal / expense * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-solid)' }} /></div>
+                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{a.name}</span><span className="mono" style={{ fontWeight: 700 }}>{(balOf(a.code) / expense * 100).toFixed(0)}%</span></div>
+                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (balOf(a.code) / expense * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-solid)' }} /></div>
                         </div>
                       ))}
                     </Panel>
@@ -207,7 +224,7 @@ function FirmGL() {
                   <Panel title="Aset">
                     <table className="dtbl">
                       <tbody>
-                        {byType('Aset').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px' }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Aset').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px' }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(balOf(a.code) / 1e6, 0)}</td></tr>)}
                         <tr style={{ fontWeight: 800, background: 'var(--surface-2)' }}><td style={{ padding: '9px' }}>TOTAL ASET</td><td className="num" style={{ padding: '9px' }}>{fmt(totAset / 1e6, 0)}</td></tr>
                       </tbody>
                     </table>
@@ -216,10 +233,10 @@ function FirmGL() {
                     <table className="dtbl">
                       <tbody>
                         <tr className="group-row"><td colSpan={2}>Liabilitas</td></tr>
-                        {byType('Liabilitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Liabilitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-balOf(a.code) / 1e6, 0)}</td></tr>)}
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Liabilitas</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(totLiab / 1e6, 0)}</td></tr>
                         <tr className="group-row"><td colSpan={2}>Ekuitas</td></tr>
-                        {byType('Ekuitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Ekuitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-balOf(a.code) / 1e6, 0)}</td></tr>)}
                         <tr><td style={{ padding: '7px 9px', paddingLeft: 20 }}>Laba Tahun Berjalan</td><td className="num" style={{ padding: '7px 9px', color: 'var(--green)' }}>{fmt(netProfit / 1e6, 0)}</td></tr>
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Ekuitas</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(totEkuitas / 1e6, 0)}</td></tr>
                         <tr style={{ fontWeight: 800, background: 'var(--surface-2)' }}><td style={{ padding: '9px' }}>TOTAL LIABILITAS & EKUITAS</td><td className="num" style={{ padding: '9px' }}>{fmt((totLiab + totEkuitas) / 1e6, 0)}</td></tr>
@@ -243,7 +260,7 @@ function FirmGL() {
                     {accts.map((a: any) => (
                       <div key={a.code} className="panel" onClick={() => { setLedAcct(a.code); setTab('ledger'); }} style={{ padding: '8px 11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div><div className="mono tiny muted">{a.code}</div><div style={{ fontSize: 12, fontWeight: 600 }}>{a.name}</div></div>
-                        <div className="mono tiny" style={{ fontWeight: 700, color: a.bal < 0 ? 'var(--red)' : 'var(--ink)' }}>{fmt(Math.abs(a.bal) / 1e6, 0)} jt</div>
+                        <div className="mono tiny" style={{ fontWeight: 700, color: balOf(a.code) < 0 ? 'var(--red)' : 'var(--ink)' }}>{fmt(Math.abs(balOf(a.code)) / 1e6, 0)} jt</div>
                       </div>
                     ))}
                   </div>
@@ -335,13 +352,24 @@ function FirmAPAR() {
   const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
   const ar: any = AMS.INVOICES;
   const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
+  /* SoD finansial (Program E): pembayaran utang = FIRMFIN_EDIT (server capForWrite
+     sudah menegakkan 'firmap'; gate UI mencegah ditolak senyap). */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   const apOutstanding = ap.filter((x: any) => x.status !== 'Paid').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const apOverdue = ap.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const arOutstanding = ar.filter((x: any) => x.status !== 'Paid' && x.status !== 'Draft').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const arOverdue = ar.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const netPosition = arOutstanding - apOutstanding;
-  const payAp = (id: any) => setAp((list: any) => list.map((x: any) => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
+  const payAp = (id: any) => {
+    if (!canEdit) return;
+    const x = ap.find((r: { id: string }) => r.id === id);
+    setAp((list: any) => list.map((r: { id: string; amount: number }) => r.id === id ? { ...r, paid: r.amount, status: 'Paid' } : r));
+    logActivity && logActivity({ who, action: 'AP_PAY', detail: `Pembayaran ${id} ${x ? '· ' + x.vendor : ''} lunas` });
+  };
 
   // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
   const FFp = (FIRMFIN && (FIRMFIN as any).pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
@@ -388,7 +416,9 @@ function FirmAPAR() {
                       <td className="mono tiny" style={{ color: x.status === 'Overdue' ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(x.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td className="tiny mono" style={{ color: x.dOver > 0 ? 'var(--red)' : 'var(--ink-4)' }}>{x.out > 0 ? (x.dOver > 0 ? x.dOver + 'h' : agingBucket(x.dOver).l.replace('Belum jatuh tempo', 'lancar')) : '—'}</td>
                       <td><Badge kind={(APAR_STATUS as any)[x.status]}>{x.status}</Badge></td>
-                      <td>{x.status !== 'Paid' && <button className="btn sm" style={{ height: 22 }} onClick={() => payAp(x.id)}>Bayar</button>}</td>
+                      <td>{x.status !== 'Paid' && (canEdit
+                        ? <button className="btn sm" style={{ height: 22 }} onClick={() => payAp(x.id)}>Bayar</button>
+                        : <span className="tiny muted" title="Pembayaran dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> kunci</span>)}</td>
                     </tr>
                   ))}
                 </tbody>

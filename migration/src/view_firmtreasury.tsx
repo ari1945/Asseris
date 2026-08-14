@@ -1,13 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist } from './contexts';
+import { useAmsPersist, useAudit, useAuth } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 import { amsExportXlsx } from './export_xlsx';
+import { CAP } from './rbac';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Treasury, Cash & Bank, Assets
@@ -199,6 +200,7 @@ function BudgetLineDrill({ b, onClose }: any) {
             <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (w * 100) + '%', height: '100%', borderRadius: 3, background: adverse ? 'var(--red)' : 'var(--green)' }} /></div>
           </div>
         ))}
+        <div className="tiny" style={{ marginTop: 8, padding: '6px 9px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={11} /> Fasing triwulanan & bobot pendorong ini ILUSTRASI demo (sintesis) — belum diturunkan dari buku besar/ledger (roadmap Ledger-based Reporting).</div>
       </div>
     </div>
   );
@@ -217,11 +219,22 @@ function CashBank() {
   const [tab, setTab] = useStateTR('positions');
   const R: any = AMS.BANK_RECON;
   const [lines, setLines] = useAmsPersist('bankrecon', () => R.lines);
+  /* SoD finansial (Program E): pencocokan rekonsiliasi = FIRMFIN_EDIT (server
+     capForWrite sudah menegakkan 'bankrecon'; gate UI mencegah ditolak senyap). */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   const idrOf = (a: any) => a.balance * FX[a.ccy];
   const totalIDR = accts.reduce((s: any, a: any) => s + idrOf(a), 0);
 
-  const toggleMatch = (id: any) => setLines((list: any) => list.map((l: any) => l.id === id ? { ...l, matched: !l.matched } : l));
+  const toggleMatch = (id: any) => {
+    if (!canEdit) return;
+    const l = lines.find((x: { id: string }) => x.id === id);
+    setLines((list: any) => list.map((x: { id: string; matched: boolean }) => x.id === id ? { ...x, matched: !x.matched } : x));
+    logActivity && logActivity({ who, action: 'RECON_TOGGLE', detail: `${id} ${l && l.desc ? '· ' + l.desc.slice(0, 40) : ''} → ${l && l.matched ? 'belum cocok' : 'cocok'}` });
+  };
   const unrec = lines.filter((l: any) => !l.matched);
   const adjustedBook = R.bookBalance + lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s: any, l: any) => s + l.amount, 0);
   const adjustedBank = R.bankBalance + lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s: any, l: any) => s + l.amount, 0);
@@ -275,7 +288,7 @@ function CashBank() {
           {tab === 'recon' && (
             <div style={{ padding: 14 }}>
               <div className="row jb ac" style={{ marginBottom: 12 }}>
-                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {accts.find((a: any) => a.id === R.account).name} ({R.account})</div><div className="tiny muted">Periode {R.period} · klik baris untuk tandai cocok/belum</div></div>
+                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {accts.find((a: any) => a.id === R.account).name} ({R.account})</div><div className="tiny muted">{canEdit ? 'Periode ' + R.period + ' · klik baris untuk tandai cocok/belum' : 'Periode ' + R.period + ' · tampilan read-only — pencocokan dibatasi peran Finance Firma / Partner'}</div></div>
                 <span className={'badge b-' + (reconciled ? 'green' : 'amber')} style={{ padding: '3px 10px' }}>{reconciled ? <><I.check size={12} /> Seimbang</> : 'Selisih Rp ' + fmt(Math.abs(adjustedBank - adjustedBook) / 1e6, 0) + ' jt'}</span>
               </div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -298,7 +311,7 @@ function CashBank() {
                 <thead><tr><th>Tanggal</th><th>Keterangan (rekening koran)</th><th className="num">Jumlah</th><th>Ref. GL</th><th>Status</th></tr></thead>
                 <tbody>
                   {lines.map((l: any) => (
-                    <tr key={l.id} onClick={() => toggleMatch(l.id)} style={{ cursor: 'pointer' }}>
+                    <tr key={l.id} onClick={() => canEdit && toggleMatch(l.id)} style={{ cursor: canEdit ? 'pointer' : 'default' }}>
                       <td className="mono tiny muted">{new Date(l.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td>{l.desc}</td>
                       <td className="num" style={{ color: l.amount < 0 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{l.amount < 0 ? '(' + fmt(-l.amount / 1e6, l.amount > -1e7 ? 1 : 0) + ')' : fmt(l.amount / 1e6, l.amount < 1e7 ? 1 : 0)}</td>

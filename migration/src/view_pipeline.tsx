@@ -1,13 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { probError, dueBeforeIssued } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { amsExportPdf } from './export_pdf';
+import { CAP } from './rbac';
 
 /* ============================================================
    Asseris — Sales Pipeline + Billing & Invoicing (Package D)
@@ -229,6 +230,13 @@ function Billing() {
   const [invoices, setInvoices] = useAmsPersist('invoices', () => AMS.INVOICES);
   const [filter, setFilter] = useStateD1('All');
   const [sel, setSel] = useStateD1(null);
+  /* SoD finansial (Program E): pengelolaan faktur (buat/kirim/tandai lunas) =
+     FIRMFIN_EDIT — capForWrite 'invoices' ikut diselaraskan (rbac.ts) supaya
+     peran Finance Firma bisa bekerja tanpa ditolak senyap server. */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   const totalBilled = invoices.filter((i: any) => i.status !== 'Draft').reduce((s: any, i: any) => s + i.amount, 0);
   const collected = invoices.reduce((s: any, i: any) => s + i.paid, 0);
@@ -236,18 +244,35 @@ function Billing() {
   const overdue = invoices.filter((i: any) => i.status === 'Overdue').reduce((s: any, i: any) => s + (i.amount - i.paid), 0);
 
   const shown = filter === 'All' ? invoices : invoices.filter((i: any) => i.status === filter);
-  const markPaid = (id: any) => setInvoices((list: any) => list.map((i: any) => i.id === id ? { ...i, paid: i.amount, status: 'Paid' } : i));
-  const send = (id: any) => setInvoices((list: any) => list.map((i: any) => i.id === id ? { ...i, status: 'Sent' } : i));
+  const markPaid = (id: any) => {
+    if (!canEdit) return;
+    const i = invoices.find((x: { id: string }) => x.id === id);
+    setInvoices((list: any) => list.map((x: { id: string; amount: number; status: string }) => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
+    logActivity && logActivity({ who, action: 'INV_PAID', detail: `Faktur ${id} ditandai lunas${i ? ' · ' + i.client : ''}` });
+  };
+  const send = (id: any) => {
+    if (!canEdit) return;
+    const i = invoices.find((x: { id: string }) => x.id === id);
+    setInvoices((list: any) => list.map((x: { id: string; status: string }) => x.id === id ? { ...x, status: 'Sent' } : x));
+    logActivity && logActivity({ who, action: 'INV_SENT', detail: `Faktur ${id} dikirim${i ? ' · ' + i.client : ''}` });
+  };
   const selInv = sel ? invoices.find((i: any) => i.id === sel) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addInv = (inv: any) => setInvoices((list: any) => [{ id: 'INV-2026-0' + (46 + list.length), paid: 0, status: 'Draft', ...inv }, ...list]);
+  const addInv = (inv: any) => {
+    if (!canEdit) return;
+    const id = 'INV-2026-0' + (46 + invoices.length);
+    setInvoices((list: any) => [{ id, paid: 0, status: 'Draft', ...inv }, ...list]);
+    logActivity && logActivity({ who, action: 'INV_CREATE', detail: `Faktur baru ${id} dibuat${inv.client ? ' · ' + inv.client : ''}` });
+  };
 
   return (
     <>
       <SubBar moduleId="billing" right={
         <div className="row gap8 ac">
           <Seg options={['All', 'Draft', 'Sent', 'Overdue', 'Paid']} value={filter} onChange={setFilter} />
-          <Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Faktur Baru</Btn>
+          {canEdit
+            ? <Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Faktur Baru</Btn>
+            : <span className="chip tiny muted" title="Pengelolaan faktur dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> Read-only</span>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -296,8 +321,8 @@ function Billing() {
                 </div>
                 {selInv.status === 'Overdue' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}><div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Faktur melewati jatuh tempo — kirim pengingat / eskalasi collections.</span></div></div>}
                 <div className="row gap8" style={{ flexWrap: 'wrap' }}>
-                  {selInv.status === 'Draft' && <Btn sm variant="primary" onClick={() => send(selInv.id)}><I.send size={13} /> Kirim Faktur</Btn>}
-                  {selInv.status !== 'Paid' && selInv.status !== 'Draft' && <Btn sm variant="primary" onClick={() => markPaid(selInv.id)}><I.check size={13} /> Tandai Lunas</Btn>}
+                  {canEdit && selInv.status === 'Draft' && <Btn sm variant="primary" onClick={() => send(selInv.id)}><I.send size={13} /> Kirim Faktur</Btn>}
+                  {canEdit && selInv.status !== 'Paid' && selInv.status !== 'Draft' && <Btn sm variant="primary" onClick={() => markPaid(selInv.id)}><I.check size={13} /> Tandai Lunas</Btn>}
                   <Btn sm onClick={() => {
                     if (!selInv) return;
                     amsExportPdf({

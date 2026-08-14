@@ -506,7 +506,7 @@
   },
   "src/view_firmgl.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 100
+      "count": 79
     }
   },
   "src/view_firmops.tsx": {
@@ -526,12 +526,12 @@
   },
   "src/view_firmtax.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 29
+      "count": 27
     }
   },
   "src/view_firmtreasury.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 85
+      "count": 84
     }
   },
   "src/view_forensic.tsx": {
@@ -781,7 +781,7 @@
   },
   "src/view_pipeline.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 77
+      "count": 75
     }
   },
   "src/view_platform.tsx": {
@@ -1111,7 +1111,7 @@
   },
   "src/view_wip_firm.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 39
+      "count": 37
     }
   },
   "src/view_workspace.tsx": {

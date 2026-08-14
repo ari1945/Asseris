@@ -165,7 +165,12 @@ export function capForWrite(scope: any, key: any) {
     // 2026-07-01 — dokumen Firm Finance (ERP) yang punya jalur tulis. FIRMFIN_EDIT sudah lama
     // didefinisikan & diberikan ke Partner tapi TAK PERNAH dikonsumsi capForWrite (vestigial) —
     // kini benar-benar men-gate, dan 'Finance Firma' jadi peran pertama yang memanfaatkannya.
-    if (['firmgl', 'firmap', 'firmtax', 'bankrecon'].includes(key)) return FIRMFIN_EDIT;
+    // 2026-08-14 (Program E / SoD finansial) — 'invoices' (AR: buat/kirim/tandai lunas di modul
+    // Billing) & 'wip.adj' (overlay write-down WIP di WIP & Realisasi) diselaraskan ke sini:
+    // keduanya data keuangan firma → satu kebijakan FIRMFIN_EDIT dengan GL/AP/tax/rekon, supaya
+    // gate UI can(FIRMFIN_EDIT) dan penegakan server capForWrite TIDAK berbeda (mencegah peran
+    // Finance Firma melihat tombol aktif lalu suntingannya ditolak SENYAP oleh server).
+    if (['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj'].includes(key)) return FIRMFIN_EDIT;
     // 2026-07-21 (PR-A1 derivasi kapasitas) — rencana kapasitas minggu ke-depan
     // (capacityPlan.v1). Perencanaan kapasitas adalah tugas Partner/Manajer; tanpa
     // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal

@@ -109,6 +109,7 @@ function FirmRevenue() {
 
           {tab === 'rollfwd' && (
             <div style={{ padding: 14 }}>
+              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Saldo awal (1 Jan) & komponen pergerakan berikut ILUSTRASI demo — faktor pembagi (×0,74/×0,32/…) disintesis agar menutup ke saldo akhir, BUKAN diturunkan dari buku besar (roadmap Ledger-based Reporting, Program E). Kolom diakui/ditagih per engagement adalah data nyata.</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <Panel title="Aset Kontrak — Roll-Forward" sub="unbilled receivable · PSAK 72">
                   <div style={{ display: 'grid', gap: 7 }}>

@@ -1,11 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
+import { CAP } from './rbac';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Pajak Firma
@@ -23,6 +24,12 @@ function FirmTax() {
   const PPH: any = AMS.PPH_WITHHELD;
   const [tab, setTab] = useStateTX('kalender');
   const [obs, setObs] = useAmsPersist('firmtax', () => AMS.TAX_OBLIGATIONS);
+  /* SoD finansial (Program E): tandai lapor = FIRMFIN_EDIT (server capForWrite
+     sudah menegakkan 'firmtax'; gate UI mencegah ditolak senyap). */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
 
   const ppnOut = EF.filter((e: any) => e.kind === 'Keluaran').reduce((s: any, e: any) => s + e.ppn, 0);
   const ppnIn = EF.filter((e: any) => e.kind === 'Masukan').reduce((s: any, e: any) => s + e.ppn, 0);
@@ -42,7 +49,12 @@ function FirmTax() {
     { no: '1.1-02.26-0009921', jenis: 'PPh 21', pihak: '38 karyawan (kolektif)', dpp: 1_400_000_000, rate: 'TER', tax: 210_000_000 },
   ];
 
-  const markFiled = (i: any) => setObs((list: any) => list.map((o: any, j: any) => j === i ? { ...o, status: 'Lapor' } : o));
+  const markFiled = (i: any) => {
+    if (!canEdit) return;
+    const o = obs[i];
+    setObs((list: any) => list.map((x: { status: string }, j: number) => j === i ? { ...x, status: 'Lapor' } : x));
+    logActivity && logActivity({ who, action: 'TAX_FILED', detail: `${o ? o.jenis + ' · ' : ''}${o ? o.period : ''} ditandai Lapor` });
+  };
   const tabs = [{ id: 'kalender', label: 'Kalender Kewajiban', count: obs.filter((o: any) => o.status === 'Belum Lapor' || o.status === 'Draft').length }, { id: 'ppn', label: 'PPN / e-Faktur (Coretax)' }, { id: 'pph', label: 'PPh Pot/Put' }, { id: 'spt', label: 'SPT Tahunan Badan' }, { id: 'deferred', label: 'Pajak Tangguhan' }];
 
   /* 6-month PPN trend (Rp jt) — keluaran / masukan / kurang bayar */
@@ -94,7 +106,9 @@ function FirmTax() {
                       <td className="mono tiny" style={{ color: days <= 7 ? 'var(--red)' : days <= 20 ? 'var(--amber)' : 'var(--ink-3)' }}>{new Date(o.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} {days >= 0 ? '· ' + days + 'h lagi' : '· lewat'}</td>
                       <td className="num">{fmt(o.amount / 1e6, 0)} jt</td>
                       <td><Badge kind={(TAX_STAT as any)[o.status]}>{o.status}</Badge></td>
-                      <td>{(o.status === 'Belum Lapor' || o.status === 'Draft' || o.status === 'Bayar') && <button className="btn sm" style={{ height: 22 }} onClick={() => markFiled(i)}>Tandai Lapor</button>}</td>
+                      <td>{(o.status === 'Belum Lapor' || o.status === 'Draft' || o.status === 'Bayar') && (canEdit
+                        ? <button className="btn sm" style={{ height: 22 }} onClick={() => markFiled(i)}>Tandai Lapor</button>
+                        : <span className="tiny muted" title="Penandaan pelaporan dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> kunci</span>)}</td>
                     </tr>
                   );
                 })}
@@ -209,6 +223,7 @@ function FirmTax() {
                     </tbody>
                   </table>
                   <div className="tiny muted" style={{ marginTop: 8 }}>dalam jutaan Rupiah · tarif PPh Badan 22% (UU HPP)</div>
+                  <div className="tiny" style={{ marginTop: 6, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Angka rekonsiliasi ini ILUSTRASI demo — belum diturunkan dari buku besar firma (roadmap Ledger-based Reporting, Program E). Saat penyusunan SPT 1771 tersambung ke GL, saldo akun akan mengalir otomatis.</div>
                 </Panel>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div className="panel" style={{ padding: 14, textAlign: 'center' }}>
