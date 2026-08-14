@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { PROGRAMME } from './view_cockpit';
+import { FIRMFIN } from './data_firmfin';
 import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff';
 
 /* ============================================================
@@ -66,7 +67,15 @@ const CKP_MILESTONES = [
 
 /* per-member effort weighting (aligned to TEAM order) */
 const CKP_TEAM_W = [0.071, 0.196, 0.261, 0.179, 0.152, 0.141];
-const CKP_RATE = { Partner: 1_500_000, Manager: 900_000, Senior: 600_000, Junior: 350_000 };
+/* Program B lanjutan (K-07) — tarif biaya cockpit dari SSOT FIRMFIN.WIP_COST
+   (dulu CKP_RATE lokal 1,5/0,9/0,6/0,35 jt — duplikat terpecah; angka bergeser
+   ke kartu biaya kanonik 1,1/0,62/0,36/0,21 jt = konsolidasi SSOT, bukan regresi). */
+const CKP_RATE: Record<string, number> = Object.fromEntries(
+  Object.entries(FIRMFIN.WIP_COST).map(([k, v]) => [
+    ({ 'Engagement Partner': 'Partner', 'Audit Manager': 'Manager', 'Senior Auditor': 'Senior', 'Junior Auditor': 'Junior' } as Record<string, string>)[k] || k,
+    v as number,
+  ])
+);
 const rateFor = (role: any) => /Partner/.test(role) ? CKP_RATE.Partner : /Manager/.test(role) ? CKP_RATE.Manager : /Senior/.test(role) ? CKP_RATE.Senior : CKP_RATE.Junior;
 const gradeOf = (role: any) => /Partner/.test(role) ? 'Partner' : /Manager/.test(role) ? 'Manager' : /Senior/.test(role) ? 'Senior' : 'Junior';
 
