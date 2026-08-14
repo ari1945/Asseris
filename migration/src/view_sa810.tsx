@@ -4,6 +4,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
@@ -100,12 +101,53 @@ function SA810View() {
   const adverse = RIN_ENG.filter(e => e.summaryOpinion.startsWith('Tidak Wajar')).length;
   const reflect = RIN_ENG.filter(e => e.auditOpinion.startsWith('WDP') || e.auditEOM).length;
 
+  /* K-06 lanjutan — wire tombol "Memo SA 810" + "Unduh" pratinjau (dulu mati). */
+  const [exporting, setExporting] = useState810(false);
+  const onExportMemo = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa810-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 810 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Audit atas Ringkasan LK (SA 810)',
+        meta: [`${sel.id} · ${sel.client} · ${sel.period}`,
+          `Opini LK auditan: ${sel.auditOpinion} · opini ringkasan: ${sel.summaryOpinion}`],
+        blocks: [
+          { type: 'heading', text: '1. Kriteria & Prosedur' },
+          { type: 'para', text: sel.criteria },
+          { type: 'table', head: ['Prosedur', 'Status'],
+            body: (sel.procedures as [string, boolean][]).map(p => [p[0], p[1] ? 'Selesai' : 'Tertunda']) },
+        ],
+      });
+    } finally { setExporting(false); }
+  };
+  const onExportReport = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa810-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Laporan atas Ringkasan LK - SA 810 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'LAPORAN AUDITOR INDEPENDEN — atas Ringkasan LK (SA 810)',
+        meta: [`Kepada pengguna ringkasan — ${sel.client} · ${sel.period} · ${sel.criteria}`,
+          `Opini ringkasan: ${sel.summaryOpinion} — konsisten dengan opini LK auditan ${sel.auditOpinion}`],
+        blocks: [
+          { type: 'heading', text: 'Opini' },
+          { type: 'para', text: 'Ringkasan LK ' + sel.client + ' untuk ' + sel.period + ' konsisten, dalam semua hal yang material, dengan LK auditan ' + sel.auditOpinion + ' (SA 810 ¶17–18).' },
+        ],
+      });
+    } finally { setExporting(false); }
+  };
+
   return (
     <>
       <SubBar moduleId="sa810" right={
         <div className="row gap8 ac">
           {adverse > 0 && <Badge kind="red" dot>{adverse} opini tidak wajar</Badge>}
-          <Btn sm><I.download size={13} /> Memo SA 810</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo SA 810'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />
@@ -137,7 +179,7 @@ function SA810View() {
         {tab === 'registri' && <F810Registri selId={selId} setSelId={setSelId} sel={sel} />}
         {tab === 'prosedur' && <F810Proc sel={sel} />}
         {tab === 'dampak' && <F810Impact sel={sel} />}
-        {tab === 'laporan' && <F810Report sel={sel} />}
+        {tab === 'laporan' && <F810Report sel={sel} onExportReport={onExportReport} exporting={exporting} />}
 
       </div></div>
     </>
@@ -358,7 +400,7 @@ function F810Impact({ sel }: any) {
 }
 
 /* ---------------- Tab: Pelaporan & Opini ---------------- */
-function F810Report({ sel }: any) {
+function F810Report({ sel, onExportReport, exporting }: any) {
   if (!sel) return null;
   const adverse = sel.summaryOpinion.startsWith('Tidak Wajar');
   const modified = sel.auditOpinion.startsWith('WDP') || sel.auditOpinion.startsWith('TW') || sel.auditOpinion.startsWith('TMP');
@@ -398,7 +440,7 @@ function F810Report({ sel }: any) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Pratinjau Laporan atas Ringkasan LK</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
+        <div className="panel-h"><h3>Pratinjau Laporan atas Ringkasan LK</h3><div style={{ flex: 1 }} /><Btn sm onClick={onExportReport} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh'}</Btn></div>
         <div style={{ padding: 18 }}>
           <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>

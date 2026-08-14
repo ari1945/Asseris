@@ -3,6 +3,7 @@ import React from 'react';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
@@ -276,6 +277,35 @@ function ComplianceView({ stdId }: any) {
   const meta = (STD_META as any)[stdId] || {};
   const stLabel = m.label;
 
+  /* K-06 lanjutan — wire tombol "Export Kertas Kerja" (dulu mati): ekspor XLSX tersegel
+     checklist kepatuhan per standar + catatan. */
+  const [exporting, setExporting] = useStateCO(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const stLbl: Record<string, string> = { done: 'Selesai', na: 'N/A', pending: 'Terbuka' };
+      const rows = flat.map((it: { ref: string; text: string; id: string }) => {
+        const st = status[it.id] || 'pending';
+        return [it.ref, it.text, stLbl[st] || st, notes[it.id] || ''];
+      });
+      await amsExportXlsx({
+        kind: 'compliance-wp', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Checklist Kepatuhan - ${stLabel.split('·')[0].trim()}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Kertas Kerja Kepatuhan — ${stLabel}`,
+        meta: [`Standar ${stdId.toUpperCase()} · risiko ${meta.risk || '—'}`,
+          `${done}/${applicable} selesai (${pct}%) · ${counts.na || 0} N/A`],
+        sheets: [
+          { name: 'Checklist', heading: `Checklist kepatuhan ${stLabel} (${stdId.toUpperCase()})`,
+            columns: ['Acuan', 'Item', 'Status', 'Catatan'], rows, colWidths: [12, 56, 10, 34] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId={stdId} right={
@@ -283,7 +313,7 @@ function ComplianceView({ stdId }: any) {
           <Badge kind={pct === 100 ? 'green' : 'amber'}>{pct}% selesai</Badge>
           <Btn sm onClick={markAllDone}><I.check size={13} /> Tandai Semua</Btn>
           <Btn sm onClick={resetAll}><I.sync size={13} /> Reset</Btn>
-          <Btn sm><I.download size={13} /> Export Kertas Kerja</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Kertas Kerja'}</Btn>
           <Btn sm variant="primary" onClick={aiSuggest}><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />

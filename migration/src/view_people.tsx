@@ -5,6 +5,8 @@ import { useAmsPersist, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
+import { amsExportXlsx } from './export_xlsx';
+import { amsExportPdf } from './export_pdf';
 import { AccessDenied, Avatar, Badge, Btn, Donut, Overlay, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
@@ -38,6 +40,34 @@ function HCM() {
   const filtered = staff.filter(s => (grade === 'All' || s.grade === grade) && (q === '' || s.name.toLowerCase().includes(q.toLowerCase())));
   const person = staff.find(s => s.id === sel) || staff[0];
   const counts = GRADE_ORDER.map(g => ({ g, n: staff.filter(s => s.grade === g).length }));
+
+  /* K-06 lanjutan — wire tombol "Direktori" (dulu mati): ekspor XLSX tersegel
+     direktori SDM — grade, sertifikasi, utilisasi & rating. */
+  const [exporting, setExporting] = useStateE(false);
+  const onExportDir = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const rows = staff.map((s: { name: string; grade: string; cert?: string; util: number; rating: number; status: string }) => [
+        s.name, s.grade, s.cert || '—', s.util + '%', s.rating.toFixed(1), s.status,
+      ]);
+      await amsExportXlsx({
+        kind: 'hcm-directory', scope: 'firm', scopeId: undefined,
+        fileName: 'Direktori SDM.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Direktori Sumber Daya Manusia',
+        meta: [`${staff.length} karyawan · ${counts.find(c => c.g === 'Partner')?.n || 0} partner`,
+          `Rata-rata utilisasi ${avgUtil}% · ${staff.filter((s: { status: string }) => s.status === 'Cuti').length} cuti`],
+        sheets: [
+          { name: 'Direktori', heading: 'Direktori SDM',
+            columns: ['Nama', 'Grade', 'Sertifikasi', 'Utilisasi', 'Rating', 'Status'],
+            rows, colWidths: [28, 12, 24, 10, 9, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const avgUtil = Math.round(staff.reduce((s, p) => s + p.util, 0) / staff.length);
   const tenure = 2026 - person.joined;
 
@@ -53,7 +83,7 @@ function HCM() {
 
   return (
     <>
-      <SubBar moduleId="hcm" right={<div className="row gap8 ac"><Seg options={[{ value: 'direktori', label: 'Direktori' }, { value: 'analitik', label: 'Analitik' }]} value={mode} onChange={setMode} /><Badge kind="blue">{staff.length} karyawan</Badge><Btn sm><I.download size={13} /> Direktori</Btn><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Karyawan Baru</Btn></div>} />
+      <SubBar moduleId="hcm" right={<div className="row gap8 ac"><Seg options={[{ value: 'direktori', label: 'Direktori' }, { value: 'analitik', label: 'Analitik' }]} value={mode} onChange={setMode} /><Badge kind="blue">{staff.length} karyawan</Badge><Btn sm onClick={onExportDir} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Direktori'}</Btn><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Karyawan Baru</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         {mode === 'analitik' ? <HCMAnalytics /> : (<>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
@@ -319,6 +349,34 @@ function Independence() {
   const rotationAlertList = (data as RotRow[]).filter((d) => d.rotationClient !== '—' && rotTier(d.tenure, d.rotationLimit) === 'alert');
   const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
   const [sel, setSel] = useStateE(null);
+
+  /* K-06 lanjutan — wire tombol "Unduh Deklarasi" (dulu mati): ekspor PDF tersegel
+     deklarasi independensi per orang (SA 220 · Kode Etik IAPI). */
+  const [declExporting, setDeclExporting] = useStateE(false);
+  const onExportDecl = async (d: { name: string; role?: string; declared: boolean; conflicts: number; tenure: number; rotationLimit: number; rotationClient?: string }) => {
+    if (declExporting) return;
+    setDeclExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'independence-decl', scope: 'firm', scopeId: undefined,
+        fileName: `Deklarasi Independensi - ${d.name}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Deklarasi Independensi Tahunan',
+        meta: [`${d.name}${d.role ? ' · ' + d.role : ''} · ${INDEP_PERIOD}`,
+          `Status: ${d.declared ? 'DIDEKLARASIKAN' : 'BELUM'} · konflik ${d.conflicts} · masa tugas ${d.tenure}/${d.rotationLimit} th (${d.rotationClient || '—'})`],
+        blocks: [
+          { type: 'heading', text: 'Kuesioner Independensi (SA 220 · Kode Etik IAPI)' },
+          { type: 'para', text: 'Saya menyatakan bahwa saya independen dari entitas klien yang saya tangani, termasuk bebas dari kepentingan keuangan, hubungan keluarga, dan jasa non-assurance yang dilarang.' },
+          { type: 'table', head: ['Pernyataan', 'Status'],
+            body: INDEP_Q.map((q: string) => [q, d.declared ? 'Ya' : 'Belum']) },
+          { type: 'heading', text: 'Rotasi & Cooling-off' },
+          { type: 'para', text: `Masa tugas ${d.tenure} tahun dari batas ${d.rotationLimit} tahun pada ${d.rotationClient || '—'}.` },
+        ],
+      });
+    } finally {
+      setDeclExporting(false);
+    }
+  };
   /* indepAppr: per-orang jejak persetujuan. Bentuk lama = number (level saja);
      bentuk baru = { level, steps:[{by,at}], period } agar AUDITABLE (siapa &
      kapan tiap lapis: self → reviu manajer etika → persetujuan partner). */
@@ -425,7 +483,8 @@ function Independence() {
         threats={(threats as IndepThreat[]).filter((t) => t.personId === curr.id)}
         onAddThreat={() => addThreat(curr.id)} onUpdateThreat={updateThreat} onSignThreat={signThreat}
         rotAck={(rotAck as Record<string, RotAck>)[curr.id]} onAckRotation={(action: string) => ackRotation(curr.id, action)}
-        onApprove={(n: number) => setApprove(curr.id, n)} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
+        onApprove={(n: number) => setApprove(curr.id, n)} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)}
+        onExportDecl={onExportDecl} declExporting={declExporting} />}
     </>
   );
 }
@@ -460,7 +519,7 @@ const INDEP_CHAIN = [
   { role: 'Persetujuan Ethics & Independence Partner', who: 'Sari Dewanti, CPA' },
 ];
 
-function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat, onSignThreat, rotAck, onAckRotation, onApprove, onDeclare, onClose }: any) {
+function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat, onSignThreat, rotAck, onAckRotation, onApprove, onDeclare, onClose, onExportDecl, declExporting }: any) {
   const steps = (rec && rec.steps) || [];
   const per = period || INDEP_PERIOD;
   const tlist: IndepThreat[] = threats || [];
@@ -484,7 +543,7 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
       footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
           {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}
-          <Btn variant="primary" style={{ flex: 1 }}><I.download size={13} /> Unduh Deklarasi</Btn>
+          <Btn variant="primary" style={{ flex: 1 }} onClick={() => onExportDecl(d)} disabled={declExporting}><I.download size={13} /> {declExporting ? 'Menyiapkan…' : 'Unduh Deklarasi'}</Btn>
         </div>
       )}
     >

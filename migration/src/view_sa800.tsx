@@ -4,6 +4,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
@@ -96,12 +97,65 @@ function SA800View() {
   const restricted = SPF_ENG.filter(e => e.restricted).length;
   const modified = SPF_ENG.filter(e => e.opinion !== 'Wajar').length;
 
+  /* K-06 lanjutan — wire tombol "Memo SA 800" + "Unduh" pratinjau (dulu mati): ekspor PDF
+     tersegel memo perikatan + laporan auditor independen basis-khusus. */
+  const [exporting, setExporting] = useState800(false);
+  const onExportMemo = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      const opLabel = sel.opinion === 'Wajar' ? 'Wajar — sesuai kerangka' : 'Modifikasian (' + sel.opinion + ')';
+      await amsExportPdf({
+        kind: 'sa800-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 800 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Audit LK Bertujuan Khusus (SA 800)',
+        meta: [`${sel.id} · ${sel.client} · kerangka ${sel.framework}`,
+          `Opini ${opLabel} · penggunaan ${sel.restricted ? 'TERBATAS (' + sel.users + ')' : 'umum'}`],
+        blocks: [
+          { type: 'heading', text: '1. Keberterimaan Perikatan' },
+          { type: 'table', head: ['Pertimbangan', 'Status'],
+            body: (sel.accept as [string, boolean][]).map(a => [a[0], a[1] ? 'Terpenuhi' : 'PERLU TELAAH']) },
+          { type: 'heading', text: '2. Pertimbangan & Kesimpulan' },
+          { type: 'para', text: sel.notes || '—' },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+  const onExportReport = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      const opLabel = sel.opinion === 'Wajar' ? 'Wajar — sesuai kerangka' : 'Modifikasian (' + sel.opinion + ')';
+      await amsExportPdf({
+        kind: 'sa800-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Laporan Auditor - SA 800 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'LAPORAN AUDITOR INDEPENDEN — Audit LK Bertujuan Khusus (SA 800)',
+        meta: [`Kepada ${sel.users} — ${sel.client} · kerangka ${sel.framework}`,
+          `Pembatasan distribusi: ${sel.restricted ? 'TERBATAS' : 'umum'}`],
+        blocks: [
+          { type: 'heading', text: 'Opini (' + opLabel + ')' },
+          { type: 'para', text: 'Kami telah mengaudit laporan keuangan ' + sel.client + ' yang disusun berdasarkan ' + sel.framework + '.' },
+          { type: 'heading', text: 'Penekanan Suatu Hal — Basis Akuntansi' },
+          { type: 'para', text: 'Kami mengarahkan perhatian pada Catatan atas Laporan Keuangan yang menjelaskan basis akuntansi. Laporan keuangan disusun untuk ' + sel.purpose.toLowerCase() + ' Sebagai akibatnya, laporan ini mungkin tidak sesuai untuk tujuan lain. Opini kami tidak dimodifikasi sehubungan dengan hal ini.' },
+          { type: 'heading', text: 'Pembatasan Distribusi & Penggunaan' },
+          { type: 'para', text: 'Laporan kami ditujukan semata-mata untuk ' + sel.users + ' dan tidak boleh didistribusikan kepada pihak lain.' },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sa800" right={
         <div className="row gap8 ac">
           <Badge kind="purple" dot>{restricted} laporan penggunaan terbatas</Badge>
-          <Btn sm><I.download size={13} /> Memo SA 800</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo SA 800'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />
@@ -133,7 +187,7 @@ function SA800View() {
         {tab === 'registri' && <F800Registri selId={selId} setSelId={setSelId} sel={sel} />}
         {tab === 'keberterimaan' && <F800Accept sel={sel} />}
         {tab === 'pertimbangan' && <F800Consider sel={sel} />}
-        {tab === 'laporan' && <F800Report sel={sel} />}
+        {tab === 'laporan' && <F800Report sel={sel} onExportReport={onExportReport} exporting={exporting} />}
 
       </div></div>
     </>
@@ -331,7 +385,7 @@ function NavRow800({ to, label, ic: Ic }: any) {
 }
 
 /* ---------------- Tab: Pelaporan & Penekanan ---------------- */
-function F800Report({ sel }: any) {
+function F800Report({ sel, onExportReport, exporting }: any) {
   if (!sel) return null;
   const compliance = sel.type === 'Basis Regulatori' || sel.type === 'Basis Kontraktual';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Tidak Wajar';
@@ -371,7 +425,7 @@ function F800Report({ sel }: any) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
+        <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm onClick={onExportReport} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh'}</Btn></div>
         <div style={{ padding: 18 }}>
           <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>

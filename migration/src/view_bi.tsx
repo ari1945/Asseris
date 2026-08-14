@@ -5,6 +5,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2';
 import { MSub } from './view_fpm_parts';
 
@@ -101,9 +102,37 @@ function FirmBI() {
     { id: 'partner', label: 'Partner & Produktivitas', icon: 'briefcase' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Paket Laporan Dewan" (dulu mati): ekspor XLSX tersegel
+     paket laporan untuk Dewan — P&L, pipeline & konsentrasi klien (Rp jt). */
+  const [exporting, setExporting] = useBI(false);
+  const onExportBoard = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const stageRows = byStage.map((s: any) => [s.st, s.n, Math.round(s.gross / 1e6), Math.round(s.wt / 1e6)]);
+      const clientRows = active.map((c: any) => [c.name, Math.round(c.fee / 1e6), c.status, c.partner || '']);
+      await amsExportXlsx({
+        kind: 'bi-board', scope: 'firm', scopeId: undefined,
+        fileName: 'Paket Laporan Dewan - FY2025.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Paket Laporan Dewan — Konsolidasi FY2025',
+        meta: [`Pendapatan Rp ${Math.round(actRev / 1e6)} jt · laba Rp ${Math.round(profit / 1e6)} jt (${marginPct.toFixed(0)}%)`,
+          `Pipeline tertimbang Rp ${Math.round(weighted / 1e6)} jt · konsentrasi 3 klien ${top3.toFixed(0)}% — Rp juta`],
+        sheets: [
+          { name: 'Pipeline', heading: 'Pipeline per stage (Rp juta)',
+            columns: ['Stage', 'Jumlah', 'Gross', 'Tertimbang'], rows: stageRows, colWidths: [16, 9, 14, 14] },
+          { name: 'Klien', heading: 'Klien aktif (Rp juta)',
+            columns: ['Klien', 'Fee', 'Status', 'Partner'], rows: clientRows, colWidths: [32, 12, 10, 18] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
-      <SubBar moduleId="bi" right={<div className="row gap8 ac"><Badge kind="blue">Konsolidasi FY2025</Badge><Btn sm><I.download size={13} /> Paket Laporan Dewan</Btn></div>} />
+      <SubBar moduleId="bi" right={<div className="row gap8 ac"><Badge kind="blue">Konsolidasi FY2025</Badge><Btn sm onClick={onExportBoard} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Paket Laporan Dewan'}</Btn></div>} />
       <MSub tabs={biTabs} active={tab} onChange={setTab} />
       {tab === 'pendapatan' && <BIPendapatan />}
       {tab === 'pipeline' && <BIPipeline />}

@@ -46,6 +46,34 @@ function FirmFinance() {
   const M = (v: any, d = 1) => fmt(v / 1e9, d);
   const k = D.kpis;
 
+  /* K-06 lanjutan — wire tombol "Laporan Keuangan KAP" (dulu mati): ekspor XLSX tersegel
+     laporan keuangan firma — P&L & posisi keuangan (SSOT FIRMFIN). */
+  const [exportingLk, setExportingLk] = useStateFF(false);
+  const onExportLk = async () => {
+    if (exportingLk) return;
+    setExportingLk(true);
+    try {
+      const plRows = (D.pl || []).map((r: any) => [r.label || r.k, jt(r.amount || r.v), r.note || '']);
+      const bsRows = (D.bs || []).map((r: any) => [r.label || r.k, jt(r.amount || r.v), r.note || '']);
+      await amsExportXlsx({
+        kind: 'firm-lk', scope: 'firm', scopeId: undefined,
+        fileName: 'Laporan Keuangan KAP - FY2025.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Laporan Keuangan KAP — FY2025',
+        meta: [`Pendapatan Rp ${M(k.revenue)} M · laba operasi Rp ${M(k.opProfit, 2)} M (${(k.margin * 100).toFixed(1)}%)`,
+          `Posisi kas Rp ${M(k.cashControl, 2)} M — Rp juta`],
+        sheets: [
+          { name: 'Laba Rugi', heading: 'Laporan laba rugi (Rp juta)',
+            columns: ['Pos', 'Nilai', 'Catatan'], rows: plRows, colWidths: [34, 14, 40] },
+          { name: 'Posisi Keuangan', heading: 'Laporan posisi keuangan (Rp juta)',
+            columns: ['Pos', 'Nilai', 'Catatan'], rows: bsRows, colWidths: [34, 14, 40] },
+        ],
+      });
+    } finally {
+      setExportingLk(false);
+    }
+  };
+
   const tabs = [
     { id: 'ikhtisar', label: 'Ikhtisar' },
     { id: 'profitabilitas', label: 'Profitabilitas' },
@@ -59,7 +87,7 @@ function FirmFinance() {
         <div className="row gap8 ac">
           <span className="chip tiny" title="Seluruh angka ditarik dari Buku Besar firma & sub-ledger pemiliknya"><I.link2 size={11} /> Satu sumber kebenaran</span>
           <Seg options={['FY2025', 'FY2024']} value="FY2025" onChange={() => {}} />
-          <Btn sm><I.download size={13} /> Laporan Keuangan KAP</Btn>
+          <Btn sm onClick={onExportLk} disabled={exportingLk}><I.download size={13} /> {exportingLk ? 'Menyiapkan…' : 'Laporan Keuangan KAP'}</Btn>
         </div>
       } />
       <div className="view-scroll">

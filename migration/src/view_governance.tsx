@@ -5,6 +5,7 @@ import { useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Stat, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
@@ -100,9 +101,36 @@ function Governance() {
     { id: 'culture', label: 'Budaya Mutu & Evaluasi' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Evaluasi SMM Tahunan" (dulu mati): ekspor PDF tersegel
+     ringkasan evaluasi sistem manajemen mutu (SMM 1 ¶28–33/¶54). */
+  const [exporting, setExporting] = useGov(false);
+  const onExportEval = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'smm-eval', scope: 'firm', scopeId: undefined,
+        fileName: 'Evaluasi SMM Tahunan.pdf',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Evaluasi Sistem Manajemen Mutu — Tahunan',
+        meta: [`SMM 1 · periode ${evalPeriod}`,
+          `Cakupan tujuan mandatori ${objCov.addressedPct}% (${objCov.complete ? 'lengkap' : 'ada celah'}) · ${effective}/${comps.length} komponen efektif`],
+        blocks: [
+          { type: 'heading', text: '1. Komponen SMM' },
+          { type: 'table', head: ['Komponen', 'Status'],
+            body: comps.map((c: { id?: string; name?: string; status?: string; label?: string }) => [c.name || c.label || c.id || '', c.status || '—']) },
+          { type: 'heading', text: '2. Simpulan' },
+          { type: 'para', text: `Rekomendasi kesimpulan: ${evalResult.label} (${evalResult.paragraph}). Defisiensi terbuka: ${evalResult.openPervasive.length} pervasif, ${evalResult.openSignificant.length} signifikan, ${evalResult.openMinor.length} minor.` },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
-      <SubBar moduleId="governance" right={<div className="row gap8 ac"><Badge kind="blue">SMM 1 · SMM</Badge><Btn sm><I.download size={13} /> Evaluasi SMM Tahunan</Btn></div>} />
+      <SubBar moduleId="governance" right={<div className="row gap8 ac"><Badge kind="blue">SMM 1 · SMM</Badge><Btn sm onClick={onExportEval} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Evaluasi SMM Tahunan'}</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           {/* "Skor Efektivitas SMM 87%" adalah rata-rata field seed `score` yang

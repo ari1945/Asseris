@@ -12,6 +12,7 @@ import { hydrateViuDerivations, type Psak48Like } from './canon_range';
 import type { ViuParams } from './canon_viu';
 import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
@@ -222,12 +223,50 @@ function SADLedger() {
     { id: 'comms', label: 'Komunikasi & Disposisi' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Export SAD" + "Lampiran SUM" (dulu mati): ekspor XLSX
+     tersegel ledger salah saji + lampiran surat manajemen. Angka Rp jt dari state SAD. */
+  const [exporting, setExporting] = useStateSD(false);
+  const onExportSAD = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const dispLbl: Record<string, string> = { uncorrected: 'Tidak Dikoreksi', corrected: 'Dikoreksi', passed: 'Diwaivekan' };
+      /* SadEntry kanonik ramping (id/disp/aje/pbt/na/origin) — field tampilan
+         (desc/fsli/type/assertion/initiator) diisi runtime oleh SAD_SEED/estimasi. */
+      const rowOf = (m: SadEntry & { desc?: string; fsli?: string; type?: string; assertion?: string; initiator?: string }) => [
+        m.id, m.desc || '', m.fsli || '', m.type || '', m.assertion || '', m.initiator || '',
+        m.pbt ? fmt(Math.round(m.pbt / 1e6)) : '—', m.na ? fmt(Math.round(m.na / 1e6)) : '—',
+        dispLbl[m.disp || ''] || m.disp || '', m.origin === 'prior' ? 'PY' : 'CY',
+      ];
+      const sadRows = items.map(rowOf);
+      const sumRows = calc.uncorr.map(rowOf);
+      const eng = activeEngagement;
+      await amsExportXlsx({
+        kind: 'sad-ledger', scope: 'engagement', scopeId: eng?.id,
+        fileName: `SAD Ledger (SA 450) - ${(eng as { clientName?: string }).clientName || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `SAD Ledger — Akumulasi Salah Saji (SA 450)`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 450 · metode ${method === 'rollover' ? 'roll-over' : 'iron curtain'}`,
+          `Tidak dikoreksi neto Rp ${fmt(Math.round(Math.abs(calc.rolloverNet) / 1e6))} jt (${(Math.abs(calc.rolloverNet) / om * 100).toFixed(0)}% OM) — Rp juta`],
+        sheets: [
+          { name: 'Ledger SAD', heading: 'Ikhtisar salah saji (Rp juta)',
+            columns: ['Ref', 'Deskripsi', 'FS Line', 'Tipe', 'Asersi', 'Inisiator', 'Efek Laba', 'Efek Aset Neto', 'Disposisi', 'Asal'],
+            rows: sadRows, colWidths: [10, 40, 16, 11, 12, 12, 12, 14, 13, 6] },
+          { name: 'Lampiran SUM', heading: 'Lampiran Surat Untuk Manajemen — salah saji tidak dikoreksi (Rp juta)',
+            columns: ['Ref', 'Deskripsi', 'Efek Laba', 'Efek Aset Neto'], rows: sumRows.map((r: (string | number)[]) => [r[0], r[1], r[6], r[7]]), colWidths: [10, 56, 14, 16] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sad" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 450</Badge>
-          <Btn sm><I.download size={13} /> Export SAD</Btn>
+          <Btn sm onClick={onExportSAD} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export SAD'}</Btn>
           <Btn sm variant="primary"><I.send size={14} /> Kirim ke Manajemen</Btn>
         </div>
       } />
@@ -284,7 +323,7 @@ function SADLedger() {
             {tab === 'ledger' && <TabLedger items={items} cycleDisp={cycleDisp} calc={calc} fmt={fmt} ctt={ctt} />}
             {tab === 'aggregate' && <TabAggregate {...{ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS, liquidity, recon }} />}
             {tab === 'qualitative' && <TabQualitative quals={quals} toggleQual={toggleQual} qualCount={qualCount} />}
-            {tab === 'comms' && <TabComms {...{ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }} />}
+            {tab === 'comms' && <TabComms {...{ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount, onExportSAD, exporting }} />}
           </div>
         </div>
       </div>
@@ -636,7 +675,7 @@ function ActionRow({ icon, color, text }: any) {
 /* ============================================================
    TAB 4 — Komunikasi & Disposisi (SA 260 / SA 580)
    ============================================================ */
-function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }: any) {
+function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount, onExportSAD, exporting }: any) {
   const uncorr = calc.uncorr;
   const commLog = [
     { who: 'Manajemen (CFO)', date: '12 Mei 2026', kind: 'Permintaan Koreksi', status: 'Direspons', body: 'Daftar 8 salah saji teridentifikasi disampaikan; 4 dikoreksi melalui AJE-01/04/05.' },
@@ -670,7 +709,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
               "Kami berkeyakinan bahwa dampak dari salah saji yang tidak dikoreksi, baik secara individual maupun agregat, adalah tidak material terhadap laporan keuangan secara keseluruhan. Ikhtisar salah saji tersebut terlampir dalam representasi ini."
             </div>
             <div className="row gap8" style={{ marginTop: 10 }}>
-              <Btn sm><I.download size={13} /> Lampiran SUM</Btn>
+              <Btn sm onClick={onExportSAD} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Lampiran SUM'}</Btn>
               <Btn sm><I.doc size={13} /> Surat Representasi</Btn>
             </div>
           </div>

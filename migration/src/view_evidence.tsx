@@ -5,6 +5,7 @@ import { wpEvidenceEval } from './view_wp';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { EvDirection, EvDossier, EvSelection } from './view_evidence2';
 
 /* ============================================================
@@ -162,12 +163,39 @@ function EvidenceEvaluation() {
 
   const sel = live.find((i: any) => i.id === selId);
 
+  /* K-06 lanjutan — wire tombol "Memo Evaluasi Bukti" + "Export Memo SA 500" (dulu mati):
+     ekspor PDF tersegel evaluasi bukti per area + simpulan SA 500. */
+  const [exporting, setExporting] = useStateEV(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'evidence-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo Evaluasi Bukti (SA 500) - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Evaluasi Bukti Audit (SA 500)',
+        meta: [`${client} · ENG-2025-014 · FY2025 · SA 500`,
+          `Skor rata-rata ${avgScore.toFixed(1)}/5 · cakupan asersi ${coverage}% · ${openContra} kontradiksi terbuka`],
+        blocks: [
+          { type: 'heading', text: '1. Kecukupan & Ketepatan Bukti per Area' },
+          { type: 'table', head: ['Area', 'WP', 'Kecukupan', 'Ketepatan', 'Skor'],
+            body: live.map((i: EvArea) => [i.area, i.wp, String(i.suff), String(i.approp), evScore(i).toFixed(1)]) },
+          { type: 'heading', text: '2. Simpulan' },
+          { type: 'para', text: verdict.t },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="evidence" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 500</Badge>
-          <Btn sm><I.download size={13} /> Memo Evaluasi Bukti</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Evaluasi Bukti'}</Btn>
           <Btn sm variant="primary"><I.check size={14} /> Simpulkan Bukti</Btn>
         </div>
       } />
@@ -208,7 +236,7 @@ function EvidenceEvaluation() {
         {tab === 'prosedur'   && <EvProcedures items={live} />}
         {tab === 'informasi'  && <EvInformation />}
         {tab === 'konsisten'  && <EvConsistency openContra={openContra} />}
-        {tab === 'kesimpulan' && <EvConclusion items={live} verdict={verdict} avgScore={avgScore} coverage={coverage} openContra={openContra} firm={firm} />}
+        {tab === 'kesimpulan' && <EvConclusion items={live} verdict={verdict} avgScore={avgScore} coverage={coverage} openContra={openContra} firm={firm} onExportMemo={onExportMemo} exporting={exporting} />}
 
       </div></div>
     </>
@@ -633,7 +661,7 @@ function EvConsistency({ openContra }: any) {
 }
 
 /* ---------------- Tab 7: Kesimpulan & Sign-off ---------------- */
-function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: any) {
+function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm, onExportMemo, exporting }: any) {
   const partner = firm?.activeEngagement?.partner || 'Hartono Wijaya, CPA';
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
@@ -679,7 +707,7 @@ function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: 
             <div className="row wrap gap8">
               <Btn sm variant="primary"><I.check size={13} /> Tandai Bukti Disimpulkan</Btn>
               <Btn sm><I.link2 size={13} /> Tautkan ke SAD Ledger</Btn>
-              <Btn sm><I.download size={13} /> Export Memo SA 500</Btn>
+              <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Memo SA 500'}</Btn>
             </div>
           </div>
         </Panel>

@@ -4,6 +4,7 @@ import { useFirm, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -120,12 +121,39 @@ function InternalAudit() {
     { id: 'kesimpulan', label: 'Kesimpulan & Dampak' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Memo Penggunaan IA" (dulu mati): ekspor PDF tersegel
+     memo SA 610 — evaluasi fungsi IA, penggunaan & reperformansi. */
+  const [exporting, setExporting] = useStateIA(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa610-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 610 - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Penggunaan Pekerjaan Audit Internal (SA 610)',
+        meta: [`${client} · ENG-2025-014 · FY2025 · SA 610 (Revisi 2013)`,
+          `Rata-rata evaluasi ${avg.toFixed(1)}/5 · Verdict: ${verdict.label}`],
+        blocks: [
+          { type: 'heading', text: '1. Evaluasi Fungsi IA (¶16)' },
+          { type: 'table', head: ['Faktor', 'Skor', 'Acuan'],
+            body: factors.map((f: { id: string; label: string; v: number; ref: string }) => [f.label, String(f.v), f.ref]) },
+          { type: 'heading', text: '2. Kesimpulan' },
+          { type: 'para', text: verdict.t },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="internalaudit" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 610</Badge>
-          <Btn sm><I.download size={13} /> Memo Penggunaan IA</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Penggunaan IA'}</Btn>
           <Btn sm variant="primary"><I.check size={14} /> Simpulkan</Btn>
         </div>
       } />

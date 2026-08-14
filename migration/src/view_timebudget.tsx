@@ -6,6 +6,7 @@ import { useAudit, useAuditHeavy, useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Time & Budget (expanded module)
@@ -88,6 +89,43 @@ function TimeBudget() {
   const [tab, setTab] = useTB('overview');
   const e = activeEngagement;
   const m = useTBModel(timeEntries, e);
+  const [exporting, setExporting] = useTB(false);
+
+  /* K-06 lanjutan — wire tombol "Export Timesheet" (dulu mati): ekspor XLSX tersegel
+     timesheet + anggaran per fase. */
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const tsRows = timeEntries.map((t: { date: string; member: string; task: string; phase: string; hours: number }) => [
+        t.date, t.member.split(',')[0], t.task, t.phase, t.hours.toFixed(1),
+      ]);
+      const phaseRows = m.phases.map((p: { id: string; label: string; budget: number; actual: number; eac: number; variance: number }) => [
+        p.id, p.label, Math.round(p.budget), Math.round(p.actual), Math.round(p.eac), Math.round(p.variance),
+      ]);
+      const rosterRows = m.roster.map((r: { name: string; role: string; budget: number; actual: number }) => [
+        r.name.split(',')[0], r.role, Math.round(r.budget), r.actual.toFixed(1),
+      ]);
+      await amsExportXlsx({
+        kind: 'timesheet-export', scope: 'engagement', scopeId: e?.id,
+        fileName: `Timesheet & Anggaran - ${(e as { clientName?: string }).clientName || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Timesheet & Anggaran Perikatan',
+        meta: [`${e?.id || ''} · ${e?.fy || 'FY2025'} · fee Rp ${Math.round(m.fee / 1e6)} jt`,
+          `Jam aktual ${m.actualTotal}/${m.budgetTotal} · burn ${(m.burn * 100).toFixed(0)}% — jam`],
+        sheets: [
+          { name: 'Timesheet', heading: 'Timesheet (jam)',
+            columns: ['Tanggal', 'Anggota', 'Tugas', 'Fase', 'Jam'], rows: tsRows, colWidths: [12, 20, 34, 14, 8] },
+          { name: 'Anggaran Fase', heading: 'Anggaran vs aktual per fase (jam)',
+            columns: ['Fase', 'Label', 'Anggaran', 'Aktual', 'EAC', 'Varians'], rows: phaseRows, colWidths: [8, 30, 12, 12, 12, 12] },
+          { name: 'Roster', heading: 'Roster tim (jam)',
+            columns: ['Anggota', 'Peran', 'Anggaran', 'Aktual'], rows: rosterRows, colWidths: [22, 22, 12, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const tabs = [
     { id: 'overview', label: 'Ringkasan' },
@@ -103,7 +141,7 @@ function TimeBudget() {
         <div className="row gap8 ac">
           <Badge kind="blue">{e.id}</Badge>
           <Btn sm><I.sparkle size={13} /> Analisis AI</Btn>
-          <Btn sm variant="primary"><I.download size={13} /> Export Timesheet</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Timesheet'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

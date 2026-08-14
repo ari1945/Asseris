@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SignoffDots } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 /* Tahap 8 — helper WP dibaca via ESM dari wp_canon (eager), bukan window.*
    yang hanya terisi setelah chunk view_wp dimuat. */
 import { WP_REFS, deriveWpStatus, collectWpNotes, openCanonicalWp } from './wp_canon';
@@ -123,6 +124,37 @@ function SA230View() {
     { id: 'keterkaitan', label: 'Keterkaitan Modul' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Memo Dokumentasi" (dulu mati): ekspor PDF tersegel
+     memo SA 230 — status kelengkapan & atribut dokumentasi (SSOT useDocCanon). */
+  const [exporting, setExporting] = useStateD2(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa230-memo', scope: 'engagement', scopeId: eng,
+        fileName: `Memo SA 230 - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Dokumentasi Audit (SA 230)',
+        meta: [`${client} · ${eng} · FY2025 · SA 230 (Revisi)`,
+          `Kelengkapan ${C.agg.docPct}% · ${C.agg.blocking ? 'ada item menghalangi finalisasi' : 'lengkap'}`],
+        blocks: [
+          { type: 'heading', text: '1. Status Kelengkapan' },
+          { type: 'table', head: ['Kelompok', 'Status', 'Acuan'],
+            body: [
+              ['Identifikasi & atribut WP', C.agg.docPct + '%', '¶8(a)'],
+              ['Hal signifikan & pertimbangan', C.agg.signifPct + '%', '¶8(c)'],
+              ['Penyimpangan dari standar', C.agg.devPct + '%', '¶11'],
+              ['Perakitan & retensi final', C.agg.retPct + '%', '¶14–16'],
+            ] },
+          { type: 'para', text: 'Dokumentasi memungkinkan auditor berpengalaman yang tidak memiliki kaitan dengan perikatan memahami: sifat/saat/luas prosedur, hasilnya & bukti yang diperoleh, serta hal signifikan yang timbul (SA 230.¶8).' },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sa230" right={
@@ -130,7 +162,7 @@ function SA230View() {
           <Badge kind={C.agg.blocking ? 'amber' : 'green'} dot>{C.agg.docPct}% kelengkapan</Badge>
           <Badge kind="blue">SA 230</Badge>
           <Btn sm onClick={() => C.nav('dms', { from: 'sa230' })}><I.layers size={13} /> Berkas Final (DMS)</Btn>
-          <Btn sm variant="primary"><I.download size={14} /> Memo Dokumentasi</Btn>
+          <Btn sm variant="primary" onClick={onExportMemo} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Memo Dokumentasi'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

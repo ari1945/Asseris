@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -67,12 +68,43 @@ function SA501View() {
     { id: 'segmen', label: 'Informasi Segmen' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Memo Bukti Spesifik" (dulu mati): ekspor PDF tersegel
+     memo SA 501 — kehadiran opname, prosedur & register litigasi (SSOT canon). */
+  const [exporting, setExporting] = useState501(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa501-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 501 - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Bukti Audit: Unsur Pilihan (SA 501)',
+        meta: [`${client} · ENG-2025-014 · FY2025 · SA 501`,
+          `Persediaan Rp ${invTotal} jt (${INV_LOCATIONS.length} lokasi) · eksposur litigasi Rp ${litExposure} jt`],
+        blocks: [
+          { type: 'heading', text: '1. Kehadiran Perhitungan Fisik (¶4–5)' },
+          { type: 'table', head: ['Lokasi', 'Nilai (jt)', 'Porsi', 'Dihadiri', 'Deviasi', 'Catatan'],
+            body: INV_LOCATIONS.map(l => [l.loc, String(l.val), l.pct + '%', l.attend ? 'Ya' : 'Tidak', String(l.dev), l.note]) },
+          { type: 'heading', text: '2. Prosedur & Hasil' },
+          { type: 'table', head: ['Prosedur', 'Acuan', 'Status'],
+            body: INV_PROC.map(p => [p.t, p.ref, p.done ? 'Selesai' : 'Tertunda']) },
+          { type: 'heading', text: '3. Litigasi & Klaim (register PSAK 57)' },
+          { type: 'table', head: ['Perkara', 'Pihak', 'Kemungkinan', 'Estimasi (jt)', 'Perlakuan'],
+            body: LIT_CASES.map((c: { party: string; nature: string; likely: string; estimate?: number; disc?: string }) => [c.party, c.nature, c.likely, String(c.estimate || 0), c.disc || '']) },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sa501" right={
         <div className="row gap8 ac">
           <SACanonChips stdId="sa501" />
-          <Btn sm><I.download size={13} /> Memo Bukti Spesifik</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Bukti Spesifik'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />

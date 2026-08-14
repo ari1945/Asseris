@@ -5,6 +5,8 @@ import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
+import { amsExportPdf } from './export_pdf';
 import { RowKv } from './view_calc';
 
 /* ============================================================
@@ -68,11 +70,62 @@ function TaxPPh23() {
     (fStat === 'Semua' || r.status === fStat) &&
     (q === '' || (r.name + ' ' + r.obj + ' ' + r.id).toLowerCase().includes(q.toLowerCase())));
 
+  /* K-06 lanjutan — wire tombol "SPT Masa" (dulu mati): ekspor XLSX tersegel rekapitulasi
+     SPT Masa Unifikasi (per masa) + register bukti potong. */
+  const [exporting, setExporting] = useStateT23(false);
+  const onExportSpt = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const masaRows = masas.map((m: { masa: string; count: number; dpp: number; pph: number; disetor: number; status: string }) => [m.masa, m.count, Math.round(m.dpp / 1e6), Math.round(m.pph / 1e6), Math.round(m.disetor / 1e6), m.status]);
+      const regRows = rows.map((r: { id: string; name: string; npwp?: string; obj: string; masa: string; dpp: number; pph: number; status: string }) => [
+        r.id, r.name, r.npwp || '—', r.obj, r.masa, Math.round(r.dpp / 1e6), Math.round(r.pph / 1e6), r.status,
+      ]);
+      await amsExportXlsx({
+        kind: 'tax23-spt-masa', scope: 'firm', scopeId: undefined,
+        fileName: 'SPT Masa Unifikasi (PPh 23/26).xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'SPT Masa Unifikasi — Rekapitulasi & Register',
+        meta: [`${rows.length} bukti potong · ${masas.length} masa`,
+          `Total PPh ${Math.round(s.pphTot / 1e6)} jt · DPP ${Math.round(s.dppTot / 1e6)} jt — Rp juta`],
+        sheets: [
+          { name: 'Per Masa', heading: 'Rekapitulasi per masa (Rp juta)',
+            columns: ['Masa', 'Jumlah', 'DPP', 'PPh', 'Disetor', 'Status'],
+            rows: masaRows, colWidths: [12, 9, 14, 14, 14, 12] },
+          { name: 'Register Bukti Potong', heading: 'Register bukti potong unifikasi (Rp juta)',
+            columns: ['ID', 'Lawan Transaksi', 'NPWP', 'Objek', 'Masa', 'DPP', 'PPh', 'Status'],
+            rows: regRows, colWidths: [10, 28, 20, 22, 10, 12, 12, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+  /* Unduh Bukti Potong per baris (dari T23Detail) — PDF tersegel. */
+  const onExportBukti = async (r: { id: string; name: string; npwp?: string; obj: string; masa: string; dpp: number; pph: number; status: string }) => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'tax23-bukti', scope: 'firm', scopeId: undefined,
+        fileName: `Bukti Potong ${r.id} - ${(r.name || '').replace('PT ', '')}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Bukti Potong Unifikasi (PPh 23/26)',
+        meta: [`${r.id} · ${r.name} · NPWP ${r.npwp || '—'}`, `Masa ${r.masa} · objek ${r.obj}`],
+        blocks: [
+          { type: 'kv', rows: [['Lawan Transaksi', r.name], ['NPWP', r.npwp || '—'], ['Objek Pemotongan', r.obj], ['Masa Pajak', r.masa], ['DPP', 'Rp ' + AMS.fmt(r.dpp)], ['PPh Dipotong', 'Rp ' + AMS.fmt(r.pph)], ['Status', r.status]] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="tax" right={<div className="row gap8 ac">
         <span className="chip tiny"><I.link2 size={11} /> DJP Coretax · Bukti Potong Unifikasi</span>
-        <Btn sm><I.download size={13} /> SPT Masa</Btn>
+        <Btn sm onClick={onExportSpt} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'SPT Masa'}</Btn>
         <Btn sm variant="primary" onClick={() => setForm(true)}><I.plus size={14} /> Bukti Potong</Btn>
       </div>} />
       <div className="view-scroll"><div className="view-pad">
@@ -260,7 +313,7 @@ function TaxPPh23() {
         </Panel>
       </div></div>
 
-      {sel && <T23Detail r={sel} onClose={() => setSel(null)} nav={nav} toggle={toggleStatus} />}
+      {sel && <T23Detail r={sel} onClose={() => setSel(null)} nav={nav} toggle={toggleStatus} onExportBukti={onExportBukti} exporting={exporting} />}
       {form && <BuktiPotongForm onClose={() => setForm(false)} nextId={'1.2-03.26-' + String(4615 + extra.length).padStart(7, '0')} onAdd={(r: any) => { setExtra((e: any) => [...e, r]); setForm(false); }} />}
     </>
   );
@@ -408,7 +461,7 @@ function T23Reconcile({ opts, nav }: any) {
 }
 
 /* ---------------- Detail drawer ---------------- */
-function T23Detail({ r, onClose, nav, toggle }: any) {
+function T23Detail({ r, onClose, nav, toggle, onExportBukti, exporting }: any) {
   const { fmt } = AMS;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
@@ -472,7 +525,7 @@ function T23Detail({ r, onClose, nav, toggle }: any) {
         </div>
         <div style={{ padding: '13px 18px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Btn onClick={onClose}>Tutup</Btn>
-          <Btn><I.download size={13} /> Unduh Bukti Potong</Btn>
+          <Btn onClick={() => onExportBukti(r)} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh Bukti Potong'}</Btn>
           {r.status !== 'Lapor' && <Btn variant="primary" onClick={() => { toggle(r.id); onClose(); }}><I.check size={13} /> {r.deposited ? 'Batalkan Setor' : 'Tandai Disetor'}</Btn>}
         </div>
       </div>

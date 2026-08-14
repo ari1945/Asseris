@@ -143,7 +143,7 @@ function MaterialityCalc() {
       <SubBar moduleId="materiality" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 320 · SA 450 · SA 600</Badge>
-          <Btn sm><I.download size={13} /> Memo Materialitas</Btn>
+          <Btn sm onClick={() => setTab('memo')}><I.download size={13} /> Memo Materialitas</Btn>
           <Btn sm variant="primary" onClick={onApply}><I.check size={14} /> Terapkan ke Engagement</Btn>
         </div>
       } />

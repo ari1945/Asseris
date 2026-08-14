@@ -6,6 +6,7 @@ import { useAudit, useAuditHeavy, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { PROGRAMME } from './view_cockpit';
 import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff';
 
@@ -221,13 +222,47 @@ function EngagementCockpit() {
     { id: 'risiko', label: 'Risiko & Kualitas' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Status Report" (dulu mati): ekspor XLSX tersegel
+     status engagement — progres, anggaran, tim & kualitas (dari model D). */
+  const [exporting, setExporting] = useStateCkp(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const phaseSheet = D.phaseRows.map((p: { phase: string; pct: number; bud: number }) => [p.phase, p.pct + '%', p.bud]);
+      const teamSheet = D.members.map((m: { name: string; grade: string; rate: number; bud: number; act: number; wpPrep: number; wpRev: number; procPrep: number; procRev: number }) => [
+        m.name.split(',')[0], m.grade, m.rate, Math.round(m.bud), Math.round(m.act), m.wpPrep, m.wpRev, m.procPrep, m.procRev,
+      ]);
+      const riskSheet = D.sigRisks.map((r: { id: string; risk?: string; t?: string; inherent: string; fraud?: boolean; likelihood?: string; impact?: string }) => [r.id, r.risk || r.t, r.inherent, r.fraud ? 'Ya' : 'Tidak', r.likelihood || '', r.impact || '']);
+      await amsExportXlsx({
+        kind: 'cockpit-status', scope: 'engagement', scopeId: e?.id,
+        fileName: `Status Report - ${activeClient?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Status Report Engagement — ${activeClient?.name || ''}`,
+        meta: [`${e?.id || ''} · ${e?.fy || ''} · progres ${D.overall}% · sisa ${D.daysLeft} hari`,
+          `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · WIP tim Rp ${Math.round(D.wipTot / 1e6)} jt — jam & Rp jt`],
+        sheets: [
+          { name: 'Fase', heading: 'Progres per fase (%)',
+            columns: ['Fase', 'Progres', 'Jam Anggaran'], rows: phaseSheet, colWidths: [26, 10, 14] },
+          { name: 'Tim', heading: 'Beban tim (jam & Rp)',
+            columns: ['Anggota', 'Grade', 'Rate', 'Anggaran', 'Aktual', 'WP prep', 'WP rev', 'Proc prep', 'Proc rev'],
+            rows: teamSheet, colWidths: [22, 10, 10, 12, 12, 10, 10, 10, 10] },
+          { name: 'Risiko Signifikan', heading: 'Risiko signifikan & fraud',
+            columns: ['ID', 'Risiko', 'Inheren', 'Fraud', 'Likelihood', 'Impact'], rows: riskSheet, colWidths: [8, 42, 12, 8, 12, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="cockpit" right={
         <div className="row gap8 ac">
           <Badge kind={D.verdict.tone === 'red' ? 'red' : D.verdict.tone === 'amber' ? 'amber' : 'green'}>{D.verdict.l}</Badge>
           <Badge kind="blue">{e.id} · {e.fy}</Badge>
-          <Btn sm><I.download size={13} /> Status Report</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Status Report'}</Btn>
           <Btn sm variant="primary" onClick={() => nav('engagement')}><I.briefcase size={14} /> Kelola Engagement</Btn>
         </div>
       } />
