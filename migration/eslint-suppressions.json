@@ -456,7 +456,7 @@
   },
   "src/view_eqr.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 28
+      "count": 26
     }
   },
   "src/view_ethics_parts.tsx": {

@@ -69,8 +69,6 @@ function Governance() {
   const attestComplete = attestChainComplete(attestLinks);
   const smmDefs = collectSmmDeficiencies({ risks: A.SOQM_RISKS, network: A.QM_NETWORK });
   const evalResult = evaluateSmm(smmDefs);
-  const concLabel = evalResult.conclusion === 'reasonable' ? 'Memadai'
-    : evalResult.conclusion === 'reasonable-except-for' ? 'Dgn Pengecualian' : 'Belum Memadai';
   const concColor = evalResult.conclusion === 'reasonable' ? 'var(--green)'
     : evalResult.conclusion === 'reasonable-except-for' ? 'var(--amber)' : 'var(--red)';
 
@@ -139,7 +137,7 @@ function Governance() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={objCov.addressedPct + '%'} label="Cakupan Tujuan Mandatori ¶28–33" accent={objCov.complete ? 'var(--green)' : objCov.addressedPct >= 50 ? 'var(--amber)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={concLabel} label={'Rekomendasi Mesin ¶54 · ' + String(evalPeriod.slice(-4) || '')} accent={concColor} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={attestComplete && attest.state && attest.state.engineLabel ? attest.state.engineLabel : 'Belum dievaluasi'} label={'Simpulan Evaluasi ¶54 · ' + String(evalPeriod.slice(-4) || '')} accent={attestComplete ? concColor : 'var(--amber)'} /></div></Panel>
         </div>
 
         {/* Annual evaluation conclusion — centerpiece of SMM 1 */}

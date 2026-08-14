@@ -262,6 +262,9 @@ export interface EqrClearInput {
   readonly eligibility: EligibilityResult;
   /** ¶20–21 — pembantu penelaah yang tidak eligible. */
   readonly ineligibleAssistants?: readonly string[] | null;
+  /** PR-6 — penilaian eligibilitas ¶18–23 diakui penelaah (ber-atestasi:
+      dicatat {by, at} dari sesi, bukan sekadar tampilan turunan). */
+  readonly eligibilityAcked: boolean;
 }
 
 export type ClearBlocker =
@@ -269,7 +272,8 @@ export type ClearBlocker =
   | 'checklist-incomplete'
   | 'open-findings'
   | 'reviewer-ineligible'
-  | 'assistant-ineligible';
+  | 'assistant-ineligible'
+  | 'eligibility-unconfirmed';
 
 export const CLEAR_BLOCKER_LABEL: Record<ClearBlocker, string> = {
   'already-cleared': 'Penelaahan sudah ditutup.',
@@ -277,6 +281,7 @@ export const CLEAR_BLOCKER_LABEL: Record<ClearBlocker, string> = {
   'open-findings': 'Masih ada hal yang dikhawatirkan dan belum diselesaikan (¶26).',
   'reviewer-ineligible': 'Penelaah tidak memenuhi kriteria eligibilitas (¶18–19, ¶22–23).',
   'assistant-ineligible': 'Terdapat individu pembantu yang tidak memenuhi kriteria eligibilitas (¶20).',
+  'eligibility-unconfirmed': 'Penilaian eligibilitas ¶18–23 belum diakui penelaah (ber-atestasi).',
 };
 
 export interface EqrClearGate {
@@ -298,5 +303,8 @@ export function eqrClearGate(input: EqrClearInput): EqrClearGate {
   if (input.openFindings > 0) blockers.push('open-findings');
   if (!input.eligibility.eligible) blockers.push('reviewer-ineligible');
   if ((input.ineligibleAssistants || []).length > 0) blockers.push('assistant-ineligible');
+  /* PR-6 — penilaian eligibilitas yang TIDAK diakui penelaah (ber-atestasi)
+     tidak boleh membuka gerbang: turunan mesin ≠ keputusan yang diambil. */
+  if (!input.eligibilityAcked) blockers.push('eligibility-unconfirmed');
   return { canClear: blockers.length === 0, blockers };
 }

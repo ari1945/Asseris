@@ -192,14 +192,14 @@ describe('eqrClearGate — eligibilitas kini BAGIAN DARI SYARAT', () => {
   const ineligible = assess({ competenceAssessed: null });
 
   it('checklist lengkap + tanpa temuan + penelaah eligible: boleh ditutup', () => {
-    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: false, eligibility: eligible });
+    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: false, eligibility: eligible, eligibilityAcked: true });
     expect(g.canClear).toBe(true);
     expect(g.blockers).toEqual([]);
   });
 
   it('REGRESI: checklist lengkap & tanpa temuan TETAPI penelaah tidak eligible ⇒ TERKUNCI', () => {
     /* Aturan lama akan mengembalikan canClear=true di sini. */
-    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: false, eligibility: ineligible });
+    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: false, eligibility: ineligible, eligibilityAcked: true });
     expect(g.canClear).toBe(false);
     expect(g.blockers).toContain('reviewer-ineligible');
   });
@@ -207,28 +207,36 @@ describe('eqrClearGate — eligibilitas kini BAGIAN DARI SYARAT', () => {
   it('pembantu yang tidak eligible juga mengunci (¶20)', () => {
     const g = eqrClearGate({
       checklistComplete: true, openFindings: 0, alreadyCleared: false,
-      eligibility: eligible, ineligibleAssistants: ['Dimas Raharjo'],
+      eligibility: eligible, ineligibleAssistants: ['Dimas Raharjo'], eligibilityAcked: true,
     });
     expect(g.canClear).toBe(false);
     expect(g.blockers).toContain('assistant-ineligible');
   });
 
   it('temuan terbuka mengunci (¶26)', () => {
-    const g = eqrClearGate({ checklistComplete: true, openFindings: 1, alreadyCleared: false, eligibility: eligible });
+    const g = eqrClearGate({ checklistComplete: true, openFindings: 1, alreadyCleared: false, eligibility: eligible, eligibilityAcked: true });
     expect(g.blockers).toContain('open-findings');
   });
 
   it('checklist belum lengkap mengunci (¶25)', () => {
-    const g = eqrClearGate({ checklistComplete: false, openFindings: 0, alreadyCleared: false, eligibility: eligible });
+    const g = eqrClearGate({ checklistComplete: false, openFindings: 0, alreadyCleared: false, eligibility: eligible, eligibilityAcked: true });
     expect(g.blockers).toContain('checklist-incomplete');
   });
 
   it('sudah ditutup tidak bisa ditutup ulang', () => {
-    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: true, eligibility: eligible });
+    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: true, eligibility: eligible, eligibilityAcked: true });
     expect(g.blockers).toContain('already-cleared');
   });
 
+  it('PR-6: eligibilitas yang TIDAK diakui penelaah mengunci (ber-atestasi)', () => {
+    /* Turunan mesin ≠ keputusan: tanpa pengakuan ber-atestasi, gerbang tetap
+       terkunci walau seluruh syarat lain terpenuhi. */
+    const g = eqrClearGate({ checklistComplete: true, openFindings: 0, alreadyCleared: false, eligibility: eligible, eligibilityAcked: false });
+    expect(g.canClear).toBe(false);
+    expect(g.blockers).toContain('eligibility-unconfirmed');
+  });
+
   it('setiap penghalang punya kalimat siap-tampil', () => {
-    expect(Object.keys(CLEAR_BLOCKER_LABEL)).toHaveLength(5);
+    expect(Object.keys(CLEAR_BLOCKER_LABEL)).toHaveLength(6);
   });
 });
