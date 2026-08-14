@@ -375,6 +375,14 @@ function MLWorkflowFull(props: any) {
 function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing, setField, allFindings }: any) {
   const visible = viewMode === 'final' ? findings.filter((f: any) => f.stage === 'final') : findings.filter((f: any) => f.stage !== 'tuntas');
   const excluded = allFindings.filter((f: any) => f.stage === 'tuntas');
+  /* P0-fix: tanggal surat FINAL diambil dari keputusan final TERAKHIR di antara
+     temuan yang masuk surat (decisionDate data, bukan literal '14 Maret 2026'
+     yang membekukan tanggal dan menipu di revisi berikutnya). Fallback: hari ini. */
+  const finalDate = visible.reduce((mx: string | null, f: { decisionDate?: unknown }) => {
+    const d = typeof f.decisionDate === 'string' ? f.decisionDate : null;
+    if (!d) return mx;
+    return mx == null || d > mx ? d : mx;
+  }, null as string | null);
   return (
     <div style={{ background: '#e7eaef', padding: 18 }}>
       <div className="doc-paper" style={{ background: '#fff', maxWidth: 760, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
@@ -384,7 +392,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
             <div style={{ fontSize: 11, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div>
           </div>
           <div className="mono" style={{ fontSize: 11, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
-            {activeEngagement?.id}<br />{viewMode === 'final' ? '14 Maret 2026' : 'DRAFT — ' + idDate(today())}
+            {activeEngagement?.id}<br />{viewMode === 'final' ? (finalDate ? idDate(finalDate) : idDate(today())) : 'DRAFT — ' + idDate(today())}
           </div>
         </div>
         {viewMode === 'draft' && (
