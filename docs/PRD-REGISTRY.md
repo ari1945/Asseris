@@ -37,7 +37,7 @@
 | PRD - Jaring Pengaman Test Lapis Klien & Branch Canon (P1+P2).md | Draft |
 | PRD - Kebijakan Presisi Numerik Asseris.md | Draft |
 | PRD - Legacy Track Window-Namespace Strip (Slice 1 PROC).md | In Progress — status Review — strip berjalan |
-| PRD - Kesiapan Pemeriksaan P2PK (SPM 1 & SPM 2 Auditable).md | In Progress — Approved ("Proceed." 2026-08-12); PR-1·PR-2·PR-3 + perbaikan ambang PPL MERGED (#194·#195·#196·#197); PR-4..7 menunggu |
+| PRD - Kesiapan Pemeriksaan P2PK (SPM 1 & SPM 2 Auditable).md | In Progress — Approved ("Proceed." 2026-08-12); PR-1·PR-2·PR-3 + perbaikan ambang PPL MERGED (#194·#195·#196·#197); PR-4 SELESAI — Governance hero/simpulan & KPI dari firmAttest, metrik komponen diturunkan, label "Belum dievaluasi" (#208·#210·#221 + 2026-08-14); PR-6 SELESAI (2026-08-14) — eqrCoverage populasi SMM 2 (PIE tanpa EQR kini terlihat), eligibilitas ber-atestasi (eligibilityAcked fail-closed), temuan EQR dapat ditulis, clearedBy = user sesi; PR-5 menunggu Q5 (substansi POJK 9/2023); PR-7 menunggu |
 | docs/PRD-K06-ekspor-tersegel-massal.md | Implemented — 2026-08-14: 43 tombol di-wire (17 PSAK/analitis + 26 non-PSAK), branch feat/k06-export-sealed-v2, verify hijau; perluasan PR #229: migrasi amsPrintDoc → amsExportPdf (9 view/11 tombol), live-verify 6/6 PDF SEALED; perluasan PR #230: surat konfirmasi SA 505 + Surat Representasi SA 580 tersegel |
 | PRD - Materialitas Grup SA 600 (populasi, derivasi & entitas yang sama dua materialitas).md | Draft — menunggu keputusan metodologi Ari |
 | PRD - Mutu Firma (SOQM Evaluasi Tahunan Q-01 + Independensi-Rotasi Q-03).md | Superseded — digantikan PRD Kesiapan Pemeriksaan P2PK (2026-08-12) |
