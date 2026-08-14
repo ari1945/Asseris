@@ -5,6 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { KvBox } from './view_analytical';
 import { useFirmWip } from './use_firm_wip';
 
@@ -49,6 +50,37 @@ function WIPRealization() {
   const avgReal = totStd ? totRec / totStd * 100 : 0;
   const avgMargin = totRec ? (totRec - totCost) / totRec * 100 : 0;
 
+  /* K-06 lanjutan — wire tombol "Laporan WIP" (dulu mati): ekspor XLSX tersegel
+     register WIP & realisasi (SSOT FIRMFIN.wip). */
+  const [exporting, setExporting] = useStateWipF(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const wipRows = rows.map((r: any) => [
+        r.id, r.clientShort, r.partner || '—', Math.round(r.std / 1e6), r.billed ? Math.round(r.billed / 1e6) : '—',
+        Math.round(r.wip / 1e6), Math.round(r.writeDown / 1e6), r.realization.toFixed(0) + '%', r.margin.toFixed(0) + '%',
+      ]);
+      await amsExportXlsx({
+        kind: 'firm-wip-laporan', scope: 'firm', scopeId: undefined,
+        fileName: 'Laporan WIP & Realisasi.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'WIP & Realisasi — Ekonomi Perikatan',
+        meta: [`WIP belum tertagih Rp ${Math.round(totWip / 1e6)} jt · nilai standar Rp ${Math.round(totStd / 1e6)} jt`,
+          `Realisasi rata-rata ${avgReal.toFixed(0)}% · margin ${avgMargin.toFixed(0)}% — Rp juta`],
+        sheets: [
+          { name: 'Register WIP', heading: 'WIP per engagement (Rp juta)',
+            columns: ['ID', 'Klien', 'Partner', 'Nilai Standar', 'Ditagih', 'WIP', 'Write-down', 'Realisasi', 'Margin'],
+            rows: wipRows,
+            totals: ['TOTAL', '', '', Math.round(totStd / 1e6), '', Math.round(totWip / 1e6), Math.round(totWD / 1e6), avgReal.toFixed(0) + '%', avgMargin.toFixed(0) + '%'],
+            colWidths: [13, 26, 16, 14, 12, 14, 14, 12, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // per-partner aggregation
   const partners = useMemoWipF(() => {
     const m = {};
@@ -75,7 +107,7 @@ function WIPRealization() {
           <span className="chip tiny" title="Satu sumber kebenaran dengan WIP Valuation & GL 1-300"><I.link2 size={11} /> Sinkron WIP Valuation</span>
           <Seg options={['Perikatan', 'Partner']} value={view} onChange={setView} />
           <Btn sm onClick={() => nav('wip', { from: 'wipreal' })}><I.hourglass size={13} /> WIP Valuation</Btn>
-          <Btn sm><I.download size={13} /> Laporan WIP</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Laporan WIP'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — gelombang 1 selesai 2026-08-14 (branch `feat/k06-export-sealed`); 17 tombol di-wire; `npm run verify` hijau |
+| Status | Implemented — gelombang 1 (17 tombol PSAK/analitis) + gelombang lanjutan (26 tombol non-PSAK) selesai 2026-08-14 (branch `feat/k06-export-sealed-v2`); total 43 tombol; `npm run verify` hijau |
 | Tanggal | 2026-08-14 |
 | Pemilik | Ari Widodo |
 | Kelas cacat | Output tertinggal: 50+ tombol "Ekspor/Kertas Kerja" tanpa onClick (dead button) — angka SSOT matang tapi tidak bisa dikeluarkan sebagai kertas kerja |
@@ -114,15 +114,29 @@ const onExportXlsx = async () => {
 
 ---
 
-## 5. Gelombang lanjutan (tidak termasuk PR ini)
+## 5. Gelombang lanjutan — SELESAI (PR #228)
 
-1. **Sisa tombol mati non-PSAK** (Program A E-9): compmatrix, kb/templates,
-   sa800/805/810, subsequent memo, register review notes, timesheet, Gantt,
-   register SDM, faktur billing (ganti amsPrintDoc → amsExportPdf), laporan
-   reviu spr2400/review2400 (± 30 tombol).
-2. **Output klien via PDF tersegel**: migrasi jalur `amsPrintDoc` → `amsExportPdf`
+Gelombang lanjutan me-wire **26 tombol ekspor mati non-PSAK** (total 43 sejak
+gelombang 1), pola identik `amsExportXlsx`/`amsExportPdf` tersegel:
+
+- **Register inti:** materiality (→ tab memo, MatMemo sudah punya Unduh PDF),
+  compmatrix (Export Register), kb (Ekspor Indeks + Simpan PDF), related
+  (Daftar Pihak Berelasi), sad (Export SAD + Lampiran SUM).
+- **Memo SA display:** sa200, sa501, sa230, subsequent, internalaudit (SA 610),
+  evidence (SA 500 ×2), sa800/805/810 (memo + laporan pratinjau), sjah3000.
+- **Operasi firma:** delivery (rencana), wip_firm (laporan WIP), tax23 (SPT Masa
+  + bukti potong), psak1 (checklist penyajian), timebudget (timesheet), cockpit
+  (programme), cockpit2 (status report), compliance (kertas kerja), groupaudit
+  (memo ×2), bi (paket dewan), bo1 (register arsip), governance (evaluasi SMM),
+  people (direktori + deklarasi), pc_hcm (profil 360°), platform3 (bukti entri
+  audit), misc2 (kartu template), dashboard (KPI), firmfinance (LK KAP), firmops
+  (paket operasi).
+
+Yang tersisa untuk PR berikutnya:
+
+1. **Output klien via PDF tersegel**: migrasi jalur `amsPrintDoc` → `amsExportPdf`
    untuk laporan yang diterbitkan (segel Ed25519, pola K-01).
-3. **L5 PSAK**: psak71 jadi percontohan rantai penuh (state.set + sign-off +
+2. **L5 PSAK**: psak71 jadi percontohan rantai penuh (state.set + sign-off +
    ekspor tersegel + audit chain) — Program C E-9.
 
 ---

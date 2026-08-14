@@ -4,6 +4,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
@@ -101,12 +102,55 @@ function SA805View() {
   const conj = SPE_ENG.filter(e => e.conjunction).length;
   const constrained = SPE_ENG.filter(e => e.opinion === 'Terkendala').length;
 
+  /* K-06 lanjutan — wire tombol "Memo SA 805" + "Unduh" pratinjau (dulu mati). */
+  const [exporting, setExporting] = useState805(false);
+  const onExportMemo = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
+      await amsExportPdf({
+        kind: 'sa805-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 805 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Audit Elemen/LK Tunggal (SA 805)',
+        meta: [`${sel.id} · ${sel.client} · subjek ${sel.subject}`,
+          `Opini ${opLabel} · diaudit bersamaan: ${sel.conjunction ? 'Ya' : 'Tidak'}`],
+        blocks: [
+          { type: 'heading', text: '1. Lingkup & Status' },
+          { type: 'para', text: sel.purpose || '' },
+          { type: 'heading', text: '2. Opini' },
+          { type: 'para', text: sel.opinion === 'Wajar' ? 'Elemen menyajikan secara wajar sesuai kerangka pelaporan.' : 'Opini modifikasian/terkendala — lihat dasar modifikasi.' },
+        ],
+      });
+    } finally { setExporting(false); }
+  };
+  const onExportReport = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
+      await amsExportPdf({
+        kind: 'sa805-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Laporan Auditor - SA 805 - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'LAPORAN AUDITOR INDEPENDEN — Audit atas Elemen LK (SA 805)',
+        meta: [`Kepada ${sel.users} — ${sel.client} · subjek ${sel.subject} · ${sel.framework}`],
+        blocks: [
+          { type: 'heading', text: 'Opini (' + opLabel + ')' },
+          { type: 'para', text: 'Kami telah mengaudit ' + sel.subject.toLowerCase() + ' ' + sel.client + ' ("' + sel.element + '") yang disusun berdasarkan ' + sel.framework + '.' },
+          ...(sel.conjunction ? [{ type: 'heading', text: 'Hal Lain' }, { type: 'para', text: 'Opini atas LK lengkap: ' + sel.completeOpinion + ' (SA 805 ¶14).' }] : []),
+        ],
+      });
+    } finally { setExporting(false); }
+  };
+
   return (
     <>
       <SubBar moduleId="sa805" right={
         <div className="row gap8 ac">
           {constrained > 0 && <Badge kind="red" dot>{constrained} terkendala ¶15</Badge>}
-          <Btn sm><I.download size={13} /> Memo SA 805</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo SA 805'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />
@@ -138,7 +182,7 @@ function SA805View() {
         {tab === 'registri' && <F805Registri selId={selId} setSelId={setSelId} sel={sel} />}
         {tab === 'keberterimaan' && <F805Accept sel={sel} />}
         {tab === 'keterkaitan' && <F805Link sel={sel} />}
-        {tab === 'laporan' && <F805Report sel={sel} />}
+        {tab === 'laporan' && <F805Report sel={sel} onExportReport={onExportReport} exporting={exporting} />}
 
       </div></div>
     </>
@@ -345,7 +389,7 @@ function NavRow805({ to, label, ic: Ic }: any) {
 }
 
 /* ---------------- Tab: Pelaporan & Opini Terpisah ---------------- */
-function F805Report({ sel }: any) {
+function F805Report({ sel, onExportReport, exporting }: any) {
   if (!sel) return null;
   const constrained = sel.opinion === 'Terkendala';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
@@ -385,7 +429,7 @@ function F805Report({ sel }: any) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
+        <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm onClick={onExportReport} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh'}</Btn></div>
         <div style={{ padding: 18 }}>
           <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>

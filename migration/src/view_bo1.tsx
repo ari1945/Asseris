@@ -4,6 +4,7 @@ import { AMS } from './data';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Donut, Panel, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 
@@ -294,9 +295,38 @@ function RecordsRetentionLegacy() {
     { id: 'destroy', label: 'Jadwal Pemusnahan', count: due.length },
     { id: 'hold', label: 'Legal Hold', count: holds.length },
   ];
+
+  /* K-06 lanjutan — wire tombol "Ekspor Register" (dulu mati): ekspor XLSX tersegel
+     register arsip engagement + jadwal pemusnahan (SA 230 · SMM 1). */
+  const [exporting, setExporting] = useStateBO1(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const archRows = B.ARCHIVES.map((a: any) => [a.id, a.eng, a.tahun, a.arsip, a.musnah, a.size, a.legal ? 'Legal Hold' : a.status]);
+      const destroyRows = due.map((a: any) => [a.id, a.eng, a.musnah, a.legal ? 'Legal Hold' : 'Bebas']);
+      await amsExportXlsx({
+        kind: 'records-register', scope: 'firm', scopeId: undefined,
+        fileName: 'Register Arsip & Retensi.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Register Arsip Engagement & Jadwal Pemusnahan',
+        meta: [`${B.ARCHIVES.length} arsip · ${holds.length} legal hold · ${due.length} jatuh tempo`,
+          'SA 230 ¶14–16 · SMM 1 — kebijakan retensi KAP'],
+        sheets: [
+          { name: 'Arsip', heading: 'Register arsip engagement',
+            columns: ['ID', 'Engagement', 'Tahun', 'Arsip', 'Musnah', 'Ukuran', 'Status'],
+            rows: archRows, colWidths: [9, 30, 8, 12, 12, 10, 14] },
+          { name: 'Jadwal Pemusnahan', heading: 'Jadwal pemusnahan',
+            columns: ['ID', 'Engagement', 'Tanggal Musnah', 'Status'], rows: destroyRows, colWidths: [9, 30, 14, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <>
-      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SMM 1</span><Btn sm><I.download size={13} /> Ekspor Register</Btn></div>} />
+      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SMM 1</span><Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Register'}</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={B.ARCHIVES.length} label="Arsip Terkelola" />

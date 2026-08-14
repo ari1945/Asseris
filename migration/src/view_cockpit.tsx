@@ -7,6 +7,7 @@ import { openCanonicalWp } from './wp_canon';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 /* Tahap 8 — PROGRAMME pindah ke data_programme (eager) agar ai_insights /
    diagnostics_panel (eager) memakainya tanpa menunggu chunk modul ini. */
 import { PROGRAMME } from './data_programme';
@@ -188,6 +189,34 @@ function AuditProgramme() {
   const filtered = prog.map((r: any) => ({ ...r, procs: r.procs.filter(matchProc) })).filter((r: any) => r.procs.length);
   const visibleCount = filtered.flatMap((r: any) => r.procs).length;
 
+  /* K-06 lanjutan — wire tombol "Export Programme" (dulu mati): ekspor XLSX tersegel
+     program audit (RoMM → prosedur → status/jam). */
+  const [exporting, setExporting] = useStateWS(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const progRows = prog.flatMap((r: { riskId: string; risk?: string; t?: string; procs: { id: string; t: string; wp: string; prep?: string; bud?: number; act?: number; exc?: number; status: string }[] }) => r.procs.map((p: { id: string; t: string; wp: string; prep?: string; bud?: number; act?: number; exc?: number; status: string }) => [
+        r.riskId, r.risk || r.t, p.id, p.t, p.wp, p.prep || '', p.bud || 0, p.act || 0, p.exc || 0, p.status,
+      ]));
+      await amsExportXlsx({
+        kind: 'programme-export', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: 'Program Audit (Programme).xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Program Audit — RoMM & Prosedur',
+        meta: [`${allProcs.length} prosedur · ${done} selesai (${pct}%)`,
+          `Jam anggaran ${budTot} · aktual ${actTot} · ekspektasi ${excTot} — jam`],
+        sheets: [
+          { name: 'Programme', heading: 'Program audit per risiko',
+            columns: ['RoMM', 'Risiko', 'Prosedur ID', 'Prosedur', 'WP', 'Disiapkan', 'Bud', 'Aktual', 'Eksp', 'Status'],
+            rows: progRows, colWidths: [9, 26, 10, 44, 10, 14, 8, 8, 8, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="programme" right={
@@ -196,7 +225,7 @@ function AuditProgramme() {
           <Btn sm onClick={() => nav('risk')}><I.shield size={13} /> Risk Register</Btn>
           <Btn sm onClick={() => setSuggestFor_('all')} disabled={!canEdit} title={canEdit ? 'Saran prosedur standar per RoMM' : 'Perlu izin WP_EDIT'}><I.sparkle size={13} /> Saran Prosedur AI</Btn>
           <Btn sm onClick={() => setAdding(true)} disabled={!canEdit} title={canEdit ? 'Tambah prosedur manual' : 'Perlu izin WP_EDIT'}><I.plus size={14} /> Tambah Prosedur</Btn>
-          <Btn sm variant="primary"><I.download size={14} /> Export Programme</Btn>
+          <Btn sm variant="primary" onClick={onExportXlsx} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Export Programme'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

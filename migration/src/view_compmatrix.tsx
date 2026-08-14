@@ -4,6 +4,7 @@ import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Progress } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 /* Tahap 8 — registri standar pindah ke data_knowledge (eager) agar view_kb dan
    data_knowledge memakainya via ESM, bukan window.* yang hanya terisi setelah
    chunk Matriks dimuat. Di-re-export untuk kompatibilitas. */
@@ -105,6 +106,34 @@ function ComplianceMatrix() {
   // group visible rows by phase
   const byPhase = PHASE_ORDER.map(ph => ({ phase: ph, items: rows.filter((r: any) => r.phase === ph) })).filter(g => g.items.length);
 
+  /* K-06 lanjutan — wire tombol "Export Register" (dulu mati): ekspor XLSX tersegel
+     register standar (firm-scope) dengan status keberlakuan & cakupan. */
+  const [exporting, setExporting] = useStateMX(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const regRows = STANDARDS_REGISTRY.map(r => [
+        r.code, r.title, r.type, r.coverage, r.phase || '', isApplicable(r.code) ? 'Berlaku' : 'Tidak berlaku',
+      ]);
+      await amsExportXlsx({
+        kind: 'compmatrix-register', scope: 'firm', scopeId: undefined,
+        fileName: `Register Standar (Matriks Kepatuhan) - ${new Date().getFullYear()}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Register Standar — Matriks Kepatuhan',
+        meta: [`${STANDARDS_REGISTRY.length} standar · ${applRows.length} berlaku`,
+          `Checklist ${nChecklist} · Modul ${nModule} · Gap ${nGap} · rata-rata kepatuhan ${avgPct}%`],
+        sheets: [
+          { name: 'Register', heading: 'Registri standar audit & akuntansi (SA · PSAK · SAK · SPR · SJAH · SMM · SPA)',
+            columns: ['Kode', 'Standar', 'Jenis', 'Cakupan', 'Fase', 'Keberlakuan'],
+            rows: regRows, colWidths: [10, 46, 10, 12, 10, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const chip = (active: any, onClick: any, label: any, key: any) => (
     <button key={key} onClick={onClick} className="chip" style={{ cursor: 'pointer', border: '1px solid ' + (active ? 'var(--blue)' : 'var(--line-strong)'), background: active ? 'var(--blue)' : '#fff', color: active ? '#fff' : 'var(--ink-2)', fontWeight: active ? 700 : 600, height: 26 }}>{label}</button>
   );
@@ -114,7 +143,7 @@ function ComplianceMatrix() {
       <SubBar moduleId="compmatrix" right={
         <div className="row gap8 ac">
           <Badge kind="blue">{STANDARDS_REGISTRY.length} standar terdaftar</Badge>
-          <Btn sm><I.download size={13} /> Export Register</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Register'}</Btn>
         </div>
       } />
       <div className="view-scroll">

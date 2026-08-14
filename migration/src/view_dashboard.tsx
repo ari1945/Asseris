@@ -6,6 +6,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Portlet, Progress, Spark, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts';
 import { portfolioRisk, riskBandColor, type PortfolioRiskRow } from './portfolio_risk';
@@ -136,10 +137,35 @@ function FirmDashboard() {
   const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   /* ---- portlet definitions ---- */
+  /* K-06 lanjutan — wire tombol ikon "Ekspor KPI" (dulu mati): ekspor XLSX tersegel
+     KPI firma — engagement aktif, realizasi, pipeline & utilisasi. */
+  const [exportingKpi, setExportingKpi] = React.useState(false);
+  const onExportKpi = async () => {
+    if (exportingKpi) return;
+    setExportingKpi(true);
+    try {
+      const engRows = engagements.map((e: any) => [e.id, e.client || e.clientName || '', e.status, e.progress != null ? e.progress + '%' : '—', e.partner || '']);
+      await amsExportXlsx({
+        kind: 'dash-kpi', scope: 'firm', scopeId: undefined,
+        fileName: 'Firm KPI - FY2025.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Firm KPI — Dashboard Konsolidasi FY2025',
+        meta: [`${activeEng.length} engagement aktif · total fee Rp ${Math.round(totalFee / 1e6)} jt`,
+          'Realization rate 87% · utilisasi tim 84% · pipeline Rp 9,3 M'],
+        sheets: [
+          { name: 'Engagements', heading: 'Engagement aktif',
+            columns: ['ID', 'Klien', 'Status', 'Progres', 'Partner'], rows: engRows, colWidths: [14, 30, 12, 10, 22] },
+        ],
+      });
+    } finally {
+      setExportingKpi(false);
+    }
+  };
+
   const portlets = {
     kpi: () => (
       <Portlet title="Firm KPI · FY2025" dot="#005085" dragProps={dragP('kpi')}
-        actions={<Btn sm variant="ghost" icon aria-label="Ekspor KPI (PDF/XLSX)"><I.download size={14} /></Btn>}>
+        actions={<Btn sm variant="ghost" icon aria-label="Ekspor KPI (PDF/XLSX)" onClick={onExportKpi} disabled={exportingKpi}><I.download size={14} /></Btn>}>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {[
             { v: activeEng.length, l: 'Engagement Aktif', d: '+2', dir: 'up' },

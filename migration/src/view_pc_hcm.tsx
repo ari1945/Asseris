@@ -4,6 +4,7 @@ import { AMS } from './data';
 import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — HCM deepening: 360° Profile drawer + Analytics
@@ -67,6 +68,32 @@ function Profile360Drawer({ s, onClose }: any) {
       {children}
     </div>
   );
+
+  /* K-06 lanjutan — wire tombol "Ekspor Profil (PDF)" (dulu mati): ekspor PDF tersegel
+     profil 360° pegawai (data pribadi + kompensasi ringkas + CPE). */
+  const [exporting, setExporting] = usePChcm(false);
+  const onExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'profile-360', scope: 'firm', scopeId: undefined,
+        fileName: `Profil - ${s.name}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Profil 360° — ' + s.name,
+        meta: [`${s.name} · ${s.grade || ''} · bergabung ${s.joined || ''}`,
+          `Utilisasi ${s.util ?? 0}% · rating ${s.rating ?? 0} · cuti tersisa ${lvLeft} hari · CPE ${cpe} SKP`],
+        blocks: [
+          { type: 'heading', text: 'Identitas & Posisi' },
+          { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure + ' tahun']] },
+          { type: 'heading', text: 'Kompensasi & Pengembangan' },
+          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Cuti (ent + carry)', lvTotal + ' hari · sisa ' + lvLeft]] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const Kv = ({ l, v, accent }: any) => (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{l}</div>
@@ -184,7 +211,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
           <Btn style={{ flex: 1 }} onClick={() => { onClose(); nav('orgchart'); }}><I.group size={13} /> Lihat di Org Chart</Btn>
-          <Btn variant="primary" style={{ flex: 1 }}><I.download size={13} /> Ekspor Profil (PDF)</Btn>
+          <Btn variant="primary" style={{ flex: 1 }} onClick={onExportPdf} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Profil (PDF)'}</Btn>
         </div>
       </div>
     </div>

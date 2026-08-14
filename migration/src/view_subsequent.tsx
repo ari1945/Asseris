@@ -5,6 +5,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { SE_EVENTS, scanSubsequent, BOOK_STATUS_META, DISC_STATUS_META, type SubsequentEvent, type SeReflection } from './canon_subsequent';
 
 /* ============================================================
@@ -47,12 +48,40 @@ function SubsequentEvents() {
   const procDone = procs.filter((p: any) => p.done).length;
   const periodDays = 73; // 31 Dec 2025 -> 14 Mar 2026
 
+  /* K-06 lanjutan — wire tombol "Memo Subsequent Events" (dulu mati): ekspor PDF tersegel
+     memo SA 560 — register peristiwa setelah tanggal neraca (SSOT canon_subsequent). */
+  const [exporting, setExporting] = useStateSE(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'subsequent-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo Subsequent Events (SA 560) - ${(window as { activeClient?: { name?: string } }).activeClient?.name || 'Klien'}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Peristiwa Setelah Periode Pelaporan (SA 560 / PSAK 8)',
+        meta: [`Periode telaah 31 Des 2025 – 14 Mar 2026 · ${events.length} peristiwa`,
+          `${adjusting} penyesuai · ${events.length - adjusting} non-penyesuai · prosedur ${procDone}/${procs.length}`],
+        blocks: [
+          { type: 'heading', text: '1. Prosedur yang Dilaksanakan (¶6–9)' },
+          { type: 'table', head: ['Prosedur', 'Status'],
+            body: procs.map(p => [p.t, p.done ? 'Selesai' : 'Tertunda']) },
+          { type: 'heading', text: '2. Register Peristiwa' },
+          { type: 'table', head: ['ID', 'Tanggal', 'Peristiwa', 'Dampak (jt)', 'Klasifikasi'],
+            body: events.map((e: SubsequentEvent) => [e.id, String(e.date).slice(0, 10), e.title, String(e.amount / 1e6), e.type === 'adjusting' ? 'Penyesuai' : 'Non-penyesuai']) },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="subsequent" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 560 · PSAK 8</Badge>
-          <Btn sm><I.download size={13} /> Memo Subsequent Events</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Subsequent Events'}</Btn>
           <Btn sm variant="primary"><I.plus size={14} /> Catat Peristiwa</Btn>
         </div>
       } />

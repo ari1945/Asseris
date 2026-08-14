@@ -3,11 +3,12 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
-import type { DeliveryEngPlan, SeedEngPlan } from './canon_delivery';
+import type { DeliveryEngPlan, DeliveryMilestone, DeliveryPhase, SeedEngPlan } from './canon_delivery';
 import type { ClientRow, EngagementRow } from './ams_types';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -36,6 +37,38 @@ function DeliveryMilestones() {
 
   const [filter, setFilter] = useStateDlv('Semua');
   const [sel, setSel] = useStateDlv(null);
+  const [exporting, setExporting] = useStateDlv(false);
+
+  /* K-06 lanjutan — wire tombol "Ekspor Rencana" (dulu mati): ekspor XLSX tersegel
+     linimasa pengiriman per engagement (fase + milestone). */
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const planRows = DELIVERY.flatMap((p: DeliveryEngPlan) => p.milestones.map((m: DeliveryMilestone) => [
+        p.id, m.label, m.date, m.done ? 'Selesai' : 'Terbuka',
+      ]));
+      await amsExportXlsx({
+        kind: 'delivery-plan', scope: 'firm', scopeId: undefined,
+        fileName: `Rencana Pengiriman (Delivery Plan).xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Rencana Pengiriman — Fase & Milestone',
+        meta: [`${DELIVERY.length} perikatan · ${planRows.length} milestone`,
+          `Aktif ${active.length} · at-risk ${atRisk} · lewat tempo ${overdueMs}`],
+        sheets: [
+          { name: 'Milestone', heading: 'Milestone pengiriman per engagement',
+            columns: ['Engagement', 'Milestone', 'Tanggal', 'Status'],
+            rows: planRows, colWidths: [14, 52, 12, 10] },
+          { name: 'Fase', heading: 'Fase pengiriman per engagement',
+            columns: ['Engagement', 'Fase', 'Mulai', 'Selesai'],
+            rows: DELIVERY.flatMap((p: DeliveryEngPlan) => p.phases.map((ph: DeliveryPhase) => [p.id, ph.name, ph.start, ph.end])),
+            colWidths: [14, 30, 12, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* rencana + status milestone turunan (done/due/upcoming vs today). */
   const DELIVERY = useMemoDlv(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
@@ -81,7 +114,7 @@ function DeliveryMilestones() {
       <SubBar moduleId="delivery" right={
         <div className="row gap8 ac">
           <Seg options={['Semua', 'Aktif', 'At-risk']} value={filter} onChange={setFilter} />
-          <Btn sm><I.download size={13} /> Ekspor Rencana</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Rencana'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

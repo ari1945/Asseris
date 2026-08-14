@@ -5,6 +5,7 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 1 · Penyajian Laporan Keuangan
@@ -153,13 +154,41 @@ function PSAK1View() {
   const lines = lineTab === 'sofp' ? linesSofp : linesPl;
   const lineRefLabel = lineTab === 'sofp' ? '¶54 — Laporan Posisi Keuangan' : '¶82 / ¶82A — Laba Rugi & OCI';
 
+  /* K-06 lanjutan — wire tombol "Checklist Penyajian" (dulu mati): ekspor XLSX tersegel
+     checklist pengungkapan PSAK 1 + baris penyajian. */
+  const [exporting, setExporting] = useStateP1(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const discRows = disc.map((d: { ref: string; t: string; ok: boolean }) => [d.ref, d.t, d.ok ? 'OK' : 'Belum']);
+      const lineRows = lines.map((l: { t: string; on: boolean }) => [l.t, l.on ? 'Disajikan' : 'Tidak']);
+      await amsExportXlsx({
+        kind: 'psak1-checklist', scope: 'engagement', scopeId: eng?.id,
+        fileName: `Checklist Penyajian (PSAK 1) - ${client?.name || 'Klien'}.xlsx`,
+        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
+        title: `Checklist Penyajian Laporan Keuangan (PSAK 1) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 1 / IAS 1`,
+          `Pengungkapan ${discOk}/${disc.length} OK · skor penyajian ${score}%`],
+        sheets: [
+          { name: 'Pengungkapan', heading: 'Checklist pengungkapan (¶51–138)',
+            columns: ['Acuan', 'Pengungkapan', 'Status'], rows: discRows, colWidths: [12, 60, 10] },
+          { name: 'Baris Penyajian', heading: lineRefLabel,
+            columns: ['Baris', 'Status'], rows: lineRows, colWidths: [64, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="psak1" right={
         <div className="row gap8 ac">
           <Badge kind="green">PSAK 1 · IAS 1</Badge>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak1' })}><I.report size={13} /> Buka FS Generator</Btn>
-          <Btn sm><I.download size={13} /> Checklist Penyajian</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Checklist Penyajian'}</Btn>
         </div>
       } />
       <div className="view-scroll">

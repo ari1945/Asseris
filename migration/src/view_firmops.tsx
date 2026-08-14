@@ -5,6 +5,7 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Donut, Panel } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2';
 import { BO } from './data_backoffice';
@@ -71,6 +72,34 @@ function FirmOps() {
   const maintLate = B.MAINTENANCE.filter((m: any) => m.status === 'Terlambat');
   const archDue = B.ARCHIVES.filter((a: any) => a.status === 'Jatuh Tempo');
   const holds = B.LEGAL_HOLDS.filter((h: any) => h.status === 'Aktif');
+
+  /* K-06 lanjutan — wire tombol "Paket Operasi" (dulu mati): ekspor XLSX tersegel
+     ringkasan operasi firma — overhead, aset, kewajiban & kontrak. */
+  const [exporting, setExporting] = useStateFops(false);
+  const onExportOps = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const obRows = obligations.map((o: any) => [o.label || o.name, o.type || '', o.due || o.date || '', o.amount != null ? Math.round(o.amount / 1e6) : '—', o.status || '']);
+      const assetRows = (B.FIXED_ASSETS || []).map((a: any) => [a.id, a.name, a.cat, Math.round(a.cost / 1e6), a.nbv != null ? Math.round(a.nbv / 1e6) : '—', a.loc || '']);
+      await amsExportXlsx({
+        kind: 'firmops-paket', scope: 'firm', scopeId: undefined,
+        fileName: 'Paket Operasi KAP.xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Paket Operasi — Ringkasan Firma',
+        meta: [`Overhead tahunan Rp ${Math.round(oc.overheadAnnual / 1e6)} jt · belanja YTD Rp ${Math.round(spendYtd / 1e6)} jt`,
+          `${register.length} kontrak · ${B.VENDORS.length} vendor · ${overdue.length} kewajiban lewat tempo — Rp juta`],
+        sheets: [
+          { name: 'Kewajiban', heading: 'Kewajiban & kontrak (Rp juta)',
+            columns: ['Kewajiban', 'Tipe', 'Jatuh Tempo', 'Nilai', 'Status'], rows: obRows, colWidths: [30, 14, 12, 14, 14] },
+          { name: 'Aset Tetap', heading: 'Aset tetap (Rp juta)',
+            columns: ['ID', 'Aset', 'Kategori', 'Cost', 'NBV', 'Lokasi'], rows: assetRows, colWidths: [10, 30, 14, 12, 12, 14] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   /* Retensi & Arsip — DITARIK dari lapisan kanonik (SSOT) bila tersedia. */
   const RET = window.RETENTION ? window.RETENTION.metrics() : null;
   const recArchives = RET ? RET.total : B.ARCHIVES.length;
@@ -107,7 +136,7 @@ function FirmOps() {
         <div className="row gap8 ac">
           {overdue.length > 0 && <span className="chip tiny" style={{ color: 'var(--red)' }} title="Kewajiban melewati tenggat"><I.alert size={11} /> {overdue.length} lewat tempo</span>}
           <span className="chip tiny"><I.link2 size={11} /> {register.length} kontrak · {B.VENDORS.length} vendor</span>
-          <Btn sm><I.download size={13} /> Paket Operasi</Btn>
+          <Btn sm onClick={onExportOps} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Paket Operasi'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

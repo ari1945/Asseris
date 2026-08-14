@@ -6,6 +6,7 @@ import { useAmsPersist, useAudit, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { StdVersionStrip } from './view_ethics_parts';
 import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts';
@@ -215,6 +216,37 @@ function GroupAudit() {
     { id: 'findings', label: 'Temuan & Kesimpulan', count: openFindings },
   ];
 
+  /* K-06 lanjutan — wire tombol "Group Audit Memo" + "Finalisasi Group Audit Memo"
+     (dulu mati): ekspor PDF tersegel memo audit grup (SA 600). */
+  const [exporting, setExporting] = useStateGA(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const eng = (window as { activeEngagement?: { id?: string; clientName?: string; fy?: string } }).activeEngagement;
+      await amsExportPdf({
+        kind: 'groupaudit-memo', scope: 'engagement', scopeId: eng?.id,
+        fileName: `Group Audit Memo - ${eng?.clientName || 'Klien'}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Group Audit Memo — SA 600 (Revisi)',
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 600 (Revisi)`,
+          `${comps.length} komponen · cakupan pendapatan ${revCoverage}% · aset ${astCoverage}% · paket ${pkgApproved}/${pkgTotal}`],
+        blocks: [
+          { type: 'heading', text: '1. Lingkup Audit Grup' },
+          { type: 'table', head: ['Komponen', 'Lingkup', 'Pendapatan', 'Aset', 'Auditor'],
+            body: comps.map((c: { name: string; scope?: string; revPct?: number; revPctExact?: number; astPct?: number; astPctExact?: number; auditor?: string; kap?: string }) => [c.name, c.scope || '—', (c.revPct ?? c.revPctExact ?? 0).toFixed(0) + '%', (c.astPct ?? c.astPctExact ?? 0).toFixed(0) + '%', c.auditor || c.kap || 'Tim Grup']) },
+          { type: 'heading', text: '2. Temuan & Agregasi SAD' },
+          { type: 'table', head: ['Temuan', 'Status', 'SAD (jt)'],
+            body: findings.map((f: { title?: string; desc?: string; status: string; sad?: number }) => [f.title || f.desc, f.status, String(Math.round((f.sad || 0) / 1e6))]) },
+          { type: 'heading', text: '3. Materialitas Grup' },
+          { type: 'para', text: 'Materialitas grup Rp ' + fmt(Math.round(gm.om / 1e6), 0) + ' jt · SAD terbuka Rp ' + fmt(Math.round(totalSad / 1e6), 0) + ' jt' },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="groupaudit" right={
@@ -222,7 +254,7 @@ function GroupAudit() {
           <Badge kind="blue">SA 600 (Revisi)</Badge>
           <Btn sm onClick={() => nav('psak65', { from: 'groupaudit' })}><I.columns size={13} /> Konsolidasi PSAK 65</Btn>
           <Btn sm><I.send size={13} /> Kirim Group Instructions</Btn>
-          <Btn sm variant="primary"><I.download size={14} /> Group Audit Memo</Btn>
+          <Btn sm variant="primary" onClick={onExportMemo} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Group Audit Memo'}</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -245,7 +277,7 @@ function GroupAudit() {
             {tab === 'packages' && <GAPackages {...{ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab: setTab }} />}
             {tab === 'consol' && <GAConsol {...{ p65, fmt, nav, gotoTab: setTab }} />}
             {tab === 'elimwp' && <GAElimReview {...{ p65, fmt, nav, elimVerify, setElimVerify, procDone, setProcDone }} />}
-            {tab === 'findings' && <GAFindings {...{ findings, totalSad, fmt, groupMat: gm.om }} />}
+            {tab === 'findings' && <GAFindings {...{ findings, totalSad, fmt, groupMat: gm.om, onExportMemo, exporting }} />}
           </Panel>
 
           <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
@@ -482,7 +514,7 @@ function GAAuditor({ comps, setComp }: any) {
 }
 
 /* ===== TAB 3.5 (BARU) — PAKET PELAPORAN KOMPONEN (IMPOR) ====== */
-function GAFindings({ findings, totalSad, fmt, groupMat }: any) {
+function GAFindings({ findings, totalSad, fmt, groupMat, onExportMemo, exporting }: any) {
   const pct = Math.min(100, groupMat ? totalSad / groupMat * 100 : 0);
   const exceeds = groupMat > 0 && totalSad > groupMat;
   return (
@@ -546,7 +578,7 @@ function GAFindings({ findings, totalSad, fmt, groupMat }: any) {
               ))}
             </div>
             <div className="divider" />
-            <Btn variant="primary" style={{ width: '100%' }}><I.download size={14} /> Finalisasi Group Audit Memo</Btn>
+            <Btn variant="primary" style={{ width: '100%' }} onClick={onExportMemo} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Finalisasi Group Audit Memo'}</Btn>
           </Panel>
         </div>
       </div>

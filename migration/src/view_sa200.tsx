@@ -4,6 +4,7 @@ import { useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — SA 200 · Tujuan Keseluruhan Auditor Independen
@@ -42,12 +43,42 @@ function SA200View() {
     { id: 'etika', label: 'Etika & Independensi' },
   ];
 
+  /* K-06 lanjutan — wire tombol "Memo Tujuan Audit" (dulu mati): ekspor PDF tersegel
+     memo SA 200 — tujuan, premis, skeptisisme & model risiko (dari konstanta view). */
+  const [exporting, setExporting] = useStateS2(false);
+  const onExportMemo = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'sa200-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Memo SA 200 - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Memo — Tujuan Keseluruhan Auditor (SA 200)',
+        meta: [`${client} · ENG-2025-014 · FY2025 · SA (IAPI)`,
+          'Kerangka SAK tujuan umum · keyakinan memadai (bukan absolut)'],
+        blocks: [
+          { type: 'heading', text: '1. Tujuan & Premis Audit' },
+          { type: 'table', head: ['Premis', 'Pihak', 'Acuan', 'Status'],
+            body: SA200_PREMISE.map(p => [p.t, p.who, p.ref, p.ok ? 'Terpenuhi' : 'TERTUNDA']) },
+          { type: 'heading', text: '2. Skeptisisme Profesional' },
+          { type: 'table', head: ['Area', 'Contoh Penerapan'],
+            body: SA200_SKEPTIS.map(s => [s.t, s.ex]) },
+          { type: 'heading', text: '3. Model Risiko Audit' },
+          { type: 'para', text: 'Risiko audit = f(risiko bawaan, risiko pengendalian, risiko deteksi). Bukti dikumpulkan untuk menekan risiko deteksi sesuai tingkat risiko material (SA 200.¶17–18).' },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="sa200" right={
         <div className="row gap8 ac">
           <Badge kind="blue">Standar Payung 200</Badge>
-          <Btn sm><I.download size={13} /> Memo Tujuan Audit</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Tujuan Audit'}</Btn>
           <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />

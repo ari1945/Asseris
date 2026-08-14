@@ -5,6 +5,7 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Template Library, Knowledge Base
@@ -186,6 +187,32 @@ function TemplateDetail({ t, onClose }: any) {
   const nav = useNav();
   const firm = useFirm();
   const [used, setUsed] = useStateM2(false);
+  const [exporting, setExporting] = useStateM2(false);
+
+  /* K-06 lanjutan — wire tombol "Unduh" (dulu mati): ekspor XLSX tersegel spesifikasi
+     template (kartu registri). */
+  const onExportTpl = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportXlsx({
+        kind: 'template-card', scope: 'firm', scopeId: undefined,
+        fileName: `Template - ${t.name}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Kartu Template — ' + t.name,
+        meta: [`${t.id} · ${t.fmt} · fase ${t.phase} · ${t.cat}`,
+          `Status ${t.status}${t.version ? ' · versi ' + t.version : ''}`],
+        sheets: [
+          { name: 'Template', heading: 'Spesifikasi template',
+            columns: ['Field', 'Nilai'],
+            rows: [['ID', t.id], ['Nama', t.name], ['Format', t.fmt], ['Fase', t.phase], ['Kategori', t.cat], ['Status', t.status], ['Versi', t.version || '—'], ['Modul', t.module || '—']],
+            colWidths: [16, 60] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
   const ModIc = (I as any)[mod.icon] || I.panel;
   const st = (TPL_STATUS as any)[t.status] || TPL_STATUS['Aktif'];
@@ -271,7 +298,7 @@ function TemplateDetail({ t, onClose }: any) {
           <span className="tiny muted">{used ? <span style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={12} /> Disalin ke berkas {activeEng ? activeEng.id : 'engagement'} — terdaftar di DMS &amp; modul {mod.label}.</span> : 'Registri tunggal · perubahan mengalir ke seluruh modul terkait.'}</span>
           <div className="row gap8">
             <Btn onClick={onClose}>Tutup</Btn>
-            <Btn><I.download size={14} /> Unduh</Btn>
+            <Btn onClick={onExportTpl} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Unduh'}</Btn>
             <Btn variant="primary" onClick={() => setUsed(true)} disabled={used} style={{ opacity: used ? .5 : 1 }}><I.plus size={14} /> Gunakan{activeEng ? ' di ' + activeEng.id : ''}</Btn>
           </div>
         </div>

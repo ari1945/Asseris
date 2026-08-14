@@ -5,6 +5,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
@@ -113,6 +114,33 @@ function SJAH3000View() {
 
   const memadai = ASR_ENG.filter(e => e.level === 'Memadai').length;
 
+  /* K-06 lanjutan — wire tombol "Unduh" pratinjau (dulu mati): ekspor PDF tersegel
+     laporan asurans independen (SJAH 3000 / SPA 3000). */
+  const [exporting, setExporting] = useState3000(false);
+  const onExportReport = async () => {
+    if (exporting || !sel) return;
+    setExporting(true);
+    try {
+      const limited = sel.level === 'Terbatas';
+      await amsExportPdf({
+        kind: 'sjah3000-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Laporan Asurans - ${sel.client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'LAPORAN ASURANS INDEPENDEN — ' + sel.subject,
+        meta: [`${sel.id} · ${sel.client} · ${sel.std}`,
+          `Keyakinan ${limited ? 'TERBATAS (simpulan negatif)' : 'memadai (simpulan positif)'} · kriteria ${sel.criteria}`],
+        blocks: [
+          { type: 'heading', text: 'Kriteria & Kesesuaian' },
+          { type: 'table', head: ['Kriteria', 'Kesesuaian'],
+            body: (sel.suit as [string, boolean][]).map(s => [s[0], s[1] ? 'Terpenuhi' : 'PERLU TELAAH']) },
+          { type: 'heading', text: 'Hal Pokok & Simpulan' },
+          { type: 'table', head: ['Hal', 'Nilai', 'Perlakuan'],
+            body: (sel.matters as [string, string, string][]).map(m => [m[0], m[1], m[2]]) },
+        ],
+      });
+    } finally { setExporting(false); }
+  };
+
   return (
     <>
       <SubBar moduleId="sjah3000" right={
@@ -150,7 +178,7 @@ function SJAH3000View() {
         {tab === 'anatomi' && <F3000Anatomy />}
         {tab === 'pokok' && <F3000Subject selId={selId} setSelId={setSelId} sel={sel} />}
         {tab === 'bukti' && <F3000Evidence sel={sel} />}
-        {tab === 'laporan' && <F3000Report sel={sel} />}
+        {tab === 'laporan' && <F3000Report sel={sel} onExportReport={onExportReport} exporting={exporting} />}
 
       </div></div>
     </>
@@ -352,7 +380,7 @@ function NavRow3000({ to, label }: any) {
 }
 
 /* ---------------- Tab: Simpulan Asurans ---------------- */
-function F3000Report({ sel }: any) {
+function F3000Report({ sel, onExportReport, exporting }: any) {
   if (!sel) return null;
   const limited = sel.level === 'Terbatas';
   return (
@@ -385,7 +413,7 @@ function F3000Report({ sel }: any) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Pratinjau Laporan Asurans Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
+        <div className="panel-h"><h3>Pratinjau Laporan Asurans Independen</h3><div style={{ flex: 1 }} /><Btn sm onClick={onExportReport} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh'}</Btn></div>
         <div style={{ padding: 18 }}>
           <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN ASURANS INDEPENDEN</div>

@@ -38,7 +38,7 @@
 | PRD - Kebijakan Presisi Numerik Asseris.md | Draft |
 | PRD - Legacy Track Window-Namespace Strip (Slice 1 PROC).md | In Progress — status Review — strip berjalan |
 | PRD - Kesiapan Pemeriksaan P2PK (SPM 1 & SPM 2 Auditable).md | In Progress — Approved ("Proceed." 2026-08-12); PR-1·PR-2·PR-3 + perbaikan ambang PPL MERGED (#194·#195·#196·#197); PR-4..7 menunggu |
-| docs/PRD-K06-ekspor-tersegel-massal.md | In Progress — gelombang 1 selesai 2026-08-14 (branch feat/k06-export-sealed); 17 tombol di-wire |
+| docs/PRD-K06-ekspor-tersegel-massal.md | Implemented — 2026-08-14: 43 tombol di-wire (17 PSAK/analitis + 26 non-PSAK), branch feat/k06-export-sealed-v2, verify hijau |
 | PRD - Materialitas Grup SA 600 (populasi, derivasi & entitas yang sama dua materialitas).md | Draft — menunggu keputusan metodologi Ari |
 | PRD - Mutu Firma (SOQM Evaluasi Tahunan Q-01 + Independensi-Rotasi Q-03).md | Superseded — digantikan PRD Kesiapan Pemeriksaan P2PK (2026-08-12) |
 | PRD - PSAK 46 PR-G Movement Beda Temporer (pemetaan jurnal audit ke ember fiskal).md | Implemented — PR-G1 TERPUTUS & TERIMPLEMENTASI 2026-07-29 |

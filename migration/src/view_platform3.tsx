@@ -209,8 +209,54 @@ function AuditTrail() {
   );
 }
 
+/* K-06 lanjutan — bukti per entri (drawer): ekspor PDF tersegel kartu entri audit.
+   Didefinisikan di modul agar dapat memakai amsExportPdf (sudah diimpor).
+   `AuditRow` kanonik ramping (seq/ts/actor/action/scope/key/detail) — field
+   tampilan (who/role/module/sourceModule/before/after) diisi runtime seed. */
+type AuditEntryLike = AuditRow & { who?: string; role?: string; module?: string; scope?: string; sourceModule?: string; before?: unknown; after?: unknown };
+async function exportEntryPdf(eRaw: AuditEntryLike) {
+  const e = eRaw as AuditEntryLike;
+  const who = e.actorUserId || e.who || '—';
+  const scopeLbl = e.scopeId || e.module || e.scope || '—';
+  await amsExportPdf({
+    kind: 'audit-entry', scope: 'firm', scopeId: 'WHR',
+    fileName: `Bukti Audit #${String(e.seq).padStart(3, '0')}.pdf`,
+    firm: 'KAP Wijaya Hartono & Rekan',
+    title: 'Bukti Entri Audit — Jejak Append-Only',
+    refNo: `AUD-${String(e.seq).padStart(3, '0')}`,
+    meta: [`Aksi ${e.action} · ${who} · ${e.ts || ''}`,
+      `Lingkup ${scopeLbl} · sumber ${e.sourceModule || '—'}`],
+    blocks: [
+      { type: 'kv', rows: [
+        ['Entri', '#' + String(e.seq).padStart(3, '0')],
+        ['Aksi', e.action],
+        ['Pengguna', who],
+        ['Peran', e.actorRole || e.role || '—'],
+        ['Waktu', typeof e.ts === 'string' ? e.ts : '—'],
+        ['Lingkup', scopeLbl],
+        ['Kunci', e.key || '—'],
+        ['Detail', e.detail || '—'],
+      ] },
+      ...((e.before || e.after) ? [
+        { type: 'heading', text: 'Perubahan Nilai' },
+        { type: 'kv', rows: [
+          ['Sebelum', JSON.stringify(e.before)],
+          ['Sesudah', JSON.stringify(e.after)],
+        ] },
+      ] : []),
+    ],
+  });
+}
+
 function AuditEntryDrawer({ e, onClose, nav, verified }: any) {
   const meta = (window.MODULE_INDEX || {})[e.sourceModule];
+  /* K-06 lanjutan — wire tombol "Unduh Bukti" (dulu mati): ekspor PDF tersegel kartu entri. */
+  const [exportingEntry, setExportingEntry] = React.useState(false);
+  const doExportEntry = async () => {
+    if (exportingEntry) return;
+    setExportingEntry(true);
+    try { await exportEntryPdf(e); } finally { setExportingEntry(false); }
+  };
   /* field server (audit.list) vs field fallback (seed) — tampilkan apa yang ada */
   const who = e.actorUserId || e.who || '—';
   const role = e.actorRole || e.role || '';
@@ -284,7 +330,7 @@ function AuditEntryDrawer({ e, onClose, nav, verified }: any) {
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
           {meta && nav && <Btn style={{ flex: 1 }} onClick={() => { nav(e.sourceModule, { from: 'audittrail' }); onClose(); }}><I.arrowRight size={14} /> Buka {meta.label}</Btn>}
-          <Btn variant="primary" style={{ flex: meta ? '0 0 auto' : 1 }}><I.download size={14} /> Unduh Bukti</Btn>
+          <Btn variant="primary" style={{ flex: meta ? '0 0 auto' : 1 }} onClick={doExportEntry} disabled={exportingEntry}><I.download size={14} /> {exportingEntry ? 'Menyiapkan…' : 'Unduh Bukti'}</Btn>
           <Btn icon><I.shield size={14} /></Btn>
         </div>
       </div>

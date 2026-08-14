@@ -5,6 +5,7 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 import { KvBox } from './view_analytical';
 import { RP_PARTIES, RP_TXN, scanRelatedParties, LEDGER_GAP_META, type RptTransaction, type LedgerGap, type UnsupportedRegister } from './canon_related';
 import { AMS_FORENSIC } from './forensic_canon';
@@ -69,12 +70,40 @@ function RelatedParties() {
   const toggleProc = (i: number) => setProcOverride((s: Record<number, boolean>) => ({ ...s, [i]: !((i in s) ? s[i] : RP_PROCEDURES[i].done) }));
   const procDone = procs.filter((p: any) => p.done).length;
 
+  /* K-06 lanjutan — wire tombol "Daftar Pihak Berelasi" (dulu mati): ekspor XLSX tersegel
+     register transaksi pihak berelasi (SA 550 · PSAK 7). */
+  const [exporting, setExporting] = useStateRP(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const txnRows = txns.map((t: RpTxnRow) => [
+        t.id, t.party, t.type + ' — ' + t.terms, fmt(t.amount), t.arm ? 'Arm\'s length' : 'NON-arm', t.disclosed ? 'Diungkapkan' : 'Belum', t.conf || '—',
+      ]);
+      await amsExportXlsx({
+        kind: 'related-register', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        fileName: `Daftar Pihak Berelasi (SA 550) - ${(window as { activeClient?: { name?: string } }).activeClient?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Daftar Transaksi Pihak Berelasi — SA 550 / PSAK 7',
+        meta: [`${txns.length} transaksi · total Rp ${fmt(totalRPT / 1e6, 0)} jt`,
+          `${undisclosed} belum diungkap · ${nonArm} non arm's-length`],
+        sheets: [
+          { name: 'Register RPT', heading: 'Transaksi pihak berelasi (Rp)',
+            columns: ['ID', 'Pihak', 'Transaksi', 'Nilai', 'Kewajaran', 'Pengungkapan', 'Konfirmasi'],
+            rows: txnRows, colWidths: [9, 22, 40, 16, 14, 14, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="related" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 550 · PSAK 7</Badge>
-          <Btn sm><I.download size={13} /> Daftar Pihak Berelasi</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Daftar Pihak Berelasi'}</Btn>
           <Btn sm variant="primary"><I.plus size={14} /> Tambah Pihak</Btn>
         </div>
       } />

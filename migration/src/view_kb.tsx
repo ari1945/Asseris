@@ -5,6 +5,8 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Overlay } from './ui';
+import { amsExportXlsx } from './export_xlsx';
+import { amsExportPdf } from './export_pdf';
 /* Tahap 8 — registri standar kini di data_knowledge (eager); dibaca lewat
    ESM, bukan window.STANDARDS_REGISTRY yang hanya terisi setelah chunk
    Matriks Kepatuhan dimuat. */
@@ -73,11 +75,37 @@ function KnowledgeBase() {
   const authored = all.filter((a: any) => !a.fallback).length;
   const checklistN = all.filter((a: any) => a.coverage === 'checklist').length;
 
+  /* K-06 lanjutan — wire tombol "Ekspor Indeks" (dulu mati): ekspor XLSX tersegel
+     indeks seluruh artikel KB (firm-scope, bukan perikatan). */
+  const [exporting, setExporting] = useStateKB(false);
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const artRows = all.map((a: { code: string; title: string; type: string; tags?: string[]; read?: string }) => [a.code, a.title, a.type, kbFamily(a.type), (a.tags || []).join(', '), a.read || '']);
+      await amsExportXlsx({
+        kind: 'kb-index', scope: 'firm', scopeId: undefined,
+        fileName: `Indeks Basis Pengetahuan - ${new Date().getFullYear()}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Indeks Basis Pengetahuan — Referensi Audit',
+        meta: [`${all.length} artikel · ${authored} ditulis · ${checklistN} checklist`,
+          `${popular.length} populer · cakupan SA/PSAK/Editorial`],
+        sheets: [
+          { name: 'Indeks', heading: 'Indeks artikel basis pengetahuan',
+            columns: ['Kode', 'Judul', 'Jenis', 'Keluarga', 'Tag', 'Baca (mnt)'],
+            rows: artRows, colWidths: [10, 50, 12, 12, 26, 10] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="kb" right={<div className="row gap8 ac">
         <Badge kind="blue">{all.length} standar terindeks</Badge>
-        <Btn sm><I.download size={13} /> Ekspor Indeks</Btn>
+        <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Indeks'}</Btn>
       </div>} />
       <div className="view-scroll"><div className="view-pad" style={{ display: 'grid', gap: 12 }}>
 
@@ -228,6 +256,8 @@ function KBCard({ a, onOpen }: any) {
 function ArticleReader({ code, onClose, onOpenCode }: any) {
   const nav = useNav();
   const reg = STANDARDS_REGISTRY.find((r: any) => r.code === code);
+  /* K-06 lanjutan — state ekspor DILETAKKAN sebelum early-return (aturan hooks). */
+  const [exporting, setExporting] = useStateKB(false);
   /* PRD Fase A — handler Escape lokal DICABUT: kini disediakan <Overlay>
      (bersama focus trap, restore fokus, scroll lock, dan semantik dialog). */
   if (!reg) return null;
@@ -258,6 +288,32 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   const openModule = () => { if (reg.coverage !== 'gap' && reg.module) { onClose(); nav(reg.module, { from: 'kb' }); } };
   const previewStd = () => {
     if (window.__amsOpenSA) window.__amsOpenSA({ code: reg.code, title: reg.title, view: kbIsStdPage(reg.module) ? reg.module : undefined, phase: reg.phase, fromModule: 'kb' });
+  };
+
+  /* K-06 lanjutan — wire tombol "Simpan PDF" (dulu mati): ekspor PDF tersegel kartu
+     artikel basis pengetahuan (provenance registri standar). */
+  const onExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'kb-article', scope: 'firm', scopeId: undefined,
+        fileName: `KB - ${reg.code} - ${reg.title}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Basis Pengetahuan — ' + reg.code + ' · ' + reg.title,
+        meta: [`${reg.code} · ${reg.phase} · ${reg.type} · cakupan ${cov.label || reg.coverage}`,
+          `Modul ${reg.module || '—'} · diindeks ${AMS.KB_UPDATED || ''}`],
+        blocks: [
+          { type: 'heading', text: 'Ringkasan' },
+          { type: 'para', text: ((reg as { blurb?: string }).blurb) || (fw && fw.blurb) || 'Kartu referensi standar dari Basis Pengetahuan Asseris.' },
+          { type: 'heading', text: 'Tautan & Rujukan' },
+          { type: 'table', head: ['Tipe', 'Kode', 'Judul'],
+            body: related.slice(0, 6).map((r: { code: string; title: string }) => ['Rujukan', r.code, r.title]) },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
   };
   const openRelated = (r: any) => {
     if (r.inReg) { onOpenCode(r.code); }
@@ -293,7 +349,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
       footer={(
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="muted" style={{ fontSize: 12 }}>Asseris Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
-          <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary"><I.download size={14} /> Simpan PDF</Btn></div>
+          <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary" onClick={onExportPdf} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Simpan PDF'}</Btn></div>
         </div>
       )}
     >
