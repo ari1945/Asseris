@@ -212,9 +212,18 @@ const DANGLING = new Set(TOOLKIT_DANGLING_REFS.map((d) => d.no));
 
 export const TOOLKIT_BY_OBJECTIVE: ReadonlyMap<string, readonly string[]> = new Map([
   ['QO-28a', ['1.2', '3.1', '3.2', '7.5']],
-  ['QO-28b', ['3.2', '9.2']],
-  ['QO-28c', ['1.1', '9.2']],
-  ['QO-28d', ['1.2', '1.3', '3.2', '7.5', '7.6', '9.2']],
+  /* PR-8a-2a — KOREKSI. Ketiga baris ini salah sejak 8a-1: dokumen milik satu
+     tujuan merembes ke tujuan BERIKUTNYA (pergeseran satu blok). Matriks hlm. 5
+     menyelaraskan baris respons dengan baris RISIKO, bukan dengan blok tujuan:
+       (b) risiko-2 "SMM tidak menghasilkan informasi …" → 9.2 DAN 1.1
+       (c) risiko-2 "Penelaahan kinerja peran kunci …"  → 3.2, 7.5, 7.6
+       (d) hanya 1.2, 1.3 (risiko-1) dan 3.2 (risiko-2)
+     Kini dijaga `illustrative_toolkit_consistency.test.ts`: untuk tiap tujuan
+     yang punya risiko ilustratif termuat, union dokumen per-risiko WAJIB sama
+     dengan baris di bawah. Gerbang itu tumbuh saat 8a-2b/8a-2c menambah tujuan. */
+  ['QO-28b', ['1.1', '3.2', '9.2']],
+  ['QO-28c', ['3.2', '7.5', '7.6', '9.2']],
+  ['QO-28d', ['1.2', '1.3', '3.2']],
   ['QO-28e', ['3.1', '3.2']],
   ['QO-29a', ['4.1', '4.2', '4.3', '7.7', '9.5']],
   ['QO-29b', ['5.2', '5.4', '6.3', '6.4', '7.9']],

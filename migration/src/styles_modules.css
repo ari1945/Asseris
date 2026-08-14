@@ -223,6 +223,15 @@
 .soqm-src:disabled { cursor: default; }
 .soqm-src:not(:disabled):hover .tiny { text-decoration: underline; }
 .soqm-src > svg { color: var(--blue); }
+/* PR-8a-2 — saran risiko ilustratif IAPI. Dibedakan dari isi milik firma lewat
+   pita kiri & latar redup: yang di dalamnya adalah SARAN, bukan risiko KAP. */
+.soqm-illus { border-left: 2px solid var(--line); padding: 2px 0 2px 8px; }
+.soqm-illus > summary { list-style: none; }
+.soqm-illus > summary::-webkit-details-marker { display: none; }
+.soqm-illus > summary::before { content: '▸ '; color: var(--ink-4); }
+.soqm-illus[open] > summary::before { content: '▾ '; }
+.soqm-illus > summary:hover { text-decoration: underline; }
+.soqm-illus > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 3px; }
 .soqm-go { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-3); cursor: pointer; transition: .12s; }
 .soqm-go:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-050); }
 .soqm-go.inline { width: auto; height: auto; border: 0; background: none; padding: 0 0 0 6px; color: var(--blue); font-family: var(--mono); font-size: 11px; font-weight: 700; }

@@ -18,6 +18,7 @@ import {
 import { collectSmmDeficiencies, originOf } from './canon_smm_deficiencies';
 import { componentMetrics } from './canon_smm_component_metrics';
 import { toolkitDocsFor, danglingDocsFor } from './canon_smm_toolkit';
+import { illustrativeRisksFor, ILLUSTRATIVE_RISK_SOURCE } from './canon_smm_illustrative_risks';
 
 /** Tampilan stempel ISO; bentuk warisan ditampilkan apa adanya. */
 function faShowAttestAt(at: string): string {
@@ -267,6 +268,34 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
                                     </span>
                                   ))}
                                 </div>
+                              )}
+                              {/* PR-8a-2 — risiko mutu ILUSTRATIF Matriks IAPI. BACA-SAJA:
+                                  tidak ada tombol adopsi, dan tidak ada jalur tulis ke
+                                  SOQM_RISKS. Matriks melarang memakai contohnya tanpa
+                                  mempertimbangkan relevansinya bagi sifat & kondisi KAP,
+                                  jadi ini bahan percakapan — bukan daftar untuk disalin.
+                                  Terlipat secara bawaan: satu tujuan bisa punya 8 saran.
+                                  <details> native → keyboard & axe bersih tanpa state. */}
+                              {illustrativeRisksFor(o.id).length > 0 && (
+                                <details className="soqm-illus" style={{ marginTop: 6 }}>
+                                  <summary className="tiny muted" style={{ cursor: 'pointer' }}>
+                                    Risiko ilustratif IAPI ({illustrativeRisksFor(o.id).length}) — saran, bukan ketentuan
+                                  </summary>
+                                  <ul style={{ margin: '5px 0 0', paddingLeft: 16 }}>
+                                    {illustrativeRisksFor(o.id).map((ir) => (
+                                      <li key={ir.id} className="tiny" style={{ lineHeight: 1.5, marginBottom: 3 }}>
+                                        {ir.summary}
+                                        <span className="tiny mono muted" style={{ marginLeft: 6 }}>
+                                          {ir.toolkitDocs.join(' · ')}
+                                        </span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <div className="tiny muted" style={{ marginTop: 5, fontStyle: 'italic' }}>
+                                    {ILLUSTRATIVE_RISK_SOURCE}. Risiko mutu KAP tetap harus ditetapkan
+                                    sendiri (¶25) — saran ini tidak menutup tujuan.
+                                  </div>
+                                </details>
                               )}
                             </div>
                             <Badge kind={kind}>{label}</Badge>
