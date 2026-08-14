@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Check, Panel, Tabs } from './ui';
 import { useWpSignoff } from './wp_signoff';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — ISAK 35 · Entitas Berorientasi Nonlaba
@@ -143,7 +144,43 @@ function ISAK35View() {
           <span className="tiny mono" style={{ color: m.bs.balanced ? 'var(--green)' : 'var(--red)' }}>{m.bs.balanced ? '● Posisi seimbang' : '● Tidak seimbang'}</span>
           <span className="tiny mono" style={{ color: passed === m.checks.length ? 'var(--green)' : 'var(--amber)' }}>● {passed}/{m.checks.length} tie-out</span>
           <Btn sm onClick={() => nav('fsgen', { from: 'isak35' })}><I.report size={13} /> FS Generator</Btn>
-          <Btn sm variant="primary" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={14} /> Export PDF</Btn>
+          <Btn sm variant="primary" onClick={() => {
+            amsExportPdf({
+              kind: 'isak35-fs', scope: 'engagement', fileName: `Laporan Keuangan ISAK 35 - ${new Date().getFullYear()}.pdf`,
+              firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
+              title: 'Laporan Keuangan Entitas Berorientasi Nonlaba (ISAK 35)',
+              refNo: 'ISAK 35 · ' + (I35_TITLES as Record<string, string>)[tab],
+              meta: ['Entitas berorientasi nonlaba · ' + U.label, 'Tie-out: ' + passed + '/' + m.checks.length, 'Pengungkapan: ' + discPct + '%'],
+              blocks: [
+                { type: 'heading', text: (I35_TITLES as Record<string, string>)[tab] },
+                { type: 'para', text: periodTxt },
+                { type: 'heading', text: 'Ringkasan Posisi Keuangan' },
+                { type: 'kv', rows: [
+                  ['Total Aset', sc(m.bs ? m.bs.assets : null)],
+                  ['Total Kewajiban', sc(m.bs ? m.bs.liabilities : null)],
+                  ['Aset Neto', sc(m.bs ? m.bs.netAssets : null)],
+                  ['Status', m.bs && m.bs.balanced ? 'Seimbang' : 'Tidak seimbang'],
+                ] },
+                { type: 'heading', text: 'Ringkasan Penghasilan Komprehensif' },
+                { type: 'kv', rows: [
+                  ['Pendapatan', sc(m.is ? m.is.revenue : null)],
+                  ['Beban', sc(m.is ? m.is.expenses : null)],
+                  ['Surplus/Defisit', sc(m.is ? m.is.netIncome : null)],
+                ] },
+                { type: 'heading', text: 'Ringkasan Arus Kas' },
+                { type: 'kv', rows: [
+                  ['Arus Kas Operasi', sc(m.cf ? m.cf.operating : null)],
+                  ['Arus Kas Investasi', sc(m.cf ? m.cf.investing : null)],
+                  ['Arus Kas Pendanaan', sc(m.cf ? m.cf.financing : null)],
+                  ['Status', m.cf && m.cf.ties ? 'Menutup ke saldo kas' : 'Tidak menutup'],
+                ] },
+                ...(signoff.prepared || signoff.reviewed ? [{ type: 'signature', signers: [
+                  ...(signoff.prepared ? [{ name: signoff.prepared.by, role: 'Disusun oleh', at: signoff.prepared.date }] : []),
+                  ...(signoff.reviewed ? [{ name: signoff.reviewed.by, role: 'Direviu oleh', at: signoff.reviewed.date }] : []),
+                ] }] : []),
+              ],
+            }).catch(() => {});
+          }}><I.download size={14} /> Export PDF</Btn>
         </div>
       } />
       <div className="view-scroll">

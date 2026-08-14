@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
+import { amsExportPdf } from './export_pdf';
 import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
 import type { ApproachId, PlanRow, PlanResult, RiskInput } from './canon_audit_plan';
 
@@ -79,7 +80,43 @@ function StrategyMemo() {
     <div className="row gap8 ac">
       <Badge kind="blue">SA 300</Badge>
       {approved && <Badge kind="green"><I.check size={12} /> Disetujui · {approved.by}</Badge>}
-      <Btn sm onClick={() => window.amsPrintDoc()}><I.download size={13} /> Export PDF</Btn>
+      <Btn sm onClick={() => {
+        amsExportPdf({
+          kind: 'strategy-memo', scope: 'engagement', scopeId: activeEngagement?.id,
+          fileName: `Memo Strategi Audit - ${activeClient?.name || 'Klien'}.pdf`,
+          firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
+          title: 'Memorandum Strategi Audit',
+          refNo: 'SA 300 · ' + (activeEngagement?.id || ''),
+          meta: [
+            (activeEngagement?.id || '') + ' · ' + (activeClient?.name || '') + ' · ' + (activeEngagement?.fy || ''),
+            'Disetujui: ' + (approved ? approved.by + ' · ' + new Date(approved.at).toLocaleDateString('id-ID') : 'Draft'),
+          ],
+          blocks: [
+            { type: 'heading', text: '1. Latar Belakang Perikatan' },
+            { type: 'para', text: `Kami ditunjuk untuk mengaudit laporan keuangan ${activeClient?.name || ''} untuk tahun buku ${activeEngagement?.fy || ''} sesuai Standar Audit (SA) yang ditetapkan IAPI. Perikatan ini merupakan ${(activeEngagement?.type || '').toLowerCase()} dengan partner penanggung jawab ${activeEngagement?.partner || ''}.` },
+            { type: 'heading', text: '2. Pemahaman atas Entitas & Lingkungannya' },
+            { type: 'para', text: `${activeClient?.name || ''} bergerak di bidang ${(activeClient?.industry || '').toLowerCase()}, berdomisili di ${activeClient?.city || ''}${activeClient?.listed ? ', dan merupakan emiten yang tercatat di Bursa Efek Indonesia' : ''}. Penilaian risiko inheren entitas: ${activeClient?.risk || ''}.` },
+            { type: 'heading', text: '3. Materialitas' },
+            { type: 'kv', rows: [
+              ['Overall Materiality', 'Rp ' + fmt(om / 1e6, 0) + ' jt'],
+              ['Performance Materiality', 'Rp ' + fmt(pm / 1e6, 0) + ' jt'],
+              ['Clearly Trivial', 'Rp ' + fmt(ctt / 1e6, 0) + ' jt'],
+              ['Benchmark', '5% laba sebelum pajak'],
+            ] },
+            { type: 'heading', text: '4. Risiko Signifikan yang Teridentifikasi' },
+            ...(sigRisks.length ? [{ type: 'table', head: ['Area', 'Deskripsi', 'Kecurangan'], body: sigRisks.map((r) => [r.area, r.desc || '', r.fraud ? 'Ya (SA 240)' : '—']) }] : [{ type: 'para', text: 'Tidak ada risiko signifikan teridentifikasi.' }]),
+            { type: 'heading', text: '5. Pendekatan & Strategi Audit' },
+            { type: 'para', text: `Pendekatan ditetapkan per area risiko. ${sigRisks.length} risiko signifikan memperoleh prosedur substantif yang diperluas. Sampling menggunakan metode Monetary Unit Sampling (SA 530).` },
+            { type: 'heading', text: '6. Tim Perikatan & Jadwal' },
+            { type: 'kv', rows: [
+              ['Partner', activeEngagement?.partner || '—'],
+              ['Manajer', activeEngagement?.manager || '—'],
+              ['Anggaran Jam', fmt(activeEngagement?.budgetHrs || 0) + ' jam'],
+              ['Tenggat', new Date(activeEngagement?.deadline || Date.now()).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
+            ] },
+          ],
+        }).catch(() => {});
+      }}><I.download size={13} /> Export PDF</Btn>
       {approved
         ? (canApprove && <Btn sm onClick={() => setApproved(null)}>Batalkan Persetujuan</Btn>)
         : <Btn sm variant="primary" disabled={!canApprove} title={canApprove ? 'Setujui strategi audit (SA 300)' : 'Perlu peran Partner/Manajer (reviewer sign-off)'} onClick={canApprove ? approve : undefined}><I.check size={14} /> Setujui Strategi</Btn>}

@@ -1,10 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAmsPersist, useFirm, useNav } from './contexts';
+import { AMS } from './data';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat } from './ui';
 import { DEFICIENCIES, DEF_SEED, DEFICIENCY_ML_LINK, LEVEL_KIND, reconcileGovernanceComms, type GovCommRow, type PendingFinding } from './canon_deficiency';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)
@@ -542,7 +544,44 @@ function ManagementLetter() {
           <Badge kind="blue">SA 265 · SA 260</Badge>
           <Badge kind={pendingCount ? 'amber' : 'green'}>{finalCount} masuk · {pendingCount} diskusi</Badge>
           {tab === 'preview' && <Seg options={[{ value: 'final', label: 'Surat Final' }, { value: 'draft', label: 'Draft Internal' }]} value={previewMode} onChange={setPreviewMode} />}
-          {tab === 'preview' && <Btn sm onClick={() => window.amsPrintDoc()}><I.download size={13} /> Export PDF</Btn>}
+          {tab === 'preview' && <Btn sm onClick={() => {
+            type Mlf = { stage: string; title: string; sev: string; area: string; cond?: string; cause?: string; criteria?: string; effect?: string; rec?: string; resp?: string; pic?: string; target?: string; decisionDate?: string };
+            const visible: Mlf[] = previewMode === 'final' ? findings.filter((f: Mlf) => f.stage === 'final') : findings.filter((f: Mlf) => f.stage !== 'tuntas');
+            const finalDate = visible.reduce((mx: string | null, f: { decisionDate?: unknown }) => { const d = typeof f.decisionDate === 'string' ? f.decisionDate : null; if (!d) return mx; return mx == null || d > mx ? d : mx; }, null as string | null);
+            const dateStr = previewMode === 'final' ? (finalDate ? idDate(finalDate) : idDate(today())) : 'DRAFT — ' + idDate(today());
+            amsExportPdf({
+              kind: 'mgmt-letter', scope: 'engagement', scopeId: activeEngagement?.id,
+              fileName: `Surat Manajemen - ${activeClient?.name || 'Klien'}.pdf`,
+              firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
+              title: 'Surat Manajemen (Management Letter) — Audit ' + (activeEngagement?.fy || ''),
+              refNo: 'SA 265 · 260 · ' + (activeEngagement?.id || ''),
+              meta: [activeClient?.name || '', activeEngagement?.id || '', dateStr],
+              blocks: [
+                { type: 'para', text: 'Kepada Yth. Dewan Komisaris & Komite Audit' },
+                { type: 'para', text: activeClient?.name || '' },
+                { type: 'heading', text: 'Perihal: Surat Manajemen (Management Letter) — Audit ' + (activeEngagement?.fy || '') },
+                { type: 'para', text: 'Dalam rangka audit kami atas laporan keuangan ' + (activeClient?.name || '') + ' untuk tahun yang berakhir 31 Desember 2025, kami mengidentifikasi sejumlah hal terkait pengendalian internal dan praktik akuntansi yang ingin kami sampaikan untuk perbaikan. Sesuai SA 265 dan SA 260, setiap temuan kami uraikan menurut enam unsur: Kondisi, Sebab, Kriteria, Akibat, Rekomendasi, dan Tanggapan Manajemen.' },
+                { type: 'para', text: 'Hal-hal berikut tidak memengaruhi opini audit kami atas laporan keuangan.' },
+                { type: 'heading', text: 'Daftar Pokok Temuan' },
+                ...(visible.length ? [{ type: 'table', head: ['No.', 'Temuan', 'Severitas', 'Area'], body: visible.map((f: Mlf, i: number) => [String(i + 1), f.title, f.sev, f.area]) }] : [{ type: 'para', text: 'Tidak ada temuan untuk dilaporkan.' }]),
+                ...visible.flatMap((f: Mlf, i: number) => [
+                  { type: 'heading', text: (i + 1) + '. ' + f.title + ' (' + f.sev + ' · ' + f.area + ')' },
+                  { type: 'kv', rows: [
+                    ['Kondisi', f.cond || '—'],
+                    ['Sebab', f.cause || '—'],
+                    ['Kriteria', f.criteria || '—'],
+                    ['Akibat', f.effect || '—'],
+                    ['Rekomendasi', f.rec || '—'],
+                    ['Tanggapan Manajemen', f.resp || '—'],
+                    ['PIC Klien', f.pic || '—'],
+                    ['Target Tindak Lanjut', f.target || '—'],
+                  ] },
+                ]),
+                { type: 'para', text: 'Surat ini memuat ' + visible.length + ' temuan beserta tanggapan manajemen. Kami mengapresiasi kerja sama tim manajemen dan siap membahas tindak lanjut lebih lanjut pada pertemuan terpisah.' },
+                { type: 'signature', signers: [{ name: activeEngagement?.partner || '', role: 'Engagement Partner', at: dateStr }] },
+              ],
+            }).catch(() => {});
+          }}><I.download size={13} /> Export PDF</Btn>}
           {tab === 'preview' && previewMode === 'final' && <Btn sm variant="primary" disabled={pendingCount > 0} title={pendingCount > 0 ? 'Selesaikan ' + pendingCount + ' temuan dalam diskusi dulu' : ''}><I.send size={14} /> Kirim ke TCWG</Btn>}
         </div>
       } />

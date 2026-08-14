@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — Jasa Non-Audit (lanjutan)
@@ -30,6 +31,112 @@ function NAReport({ kind, engId, onClose }: any) {
   );
 
   let body = null;
+  type NaBlock = { type: string; text?: string; head?: string[]; body?: string[][]; rows?: string[][]; signers?: { name: string; role: string; at: string }[] };
+  const onExportPdf = () => {
+    let blocks: NaBlock[] = [];
+    let title = ''; let stdLabel = ''; let signerName = '';
+    if (kind === 'aup') {
+      const E = (AMS.aupEngine as (execArg?: unknown, customArg?: unknown) => {
+        meta: { id: string; requester: string; subject: string; client: string };
+        procedures: { no: number; proc: string; finding: string; exception: boolean; done: boolean }[];
+        exceptions: number;
+      })();
+      const A = E.meta;
+      const doneProcs = E.procedures.filter((p) => p.done);
+      title = 'LAPORAN TEMUAN FAKTUAL'; stdLabel = 'SPSJL 4400'; signerName = A.id.includes('047') ? 'Rudi Gunawan, CPA' : 'Akuntan Publik';
+      blocks = [
+        { type: 'para', text: 'Kepada ' + A.requester },
+        { type: 'para', text: 'Kami telah melaksanakan prosedur yang disepakati sehubungan dengan ' + A.subject + ' ' + A.client + '. Perikatan ini dilaksanakan sesuai SPSJL 4400.' },
+        { type: 'heading', text: 'Prosedur & Temuan Faktual' },
+        { type: 'table', head: ['No.', 'Prosedur', 'Temuan'], body: doneProcs.map((p) => [String(p.no), p.proc, p.finding]) },
+        ...(E.exceptions > 0 ? [{ type: 'para', text: 'Ikhtisar pengecualian: dari ' + doneProcs.length + ' prosedur, terdapat ' + E.exceptions + ' pengecualian.' }] : []),
+        { type: 'heading', text: 'Pernyataan' },
+        { type: 'para', text: 'Karena prosedur di atas bukan merupakan audit maupun reviu, kami tidak menyatakan opini maupun keyakinan apa pun. Laporan ini semata-mata ditujukan untuk pihak yang menyepakati prosedur.' },
+      ];
+    } else if (kind === 'cmp') {
+      const C = AMS.COMPILATION_4410 as { client: string; period: string; framework: string };
+      title = 'LAPORAN KOMPILASI AKUNTAN'; stdLabel = 'SPSJL 4410'; signerName = 'Sari Dewanti, CPA';
+      blocks = [
+        { type: 'para', text: 'Kepada Manajemen ' + C.client },
+        { type: 'para', text: 'Kami telah mengompilasi laporan keuangan ' + C.client + ' untuk periode ' + C.period + ', sesuai kerangka ' + C.framework + ' dan SPSJL 4410.' },
+        { type: 'heading', text: 'Tanggung Jawab Manajemen' },
+        { type: 'para', text: 'Manajemen bertanggung jawab atas laporan keuangan tersebut dan atas keakuratan serta kelengkapan informasi yang digunakan untuk mengompilasinya.' },
+        { type: 'heading', text: 'Tanggung Jawab Kami' },
+        { type: 'para', text: 'Kami melaksanakan perikatan kompilasi dengan menerapkan keahlian akuntansi. Kami tidak mengaudit maupun mereviu, sehingga kami tidak menyatakan opini audit maupun simpulan reviu atau bentuk keyakinan apa pun.' },
+      ];
+    } else if (kind === 'dd') {
+      const D = AMS.DUE_DILIGENCE as {
+        client: string; dealType: string; target: string; period: string; rationale: string; partner: string;
+        normEbitda: number; netDebtBridge: { v: number }[]; ebitdaBridge: { type: string; v: number }[];
+        valuation: { multiple: number }; nwcCompletion: number; nwcPeg: number; stakePct: number;
+        redFlags: { sev: string; t: string; spa: string }[];
+      };
+      const normalized = D.normEbitda; const netDebt = D.netDebtBridge.reduce((s: number, x) => s + x.v, 0);
+      const ev = normalized * D.valuation.multiple; const nwcAdj = D.nwcCompletion - D.nwcPeg;
+      const equity100 = ev - netDebt + nwcAdj; const equityStake = equity100 * D.stakePct / 100;
+      const fmt1 = (n: number) => fmt(n, 1);
+      title = 'LAPORAN FINANCIAL DUE DILIGENCE'; stdLabel = 'Advisory · Non-Asurans'; signerName = D.partner;
+      blocks = [
+        { type: 'para', text: 'Kepada Manajemen & Dewan ' + D.client },
+        { type: 'para', text: 'Sehubungan dengan rencana ' + D.dealType + ' ' + D.target + ', kami melaksanakan financial due diligence untuk periode ' + D.period + '. ' + D.rationale },
+        { type: 'heading', text: 'Temuan Utama — Quality of Earnings' },
+        { type: 'para', text: 'EBITDA dilaporkan sebesar Rp ' + fmt1(D.ebitdaBridge.find((b) => b.type === 'base')?.v ?? 0 / 1e9) + ' M, setelah normalisasi menjadi EBITDA ternormalisasi Rp ' + fmt1(normalized) + ' M.' },
+        { type: 'heading', text: 'Indikasi Valuasi' },
+        { type: 'table', head: ['Item', 'Nilai'], body: [
+          ['Enterprise Value (' + fmt1(D.valuation.multiple) + 'x)', 'Rp ' + fmt1(Math.abs(ev)) + ' M'],
+          ['(−) Net debt', 'Rp ' + fmt1(Math.abs(netDebt)) + ' M'],
+          ['(±) Penyesuaian modal kerja', 'Rp ' + fmt1(Math.abs(nwcAdj)) + ' M'],
+          ['Equity Value (100%)', 'Rp ' + fmt1(Math.abs(equity100)) + ' M'],
+          ['Indikasi harga ' + D.stakePct + '%', 'Rp ' + fmt1(Math.abs(equityStake)) + ' M'],
+        ] },
+        { type: 'heading', text: 'Red Flags & Implikasi SPA' },
+        ...(D.redFlags.length ? [{ type: 'table', head: ['Sev', 'Temuan', 'Implikasi SPA'], body: D.redFlags.map((f) => [f.sev, f.t, f.spa]) }] : [{ type: 'para', text: 'Tidak ada red flag teridentifikasi.' }]),
+        { type: 'heading', text: 'Pernyataan' },
+        { type: 'para', text: 'Pekerjaan kami merupakan jasa advisory dan bukan audit, reviu, atau perikatan asurans. Laporan ini disusun untuk mendukung keputusan transaksi manajemen dan tidak boleh didistribusikan tanpa persetujuan tertulis.' },
+      ];
+    } else if (kind && kind.startsWith('asr:')) {
+      const id = kind.slice(4);
+      const isPfi = AMS.pfiEngine && AMS.PFI_3400 && id === (AMS.PFI_3400 as { id?: string }).id;
+      if (isPfi) {
+        const E = (AMS.pfiEngine as (execArg?: unknown) => {
+          meta: { client: string; intendedUser: string; subject: string; std: string; pfiType: string; partner: string };
+          conclusion: { negativeAssurance: string; properlyPrepared: string; caveat: string };
+        })();
+        const A = E.meta;
+        title = 'LAPORAN PEMERIKSAAN INFORMASI KEUANGAN PROSPEKTIF'; stdLabel = A.std + ' · ' + A.pfiType; signerName = A.partner;
+        blocks = [
+          { type: 'para', text: 'Kepada Direksi ' + A.client + ' dan ' + A.intendedUser },
+          { type: 'para', text: 'Kami telah memeriksa ' + A.subject + ', sesuai SJAH 3400.' },
+          { type: 'heading', text: 'Simpulan atas Asumsi (Keyakinan Negatif)' },
+          { type: 'para', text: E.conclusion.negativeAssurance },
+          { type: 'heading', text: 'Opini atas Penyusunan' },
+          { type: 'para', text: E.conclusion.properlyPrepared },
+          { type: 'heading', text: 'Paragraf Peringatan' },
+          { type: 'para', text: E.conclusion.caveat },
+        ];
+      } else {
+        const e = (AMS.ASSURANCE_ENG as Record<string, { level: string; subject: string; criteria: string; std: string }>)[id];
+        const m = (AMS.NONAUDIT as { id: string; client: string; partner: string }[]).find((x) => x.id === id);
+        const limited = !e.level.includes('Memadai');
+        title = 'LAPORAN ASURANS INDEPENDEN'; stdLabel = e.std; signerName = m ? m.partner : '';
+        blocks = [
+          { type: 'para', text: 'Kepada Direksi ' + (m ? m.client : '') },
+          { type: 'para', text: 'Kami telah melaksanakan perikatan asurans dengan keyakinan ' + e.level.toLowerCase() + ' atas ' + e.subject + ', berdasarkan kriteria ' + e.criteria + ', sesuai ' + e.std + '.' },
+          { type: 'heading', text: 'Tanggung Jawab Kami' },
+          { type: 'para', text: 'Tanggung jawab kami adalah menyatakan ' + (limited ? 'suatu simpulan asurans terbatas' : 'suatu opini asurans memadai') + ' atas hal pokok berdasarkan bukti yang kami peroleh.' },
+          { type: 'heading', text: limited ? 'Simpulan' : 'Opini' },
+          { type: 'para', text: limited ? 'Berdasarkan prosedur yang dilaksanakan, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya bahwa ' + e.subject.toLowerCase() + ' tidak disusun sesuai dengan ' + e.criteria + '.' : 'Menurut opini kami, ' + e.subject.toLowerCase() + ' disajikan secara wajar, dalam semua hal yang material, sesuai dengan ' + e.criteria + '.' },
+        ];
+      }
+    }
+    if (!title) return;
+    amsExportPdf({
+      kind: 'na-report', scope: 'engagement', fileName: title + '.pdf',
+      firm: FIRM.name, title, refNo: stdLabel,
+      meta: [stdLabel, 'Jakarta, ' + today],
+      blocks: [...blocks, { type: 'signature', signers: [{ name: signerName, role: 'Akuntan Publik', at: today }] }],
+    }).catch(() => {});
+  };
   if (kind === 'aup') {
     const E = (AMS as any).aupEngine();
     const A = E.meta;
@@ -124,7 +231,7 @@ function NAReport({ kind, engId, onClose }: any) {
           <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
             <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
               <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
-              <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>
+              <button className="top-btn" onClick={onExportPdf}><I.download size={16} /></button>
               <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>{body}</div>
@@ -154,7 +261,7 @@ function NAReport({ kind, engId, onClose }: any) {
       <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
-          <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>
+          <button className="top-btn" onClick={onExportPdf}><I.download size={16} /></button>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>{body}</div>

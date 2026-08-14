@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — Sales Pipeline + Billing & Invoicing (Package D)
@@ -297,7 +298,30 @@ function Billing() {
                 <div className="row gap8" style={{ flexWrap: 'wrap' }}>
                   {selInv.status === 'Draft' && <Btn sm variant="primary" onClick={() => send(selInv.id)}><I.send size={13} /> Kirim Faktur</Btn>}
                   {selInv.status !== 'Paid' && selInv.status !== 'Draft' && <Btn sm variant="primary" onClick={() => markPaid(selInv.id)}><I.check size={13} /> Tandai Lunas</Btn>}
-                  <Btn sm onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={13} /> Cetak</Btn>
+                  <Btn sm onClick={() => {
+                    if (!selInv) return;
+                    amsExportPdf({
+                      kind: 'invoice', scope: 'firm', fileName: `Faktur - ${selInv.id} - ${selInv.client}.pdf`,
+                      firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
+                      title: 'Faktur Jasa Audit',
+                      refNo: selInv.id,
+                      meta: [selInv.client, selInv.eng + ' · ' + selInv.milestone, 'Status: ' + selInv.status],
+                      blocks: [
+                        { type: 'kv', rows: [
+                          ['Klien', selInv.client],
+                          ['No. Faktur', selInv.id],
+                          ['Engagement', selInv.eng],
+                          ['Termin', selInv.milestone],
+                          ['Nilai Faktur', 'Rp ' + fmt(selInv.amount / 1e6, 0) + ' jt'],
+                          ['Dibayar', 'Rp ' + fmt(selInv.paid / 1e6, 0) + ' jt'],
+                          ['Sisa Tagihan', 'Rp ' + fmt((selInv.amount - selInv.paid) / 1e6, 0) + ' jt'],
+                          ['Tanggal Terbit', new Date(selInv.issued).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
+                          ['Jatuh Tempo', new Date(selInv.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
+                          ['Status', selInv.status],
+                        ] },
+                      ],
+                    }).catch(() => {});
+                  }}><I.download size={13} /> Cetak</Btn>
                   <Btn sm onClick={() => nav('firmfinance')}><I.coins size={13} /> Ke Firm Finance</Btn>
                 </div>
               </div>
