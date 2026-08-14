@@ -15,11 +15,23 @@ import * as illustrative from './canon_smm_illustrative_risks';
    ============================================================ */
 
 describe('bentuk & keterkaitan', () => {
-  it('PR-8a-2a memuat komponen 1 & 2 saja — 22 risiko atas 7 tujuan', () => {
-    expect(ILLUSTRATIVE_RISKS).toHaveLength(22);
-    expect([...OBJECTIVES_WITH_ILLUSTRATIVE_RISKS].sort()).toEqual(
-      ['QO-28a', 'QO-28b', 'QO-28c', 'QO-28d', 'QO-28e', 'QO-29a', 'QO-29b'],
-    );
+  it('komponen 1–4 termuat — 50 risiko atas 15 tujuan (8a-2a + 8a-2b)', () => {
+    /* 8a-2a: ¶28 16 + ¶29 6 = 22. 8a-2b: ¶30 6 + ¶31 22 = 28. */
+    expect(ILLUSTRATIVE_RISKS).toHaveLength(50);
+    expect([...OBJECTIVES_WITH_ILLUSTRATIVE_RISKS].sort()).toEqual([
+      'QO-28a', 'QO-28b', 'QO-28c', 'QO-28d', 'QO-28e',
+      'QO-29a', 'QO-29b',
+      'QO-30a', 'QO-30b',
+      'QO-31a', 'QO-31b', 'QO-31c', 'QO-31d', 'QO-31e', 'QO-31f',
+    ]);
+  });
+
+  it('komponen 5 & 6 BELUM dimuat — 8a-2c', () => {
+    /* Memaku batas cakupan supaya "kosong" tidak tertukar dengan "tak ada
+       risiko ilustratif" saat 8a-2c belum mendarat. */
+    for (const oid of ['QO-32a', 'QO-32h', 'QO-33a', 'QO-33d']) {
+      expect(illustrativeRisksFor(oid), oid).toEqual([]);
+    }
   });
 
   it('setiap entri menunjuk tujuan mandatori yang benar-benar ada (SC-13)', () => {
@@ -87,9 +99,9 @@ describe('SC-14 — tidak ada jalur tulis ke register risiko firma', () => {
 });
 
 describe('illustrativeRisksFor / illustrativeDocsFor', () => {
-  it('tujuan yang belum dimuat (komponen 3–6) mengembalikan kosong, bukan melempar', () => {
-    expect(illustrativeRisksFor('QO-31a')).toEqual([]);
-    expect(illustrativeDocsFor('QO-32d')).toEqual([]);
+  it('tujuan yang belum dimuat (komponen 5–6) mengembalikan kosong, bukan melempar', () => {
+    expect(illustrativeRisksFor('QO-32d')).toEqual([]);
+    expect(illustrativeDocsFor('QO-33c')).toEqual([]);
   });
 
   it('id tak dikenal / null / undefined aman', () => {
@@ -106,6 +118,19 @@ describe('illustrativeRisksFor / illustrativeDocsFor', () => {
   it('dokumen ter-union, terurut, tanpa duplikat', () => {
     expect(illustrativeDocsFor('QO-28a')).toEqual(['1.2', '3.1', '3.2', '7.5']);
     expect(illustrativeDocsFor('QO-28c')).toEqual(['3.2', '7.5', '7.6', '9.2']);
+    expect(illustrativeDocsFor('QO-31d')).toEqual(['6.1', '6.2', '6.3', '6.4', '6.5', '6.6']);
+  });
+
+  it('¶31 Pelaksanaan Perikatan adalah komponen terpadat — 22 saran atas 6 tujuan', () => {
+    const p31 = ILLUSTRATIVE_RISKS.filter((r) => r.objectiveId.startsWith('QO-31'));
+    expect(p31).toHaveLength(22);
+    expect(new Set(p31.map((r) => r.objectiveId)).size).toBe(6);
+  });
+
+  it('rujukan MENGGANTUNG 8.2 dipertahankan, tidak dibuang diam-diam', () => {
+    /* Membuang 8.2 akan membuat peta tampak lengkap padahal Toolkit V3 seksi 8
+       berhenti di 8.1. Cacatnya milik materi IAPI dan harus tetap terlihat. */
+    expect(illustrativeDocsFor('QO-30b')).toContain('8.2');
   });
 });
 
