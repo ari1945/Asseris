@@ -8,9 +8,11 @@
 import { describe, it, expect } from 'vitest';
 import { MODULE_INDEX, RELATED_SA } from './icons';
 
+type SaEntry = { code: string; title: string; phase: string; view?: string };
+
 describe('Program F — RELATED_SA (backfill)', () => {
   it('setiap view: di RELATED_SA menunjuk modul yang terdaftar di MODULE_INDEX', () => {
-    const views = Object.values(RELATED_SA).flat().map((r: { view?: string }) => r.view).filter((v): v is string => !!v);
+    const views = Object.values(RELATED_SA).flat().map((r: SaEntry) => r.view).filter((v): v is string => !!v);
     expect(views.length).toBeGreaterThan(0);
     const known = new Set(Object.keys(MODULE_INDEX));
     const bad = views.filter((v) => !known.has(v));
@@ -32,7 +34,7 @@ describe('Program F — RELATED_SA (backfill)', () => {
       ['psak65', 'groupaudit'], ['psak22', 'expert'],
     ];
     for (const [mod, view] of spot) {
-      expect(RELATED_SA[mod].some((r: { view?: string }) => r.view === view), `${mod} → ${view}`).toBe(true);
+      expect(RELATED_SA[mod].some((r: SaEntry) => r.view === view), `${mod} → ${view}`).toBe(true);
     }
   });
 });
