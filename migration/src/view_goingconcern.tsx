@@ -7,7 +7,7 @@ import type { GoingConcernResult } from './canon_selectors';
 import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Spark } from './ui';
+import { Badge, Btn, Panel, Spark, Switch } from './ui';
 import { RowKv } from './view_calc';
 import { WpPanel } from './wp_signoff';
 
@@ -358,8 +358,8 @@ function GoingConcern() {
                 <input type="range" min="0" max="25" value={activeScenario.costCut} disabled={locked} onChange={(e: Ev) => setActiveScenario({ costCut: +e.target.value })} style={{ width: '100%', accentColor: 'var(--green)' }} />
               </div>
               <label className="row ac gap8" style={{ cursor: locked ? 'default' : 'pointer', fontSize: 12, marginBottom: 12 }}>
-                <span onClick={() => setActiveScenario({ financing: !activeScenario.financing })} style={{ width: 36, height: 20, borderRadius: 11, background: activeScenario.financing ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s', flex: '0 0 36px' }}><span style={{ position: 'absolute', top: 2, left: activeScenario.financing ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} /></span>
-                Refinancing utang tersedia
+                {/* Program D — Switch native menggantikan span switch palsu. */}
+                <Switch on={!!activeScenario.financing} disabled={locked} onChange={(v: boolean) => setActiveScenario({ financing: v })} label="Refinancing utang tersedia" />
               </label>
               <div className="divider" />
               <div style={{ display: 'grid', gap: 6 }}>

@@ -331,7 +331,7 @@ function AuditEntryDrawer({ e, onClose, nav, verified }: any) {
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
           {meta && nav && <Btn style={{ flex: 1 }} onClick={() => { nav(e.sourceModule, { from: 'audittrail' }); onClose(); }}><I.arrowRight size={14} /> Buka {meta.label}</Btn>}
           <Btn variant="primary" style={{ flex: meta ? '0 0 auto' : 1 }} onClick={doExportEntry} disabled={exportingEntry}><I.download size={14} /> {exportingEntry ? 'Menyiapkan…' : 'Unduh Bukti'}</Btn>
-          <Btn icon><I.shield size={14} /></Btn>
+          <Btn icon title="Informasi integritas entri"><I.shield size={14} /></Btn>
         </div>
       </div>
     </div>

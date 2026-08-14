@@ -4,7 +4,7 @@ import { useAuth } from './contexts';
 import { AMS } from './data';
 import { I } from './icons';
 import { CAP } from './rbac';
-import { Badge, Btn } from './ui';
+import { Badge, Btn, Check, Switch } from './ui';
 import { OKv } from './view_onboarding';
 import { amsExportPdf } from './export_pdf';
 import { buildLetterPayload } from './letter_payload';
@@ -86,8 +86,12 @@ function StepPMPJ({ p, onPatch }: any) {
                 <td className="tiny muted" style={{ minWidth: 130 }}>{locked ? u.role : <input className="input" value={u.role} onChange={(e: any) => setUbo(i, { role: e.target.value })} style={{ height: 24 }} placeholder="Peran" />}</td>
                 <td className="num">{locked ? u.pct : <input className="input mono" type="number" value={u.pct} onChange={(e: any) => setUbo(i, { pct: +e.target.value })} style={{ height: 24, width: 56, textAlign: 'right' }} />}</td>
                 <td className="tiny"><span className="chip tiny">{u.idType}</span> <span className="mono" style={{ fontSize: 11 }}>{u.idNo}</span></td>
-                <td><span onClick={locked ? undefined : () => setUbo(i, { pep: !u.pep })} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge kind={u.pep ? 'red' : 'gray'}>{u.pep ? 'PEP' : 'Bukan'}</Badge></span></td>
-                {!locked && <td><button className="btn sm icon" onClick={() => delUbo(i)}><I.x size={13} /></button></td>}
+                <td>
+                  {/* Program D — Check native menggantikan span toggle badge palsu. */}
+                  <Check on={!!u.pep} disabled={locked} onChange={() => setUbo(i, { pep: !u.pep })} title="Tandai sebagai PEP (Politically Exposed Person)" />
+                  <span className="chip tiny" style={{ marginLeft: 6 }}>{u.pep ? 'PEP' : 'Bukan'}</span>
+                </td>
+                {!locked && <td><button className="btn sm icon" onClick={() => delUbo(i)} title="Hapus pemilik manfaat"><I.x size={13} /></button></td>}
               </tr>
             ))}
             {!m.ubo.length && <tr><td colSpan={locked ? 5 : 6} className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada pemilik manfaat dicatat.</td></tr>}
@@ -123,8 +127,8 @@ function StepPMPJ({ p, onPatch }: any) {
       {/* str + verify */}
       <div className="row jb ac" style={{ gap: 14, flexWrap: 'wrap' }}>
         <label className="row ac gap8" style={{ cursor: locked ? 'default' : 'pointer', fontSize: 12 }}>
-          <span onClick={locked ? undefined : () => setP({ str: !m.str })} style={{ width: 36, height: 20, borderRadius: 11, background: m.str ? 'var(--red)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: m.str ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
-          Ajukan Laporan Transaksi Mencurigakan (LTKM) ke PPATK
+          {/* Program D — Switch native menggantikan span switch palsu. */}
+          <Switch on={!!m.str} disabled={locked} onChange={(v: boolean) => setP({ str: v })} label="Ajukan Laporan Transaksi Mencurigakan (LTKM) ke PPATK" />
         </label>
         {m.verified
           ? <div className="row ac gap8"><span className="badge b-green" style={{ padding: '3px 10px' }}><I.checkCircle size={13} /> PMPJ Terverifikasi</span><Btn sm onClick={() => setP({ verified: false })}><I.doc size={12} /> Buka kembali</Btn></div>

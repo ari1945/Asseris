@@ -385,7 +385,7 @@ function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
         </div>
         <div className="row gap6">
           <input className="input" style={{ flex: 1, height: 30 }} placeholder="Tulis komentar…" value={comment} onChange={(e: any) => setComment(e.target.value)} onKeyDown={(e: any) => { if (e.key === 'Enter' && comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }} />
-          <Btn sm icon disabled={!comment.trim()} onClick={() => { if (comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }}><I.send size={14} /></Btn>
+          <Btn sm icon disabled={!comment.trim()} title="Kirim komentar" onClick={() => { if (comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }}><I.send size={14} /></Btn>
         </div>
       </div>
 

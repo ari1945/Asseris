@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Overlay, Panel, Progress, Seg, Stat, Tabs } from './ui';
+import { Avatar, Badge, Btn, Overlay, Panel, Progress, Seg, Stat, Switch, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi } from './view_crm2';
 import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2';
@@ -152,7 +152,7 @@ function ClientCRM() {
                     <div className="divider" />
                     <div className="row gap8">
                       <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => setForm({ mode: 'edit', data: { ...sel } })}><I.doc size={14} /> Edit Profil</Btn>
-                      <Btn sm icon><I.mail size={14} /></Btn>
+                      <Btn sm icon title="Kirim email ke klien"><I.mail size={14} /></Btn>
                     </div>
                   </>
                 )}
@@ -271,8 +271,8 @@ function ClientForm({ form, onClose, onSave }: any) {
             <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
           <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12 }}>
-            <span onClick={() => set('listed', !d.listed)} style={{ width: 36, height: 20, borderRadius: 11, background: d.listed ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: d.listed ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
-            Emiten tercatat di Bursa Efek Indonesia (IDX)
+            {/* Program D — kontrol native (Switch) menggantikan span switch palsu. */}
+            <Switch on={!!d.listed} onChange={(v: boolean) => set('listed', v)} label="Emiten tercatat di Bursa Efek Indonesia (IDX)" />
           </label>
         </div>
     </Overlay>
@@ -430,7 +430,7 @@ function EngagementDetail({ e, client, onClose }: any) {
       footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
           <Btn variant="primary" style={{ flex: 1 }}><I.briefcase size={14} /> Buka Workspace</Btn>
-          <Btn icon><I.sparkle size={14} /></Btn>
+          <Btn icon title="Ringkasan AI workspace"><I.sparkle size={14} /></Btn>
         </div>
       )}
     >

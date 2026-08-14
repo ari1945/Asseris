@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { FileDropField } from './evidence';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Seg, Tabs } from './ui';
+import { Badge, Btn, Check, Panel, Seg, Tabs } from './ui';
 import { NAReport } from './view_nonaudit2';
 import { OKv } from './view_onboarding';
 
@@ -189,7 +189,10 @@ function AUPPanel() {
               <tbody>
                 {E.procedures.map((p: any) => (
                   <tr key={p.no}>
-                    <td><span onClick={() => p.custom ? editCustom(p.no, 'done', !p.done) : toggle(p.no)} style={{ cursor: 'pointer', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center', background: p.done ? 'var(--green)' : 'var(--surface-3)', color: '#fff' }}>{p.done && <I.check size={11} />}</span></td>
+                    <td>
+                      {/* Program D — Check native menggantikan span checkbox palsu. */}
+                      <Check on={!!p.done} onChange={() => p.custom ? editCustom(p.no, 'done', !p.done) : toggle(p.no)} title="Tandai prosedur selesai" />
+                    </td>
                     <td className="num mono" style={{ fontWeight: 700 }}>{p.no}</td>
                     <td className="tiny muted" style={{ verticalAlign: 'top', whiteSpace: 'nowrap' }}>{p.custom ? <span className="chip tiny">Tambahan</span> : p.clause}</td>
                     <td className="tiny" style={{ width: '34%', whiteSpace: 'normal', verticalAlign: 'top' }}>

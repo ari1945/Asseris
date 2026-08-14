@@ -1761,7 +1761,7 @@ function AJEForm({ accounts, onClose, onPost }: any) {
                   </td>
                   <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.debit} onChange={(e: any) => setLine(i, { debit: e.target.value, credit: e.target.value ? '' : l.credit })} placeholder="0" /></td>
                   <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.credit} onChange={(e: any) => setLine(i, { credit: e.target.value, debit: e.target.value ? '' : l.debit })} placeholder="0" /></td>
-                  <td style={{ padding: '3px 6px' }}><button className="btn sm icon" onClick={() => removeLine(i)} disabled={lines.length <= 2} style={{ opacity: lines.length <= 2 ? .3 : 1 }}><I.x size={13} /></button></td>
+                  <td style={{ padding: '3px 6px' }}><button className="btn sm icon" onClick={() => removeLine(i)} disabled={lines.length <= 2} title="Hapus baris jurnal" style={{ opacity: lines.length <= 2 ? .3 : 1 }}><I.x size={13} /></button></td>
                 </tr>
               ))}
             </tbody>
