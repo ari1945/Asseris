@@ -248,7 +248,7 @@ function CellDetail({ lead, cell, cov, aje, fmt, rp, nav, onClose }: {
       <div style={{ background: 'var(--surface-2)', padding: '10px 13px', borderBottom: '1px solid var(--line)' }}>
         <div className="row ac jb">
           <span className="chip tiny" style={{ fontFamily: 'var(--mono)' }}>WP {lead}</span>
-          <button className="btn sm icon ghost" onClick={onClose}><I.x size={14} /></button>
+          <button className="btn sm icon ghost" onClick={onClose} title="Tutup panel"><I.x size={14} /></button>
         </div>
         <div style={{ fontWeight: 700, fontSize: 13, marginTop: 6 }}>{cell.assertion.label}</div>
         <div className="tiny muted">{cell.assertion.group === 'transaksi' ? 'Asersi transaksi' : 'Asersi saldo'} · {cell.assertion.desc}</div>

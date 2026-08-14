@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Badge, Btn, Panel, Seg } from './ui';
+import { Badge, Btn, Panel, Seg, Switch } from './ui';
 import { useWpSignoff } from './wp_signoff';
 
 /* ============================================================
@@ -76,11 +76,8 @@ function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, 
 }
 
 function Toggle({ on, set }: any) {
-  return (
-    <span onClick={set} style={{ width: 36, height: 20, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 36px', transition: '.15s' }}>
-      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
-    </span>
-  );
+  /* Program D — switch native (input checkbox role=switch) menggantikan span switch palsu. */
+  return <Switch on={!!on} onChange={() => set()} title="Aktifkan / nonaktifkan" />;
 }
 
 /* ---------------- Left rail: review sign-off (kanonik wpState['fsgen']) ---------------- */

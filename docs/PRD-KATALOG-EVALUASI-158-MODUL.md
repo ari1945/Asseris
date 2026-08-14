@@ -47,7 +47,13 @@ tombol → wire ke aksi nyata (kebanyakan ekspor) atau hapus. Ukuran: M (banyak 
 `<span/div onClick>` sebagai switch/checkbox/radio di mana-mana: related (5×), sa705
 switch EoM/OM, sectorck, review2400, orgchart, tax, recruitment, programme, crm IDX.
 Gagal gate axe + keyboard. **Solusi:** ganti `<Switch>`/`<Check>` native (ui.tsx) +
-role/tabIndex. Ukuran: M (lintas ~20 modul).
+role/tabIndex. Ukuran: M (lintas ~20 modul). **IMPLEMENTED 2026-08-14 (PR #233,
+`feat/program-d-a11y-native`)**: 7 kontrol palsu → Switch/Check native (firm listed,
+fsgen_panels Toggle, goingconcern refinancing, onboarding2 LTKM+UBO PEP, relatedsvc
+prosedur AUP, sectorck daftar-uji OJK) + 7 tombol ikon diberi title (email, AI sparkle,
+tutup panel, hapus baris, hapus UBO, kirim komentar, integritas entri). Scan ulang:
+**0 kontrol palsu tersisa**. Sisa: sa705 EoM/OM switch, crm IDX, dll. yang mungkin
+bukan pola visual-36px — audit lanjutan bila perlu.
 
 ### K-05 · aria-label nyaris nol
 0 aria-label di 27 view PSAK; 1 di seluruh E-3. Tombol ikon tanpa nama → gagal

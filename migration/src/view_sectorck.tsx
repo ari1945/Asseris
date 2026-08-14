@@ -4,7 +4,7 @@ import { AMS_CANON } from './canon';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel } from './ui';
+import { Badge, Btn, Check, Panel } from './ui';
 
 /* ============================================================
    Asseris — Daftar-Uji Audit Spesifik-Sektor Jasa Keuangan
@@ -95,7 +95,8 @@ function SectorChecklistView() {
                   const on = isDone(c);
                   return (
                     <div key={c.ref} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < cur.checks.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                      <span onClick={() => toggle(c.ref)} style={{ cursor: 'pointer', flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={11} style={{ color: '#fff' }} />}</span>
+                      {/* Program D — Check native menggantikan span checkbox palsu (baris teks tetap klik → toggle). */}
+                      <Check on={on} onChange={() => toggle(c.ref)} title="Tandai selesai" />
                       <span className="mono tiny" style={{ fontWeight: 700, color: cur.accent, width: 52, flex: '0 0 52px', marginTop: 1 }}>{c.ref}</span>
                       <span onClick={() => toggle(c.ref)} style={{ cursor: 'pointer', flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{c.t}</span>
                       {c.view && <button onClick={() => nav(c.view, { from: 'sectorck' })} title="Buka modul terkait" className="row ac" style={{ flex: '0 0 auto', padding: '3px 7px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer' }}><I.link2 size={12} style={{ color: 'var(--blue)' }} /></button>}
