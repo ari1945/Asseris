@@ -7,13 +7,21 @@ import { SubBar } from './shell';
 import { Avatar, Btn, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { amsExportXlsx } from './export_xlsx';
+import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
    Asseris — Partner & Engagement Profitability (Package F)
    ============================================================ */
 const { useState: useStatePRF, useMemo: useMemoPRF } = React;
 
-const RATE_CARD = { Partner: 2_500_000, Manager: 1_200_000, Senior: 700_000, Junior: 400_000 };
+/* P0-B1 fix — tarif charge-out dari SSOT FIRMFIN.WIP_BILL (bukan RATE_CARD lokal duplikat;
+   dulu 2 sumber bisa menyimpang). SCHEDULE memakai role singkat → petakan ke key SSOT. */
+const RATE_CARD: Record<string, number> = Object.fromEntries(
+  Object.entries(FIRMFIN.WIP_BILL).map(([k, v]) => [
+    ({ 'Engagement Partner': 'Partner', 'Audit Manager': 'Manager', 'Senior Auditor': 'Senior', 'Junior Auditor': 'Junior' } as Record<string, string>)[k] || k,
+    v as number,
+  ])
+);
 const DEFAULT_MIX = { Partner: 0.05, Manager: 0.15, Senior: 0.35, Junior: 0.45 };
 
 /* realization assumption (billing %) per engagement — cost is DERIVED, not assumed */
