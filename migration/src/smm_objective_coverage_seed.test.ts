@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { AMS } from './data';
 import {
-  objectiveCoverage, coverageByComponent, SMM1_OBJECTIVE_COUNT, SMM1_OBJECTIVE_BY_ID,
-  type ObjectiveLinkedRisk, type ObjectiveWaiver,
+  objectiveCoverage, coverageByComponent, effectiveResponseCoverage,
+  SMM1_OBJECTIVE_COUNT, SMM1_OBJECTIVE_BY_ID,
+  type ObjectiveLinkedRisk, type ObjectiveWaiver, type MonitoredObjectiveRisk,
 } from './canon_smm_objectives';
 
 /* ============================================================
@@ -110,5 +111,44 @@ describe('cakupan atas data nyata — GAGAL yang disengaja', () => {
     const codes = coverageByComponent(cov).map((c) => c.component);
     expect(codes).not.toContain('C2');
     expect(codes).not.toContain('C8');
+  });
+});
+
+describe('KPI header SOQM — basis tujuan, bukan basis register', () => {
+  const eff = effectiveResponseCoverage(RISKS as MonitoredObjectiveRisk[], WAIVERS);
+
+  it('empat tujuan punya respons yang terbukti efektif — bukan lima', () => {
+    /* QO-32d ditautkan QR-02 yang dipantau 'Defisiensi'. Tujuan yang
+       responsnya defisiensi TIDAK terlindungi, jadi ia tidak boleh ikut
+       dihitung efektif meskipun tujuan itu "tercakup" oleh register. */
+    expect([...eff.effective].sort()).toEqual(['QO-29a', 'QO-30a', 'QO-31d', 'QO-33c'].sort());
+    expect(eff.notEffective).toEqual(['QO-32d']);
+  });
+
+  it('22 tujuan tanpa respons sama sekali ikut masuk penyebut', () => {
+    expect(eff.noResponse).toHaveLength(22);
+    expect(eff.waived).toEqual([]);
+    expect(eff.requiring).toBe(SMM1_OBJECTIVE_COUNT);
+    expect(eff.effective.length + eff.notEffective.length + eff.noResponse.length + eff.waived.length)
+      .toBe(SMM1_OBJECTIVE_COUNT);
+  });
+
+  it('REGRESI: rumus header lama berbunyi 83% di atas cakupan 19%', () => {
+    /* Inilah cacat yang ditutup PR ini — rumus lama dipertahankan di sini
+       sebagai oracle supaya tak diam-diam kembali. Dua kebocorannya:
+       penyebut = 6 risiko terdaftar (22 tujuan tanpa respons tak pernah
+       ikut dibagi), dan QR-06 yang `objectives: []` tetap menaikkan
+       pembilang tanpa menyumbang satu tujuan pun. */
+    const lama = Math.round(
+      RISKS.filter((r) => (r as MonitoredObjectiveRisk).monitor === 'Efektif').length / RISKS.length * 100,
+    );
+    expect(lama).toBe(83);
+    expect(eff.effectivePct).toBe(15);
+    expect(lama - eff.effectivePct).toBeGreaterThan(60);
+  });
+
+  it('risiko proses tanpa tujuan (QR-06) tidak menaikkan angka header', () => {
+    const tanpaQr06 = RISKS.filter((r) => r.id !== 'QR-06') as MonitoredObjectiveRisk[];
+    expect(effectiveResponseCoverage(tanpaQr06, WAIVERS)).toEqual(eff);
   });
 });

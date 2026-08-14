@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   SMM1_OBJECTIVES, SMM1_OBJECTIVE_COUNT, SMM1_OBJECTIVE_BY_ID,
-  objectivesForComponent, objectiveCoverage, coverageByComponent,
-  type ObjectiveLinkedRisk, type ObjectiveWaiver,
+  objectivesForComponent, objectiveCoverage, coverageByComponent, effectiveResponseCoverage,
+  type ObjectiveLinkedRisk, type ObjectiveWaiver, type MonitoredObjectiveRisk,
 } from './canon_smm_objectives';
 import { SMM1_COMPONENT_SECTION, type SmmComponentCode } from './canon_smm_refs';
 
@@ -249,5 +249,68 @@ describe('coverageByComponent', () => {
     }
     expect(byComp.find((c) => c.component === 'C6')!.covered).toBe(2);
     expect(byComp.find((c) => c.component === 'C5')!.waived).toBe(1);
+  });
+});
+
+describe('effectiveResponseCoverage', () => {
+  const mrisk = (monitor: string, ...objectives: string[]): MonitoredObjectiveRisk =>
+    ({ id: 'QR-x', objectives, monitor });
+
+  it('tanpa risiko sama sekali: nol efektif atas 27, bukan 100%', () => {
+    /* Penyebut kosong dulu berarti NaN/100%. Tak ada respons ≠ semua efektif. */
+    const e = effectiveResponseCoverage([], []);
+    expect(e.effective).toEqual([]);
+    expect(e.noResponse).toHaveLength(SMM1_OBJECTIVE_COUNT);
+    expect(e.requiring).toBe(SMM1_OBJECTIVE_COUNT);
+    expect(e.effectivePct).toBe(0);
+  });
+
+  it('satu respons defisiensi membatalkan tujuannya walau ada respons lain yang efektif', () => {
+    /* Tujuan hanya terlindungi bila SELURUH responsnya bekerja. */
+    const e = effectiveResponseCoverage(
+      [mrisk('Efektif', 'QO-32a'), mrisk('Defisiensi', 'QO-32a')], [],
+    );
+    expect(e.effective).toEqual([]);
+    expect(e.notEffective).toEqual(['QO-32a']);
+  });
+
+  it("'Belum Diuji' tidak dihitung efektif", () => {
+    const e = effectiveResponseCoverage([mrisk('Belum Diuji', 'QO-32a')], []);
+    expect(e.notEffective).toEqual(['QO-32a']);
+    expect(e.effective).toEqual([]);
+  });
+
+  it('risiko tanpa tujuan mandatori tidak menaikkan pembilang', () => {
+    /* Risiko proses ¶35–47 (`objectives: []`) dan tautan menggantung. */
+    const e = effectiveResponseCoverage(
+      [mrisk('Efektif'), mrisk('Efektif', 'QO-tidak-ada')], [],
+    );
+    expect(e.effective).toEqual([]);
+    expect(e.effectivePct).toBe(0);
+  });
+
+  it('waiver ¶17 yang SAH mengecilkan penyebut, bukan menambah pembilang', () => {
+    const e = effectiveResponseCoverage([mrisk('Efektif', 'QO-32a')], [fullWaiver('QO-31b')]);
+    expect(e.waived).toEqual(['QO-31b']);
+    expect(e.effective).toEqual(['QO-32a']);
+    expect(e.requiring).toBe(SMM1_OBJECTIVE_COUNT - 1);
+  });
+
+  it('waiver CACAT tidak mengecilkan penyebut', () => {
+    /* Waiver tanpa justifikasi/persetujuan bukan pengesampingan yang sah;
+       tujuannya tetap menuntut respons. */
+    const e = effectiveResponseCoverage([], [{ objectiveId: 'QO-31b' } as ObjectiveWaiver]);
+    expect(e.waived).toEqual([]);
+    expect(e.requiring).toBe(SMM1_OBJECTIVE_COUNT);
+    expect(e.noResponse).toContain('QO-31b');
+  });
+
+  it('keempat keranjang selalu menjumlah 27, tanpa tumpang tindih', () => {
+    const e = effectiveResponseCoverage(
+      [mrisk('Efektif', 'QO-32a'), mrisk('Defisiensi', 'QO-29a')], [fullWaiver('QO-31b')],
+    );
+    const all = [...e.effective, ...e.notEffective, ...e.noResponse, ...e.waived];
+    expect(all).toHaveLength(SMM1_OBJECTIVE_COUNT);
+    expect(new Set(all).size).toBe(SMM1_OBJECTIVE_COUNT);
   });
 });

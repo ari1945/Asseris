@@ -616,7 +616,7 @@
   },
   "src/view_isqm.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 59
+      "count": 58
     }
   },
   "src/view_isqm_deep.tsx": {

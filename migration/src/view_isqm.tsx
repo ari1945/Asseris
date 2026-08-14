@@ -6,7 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { para38Coverage, para39bBreaches, breachLabel } from './canon_smm_monitoring';
-import { SMM1_OBJECTIVE_COUNT, objectivesForComponent, objectiveCoverage, type ObjectiveWaiver, type ObjectiveLinkedRisk } from './canon_smm_objectives';
+import { SMM1_OBJECTIVE_COUNT, objectivesForComponent, objectiveCoverage, effectiveResponseCoverage, type ObjectiveWaiver, type ObjectiveLinkedRisk, type MonitoredObjectiveRisk } from './canon_smm_objectives';
 import { smmDocCoverage, auditRetention, type RetentionPolicy } from './canon_smm_documentation';
 import { smmDocEvidence, evidencedElements, type DocEvidenceInput } from './canon_smm_doc_evidence';
 import { useFirmAttest } from './firm_attest';
@@ -105,9 +105,14 @@ function SOQM() {
   const [openRca, setOpenRca] = useSOQM(null);
 
   const deficiencies = risks.filter((r: any) => r.deficiency);
-  const effective = risks.filter((r: any) => r.monitor === 'Efektif').length;
   const openRemediation = deficiencies.filter((r: any) => r.deficiency.status !== 'Selesai').length;
-  const soqmScore = Math.round(effective / risks.length * 100);
+  /* Basis TUJUAN MANDATORI, bukan basis register. `effective / risks.length`
+     berbunyi 83% di atas panel yang menyatakan cakupan 19%: penyebutnya adalah
+     6 risiko terdaftar, sehingga 22 tujuan tanpa respons tak pernah ikut dibagi,
+     dan QR-06 (`objectives: []`, risiko proses ¶35–47) menaikkan pembilang tanpa
+     menyumbang satu tujuan pun. Sama seperti badge tab di bawah, angkanya kini
+     berbasis ke-27 tujuan ¶28–33. */
+  const effResp = effectiveResponseCoverage(risks as MonitoredObjectiveRisk[], AD.SMM_OBJECTIVE_WAIVERS || []);
 
   const inspDone = inspections.filter((i: any) => i.grade !== 'Dijadwalkan');
   const totalInspFindings = inspections.reduce((s: any, i: any) => s + i.findings, 0);
@@ -137,7 +142,7 @@ function SOQM() {
       <SubBar moduleId="soqm" right={<div className="row gap8 ac"><Badge kind="blue">SMM 1 · SOQM</Badge><Btn sm variant={tab === 'evaluation' ? 'primary' : ''} onClick={() => setTab('evaluation')}><I.shield size={13} /> Evaluasi SOQM Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={soqmScore + '%'} label="Respons Mutu Efektif" accent={soqmScore >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={effResp.effective.length + '/' + effResp.requiring} label="Tujuan dengan Respons Efektif" accent={effResp.effective.length === effResp.requiring ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficiencies.length} label="Defisiensi Teridentifikasi" accent={deficiencies.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openRemediation} label="Remediasi Berjalan" accent="var(--amber)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={complaints.filter((c: any) => c.type === 'Tuduhan').length} label="Tuduhan Aktif" accent="var(--red)" /></div></Panel>
