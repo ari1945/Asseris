@@ -3,7 +3,7 @@ import {
   ILLUSTRATIVE_RISKS, ILLUSTRATIVE_RISK_SOURCE, OBJECTIVES_WITH_ILLUSTRATIVE_RISKS,
   illustrativeRisksFor, illustrativeDocsFor, danglingObjectiveRefs,
 } from './canon_smm_illustrative_risks';
-import { SMM1_OBJECTIVE_BY_ID } from './canon_smm_objectives';
+import { SMM1_OBJECTIVE_BY_ID, SMM1_OBJECTIVES, SMM1_OBJECTIVE_COUNT } from './canon_smm_objectives';
 import * as illustrative from './canon_smm_illustrative_risks';
 
 /* ============================================================
@@ -15,23 +15,18 @@ import * as illustrative from './canon_smm_illustrative_risks';
    ============================================================ */
 
 describe('bentuk & keterkaitan', () => {
-  it('komponen 1–4 termuat — 50 risiko atas 15 tujuan (8a-2a + 8a-2b)', () => {
-    /* 8a-2a: ¶28 16 + ¶29 6 = 22. 8a-2b: ¶30 6 + ¶31 22 = 28. */
-    expect(ILLUSTRATIVE_RISKS).toHaveLength(50);
-    expect([...OBJECTIVES_WITH_ILLUSTRATIVE_RISKS].sort()).toEqual([
-      'QO-28a', 'QO-28b', 'QO-28c', 'QO-28d', 'QO-28e',
-      'QO-29a', 'QO-29b',
-      'QO-30a', 'QO-30b',
-      'QO-31a', 'QO-31b', 'QO-31c', 'QO-31d', 'QO-31e', 'QO-31f',
-    ]);
+  it('LENGKAP — 93 risiko atas KE-27 tujuan mandatori', () => {
+    /* ¶28 16 · ¶29 6 (8a-2a) · ¶30 6 · ¶31 22 (8a-2b) · ¶32 28 · ¶33 15 (8a-2c). */
+    expect(ILLUSTRATIVE_RISKS).toHaveLength(93);
+    expect(OBJECTIVES_WITH_ILLUSTRATIVE_RISKS).toHaveLength(SMM1_OBJECTIVE_COUNT);
+    expect([...OBJECTIVES_WITH_ILLUSTRATIVE_RISKS].sort())
+      .toEqual([...SMM1_OBJECTIVES].map((o) => o.id).sort());
   });
 
-  it('komponen 5 & 6 BELUM dimuat — 8a-2c', () => {
-    /* Memaku batas cakupan supaya "kosong" tidak tertukar dengan "tak ada
-       risiko ilustratif" saat 8a-2c belum mendarat. */
-    for (const oid of ['QO-32a', 'QO-32h', 'QO-33a', 'QO-33d']) {
-      expect(illustrativeRisksFor(oid), oid).toEqual([]);
-    }
+  it('sebaran per komponen sesuai Matriks', () => {
+    const per = (p: string) => ILLUSTRATIVE_RISKS.filter((r) => r.objectiveId.startsWith('QO-' + p)).length;
+    expect({ p28: per('28'), p29: per('29'), p30: per('30'), p31: per('31'), p32: per('32'), p33: per('33') })
+      .toEqual({ p28: 16, p29: 6, p30: 6, p31: 22, p32: 28, p33: 15 });
   });
 
   it('setiap entri menunjuk tujuan mandatori yang benar-benar ada (SC-13)', () => {
@@ -99,9 +94,9 @@ describe('SC-14 — tidak ada jalur tulis ke register risiko firma', () => {
 });
 
 describe('illustrativeRisksFor / illustrativeDocsFor', () => {
-  it('tujuan yang belum dimuat (komponen 5–6) mengembalikan kosong, bukan melempar', () => {
-    expect(illustrativeRisksFor('QO-32d')).toEqual([]);
-    expect(illustrativeDocsFor('QO-33c')).toEqual([]);
+  it('tidak ada tujuan mandatori yang kosong — cakupan sudah penuh', () => {
+    const kosong = SMM1_OBJECTIVES.filter((o) => illustrativeRisksFor(o.id).length === 0);
+    expect(kosong.map((o) => o.id), 'tujuan tanpa saran').toEqual([]);
   });
 
   it('id tak dikenal / null / undefined aman', () => {

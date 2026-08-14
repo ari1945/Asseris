@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ILLUSTRATIVE_RISKS, OBJECTIVES_WITH_ILLUSTRATIVE_RISKS, illustrativeDocsFor } from './canon_smm_illustrative_risks';
+import { SMM1_OBJECTIVE_COUNT } from './canon_smm_objectives';
 import { TOOLKIT_BY_OBJECTIVE, TOOLKIT_DOCS, TOOLKIT_DANGLING_REFS } from './canon_smm_toolkit';
 
 /* ============================================================
@@ -24,7 +25,13 @@ import { TOOLKIT_BY_OBJECTIVE, TOOLKIT_DOCS, TOOLKIT_DANGLING_REFS } from './can
 describe('peta 8a-1 vs saran per-risiko 8a-2', () => {
   const byObjective = new Map(TOOLKIT_BY_OBJECTIVE);
 
-  it('setiap tujuan yang punya saran juga punya baris di TOOLKIT_BY_OBJECTIVE', () => {
+  it('AUDIT PENUH — ke-27 tujuan tersilang-uji, bukan sampel', () => {
+    /* Sejak 8a-2c seluruh komponen Matriks termuat, sehingga gerbang di bawah
+       memeriksa SETIAP baris `TOOLKIT_BY_OBJECTIVE`. Bila kelak ada tujuan yang
+       kehilangan saran, uji ini memberi tahu bahwa auditnya tak lagi penuh —
+       jangan longgarkan, lengkapi salah satu sisinya. */
+    expect(OBJECTIVES_WITH_ILLUSTRATIVE_RISKS).toHaveLength(SMM1_OBJECTIVE_COUNT);
+    expect(byObjective.size).toBe(SMM1_OBJECTIVE_COUNT);
     for (const oid of OBJECTIVES_WITH_ILLUSTRATIVE_RISKS) {
       expect(byObjective.has(oid), oid).toBe(true);
     }
@@ -40,6 +47,37 @@ describe('peta 8a-1 vs saran per-risiko 8a-2', () => {
       }
     }
     expect(beda, beda.join(' | ')).toEqual([]);
+  });
+
+  it('REGRESI: kedelapan baris yang dikoreksi 8a-2c tidak boleh kembali', () => {
+    /* Dua arah kesalahan yang sama-sama nyata — dokumen HILANG dan dokumen
+       MEREMBES dari tujuan tetangga. Nilai lama dipaku supaya rebase/merge yang
+       menghidupkannya kembali langsung merah. */
+    expect(byObjective.get('QO-32a')).not.toEqual(['7.1', '7.2', '7.5', '7.7']);        // hilang 7.3 & 7.4
+    expect(byObjective.get('QO-32e')).not.toEqual(['6.1', '6.2', '7.1', '7.2', '7.8']); // merembes dari 32f
+    expect(byObjective.get('QO-32f')).not.toEqual(['7.1', '7.5', '7.8']);               // merembes dari 32g
+    expect(byObjective.get('QO-32g')).not.toEqual(['7.1', '7.8', '7.9']);               // merembes dari 32h
+    expect(byObjective.get('QO-33a')).not.toEqual(['7.7', '7.8', '8.1', '8.2']);        // hilang 7.1, kebagian 8.2
+    expect(byObjective.get('QO-33b')).not.toEqual(['8.1']);                             // hilang 7.7 & 8.2
+    expect(byObjective.get('QO-33c')).not.toEqual(['6.3', '6.4', '7.7', '8.1', '8.2', '9.3']);
+    expect(byObjective.get('QO-33d')).not.toEqual(['8.1']);                             // hilang 6.3/6.4/7.7/9.3
+
+    expect(byObjective.get('QO-32a')).toEqual(['7.1', '7.2', '7.3', '7.4', '7.5', '7.7']);
+    expect(byObjective.get('QO-32e')).toEqual(['6.1', '6.2', '7.2']);
+    expect(byObjective.get('QO-32f')).toEqual(['7.1', '7.8']);
+    expect(byObjective.get('QO-32g')).toEqual(['7.1', '7.5']);
+    expect(byObjective.get('QO-33a')).toEqual(['7.1', '7.7', '7.8', '8.1']);
+    expect(byObjective.get('QO-33b')).toEqual(['7.7', '8.1', '8.2']);
+    expect(byObjective.get('QO-33c')).toEqual(['7.7', '8.1', '8.2']);
+    expect(byObjective.get('QO-33d')).toEqual(['6.3', '6.4', '7.7', '8.1', '9.3']);
+  });
+
+  it('dokumen 7.3 kini punya rumah pada sebuah tujuan — dulu tampil "TUJUAN —"', () => {
+    /* Konsekuensi yang TERLIHAT dari 32(a) yang kehilangan 7.3: tab Dokumentasi
+       SMM merender "Checklist Wawancara dan Evaluasi Kandidat" seolah tak
+       melayani satu tujuan mutu pun. */
+    expect(illustrativeDocsFor('QO-32a')).toContain('7.3');
+    expect(byObjective.get('QO-32a')).toContain('7.3');
   });
 
   it('REGRESI: ketiga baris yang dikoreksi 8a-2a tidak boleh kembali', () => {
