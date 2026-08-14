@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
 import { wpSignersFor } from './wp_signoff';
 import { amsExportXlsx } from './export_xlsx';
+import { stateHistory, auditVerify } from './api';
 
 /* ============================================================
    Asseris — PSAK 71 · Instrumen Keuangan (IFRS 9)
@@ -338,6 +339,82 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
   );
 }
 
+/* ============================================================
+   Program C — rantai integritas server per key state (L5).
+   Membaca stateDocHistory append-only (state.set → mutateStateDoc)
+   utk `psak71.done.v1` (checklist) & `psak71.probs.v1` (overlay),
+   plus audit.verify rantai hash server-wide. Jujur 3-state:
+   hijau (verify ok) · merah (chain rusak) · amber (server tak tersedia).
+   ============================================================ */
+function P71IntegrityChain({ engId, done, probs }: { engId?: string; done: Record<string, boolean>; probs: Record<string, number> }) {
+  const { useState: useIC, useEffect: useEffectIC } = React;
+  const [rows, setRows] = useIC(null as { version: number; updatedAt: string; updatedBy: string; key: string }[] | null);
+  const [verify, setVerify] = useIC(null as { ok: boolean; brokenAt?: number | null; count?: number } | null);
+  const [reload, setReload] = useIC(0);
+
+  useEffectIC(() => {
+    let live = true;
+    const eng = engId || 'ENG-2025-014';
+    (async () => {
+      const [dHist, pHist, v] = await Promise.all([
+        stateHistory('engagement', eng, 'psak71.done.v1'),
+        stateHistory('engagement', eng, 'psak71.probs.v1'),
+        auditVerify(),
+      ]);
+      if (!live) return;
+      const merged: { version: number; updatedAt: string; updatedBy: string; key: string }[] = [];
+      (dHist || []).forEach((r: { version: number; updatedAt: string; updatedBy: string }) => merged.push({ ...r, key: 'done.v1' }));
+      (pHist || []).forEach((r: { version: number; updatedAt: string; updatedBy: string }) => merged.push({ ...r, key: 'probs.v1' }));
+      merged.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+      setRows(merged.slice(0, 12));
+      setVerify(v);
+    })();
+    return () => { live = false; };
+  }, [engId, reload, done, probs]);
+
+  const doneCount = Object.values(done).filter(Boolean).length;
+  const probKeys = Object.keys(probs).length;
+  const fmtAt = (s: string) => { try { return new Date(s).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return s; } };
+
+  return (
+    <Panel title="Rantai Integritas Server" sub="state.set → stateDocHistory append-only · SA 230 ¶A21">
+      <div className="row gap8" style={{ marginBottom: 10 }}>
+        {verify === null ? (
+          <Badge kind="amber"><I.clock size={11} style={{ verticalAlign: -1, marginRight: 3 }} /> Server Tak Tersedia / Verifikasi Menunggu</Badge>
+        ) : verify.ok ? (
+          <Badge kind="green"><I.checkCircle size={11} style={{ verticalAlign: -1, marginRight: 3 }} /> Rantai server utuh · {verify.count ?? '—'} entri</Badge>
+        ) : (
+          <Badge kind="red"><I.alert size={11} style={{ verticalAlign: -1, marginRight: 3 }} /> GAGAL di #{verify.brokenAt ?? '?'}</Badge>
+        )}
+        <Badge kind="blue">{doneCount} prosedur ditandai</Badge>
+        <Badge kind="purple">{probKeys} bobot skenario</Badge>
+        <div style={{ flex: 1 }} />
+        <Btn sm onClick={() => setReload((n: number) => n + 1)}><I.sync size={12} /> Muat Ulang</Btn>
+      </div>
+      {rows === null ? (
+        <div className="tiny muted" style={{ lineHeight: 1.5 }}>History per-key tidak tersedia (server mati atau peran tanpa izin baca). Setiap perubahan state tetap tersimpan — namun rantai append-only tidak dapat diverifikasi saat ini.</div>
+      ) : rows.length === 0 ? (
+        <div className="tiny muted" style={{ lineHeight: 1.5 }}>Belum ada transisi tercatat untuk key checklist/overlay pada perikatan ini. Tandai prosedur atau ubah bobot skenario — setiap transisi di-append ke rantai server (v0→v1, v1→v2, …) dengan identitas pengubah.</div>
+      ) : (
+        <div style={{ display: 'grid', gap: 4 }}>
+          {rows.map((r: { version: number; updatedAt: string; updatedBy: string; key: string }, i: number) => (
+            <div key={i} className="row ac gap8" style={{ padding: '6px 8px', background: 'var(--surface-2)', borderRadius: 6, fontSize: 12 }}>
+              <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', flex: '0 0 34px' }}>v{r.version}</span>
+              <span className="chip tiny" style={{ height: 17, flex: '0 0 auto' }}>{r.key}</span>
+              <span style={{ flex: 1, minWidth: 0, color: 'var(--ink-2)' }} className="truncate">{r.updatedBy}</span>
+              <span className="tiny muted mono">{fmtAt(r.updatedAt)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
+        Setiap transisi <span className="mono">STATE_SET</span> ditulis dalam satu transaksi database bersama nilai baru (versioning CAS) — isi lama tersedia via riwayat versi, pengubah tercatat server-side. Ekspor B-7 (XLSX) tersegel Ed25519 membuktikan angka yang sama keluar dari sumber ini.
+      </div>
+    </Panel>
+  );
+}
+
+/* ============================================================ */
 function PSAK71View() {
   const { fmt } = AMS;
   const firm = useFirm();
@@ -920,6 +997,9 @@ function PSAK71View() {
           {tab === 'kk' && (
             <div style={{ paddingBottom: 6 }}>
               <P71WorkPaper p71={p71} client={client} eng={eng} fmt={fmt} rp={rp} nav={nav} />
+              <div style={{ marginTop: 12 }}>
+                <P71IntegrityChain engId={eng.id} done={done} probs={probs} />
+              </div>
             </div>
           )}
 

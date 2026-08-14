@@ -67,6 +67,9 @@ function SA720View() {
   const [selId, setSelId] = useState720('OI-2');
   /* engagement-scope (AMS_PERSIST_SCOPE: 'oi720.v1' → engagement) — isolasi W7.5. */
   const [doc, setDoc] = useAmsPersist('oi720.v1', seedOi720) as [Oi720Doc, SetOi];
+  /* Program C / P0 — baca rep580.v1 (read-only) utk checklist komunikasi: representasi
+     tertulis SA 580 "ada" bila surat terlampir di modul SA 580 (bukan ok:true hardcode). */
+  const [repDoc] = useAmsPersist('rep580.v1', () => ({}));
   const docs = doc.docs || [];
   const sel = docs.find(d => d.id === selId) || docs[0];
 
@@ -146,7 +149,7 @@ function SA720View() {
         {tab === 'lingkup' && <F720Scope docs={docs} selId={selId} setSelId={setSelId} setOi={setOi} addOi={addOi} removeOi={removeOi} />}
         {tab === 'telaah' && <F720Review docs={docs} sel={sel} selId={selId} setSelId={setSelId} setOi={setOi} onFiles={onFiles} removeAttach={removeAttach} />}
         {tab === 'respons' && <F720Response docs={docs} misCount={misCount} />}
-        {tab === 'status' && <F720Status docs={docs} />}
+        {tab === 'status' && <F720Status docs={docs} repDoc={repDoc} />}
 
       </div></div>
     </>
@@ -372,7 +375,7 @@ function F720Response({ docs, misCount }: { docs: OiDoc[]; misCount: number }) {
 }
 
 /* ---------------- Tab: Status & Komunikasi (derived + sign-off nyata) ---------------- */
-function F720Status({ docs }: { docs: OiDoc[] }) {
+function F720Status({ docs, repDoc }: { docs: OiDoc[]; repDoc?: unknown }) {
   const afterDocs = docs.filter(d => d.timing === 'after');
   const pendingAfter = afterDocs.filter(d => !d.got);
   const inconsAny = docs.some(d => d.consistency === 'inconsistent-fs' || d.consistency === 'inconsistent-knowledge' || d.consistency === 'misstatement');
@@ -399,10 +402,17 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Komunikasi & Representasi">
+          {/* Program C / P0 — rep580.v1 dibaca (bukan ok:true hardcode): representasi tertulis
+              SA 580 "ada" bila surat terlampir (attachmentId) di modul SA 580. */}
+          {(() => {
+            const rep = (repDoc || null) as { letter?: { attachmentId?: string } } | null;
+            const repLetter = rep && rep.letter ? rep.letter : null;
+            const repOk = !!(repLetter && repLetter.attachmentId);
+            return (
           <div style={{ display: 'grid', gap: 7 }}>
             {[
               { t: 'Inkonsistensi material dikomunikasikan ke TCWG', ok: !inconsAny || docs.some(d => (d.consistency === 'inconsistent-fs' || d.consistency === 'inconsistent-knowledge' || d.consistency === 'misstatement') && d.disposition.trim()) },
-              { t: 'Representasi tertulis info lain (SA 580)', ok: true },
+              { t: 'Representasi tertulis info lain (SA 580)', ok: repOk },
               { t: 'Pernyataan komponen laporan tahunan dari manajemen', ok: true },
               { t: 'Prosedur dokumen pasca tanggal laporan', ok: pendingAfter.length === 0 },
             ].map((r, i) => (
@@ -411,7 +421,10 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
             ))}
+            {!repOk && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.5 }}>Surat representasi tertulis belum terlampir — lampirkan di modul SA 580 (tab Representasi) untuk menuntaskan prosedur ini.</div>}
           </div>
+            );
+          })()}
         </Panel>
         <SASignoffMini stdId="sa720" />
       </div>

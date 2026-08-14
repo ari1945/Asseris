@@ -111,7 +111,20 @@ export async function auditVerify() {
   }
 }
 
-Object.assign(window, { amsAuditList: auditList, amsAuditVerify: auditVerify });
+/** Append-only per-key history of a StateDoc (SA 230 ¶A21 — "what did the WP say before
+    it changed, and who changed it, when"). Same read boundary as state.get. The log is
+    written ONLY inside the StateDoc write transaction (state.set → mutateStateDoc),
+    never through this endpoint. Returns rows newest-first or null when unavailable. */
+export async function stateHistory(scope: string, scopeId: string, key: string) {
+  try {
+    const rows = await api.state.history.query({ scope, scopeId, key });
+    return [...(rows || [])].reverse();
+  } catch (e) {
+    return null;
+  }
+}
+
+Object.assign(window, { amsAuditList: auditList, amsAuditVerify: auditVerify, amsStateHistory: stateHistory });
 
 /* ============================================================
    Fase 4/5 — cross-engagement task aggregation for the role-based Beranda.
