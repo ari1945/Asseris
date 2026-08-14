@@ -19,6 +19,11 @@
 Modul `audittrail` menampilkan "Terverifikasi" statis atas seed hardcode. Sambungkan
 `audit.list`/`audit.verify` + ekspor tersegel. Bukti live: `view_platform3.tsx:83` statis,
 `data_platform.ts:337` seed. → lihat `prd-audit-trail-server-chain.md`.
+**IMPLEMENTED 2026-08-14**: K-01 (audittrail → audit.list/verify, PR #225) + Program C
+(PR #232): wrapper `stateHistory` per-key di api.ts + panel rantai integritas di **psak71**
+(L5 pertama PSAK: state server + audit chain terlihat + sign-off + ekspor tersegel)
++ sa720 P0 (rep580.v1 dibaca, bukan ok:true hardcode). Sisa Program C: logActivity
+lokal → server chain (contexts.tsx:1051, perubahan arsitektur besar — perlu PRD sendiri).
 
 ### K-02 · Klok SSOT "hari ini" (AMS.TODAY) — hapus tanggal beku
 Tanggal beku `'2026-03-09'` dominan di 8 gelombang: `MT_TODAY` (tasks), `CKP_TODAY`
