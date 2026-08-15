@@ -9,7 +9,8 @@ import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { PROGRAMME } from './view_cockpit';
 import { FIRMFIN } from './data_firmfin';
-import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP } from './wp_signoff';
+import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP, engagementGate, EngagementGateSummary, eqrStatusFor } from './wp_signoff';
+import { eqrGateDetail } from './canon_eqr_gate';
 import { cockpitEconomics, type CockpitWip, type CockpitMember } from './cockpit_model';
 import {
   progressBridge, phaseRollups, PHASE_BUDGET_WEIGHT, CKP_PHASE_ORDER,
@@ -840,6 +841,92 @@ function TabTim({ D, nav }: any) {
 }
 
 /* ============================================================
+   PR-C-3 · KESIAPAN OPINI & EQR — gerbang KANONIK
+   ------------------------------------------------------------
+   Sampai PR ini panel ini merakit 8 kriterianya sendiri, tiga di antaranya
+   KONSTANTA:
+
+     { l:'Penilaian going concern selesai',        ok:false, … }
+     { l:'Telaah peristiwa kemudian (subsequent)', ok:false, … }
+     { l:'Konfirmasi independensi tim lengkap',    ok:true,  … }
+
+   Dua tak akan pernah terpenuhi walau auditor menuntaskan pekerjaannya; satu
+   selalu terpenuhi walau tak ada deklarasi. Gauge "x/8" karena itu berplafon 6
+   dan berlantai 1 — cacat #240 persis: status ditentukan literal, bukan angka.
+
+   Sementara itu gerbang KANONIK sudah ada dan sudah mengikat transisi fase:
+   `engagementGate()` (kesimpulan SA 230 ≥80%, nol WP belum-dimulai, nol catatan
+   prioritas tinggi, integritas WTB, opini final, EQR SMM 2). Cockpit tak pernah
+   memanggilnya — dua gerbang berbeda untuk satu perikatan, dan yang MENGIKAT
+   bukan yang ditampilkan. Kini panel ini menampilkan yang mengikat.
+
+   Going concern & subsequent events tidak hilang: keduanya kertas kerja kanonik
+   (`goingconcern`, `subsequent` di fase Specifics), jadi kelengkapannya terlihat
+   di pipeline & ikut menggerakkan progres terbukti — terukur, bukan hardcode.
+   Independensi DIHAPUS dari gerbang: tak ada sumber terukur yang tersambung ke
+   sini, dan kriteria yang tak terukur lebih baik hilang daripada berbohong.
+   ============================================================ */
+function OpinionReadinessPanel({ nav }: { nav: (id: string, opts?: Record<string, unknown>) => void }) {
+  const audit = useAuditHeavy(['reviewNotes']);
+  const firm = useFirm();
+  const engId: string | undefined = firm && firm.activeEngagementId;
+  const phase: string = (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
+
+  /* dua gerbang yang benar-benar dihadapi auditor */
+  const nextGate = engagementGate(audit, firm, {});                                        // → fase berikutnya
+  const issueGate = engagementGate(audit, firm, { fromPhase: 'Finalisasi', nextPhase: 'Arsip' }); // → penerbitan & arsip
+  const eqr = eqrStatusFor(engId);
+
+  const met = issueGate.criteria.filter((c: { met: boolean }) => c.met).length;
+  const tot = issueGate.criteria.length;
+  const pct = tot ? (met / tot) * 100 : 0;
+
+  return (
+    <Panel noBody>
+      <div className="panel-h"><h3>Kesiapan Opini &amp; EQR</h3><span className="sub">gerbang kanonik — sama dengan yang mengikat transisi fase</span></div>
+      <div style={{ padding: '12px 14px' }}>
+        <div className="row ac gap10" style={{ marginBottom: 12 }}>
+          <Gauge pct={pct} size={58} stroke={8} tone={met === tot ? 'green' : met >= tot * 0.6 ? 'amber' : 'red'} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>{met} / {tot} prasyarat penerbitan terpenuhi</div>
+            <div className="tiny muted">SA 700 · SA 230 · SMM 2 — fase aktif: {phase}</div>
+          </div>
+        </div>
+
+        {/* rekap kelengkapan kertas kerja auditable (sign-off + bukti kanonik) */}
+        <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line-soft)' }}>
+          <div className="tiny muted upper" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>Kelengkapan Kertas Kerja</div>
+          <WpCompletenessRecap />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div className="tiny muted upper" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>Prasyarat penerbitan &amp; arsip</div>
+          <EngagementGateSummary nextPhase="Arsip" gate={issueGate} compact />
+        </div>
+
+        {nextGate.severity !== 'none' && nextGate.criteria.length > 0 && nextGate.nextPhase !== 'Arsip' && (
+          <div style={{ marginBottom: 12, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
+            <div className="tiny muted upper" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>
+              Prasyarat fase berikut → {nextGate.nextPhase}
+            </div>
+            <EngagementGateSummary nextPhase={nextGate.nextPhase} gate={nextGate} compact />
+          </div>
+        )}
+
+        {/* EQR dinyatakan apa adanya — termasuk ketika ia TIDAK wajib */}
+        <div className="ckp-info" style={{ marginBottom: 8 }}>
+          <I.shield size={13} />
+          <span>{eqr.applicable
+            ? <>EQR wajib untuk perikatan ini (SMM 2): <b>{eqrGateDetail(eqr)}</b></>
+            : <>EQR tidak wajib untuk perikatan ini (Non-PIE) — {eqrGateDetail(eqr)}</>}</span>
+        </div>
+        <button className="btn sm" style={{ width: '100%', justifyContent: 'center' }} onClick={() => nav('eqr')}><I.shield size={14} /> Buka EQR</button>
+      </div>
+    </Panel>
+  );
+}
+
+/* ============================================================
    TAB · RISIKO & KUALITAS — risk coverage, notes board, readiness gate
    ============================================================ */
 function TabRisiko({ D, e, nav }: any) {
@@ -852,18 +939,6 @@ function TabRisiko({ D, e, nav }: any) {
     return { ...r, total: procs.length, done: dn, exc };
   });
 
-  /* opinion readiness gate */
-  const gate = [
-    { l: 'Seluruh risiko signifikan direspons & diuji', ok: D.sigCovered === D.sigAreas.length, sub: `${D.sigCovered}/${D.sigAreas.length} area tuntas` },
-    { l: 'Tidak ada pengecualian belum dievaluasi', ok: D.excTot === 0, sub: `${D.excTot} pengecualian terbuka` },
-    { l: 'AJE signifikan telah dibukukan', ok: D.proposedAje.length === 0, sub: `${D.proposedAje.length} AJE usulan tertunda` },
-    { l: 'Seluruh kertas kerja kunci telah di-review (sign-off)', ok: D.wpRecap.signed === D.wpRecap.total, sub: `${D.wpRecap.signed}/${D.wpRecap.total} WP ter-review · ${D.wpRecap.signedPct}% (SSOT)` },
-    { l: 'Seluruh catatan review terselesaikan', ok: D.openNotes.length === 0, sub: `${D.openNotes.length} catatan open` },
-    { l: 'Penilaian going concern selesai', ok: false, sub: 'Going Concern 65% — dalam proses' },
-    { l: 'Telaah peristiwa kemudian (subsequent)', ok: false, sub: 'Subsequent Events 30% — dalam proses' },
-    { l: 'Konfirmasi independensi tim lengkap', ok: true, sub: 'Partner & manager terdeklarasi' },
-  ];
-  const ready = gate.filter((g: any) => g.ok).length;
   const notesByPr = { high: D.openNotes.filter((n: any) => n.priority === 'high'), medium: D.openNotes.filter((n: any) => n.priority === 'medium'), low: D.openNotes.filter((n: any) => n.priority === 'low') };
   const prTone = { high: 'red', medium: 'amber', low: 'gray' };
   const prLabel = { high: 'Prioritas Tinggi', medium: 'Sedang', low: 'Rendah' };
@@ -900,34 +975,7 @@ function TabRisiko({ D, e, nav }: any) {
           </div>
         </Panel>
 
-        {/* opinion readiness gate */}
-        <Panel noBody>
-          <div className="panel-h"><h3>Kesiapan Opini & EQR</h3></div>
-          <div style={{ padding: '12px 14px' }}>
-            <div className="row ac gap10" style={{ marginBottom: 12 }}>
-              <Gauge pct={ready / gate.length * 100} size={58} stroke={8} tone={ready === gate.length ? 'green' : ready >= gate.length * 0.6 ? 'amber' : 'red'} />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{ready} / {gate.length} kriteria siap</div>
-                <div className="tiny muted">Gate penerbitan laporan auditor (SA 700 · SMM 2)</div>
-              </div>
-            </div>
-            {/* rekap kelengkapan kertas kerja auditable (sign-off + bukti kanonik) */}
-            <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line-soft)' }}>
-              <div className="tiny muted upper" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>Kelengkapan Kertas Kerja</div>
-              <WpCompletenessRecap />
-            </div>
-            {gate.map((g, i) => (
-              <div key={i} className="ckp-gate">
-                <span style={{ color: g.ok ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{g.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: g.ok ? 'var(--ink-1)' : 'var(--ink-2)' }}>{g.l}</div>
-                  <div className="tiny muted">{g.sub}</div>
-                </div>
-              </div>
-            ))}
-            <button className="btn sm" style={{ width: '100%', justifyContent: 'center', marginTop: 10 }} onClick={() => nav('eqr')}><I.shield size={14} /> Buka EQR</button>
-          </div>
-        </Panel>
+        <OpinionReadinessPanel nav={nav} />
       </div>
 
       {/* review notes board */}
