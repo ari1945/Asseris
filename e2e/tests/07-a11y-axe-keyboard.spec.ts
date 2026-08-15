@@ -12,7 +12,7 @@
 //      form native) tanpa perlu snapshot visual.
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { login, USERS } from '../helpers';
+import { gotoModule, login, USERS } from '../helpers';
 
 const CRITICAL_GATE = true; // gerbang CI: zero impact "critical"
 const SERIOUS_LOG = true;   // lapor serious ke console untuk triase
@@ -131,5 +131,46 @@ test.describe('Tahap 9 — aksesibilitas (axe) & smoke keyboard', () => {
     await sw.press('Space');
     const after = await page.evaluate(() => document.body.classList.contains('reduce-motion'));
     expect(after, 'Space harus mengubah state switch').toBe(!before);
+  });
+
+  // Toggle posting jurnal GL firma: kontrol paling berkonsekuensi di aplikasi —
+  // sejak PR #241 memposting jurnal menggeser SELURUH angka keuangan firma
+  // (Firm Finance, BI, Treasury, Dashboard). Sampai 2026-08-15 ia dirender
+  // <span onClick>: tak ada di pohon aksesibilitas, tak fokusable, mustahil
+  // dioperasikan keyboard. Uji ini memaku bentuk NATIVE-nya (CLAUDE.md §3.7).
+  test('smoke keyboard: toggle posting jurnal GL firma adalah <button> native', async ({ page }) => {
+    // Partner memegang FIRMFIN_EDIT; peran tanpa kapabilitas melihat badge statis.
+    await login(page, USERS.partner);
+    await gotoModule(page, 'firmgl');
+
+    // Sengaja dicari lewat PERAN + nama aksesibel: locator ini hanya resolve bila
+    // kontrolnya benar-benar ada di pohon aksesibilitas — persis yang dulu gagal.
+    const toggle = page.getByRole('button', { name: /jurnal JV-0307/ });
+    await expect(toggle).toBeVisible();
+
+    // 1) Elemennya <button> asli, bukan <span role="button"> yang menipu getByRole.
+    await expect(toggle).toHaveJSProperty('tagName', 'BUTTON');
+
+    // 2) Nama aksesibel diawali teks pil yang terlihat (WCAG 2.5.3 Label-in-Name),
+    //    lalu identitas jurnal — pembaca layar tahu jurnal MANA yang diposting.
+    await expect(toggle).toHaveAccessibleName(/^Draft — jurnal JV-0307/);
+
+    // 3) Fokusable lewat keyboard.
+    await toggle.focus();
+    await expect(toggle).toBeFocused();
+
+    // 4) Enter memposting jurnal — badge berubah Draft → Posted.
+    await page.keyboard.press('Enter');
+    await expect(toggle).toHaveText('Posted');
+    await expect(toggle).toHaveAccessibleName(/^Posted — jurnal JV-0307/);
+
+    // 5) Space membatalkan posting — kembali ke Draft (state awal dipulihkan).
+    await toggle.press('Space');
+    await expect(toggle).toHaveText('Draft');
+
+    // 6) Halaman GL masuk gerbang axe. Diverifikasi hidup 2026-08-15 sesudah
+    //    perbaikan: 0 critical, 0 serious (sisa 1 moderate landmark-one-main,
+    //    utang app-wide di luar cakupan aturan yang digerbangi).
+    await scanAndAssert(page, 'firm general ledger');
   });
 });

@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
+import { Badge, BadgeBtn, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 import { CAP } from './rbac';
@@ -120,7 +120,15 @@ function FirmGL() {
                     <td className="tiny mono muted">{j.cr} {acctName(j.cr).slice(0, 18)}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(j.amount / 1e6, 0)} jt</td>
                     <td>{canEdit
-                      ? <span onClick={() => togglePost(j.id)} style={{ cursor: 'pointer' }} title="Klik untuk ubah status posting"><Badge kind={j.posted ? 'green' : 'amber'}>{j.posted ? 'Posted' : 'Draft'}</Badge></span>
+                      ? <BadgeBtn
+                          kind={j.posted ? 'green' : 'amber'}
+                          /* Nama aksesibel diawali teks pil yang terlihat (WCAG 2.5.3
+                             Label-in-Name), lalu identitas jurnal + arah aksinya —
+                             aksi ini menggeser SELURUH angka keuangan firma. */
+                          label={(j.posted ? 'Posted' : 'Draft') + ' — jurnal ' + j.id + ', klik untuk ' + (j.posted ? 'batalkan posting' : 'posting')}
+                          title={(j.posted ? 'Batalkan posting jurnal ' : 'Posting jurnal ') + j.id}
+                          onClick={() => togglePost(j.id)}
+                        >{j.posted ? 'Posted' : 'Draft'}</BadgeBtn>
                       : <Badge kind={j.posted ? 'green' : 'amber'}>{j.posted ? 'Posted' : 'Draft'}</Badge>}</td>
                   </tr>
                 ))}
