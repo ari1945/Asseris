@@ -545,6 +545,7 @@ function AuditProgramme() {
 /* ---------------- Tambah Prosedur (form manual) ---------------- */
 type Member = { name: string };
 function AddProcedureModal({ prog, onClose, onAdd }: { prog: Risk[]; onClose: () => void; onAdd: (riskId: string, src: ProcSrc) => void }) {
+  const uid = React.useId();
   const team: Member[] = ((AMS as { TEAM?: Member[] }).TEAM) || [];
   const [riskId, setRiskId] = useStateWS(prog[0] ? prog[0].riskId : '');
   const [t, setT] = useStateWS('');
@@ -566,25 +567,25 @@ function AddProcedureModal({ prog, onClose, onAdd }: { prog: Risk[]; onClose: ()
         <div className="prg-modal-h"><I.plus size={16} /> Tambah Prosedur Audit</div>
         <div className="prg-modal-b">
           <div className="prg-fld">
-            <label>RoMM / Area Risiko</label>
-            <select value={riskId} onChange={(e: FormEv) => setRiskId(e.target.value)}>
+            <label htmlFor={uid+'-romm-area-risiko'}>RoMM / Area Risiko</label>
+            <select id={uid+'-romm-area-risiko'} value={riskId} onChange={(e: FormEv) => setRiskId(e.target.value)}>
               {prog.map((r: Risk) => <option key={r.riskId} value={r.riskId}>{r.riskId} — {r.area}{r.sig ? ' (signifikan)' : ''}</option>)}
             </select>
           </div>
           <div className="prg-fld">
-            <label>Uraian Prosedur</label>
-            <textarea value={t} onChange={(e: FormEv) => setT(e.target.value)} placeholder="mis. Konfirmasi saldo bank atas seluruh rekening…" />
+            <label htmlFor={uid+'-uraian-prosedur'}>Uraian Prosedur</label>
+            <textarea id={uid+'-uraian-prosedur'} value={t} onChange={(e: FormEv) => setT(e.target.value)} placeholder="mis. Konfirmasi saldo bank atas seluruh rekening…" />
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div className="prg-fld">
-              <label>Sifat Prosedur</label>
-              <select value={nat} onChange={(e: FormEv) => setNat(e.target.value)}>
+              <label htmlFor={uid+'-sifat-prosedur'}>Sifat Prosedur</label>
+              <select id={uid+'-sifat-prosedur'} value={nat} onChange={(e: FormEv) => setNat(e.target.value)}>
                 {Object.entries(PRG_NATURE).map(([k, n]) => <option key={k} value={k}>{(n as { l: string }).l}</option>)}
               </select>
             </div>
             <div className="prg-fld">
-              <label>Standar (SA)</label>
-              <input value={sa} onChange={(e: FormEv) => setSa(e.target.value)} placeholder="SA 500" />
+              <label htmlFor={uid+'-standar-sa'}>Standar (SA)</label>
+              <input id={uid+'-standar-sa'} value={sa} onChange={(e: FormEv) => setSa(e.target.value)} placeholder="SA 500" />
             </div>
           </div>
           <div className="prg-fld">
@@ -595,36 +596,36 @@ function AddProcedureModal({ prog, onClose, onAdd }: { prog: Risk[]; onClose: ()
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div className="prg-fld">
-              <label>Saat</label>
-              <select value={timing} onChange={(e: FormEv) => setTiming(e.target.value)}>
+              <label htmlFor={uid+'-saat'}>Saat</label>
+              <select id={uid+'-saat'} value={timing} onChange={(e: FormEv) => setTiming(e.target.value)}>
                 {['Akhir tahun', 'Interim', 'Sepanjang tahun'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
             <div className="prg-fld">
-              <label>Luas / Sampel</label>
-              <input value={extent} onChange={(e: FormEv) => setExtent(e.target.value)} placeholder="mis. 25 dokumen" />
+              <label htmlFor={uid+'-luas-sampel'}>Luas / Sampel</label>
+              <input id={uid+'-luas-sampel'} value={extent} onChange={(e: FormEv) => setExtent(e.target.value)} placeholder="mis. 25 dokumen" />
             </div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <div className="prg-fld">
-              <label>Kertas Kerja (Ref)</label>
-              <input value={wp} onChange={(e: FormEv) => setWp(e.target.value)} placeholder="mis. B-8" />
+              <label htmlFor={uid+'-kertas-kerja-ref'}>Kertas Kerja (Ref)</label>
+              <input id={uid+'-kertas-kerja-ref'} value={wp} onChange={(e: FormEv) => setWp(e.target.value)} placeholder="mis. B-8" />
             </div>
             <div className="prg-fld">
-              <label>Anggaran Jam</label>
-              <input type="number" min="0" value={bud} onChange={(e: FormEv) => setBud(e.target.value)} />
+              <label htmlFor={uid+'-anggaran-jam'}>Anggaran Jam</label>
+              <input id={uid+'-anggaran-jam'} type="number" min="0" value={bud} onChange={(e: FormEv) => setBud(e.target.value)} />
             </div>
             <div className="prg-fld">
-              <label>Disusun oleh</label>
-              <select value={prep} onChange={(e: FormEv) => setPrep(e.target.value)}>
+              <label htmlFor={uid+'-disusun-oleh'}>Disusun oleh</label>
+              <select id={uid+'-disusun-oleh'} value={prep} onChange={(e: FormEv) => setPrep(e.target.value)}>
                 <option value="">—</option>
                 {team.map((m: Member) => <option key={m.name} value={m.name}>{m.name}</option>)}
               </select>
             </div>
           </div>
           <div className="prg-fld">
-            <label>Direviu oleh</label>
-            <select value={rev} onChange={(e: FormEv) => setRev(e.target.value)}>
+            <label htmlFor={uid+'-direviu-oleh'}>Direviu oleh</label>
+            <select id={uid+'-direviu-oleh'} value={rev} onChange={(e: FormEv) => setRev(e.target.value)}>
               <option value="">—</option>
               {team.map((m: Member) => <option key={m.name} value={m.name}>{m.name}</option>)}
             </select>

@@ -224,6 +224,7 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
 
 /* ---------------- Preliminary Analytical Review (SA 520) ---------------- */
 function WtbAnalytical({ pm, onOpenAccount }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const audit = useAudit();
   const { wtb, fluxState, setFluxState, fluxThreshold, setFluxThreshold, addReviewNote, aje } = audit;
@@ -414,8 +415,8 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                 <WtbAssertionStrip sel={sel} audit={audit} nav={nav} />
 
                 <div className="field" style={{ marginBottom: 10 }}>
-                  <label>Penjelasan auditor</label>
-                  <textarea value={draft} onChange={(e: any) => setDraft(e.target.value)} rows={4}
+                  <label htmlFor={uid+'-penjelasan-auditor'}>Penjelasan auditor</label>
+                  <textarea id={uid+'-penjelasan-auditor'} value={draft} onChange={(e: any) => setDraft(e.target.value)} rows={4}
                     placeholder="Jelaskan penyebab fluktuasi & prosedur yang dijalankan…"
                     style={{ width: '100%', border: '1px solid var(--line-strong)', borderRadius: 5, padding: '7px 9px', fontSize: 12, fontFamily: 'var(--ui)', resize: 'vertical', outline: 'none', color: 'var(--ink)' }} />
                   {/* PR-3b — saran ditandai sebagai saran; status tetap "belum ditelaah"

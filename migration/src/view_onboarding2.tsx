@@ -23,6 +23,7 @@ const PMPJ_RISK = ['Rendah', 'Sedang', 'Tinggi'];
 const CDD_BY_RISK = { Rendah: 'Sederhana', Sedang: 'Standar', Tinggi: 'Mendalam (EDD)' };
 
 function StepPMPJ({ p, onPatch }: any) {
+  const uid = React.useId();
   const m = p.pmpj;
   const setP = (patch: any) => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ...patch } }));
   const setUbo = (i: any, patch: any) => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ubo: pr.pmpj.ubo.map((u: any, j: any) => j === i ? { ...u, ...patch } : u) } }));
@@ -67,8 +68,8 @@ function StepPMPJ({ p, onPatch }: any) {
         </div>
       </div>
 
-      <div className="field" style={{ marginBottom: 14 }}><label>Maksud & Tujuan Hubungan Usaha</label>
-        <input className="input" value={m.purpose} disabled={locked} onChange={(e: any) => setP({ purpose: e.target.value })} />
+      <div className="field" style={{ marginBottom: 14 }}><label htmlFor={uid+'-maksud-tujuan-hubungan'}>Maksud & Tujuan Hubungan Usaha</label>
+        <input id={uid+'-maksud-tujuan-hubungan'} className="input" value={m.purpose} disabled={locked} onChange={(e: any) => setP({ purpose: e.target.value })} />
       </div>
 
       {/* Beneficial owners */}
@@ -142,6 +143,7 @@ function StepPMPJ({ p, onPatch }: any) {
    STEP 3 — Engagement Letter (SA 210)
    ============================================================ */
 function StepLetter({ p, onPatch }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const FIRM: any = AMS.FIRM;
   const L = p.letter;
@@ -270,7 +272,7 @@ function StepLetter({ p, onPatch }: any) {
             <OKv label="Standar" v="SA 210" />
           </div>
           {L.status === 'draft' && L.version > 0 && (
-            <div className="field" style={{ marginTop: 10 }}><label>Ruang Lingkup</label><textarea className="input" value={L.scope} onChange={(e: any) => setL({ scope: e.target.value })} style={{ height: 64, padding: 8, lineHeight: 1.5, resize: 'vertical' }} /></div>
+            <div className="field" style={{ marginTop: 10 }}><label htmlFor={uid+'-ruang-lingkup'}>Ruang Lingkup</label><textarea id={uid+'-ruang-lingkup'} className="input" value={L.scope} onChange={(e: any) => setL({ scope: e.target.value })} style={{ height: 64, padding: 8, lineHeight: 1.5, resize: 'vertical' }} /></div>
           )}
           <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
             {L.version > 0 && L.status === 'draft' && <>

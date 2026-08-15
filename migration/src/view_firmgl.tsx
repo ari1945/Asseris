@@ -299,6 +299,7 @@ function FirmGL() {
 }
 
 function FirmJVForm({ coa, onClose, onPost }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const [desc, setDesc] = useStateF1('');
   const [dr, setDr] = useStateF1('');
@@ -338,12 +339,12 @@ function FirmJVForm({ coa, onClose, onPost }: any) {
           critical: `label` untuk Jumlah dan `select-name` untuk kedua akun —
           pembaca layar hanya mendengar "combo box" pada kontrol yang memilih
           akun debit vs kredit. Pola sama dengan view_login.tsx. */}
-      <div className="field"><label htmlFor="jv-desc">Keterangan</label><input id="jv-desc" className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
+      <div className="field"><label htmlFor={uid+'-keterangan'}>Keterangan</label><input id={uid+'-keterangan'} className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div className="field"><label htmlFor="jv-dr">Akun Debit</label><select id="jv-dr" className="select" value={dr} onChange={(e: any) => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
-        <div className="field"><label htmlFor="jv-cr">Akun Kredit</label><select id="jv-cr" className="select" value={cr} onChange={(e: any) => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
+        <div className="field"><label htmlFor={uid+'-akun-debit'}>Akun Debit</label><select id={uid+'-akun-debit'} className="select" value={dr} onChange={(e: any) => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
+        <div className="field"><label htmlFor={uid+'-akun-kredit'}>Akun Kredit</label><select id={uid+'-akun-kredit'} className="select" value={cr} onChange={(e: any) => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
       </div>
-      <div className="field"><label htmlFor="jv-amount">Jumlah (Rp)</label><input id="jv-amount" className="input mono" type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
+      <div className="field"><label htmlFor={uid+'-jumlah-rp'}>Jumlah (Rp)</label><input id={uid+'-jumlah-rp'} className="input mono" type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
     </Overlay>
   );
 }

@@ -14,6 +14,7 @@ const { useState: useStateMTV, useMemo: useMemoMTV } = React;
 
 /* ---------------- Task detail panel ---------------- */
 function TaskDetail({ t, mt, nav }: any) {
+  const uid = React.useId();
   const [newSub, setNewSub] = useStateMTV('');
   if (!t) {
     return (
@@ -96,8 +97,8 @@ function TaskDetail({ t, mt, nav }: any) {
 
         {/* note */}
         <div className="mt-kv">
-          <label>Catatan</label>
-          <textarea className="input" value={t.note} placeholder="Tambah catatan pribadi…"
+          <label htmlFor={uid+'-catatan'}>Catatan</label>
+          <textarea id={uid+'-catatan'} className="input" value={t.note} placeholder="Tambah catatan pribadi…"
             onChange={(e: any) => mt.setNote(t.id, e.target.value)}
             style={{ height: 60, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
         </div>

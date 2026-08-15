@@ -82,6 +82,7 @@ function DRow({ l, v, accent, bold }: { key?: string; l: string; v: string | num
 }
 
 function DataPersonalSaya() {
+  const uid = React.useId();
   const fmt = AMS.fmt;
   const rp = AMS.rp;
   const auth = useAuth();
@@ -292,12 +293,12 @@ function DataPersonalSaya() {
       <Panel noBody>
         <div className="panel-h"><span className="row ac gap8"><I.plus size={14} /><h3 style={{ margin: 0 }}>Ajukan Cuti</h3></span></div>
         <div style={{ padding: 14, display: 'grid', gap: 10 }}>
-          <div className="field"><label>Jenis Cuti</label><select className="select" value={lvForm.type} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, type: e.target.value }))}>{LEAVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-jenis-cuti'}>Jenis Cuti</label><select id={uid+'-jenis-cuti'} className="select" value={lvForm.type} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, type: e.target.value }))}>{LEAVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Dari</label><input className="input" type="date" value={lvForm.from} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, from: e.target.value }))} /></div>
-            <div className="field"><label>Sampai</label><input className="input" type="date" value={lvForm.to} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, to: e.target.value }))} /></div>
+            <div className="field"><label htmlFor={uid+'-dari'}>Dari</label><input id={uid+'-dari'} className="input" type="date" value={lvForm.from} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, from: e.target.value }))} /></div>
+            <div className="field"><label htmlFor={uid+'-sampai'}>Sampai</label><input id={uid+'-sampai'} className="input" type="date" value={lvForm.to} onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, to: e.target.value }))} /></div>
           </div>
-          <div className="field"><label>Alasan</label><input className="input" value={lvForm.reason} placeholder="mis. Keperluan keluarga" onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, reason: e.target.value }))} /></div>
+          <div className="field"><label htmlFor={uid+'-alasan'}>Alasan</label><input id={uid+'-alasan'} className="input" value={lvForm.reason} placeholder="mis. Keperluan keluarga" onChange={(e: { target: { value: string } }) => setLvForm((f: typeof lvForm) => ({ ...f, reason: e.target.value }))} /></div>
           <Btn variant="primary" disabled={busy} style={{ opacity: busy ? 0.6 : 1, justifyContent: 'center' }} onClick={doSubmitLeave}><I.send size={14} /> {busy ? 'Mengirim…' : 'Ajukan Permohonan'}</Btn>
           <div className="tiny muted">Permohonan masuk sebagai <b>Menunggu</b> dan disetujui/ditolak oleh HRD di modul Cuti.</div>
         </div>

@@ -325,6 +325,7 @@ function WpEvidenceLink({ moduleId }: any) {
    Penilaian auditor (SA 230) — BERDAMPINGAN dengan verdict otomatis canon, bukan
    menggantikannya. Disposisi terstruktur + rasional bebas, lock LUNAK. */
 function WpConclusion({ moduleId }: any) {
+  const uid = React.useId();
   const { conclusion, saveConclusion, locked } = useWpSignoff(moduleId);
   const baseText = (conclusion && conclusion.text) || '';
   const baseDisp = (conclusion && conclusion.disposition) || WP_DISPOSITIONS[0];
@@ -335,8 +336,8 @@ function WpConclusion({ moduleId }: any) {
   return (
     <div>
       <div className="field" style={{ marginBottom: 8 }}>
-        <label className="tiny muted" style={{ fontWeight: 700 }}>Disposisi</label>
-        <select className="select" value={disp} onChange={(e: any) => setDisp(e.target.value)} disabled={locked}>
+        <label htmlFor={uid+'-disposisi'} className="tiny muted" style={{ fontWeight: 700 }}>Disposisi</label>
+        <select id={uid+'-disposisi'} className="select" value={disp} onChange={(e: any) => setDisp(e.target.value)} disabled={locked}>
           {WP_DISPOSITIONS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>

@@ -20,6 +20,7 @@ const LEASES = AMS_CANON.LEASES;
 const leaseCalc = AMS_CANON.leaseCalc;
 
 function LeaseCalculator() {
+  const uid = React.useId();
   const { fmt } = AMS;
   const nav = useNav();
   const [selId, setSelId] = useStateL('LS-01');
@@ -131,8 +132,8 @@ function LeaseCalculator() {
               <Panel title="Parameter Sewa" sub={cur.id}>
                 <SliderRow label="Jangka Waktu (bulan)" value={cur.termMo} min={12} max={120} step={6} suffix=" bln" onChange={(v: any) => set('termMo', v)} />
                 <div className="field" style={{ marginBottom: 14 }}>
-                  <label>Pembayaran Bulanan</label>
-                  <input type="number" value={cur.pmt} step={5_000_000} onChange={(e: any) => set('pmt', +e.target.value)} className="input mono" style={{ textAlign: 'right' }} />
+                  <label htmlFor={uid+'-pembayaran-bulanan'}>Pembayaran Bulanan</label>
+                  <input id={uid+'-pembayaran-bulanan'} type="number" value={cur.pmt} step={5_000_000} onChange={(e: any) => set('pmt', +e.target.value)} className="input mono" style={{ textAlign: 'right' }} />
                   <div className="tiny muted mono">Rp {fmt(cur.pmt)}</div>
                 </div>
                 <SliderRow label="Incremental Borrowing Rate" value={cur.rate} min={5} max={15} step={0.25} suffix="%" onChange={(v: any) => set('rate', v)} hint="Suku bunga pinjaman inkremental" />

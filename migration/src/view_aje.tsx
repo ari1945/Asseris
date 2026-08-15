@@ -585,6 +585,7 @@ interface AjeReverseModalProps {
 }
 
 function AjeReverseModal({ a, fmt, onClose, onConfirm }: AjeReverseModalProps) {
+  const uid = React.useId();
   const [reason, setReason] = useStateAJ('');
   const ok = reason.trim().length >= 10;
   return (
@@ -626,8 +627,8 @@ function AjeReverseModal({ a, fmt, onClose, onConfirm }: AjeReverseModalProps) {
           </div>
         </div>
         <div className="field">
-          <label>Alasan pembalikan <span className="muted">(wajib, minimal 10 karakter — masuk jejak audit)</span></label>
-          <textarea
+          <label htmlFor={uid+'-alasan-pembalikan-wajib'}>Alasan pembalikan <span className="muted">(wajib, minimal 10 karakter — masuk jejak audit)</span></label>
+          <textarea id={uid+'-alasan-pembalikan-wajib'}
             className="input"
             style={{ width: '100%', height: 68, padding: '7px 9px', resize: 'none', fontFamily: 'inherit' }}
             placeholder="mis. Akun beban salah — seharusnya 5-2100 Beban Penjualan, bukan 5-3100."

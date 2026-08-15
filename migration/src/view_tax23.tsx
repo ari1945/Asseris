@@ -535,6 +535,7 @@ function T23Detail({ r, onClose, nav, toggle, onExportBukti, exporting }: any) {
 
 /* ---------------- Form bukti potong baru ---------------- */
 function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const OBJ = window.TAX23.OBJECTS;
   const [party, setParty] = useStateT23('');
@@ -557,13 +558,13 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
-            <div className="field"><label>Lawan Transaksi</label><input className="input" value={party} onChange={(e: any) => setParty(e.target.value)} placeholder="PT / CV penerima penghasilan" /></div>
-            <div className="field"><label>Masa Pajak</label><select className="select" value={masa} onChange={(e: any) => setMasa(e.target.value)}>{['2026-01', '2026-02', '2026-03'].map(m => <option key={m} value={m}>{window.TAX23.MASA_LABEL[m]}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-lawan-transaksi'}>Lawan Transaksi</label><input id={uid+'-lawan-transaksi'} className="input" value={party} onChange={(e: any) => setParty(e.target.value)} placeholder="PT / CV penerima penghasilan" /></div>
+            <div className="field"><label htmlFor={uid+'-masa-pajak'}>Masa Pajak</label><select id={uid+'-masa-pajak'} className="select" value={masa} onChange={(e: any) => setMasa(e.target.value)}>{['2026-01', '2026-02', '2026-03'].map(m => <option key={m} value={m}>{window.TAX23.MASA_LABEL[m]}</option>)}</select></div>
           </div>
-          <div className="field"><label>NPWP / NIK <span className="tiny muted">— NIK 16 digit = NPWP OP (Coretax); kosongkan bila tidak ber-NPWP (tarif ×2)</span></label><input className="input mono" value={npwp} onChange={(e: any) => setNpwp(e.target.value)} placeholder="00.000.000.0-000" /></div>
+          <div className="field"><label htmlFor={uid+'-npwp-nik-nik'}>NPWP / NIK <span className="tiny muted">— NIK 16 digit = NPWP OP (Coretax); kosongkan bila tidak ber-NPWP (tarif ×2)</span></label><input id={uid+'-npwp-nik-nik'} className="input mono" value={npwp} onChange={(e: any) => setNpwp(e.target.value)} placeholder="00.000.000.0-000" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
-            <div className="field"><label>Objek Pajak</label><select className="select" value={obj} onChange={(e: any) => setObj(e.target.value)}>{Object.keys(OBJ).map(o => <option key={o}>{o}</option>)}</select></div>
-            <div className="field"><label>DPP (Rp)</label><input className="input mono" type="number" value={dpp} onChange={(e: any) => setDpp(+e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label htmlFor={uid+'-objek-pajak'}>Objek Pajak</label><select id={uid+'-objek-pajak'} className="select" value={obj} onChange={(e: any) => setObj(e.target.value)}>{Object.keys(OBJ).map(o => <option key={o}>{o}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-dpp-rp'}>DPP (Rp)</label><input id={uid+'-dpp-rp'} className="input mono" type="number" value={dpp} onChange={(e: any) => setDpp(+e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
           <div className="panel" style={{ padding: '11px 13px', background: hasNpwp ? 'var(--surface-2)' : 'var(--red-bg)', borderColor: 'transparent' }}>
             <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny muted">Tarif {rate}%{!hasNpwp ? ' × 2 (tanpa NPWP) = ' + effRate + '%' : ''} · {(OBJ[obj] || {}).art}</span><span className="mono tiny" style={{ fontWeight: 700, color: hasNpwp ? 'inherit' : 'var(--red)' }}>{effRate}%</span></div>

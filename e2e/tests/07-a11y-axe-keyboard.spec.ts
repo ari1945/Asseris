@@ -17,6 +17,23 @@ import { gotoModule, login, USERS } from '../helpers';
 const CRITICAL_GATE = true; // gerbang CI: zero impact "critical"
 const SERIOUS_LOG = true;   // lapor serious ke console untuk triase
 
+/* Penjaga runtime untuk kelas cacat yang TAK dapat diputuskan pemindai sumber:
+   id kontrol form yang kembar. `React.useId()` unik per instans komponen, bukan
+   per iterasi, sehingga sebuah `.field` di dalam `.map()` bisa memberi id yang
+   sama ke seluruh baris — dan setiap <label htmlFor> lalu menunjuk kontrol
+   PERTAMA saja. Di DOM hidup ini sepele diperiksa. */
+async function assertNoDuplicateControlIds(page: import('@playwright/test').Page, label: string) {
+  const dupes = await page.evaluate(() => {
+    const seen = new Map<string, number>();
+    for (const el of Array.from(document.querySelectorAll('input[id], select[id], textarea[id]'))) {
+      const id = el.getAttribute('id') || '';
+      seen.set(id, (seen.get(id) || 0) + 1);
+    }
+    return Array.from(seen.entries()).filter(([, n]) => n > 1).map(([id, n]) => `${id} ×${n}`);
+  });
+  expect(dupes, `${label}: id kontrol form kembar — <label htmlFor> hanya akan menunjuk yang pertama`).toEqual([]);
+}
+
 async function scanAndAssert(page: import('@playwright/test').Page, label: string) {
   const results = await new AxeBuilder({ page })
     // Aturan yang sengaja dimatikan: kontras adalah keputusan desain yang sudah
@@ -39,6 +56,7 @@ async function scanAndAssert(page: import('@playwright/test').Page, label: strin
   if (CRITICAL_GATE) {
     expect(critical, `axe ${label}: pelanggaran critical tidak boleh ada`).toHaveLength(0);
   }
+  await assertNoDuplicateControlIds(page, label);
   if (SERIOUS_LOG && serious.length > 0) {
      
     console.warn(`[axe] ${label}: ${serious.length} pelanggaran serious belum ditutup (bukan gerbang).`);
