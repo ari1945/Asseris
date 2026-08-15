@@ -16,6 +16,10 @@ import {
   progressBridge, phaseRollups, PHASE_BUDGET_WEIGHT, CKP_PHASE_ORDER,
   type ModuleWpStatus, type PhaseRollup, type ProgressBridge,
 } from './cockpit_progress';
+import {
+  engagementStart, engagementMilestones, timelineSpan,
+  type CockpitMilestone, type EngagementStart, type TimelineSpan,
+} from './cockpit_timeline';
 
 /* ============================================================
    Asseris — Engagement Cockpit (DEEP)
@@ -38,18 +42,13 @@ const ckpModuleLabel = (id: string): string => {
   return (m && m.label) || id;
 };
 
-/* engagement lifecycle milestones (critical path) */
-const CKP_MILESTONES = [
-  { n: 1, name: 'Perencanaan & Strategi Audit', phase: 'Perencanaan', date: '2026-01-15', owner: 'Anindya Pramesti', status: 'done', sa: 'SA 300' },
-  { n: 2, name: 'Penilaian Risiko & Materialitas', phase: 'Perencanaan', date: '2026-01-28', owner: 'Anindya Pramesti', status: 'done', sa: 'SA 315 · SA 320' },
-  { n: 3, name: 'Walkthrough & Uji Pengendalian (ICFR)', phase: 'Perencanaan', date: '2026-02-12', owner: 'Dimas Raharjo', status: 'risk', sa: 'SA 330', note: 'ICFR 75% — sedikit di belakang jadwal.' },
-  { n: 4, name: 'Eksekusi Prosedur Substantif', phase: 'Eksekusi', date: '2026-03-20', owner: 'Tim Lapangan', status: 'active', sa: 'SA 330 · SA 500' },
-  { n: 5, name: 'Penyelesaian Area Spesifik (ECL · Sewa · GC)', phase: 'Specifics', date: '2026-03-24', owner: 'Sinta Wulandari', status: 'active', sa: 'PSAK 71/73 · SA 570' },
-  { n: 6, name: 'Draft Laporan Keuangan & SAD', phase: 'Finalisasi', date: '2026-03-27', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 450' },
-  { n: 7, name: 'Review Partner & EQR (SMM)', phase: 'Finalisasi', date: '2026-03-29', owner: 'Hartono Wijaya', status: 'upcoming', sa: 'SMM 2 · SA 220' },
-  { n: 8, name: 'Tanda Tangan Opini & Penerbitan', phase: 'Finalisasi', date: '2026-03-31', owner: 'Hartono Wijaya', status: 'upcoming', sa: 'SA 700' },
-  { n: 9, name: 'Arsip Dokumentasi (SMM · 60 hari)', phase: 'Arsip', date: '2026-04-30', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 230' },
-];
+/* PR-C-4: `CKP_MILESTONES` (9 baris ber-date/owner/status hardcode) dan
+   `CKP_START = new Date('2026-01-06')` DICABUT. Ganti perikatan aktif dulu tak
+   mengubah satu pun dari keduanya, dan badge "LEWAT TARGET" dihitung terhadap
+   tanggal yang tak ada hubungannya dengan perikatan yang sedang dibuka. Jalur
+   kritis kini diturunkan di `cockpit_timeline.ts` — lihat catatan Q1 di sana
+   tentang dari mana tanggal mulai berasal dan mengapa hanya tiga milestone
+   yang boleh bertanggal. */
 
 /* PR-C-1: jam & ekonomi per anggota TIDAK lagi hidup di sini. Dulu berkas ini
    memegang `CKP_TEAM_W` (array bobot literal) + `CKP_RATE`/`rateFor` dan membagi
@@ -62,7 +61,6 @@ const CKP_MILESTONES = [
 const CKP_SERIES = ['var(--navy-700)', 'var(--blue-solid)', 'var(--blue-400)', 'var(--teal-solid)', 'var(--purple-solid)', 'var(--amber-solid)'];
 
 const CKP_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
-const CKP_START = new Date('2026-01-06');
 
 const idDate = (s: any) => new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
 const rpM = (n: any) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
@@ -124,10 +122,14 @@ function EVBar({ label, pct, tone, hint }: any) {
 function EngagementCockpit() {
   const { fmt } = AMS;
   const nav = useNav();
-  const { activeEngagement, activeClient } = useFirm();
+  /* PR-C-4: konteks UTUH dipertahankan (bukan hanya field yang di-destructure)
+     karena `engagementGate` menerima objek audit & firm apa adanya. */
+  const firmCtx = useFirm();
+  const { activeEngagement, activeClient } = firmCtx;
   /* PR-C-1: `timeEntries` ikut dilanggan — tanpa ini cockpit membaca `e.actualHrs`
      statis dari seed dan INERT terhadap timesheet yang dicatat di Time & Budget. */
-  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState, timeEntries } = useAuditHeavy(['reviewNotes', 'timeEntries']);  // P5 Fase 2: catatan engagement aktif
+  const auditCtx = useAuditHeavy(['reviewNotes', 'timeEntries']);  // P5 Fase 2: catatan engagement aktif
+  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState, timeEntries } = auditCtx;
   const e = activeEngagement;
   const [tab, setTab] = useStateCkp('ringkasan');
 
@@ -142,10 +144,13 @@ function EngagementCockpit() {
     const overall = Math.round(bridge.provenPct);
     const asserted = bridge.assertedPct;
 
-    const dl = new Date(e.deadline);
-    const totalDays = Math.max(1, (+dl - +CKP_START) / 86400000);
-    const elapsedPct = Math.min(100, Math.max(0, (+CKP_TODAY - +CKP_START) / 86400000 / totalDays * 100));
-    const daysLeft = Math.round((+dl - +CKP_TODAY) / 86400000);
+    /* PR-C-4: mulai & waktu berjalan dari data perikatan (rantai sumber
+       ber-dasar di cockpit_timeline), bukan `new Date('2026-01-06')`. */
+    const start = engagementStart(e);
+    const span = timelineSpan(start, e.deadline, AMS.TODAY);
+    const elapsedPct = span.elapsedPct == null ? 0 : span.elapsedPct;
+    const elapsedKnown = span.elapsedPct != null;
+    const daysLeft = span.daysLeftToDeadline == null ? 0 : span.daysLeftToDeadline;
 
     /* review notes (engagement scope) */
     const openNotes = reviewNotesActive.filter((n: any) => n.status === 'open');
@@ -237,7 +242,17 @@ function EngagementCockpit() {
 
     return {
       overall, asserted, econBase, bridge, rolls, wpStatuses, untaggedHrs, tsTotal,
-      elapsedPct, daysLeft, burnPct,
+      elapsedPct, elapsedKnown, daysLeft, burnPct,
+      /* PR-C-4 · jalur kritis turunan */
+      start, span,
+      milestones: engagementMilestones({
+        engagement: e, start,
+        gates: {
+          toEksekusi: engagementGate(auditCtx, firmCtx, { fromPhase: 'Perencanaan', nextPhase: 'Eksekusi' }),
+          toFinalisasi: engagementGate(auditCtx, firmCtx, { fromPhase: 'Eksekusi', nextPhase: 'Finalisasi' }),
+          toArsip: engagementGate(auditCtx, firmCtx, { fromPhase: 'Finalisasi', nextPhase: 'Arsip' }),
+        },
+      }),
       openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
       sigRisks, fraudRisks, excTot, sigAreas, sigCovered, sigCoverage,
       /* PR-C-5 · isolasi tampilan: hanya kejadian & tenggat MILIK perikatan ini */
@@ -582,31 +597,50 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
 const MS_TONE = { done: 'green', active: 'blue', risk: 'amber', upcoming: 'gray' };
 const MS_LABEL = { done: 'Selesai', active: 'Berjalan', risk: 'Berisiko', upcoming: 'Akan datang' };
 function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
-  const span = Math.max(1, (+new Date(CKP_MILESTONES[CKP_MILESTONES.length - 1].date) - +CKP_START) / 86400000);
-  const posOf = (d: any) => Math.min(100, Math.max(0, (+new Date(d) - +CKP_START) / 86400000 / span * 100));
-  const todayPos = posOf(CKP_TODAY.toISOString().slice(0, 10));
-  /* PR-C-5: HANYA tenggat perikatan ini. Dulu daftar sengaja dipadatkan sampai
-     empat baris dengan tenggat KLIEN LAIN (`others`), tanpa penanda apa pun —
-     tenggat PT Graha Properti tampil di ruang kerja PT Sentosa Makmur. Kosong
-     kini dikatakan kosong. Pencocokan exact-match nama klien kanonik (sama
-     dengan deriveDeadlineTasks), bukan `includes` atas potongan nama. */
+  /* PR-C-4: rail & milestone SELURUHNYA turunan (cockpit_timeline). Hanya tiga
+     milestone yang bertanggal karena hanya tiga tanggal yang benar-benar
+     diketahui; sisanya menulis "—" alih-alih menebak. */
+  const span: TimelineSpan = D.span;
+  const start: EngagementStart | null = D.start;
+  const milestones: CockpitMilestone[] = D.milestones;
+  const todayPos = span.posOf(AMS.TODAY);
+  const done = milestones.filter((m) => m.status === 'done').length;
+  /* PR-C-5: HANYA tenggat perikatan ini. */
   const shown = D.deadlinesEng;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
       {/* horizontal rail */}
       <Panel noBody>
-        <div className="panel-h"><h3>Jalur Kritis Engagement</h3><span className="sub">{CKP_MILESTONES.filter((m: any) => m.status === 'done').length}/{CKP_MILESTONES.length} milestone selesai · hari ini {idDate(CKP_TODAY.toISOString())}</span></div>
-        <div style={{ padding: '26px 22px 16px' }}>
-          <div className="ckp-rail">
-            <div className="ckp-rail-line" />
-            <div className="ckp-rail-fill" style={{ width: todayPos + '%' }} />
-            <div className="ckp-today" style={{ left: todayPos + '%' }}><span>HARI INI</span></div>
-            {CKP_MILESTONES.map((m: any) => (
-              <div key={m.n} className="ckp-node" style={{ left: posOf(m.date) + '%' }} title={m.name}>
-                <span className="ckp-dot" style={{ background: (TONE as any)[(MS_TONE as any)[m.status]], boxShadow: m.status === 'active' ? `0 0 0 4px ${TONE_BG.blue}` : 'none' }}>{m.status === 'done' ? '✓' : m.n}</span>
-              </div>
-            ))}
+        <div className="panel-h">
+          <h3>Jalur Kritis Engagement</h3>
+          <span className="sub">{done}/{milestones.length} tahap selesai · hari ini {idDate(AMS.TODAY)}</span>
+        </div>
+        <div style={{ padding: '26px 22px 8px' }}>
+          {todayPos == null ? (
+            <div className="ckp-info"><I.alert size={13} /> Rail waktu tak dapat digambar: tanggal mulai perikatan tak terukur.</div>
+          ) : (
+            <div className="ckp-rail">
+              <div className="ckp-rail-line" />
+              <div className="ckp-rail-fill" style={{ width: todayPos + '%' }} />
+              <div className="ckp-today" style={{ left: todayPos + '%' }}><span>HARI INI</span></div>
+              {milestones.filter((m) => m.dateIso).map((m, i) => {
+                const pos = span.posOf(m.dateIso);
+                return pos == null ? null : (
+                  <div key={m.key} className="ckp-node" style={{ left: pos + '%' }} title={`${m.name} — ${idDate(m.dateIso as string)} (${m.dateBasis})`}>
+                    <span className="ckp-dot" style={{ background: (TONE as any)[(MS_TONE as any)[m.status]], boxShadow: m.status === 'active' ? `0 0 0 4px ${TONE_BG.blue}` : 'none' }}>{m.status === 'done' ? '✓' : i + 1}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div style={{ padding: '0 22px 14px' }}>
+          <div className="ckp-info">
+            <I.calendar size={13} />
+            <span>{start
+              ? <>Rail membentang {idDate(start.iso)} → {span.endIso ? idDate(span.endIso) : '—'}. Mulai memakai <b>{start.label}</b>; batas arsip = tenggat + 60 hari (SMM 1 · SA 230). Hanya tahap dengan tanggal berdasar yang diplot.</>
+              : <>Tanggal mulai perikatan tak terukur — tak ada <code>startDate</code>, tak ada tanggal putusan penerimaan, dan tahun buku tak terbaca.</>}</span>
           </div>
         </div>
       </Panel>
@@ -614,29 +648,39 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
         {/* milestone list */}
         <Panel noBody>
-          <div className="panel-h"><h3>Milestone & Sign-off</h3></div>
+          <div className="panel-h"><h3>Tahap & Gerbang</h3><span className="sub">status dari fase perikatan · gerbang kanonik</span></div>
           <div style={{ padding: '6px 6px 10px' }}>
-            {CKP_MILESTONES.map((m: any) => {
+            {milestones.map((m, i) => {
               const tone = (MS_TONE as any)[m.status];
-              const overdue = m.status !== 'done' && new Date(m.date) < CKP_TODAY;
+              /* "LEWAT TARGET" hanya bila tanggalnya NYATA & sudah terlewat */
+              const overdue = !!m.dateIso && m.status !== 'done' && new Date(m.dateIso) < CKP_TODAY;
               return (
-                <div key={m.n} className="ckp-ms">
-                  <span className="ckp-ms-dot" style={{ background: (TONE as any)[tone] }}>{m.status === 'done' ? <I.check size={13} /> : m.n}</span>
+                <div key={m.key} className="ckp-ms">
+                  <span className="ckp-ms-dot" style={{ background: (TONE as any)[tone] }}>{m.status === 'done' ? <I.check size={13} /> : i + 1}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 12, fontWeight: 700 }}>{m.name}</span>
                       <span className="chip tiny" style={{ height: 17, fontFamily: 'var(--mono)' }}>{m.sa}</span>
                       {overdue && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>LEWAT TARGET</span>}
+                      {m.blockers > 0 && <span className="badge b-amber" style={{ fontSize: 11, padding: '0 5px' }}>{m.blockers} PRASYARAT</span>}
                     </div>
-                    <div className="tiny muted" style={{ marginTop: 2 }}>{m.phase} · {m.owner}{m.note ? ' · ' + m.note : ''}</div>
+                    <div className="tiny muted" style={{ marginTop: 2 }}>
+                      {m.phase} · {m.owner}
+                      {m.gateTotal != null && <> · gerbang {m.gateMet}/{m.gateTotal} terpenuhi</>}
+                      {m.dateBasis && m.dateIso && <> · dasar tanggal: {m.dateBasis}</>}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
-                    <div className="mono tiny" style={{ fontWeight: 700 }}>{idDate(m.date)}</div>
+                    <div className="mono tiny" style={{ fontWeight: 700 }}>{m.dateIso ? idDate(m.dateIso) : <span className="muted" style={{ fontWeight: 400 }}>—</span>}</div>
                     <Badge kind={tone === 'gray' ? 'gray' : tone}>{(MS_LABEL as any)[m.status]}</Badge>
                   </div>
                 </div>
               );
             })}
+            <div className="ckp-info" style={{ margin: '6px 10px 0' }}>
+              <I.lock size={13} />
+              <span>Tahap tanpa tanggal ditulis <b>“—”</b>: hanya mulai, tenggat pelaporan, dan batas arsip yang punya dasar. Menginterpolasi tanggal fase di antaranya akan mengembalikan angka karangan yang baru saja dicabut.</span>
+            </div>
           </div>
         </Panel>
 
