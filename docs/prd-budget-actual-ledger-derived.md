@@ -361,3 +361,32 @@ bahwa neraca tetap seimbang saat rusak.
 JV-0319 dengan 6 jurnal seed. Kini dari nomor tertinggi yang ada + 1.
 
 Uji **1791 → 1812** (+21). Ratchet `:any` **8058 → 8057**. `npm run verify` hijau.
+
+### Verifikasi hidup Bagian B
+
+Dijalankan dengan kunci `ams.v1.firm.FIRM-WHR.firmgl` sengaja dikembalikan ke 6 jurnal lama:
+
+| Yang diperiksa | Hasil |
+|---|---|
+| Firm Finance (lewat `use_firm_coa`) dengan kunci MASIH basi | Pendapatan Rp 11,3 M · Laba 2,80 M · Kas 8,42 M — **benar** |
+| Neraca Saldo Firm GL | Kas 8.420 · Piutang 4.440 · WIP 9.300 · Pendapatan 11.300 · total 36.760 seimbang |
+| Kunci persist setelah Firm GL dibuka | sembuh **6 → 12** jurnal |
+| Buku besar 1-300 (dulu KOSONG) | awal 8.090 → JV-0313 +2.850 → JV-0314 −1.640 → **akhir 9.300** |
+
+### Cacat kedua yang ditemukan verifikasi hidup: tab "Buku Besar" crash
+
+Membuka tab itu menggagalkan **seluruh modul** Firm GL ("Gagal merender modul firmgl").
+`accountLedger()` mengembalikan baris tanpa `dr`/`cr`, sedangkan view merender lawan akun
+lewat `r.dr2 ? r.cr : r.dr` lalu `.slice()` atas hasil `acctName()`-nya —
+`acctName(undefined)` mengembalikan `undefined`, dan `.slice()` melempar.
+
+**Cacat lama, ada di `master`, terbukti hidup di sana sebelum diperbaiki.** Akun default
+tab ini 1-100 yang punya mutasi, jadi crash terjadi setiap kali tab dibuka: tab itu mati
+sejak Program E (#234). Baris tabel diketik `any` — itu yang menyembunyikannya dari
+`typecheck` sejak awal; menggantinya dengan `LedgerRow` langsung membuka satu cacat tipe
+lagi (`new Date` atas `date` opsional).
+
+Diperbaiki dalam #243 karena berada di dua berkas yang sama. Uji barunya meniru persis
+ekspresi view dan dibuktikan merah dengan mencabut `dr`/`cr`.
+
+**Total Bagian B:** uji 1791 → 1815 (+24). Ratchet `:any` 8058 → 8056.
