@@ -5,6 +5,10 @@ import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 import { amsExportPdf } from './export_pdf';
+import { leaveLedgerOf } from './canon_leave';
+import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
+
+const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as LeaveRequestInput[] : []);
 
 /* ============================================================
    Asseris — HCM deepening: 360° Profile drawer + Analytics
@@ -46,6 +50,7 @@ function Profile360Drawer({ s, onClose }: any) {
   const [profiles] = useAmsPersist('staffProfile', () => A.STAFF_PROFILE);
   const [payAll] = useAmsPersist('payrollData', () => A.PAYROLL);
   const [lvAll] = useAmsPersist('leaveBalance', () => A.LEAVE_BALANCE);
+  const [lvReqs] = useAmsPersist('leaveReqs', () => A.LEAVE_REQUESTS);
   const [cpeAll] = useAmsPersist('cpeLog', () => A.CPE_LOG);
   const [perfAll] = useAmsPersist('perfPeople', () => (A.PERF_CYCLE.people || {}));
   const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
@@ -53,9 +58,13 @@ function Profile360Drawer({ s, onClose }: any) {
   const p = profileOf(s, profiles);
   const tenure = 2026 - s.joined;
   const pay = (payAll || {})[s.id];
-  const lv = (lvAll || {})[s.id];
-  const lvTotal = lv ? lv.ent + lv.carry : 12;
-  const lvLeft = lv ? lvTotal - lv.used : 12;
+  /* PRD sdm-kepatuhan PR-1 — saldo cuti DITURUNKAN dari register permintaan
+     (canon_leave), bukan dari literal `ent`/`used` yang persetujuan tak pernah
+     menyentuhnya. Mesin yang sama dipakai modul Cuti & Data Personal Saya. */
+  const lvLedger = leaveLedgerOf(s.id, s.joined, arrLv(lvReqs), (lvAll || {})[s.id]?.carry || 0,
+    String(AMS.TODAY || ''), AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar);
+  const lvTotal = lvLedger.quota;
+  const lvLeft = lvLedger.remaining;
   const cpe = ((cpeAll || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
   const perf = (perfAll || {})[s.id];
   const indep = (indepAll || []).find((d: any) => d.id === s.id);
@@ -87,7 +96,7 @@ function Profile360Drawer({ s, onClose }: any) {
           { type: 'heading', text: 'Identitas & Posisi' },
           { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure + ' tahun']] },
           { type: 'heading', text: 'Kompensasi & Pengembangan' },
-          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Cuti (ent + carry)', lvTotal + ' hari · sisa ' + lvLeft]] },
+          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
         ],
       });
     } finally {

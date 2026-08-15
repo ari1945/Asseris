@@ -31,7 +31,7 @@ export type PersonalShape = ArrayShape | ObjectShape;
 export const PERSONAL_KEYS: Record<string, PersonalShape> = {
   payrollData: { mode: 'object' }, // AMS.PAYROLL — { [empId]: {gross,allowance,...} }
   leaveReqs: { mode: 'array', field: 'emp' }, // AMS.LEAVE_REQUESTS
-  leaveBalance: { mode: 'object' }, // AMS.LEAVE_BALANCE — { [empId]: {ent,used,carry} }
+  leaveBalance: { mode: 'object' }, // AMS.LEAVE_BALANCE — { [empId]: {carry} }; ent/used DITURUNKAN (canon_leave)
   perfPeople: { mode: 'object' }, // AMS.PERF_CYCLE.people — { [empId]: {...} }
   perfGoals: { mode: 'object' }, // AMS.PERF_CYCLE.goals — { [empId]: [...] }
   cpeExtra: { mode: 'object' }, // manual SKP log additions — { [empId]: [...] }

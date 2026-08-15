@@ -1,5 +1,7 @@
 import React from 'react';
 import { AMS } from './data';
+import { evaluateLeaveRow, leaveLedgerOf } from './canon_leave';
+import type { HolidayCalendar } from './canon_leave';
 import { useAmsPersist, useAuth } from './contexts';
 import { resolveEmpId } from './ethics_compliance';
 import { personalSubmitLeave, personalDeclare } from './api';
@@ -23,7 +25,7 @@ type PayRec = { gross: number; allowance: number; ptkp: string; ter: number };
 type PayRates = { kesEmp: number; kesCap: number; jhtEmp: number; jpEmp: number; jpCap: number };
 type Emergency = { name?: string; rel?: string; phone?: string };
 type Prof = { salaryBand?: string; band?: string; empType?: string; location?: string; npwp?: string; nik?: string; bpjsKes?: string; bpjsTk?: string; emergency?: Emergency };
-type Bal = { ent: number; used: number; carry: number };
+type Bal = { carry?: number };
 type LeaveReq = { id: string; type: string; from: string; to: string; days: number; status: string; reason?: string; emp?: string };
 type SkpRec = { t: string; type: string; skp: number; date: string };
 type IndepRec = { id?: string; declared: boolean; conflicts: number; rotationClient: string; tenure: number; rotationLimit: number; finInterest?: string; sektor?: string; basis?: string; cooloff?: number };
@@ -138,8 +140,13 @@ function DataPersonalSaya() {
   const myPerf = perfAll[empId];
   const myGoals = goalsAll[empId] || [];
   const myProf = profAll[empId];
-  const lvTotal = bal ? bal.ent + (bal.carry || 0) : 0;
-  const lvLeft = bal ? lvTotal - bal.used : 0;
+  /* PRD sdm-kepatuhan PR-1 — saldo cuti DITURUNKAN dari register permintaan
+     (canon_leave), bukan literal `ent`/`used`. Mesin yang sama dipakai modul
+     Cuti & Kehadiran dan drawer profil HCM. */
+  const lvLedger = leaveLedgerOf(empId, staff.joined, reqData, bal?.carry || 0,
+    String(AMS.TODAY || ''), AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar);
+  const lvTotal = lvLedger.quota;
+  const lvLeft = lvLedger.remaining;
   const payBase = pay ? pay.gross + pay.allowance : 0;
   const payPph = pay ? Math.round(payBase * pay.ter) : 0;
 
@@ -203,16 +210,17 @@ function DataPersonalSaya() {
       </>);
       case 'leave': return (<>
         {bal ? (<>
-          <DRow l="Kuota tahunan" v={bal.ent + ' hari'} />
-          <DRow l="Saldo tahun lalu" v={(bal.carry || 0) + ' hari'} />
-          <DRow l="Terpakai" v={bal.used + ' hari'} />
+          <DRow l="Hak cuti tahunan" v={lvLedger.entitlement.days + ' hari'} />
+          <DRow l="Saldo tahun lalu" v={lvLedger.carryUsable + ' hari'} />
+          <DRow l="Terpakai (disetujui)" v={lvLedger.used + ' hari kerja'} />
+          <DRow l="Diajukan (menunggu)" v={lvLedger.pending + ' hari kerja'} />
           <DRow l="Sisa" v={lvLeft + ' hari'} bold accent={lvLeft <= 2 ? 'var(--amber)' : 'var(--green)'} />
         </>) : <div className="tiny muted">Saldo cuti Anda belum tersedia.</div>}
         <div className="tiny muted upper" style={{ marginTop: 8 }}>Riwayat Pengajuan</div>
         {myReqs.length ? myReqs.map((r) => (
           <div key={r.id} className="panel" style={{ padding: '8px 10px', boxShadow: 'none' }}>
             <div className="row ac jb"><span className="tiny" style={{ fontWeight: 700 }}>{r.type}</span><Badge kind={LV_STAT[r.status] || 'gray'}>{r.status}</Badge></div>
-            <div className="tiny muted">{fmtDate(r.from)} – {fmtDate(r.to)} · {r.days} hari{r.reason ? ' · ' + r.reason : ''}</div>
+            <div className="tiny muted">{fmtDate(r.from)} – {fmtDate(r.to)} · {evaluateLeaveRow(r, AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar).days} hari kerja{r.reason ? ' · ' + r.reason : ''}</div>
           </div>
         )) : <div className="tiny muted">Tidak ada pengajuan cuti.</div>}
       </>);
@@ -403,7 +411,7 @@ function DataPersonalSaya() {
           <Section title="Cuti & Kehadiran" icon="calendar" onDetail={() => open('leave')}>
             {bal ? (
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 8 }}>
-                <Kv label="Kuota" v={bal.ent + ' hari'} /><Kv label="Terpakai" v={bal.used + ' hari'} /><Kv label="Sisa" v={lvLeft + ' hari'} accent={lvLeft <= 2 ? 'var(--amber)' : 'var(--green)'} />
+                <Kv label="Kuota" v={lvTotal + ' hari'} /><Kv label="Terpakai" v={lvLedger.used + ' hari'} /><Kv label="Sisa" v={lvLeft + ' hari'} accent={lvLeft <= 2 ? 'var(--amber)' : 'var(--green)'} />
               </div>
             ) : <div className="tiny muted" style={{ marginBottom: 8 }}>Saldo cuti Anda belum tersedia.</div>}
             {myReqs.length ? myReqs.slice(0, 3).map((r) => (

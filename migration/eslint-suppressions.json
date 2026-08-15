@@ -581,7 +581,7 @@
   },
   "src/view_hrops.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 46
+      "count": 22
     }
   },
   "src/view_icfr.tsx": {

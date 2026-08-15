@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 8 |
+| In Progress | 9 |
 | Implemented | 35 |
 | Superseded | 1 |
 
@@ -109,6 +109,7 @@
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-sales-pipeline-deepening.md | In Progress — Approved ("sesuai rekomendasi" 2026-08-15; Q-1..Q-5 = rekomendasi, Q-6 = opsi b dgn fallback a). PR-1 SELESAI (register tunggal intake+cross-sell · RBAC ENGAGEMENT_MANAGE · jejak audit · SC-1/2/9/10). PR-2 SELESAI (kesiapan penerimaan dari register prospek + independensi; 8 dari 14 peluang ternyata punya hal terbuka yang dulu hijau semua · SC-4/5). PR-3 SELESAI (serah-terima berhenti mengarang materialitas/gelar/jam; duplikat ditolak dengan pesan; `window.amsAddProspect` dicabut; konversi kini digerbangi materialitas SA 320 + partner SA 220.14 · SC-6). PR-4 SELESAI (riwayat tahap jadi data: umur, macet, konversi antar-tahap, win rate PER PERIODE, disiplin probabilitas; prob 100% tak lagi terbawa keluar dari Won · SC-11/12/13). PR-5 SELESAI (build-up jam×tarif; dua konstanta tarif lepas 700rb/800rb dicabut ke SSOT FIRMFIN.WIP_BILL; demand kapasitas dipisah tercatat vs estimasi · SC-7/8). PR-6 SELESAI (BI_WINLOSS literal dicabut → win/loss & alasan kalah diturunkan; kartu jadi button native + pindah-tahap tanpa tetikus; sheet beralamat — sekaligus menambal lubang kontrak V-9: sumbu sel/tab tak pernah DIBACA saat masuk dari luar · SC-3/14/15). **ARC TUNTAS** SC-1..SC-16; verify hijau penuh |
 | docs/prd-sa620-expert-gate-server.md | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab |
+| docs/prd-sdm-kepatuhan-deepening.md | In Progress — Approved 2026-08-16 (Q-1 = perbesar roster ~69 di PR-4 · Q-4 = blokir dgn override Partner · Q-6 = PR-1..PR-3 lalu checkpoint; Q-2/Q-3/Q-5 mengikuti rekomendasi). **PR-1 SELESAI** — cuti: `used` & `ent` literal dicabut, saldo diturunkan dari register permintaan; hari kerja = rentang − akhir pekan − hari libur (kalender SKB + gerbang cakupan tahun); gerbang persetujuan menolak overdraw/self-approve/rentang tak valid/cuti penting melebihi batas UU; 3 konsumen (hrops · pc_hcm · personal) lewat satu kanon. Nol-delta per-orang atas 12 pegawai; 2 baris seed cacat TERUNGKAP (LV-0049 & LV-0050). SC-4·5·6 tertutup. PR-2·PR-3 menunggu |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-smm1-smm2-adoption.md | Implemented — SELESAI 2026-08-13. Kedelapan PR merged (#198·#200·#201·#202·#203·#204·#205·#206), master 3c57a39. Q-1..Q-6 terjawab; retensi SMM ¶60 = 5 tahun (kertas kerja perikatan TETAP rezim terpisah) |
 | docs/prd-smm-toolkit-map.md | Draft — PR-8 arc SMM (Fase 5). Q-1 = Opsi B (kanon + panel) & Q-2 = risiko ilustratif dirumuskan ulang (Ari 2026-08-13); menunggu sign-off ("Proceed.") |

@@ -176,16 +176,78 @@ import { fmt } from './data_base';
     jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
     jkkEr: 0.0024, jkmEr: 0.003,
   };
-  /* Annual leave: 12 days entitlement; used so far in 2026 */
-  const LEAVE_BALANCE = {
-    'EMP-001': { ent: 12, used: 3, carry: 2 }, 'EMP-002': { ent: 12, used: 5, carry: 0 },
-    'EMP-003': { ent: 12, used: 2, carry: 1 }, 'EMP-007': { ent: 12, used: 4, carry: 3 },
-    'EMP-008': { ent: 12, used: 6, carry: 0 }, 'EMP-012': { ent: 12, used: 8, carry: 2 },
-    'EMP-021': { ent: 12, used: 1, carry: 0 }, 'EMP-022': { ent: 12, used: 3, carry: 0 },
-    'EMP-031': { ent: 12, used: 0, carry: 0 }, 'EMP-032': { ent: 12, used: 2, carry: 0 },
-    'EMP-501': { ent: 12, used: 2, carry: 1 }, 'EMP-601': { ent: 12, used: 4, carry: 0 }, // firm-ops (FIRM_STAFF)
+  /* ---- Kalender hari libur nasional (PRD sdm-kepatuhan PR-1) ----
+     Hari kerja sebuah permintaan cuti = rentang tanggal − akhir pekan − hari libur.
+     Tanpa daftar ini setiap perhitungan hari kerja MELEBIH-hitung, dan kelebihannya
+     tak terlihat oleh siapa pun.
+
+     `penetapan` membedakan yang tanggalnya tetap dari yang mengikuti kalender
+     Hijriah/Imlek/Saka — yang terakhir FINAL hanya lewat SKB 3 Menteri tiap tahun.
+     `confirmedThroughYear` menyatakan sampai tahun berapa isi ini sudah dicocokkan;
+     `holidayCoverage()` (canon_leave) menolak berpura-pura untuk tahun di atasnya.
+
+     Cuti bersama SENGAJA dikosongkan: ia diumumkan tahunan dan tak dapat diturunkan.
+     Mengarangnya akan membuat hari kerja kurang-hitung tanpa dasar. */
+  const LEAVE_HOLIDAYS = {
+    basis: 'SKB 3 Menteri tentang Hari Libur Nasional & Cuti Bersama',
+    confirmedThroughYear: 2026,
+    entries: [
+      { date: '2026-01-01', name: 'Tahun Baru Masehi', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-20', name: 'Idulfitri 1447 H (1 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-21', name: 'Idulfitri 1447 H (2 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-04-03', name: 'Wafat Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-01', name: 'Hari Buruh Internasional', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-05-14', name: 'Kenaikan Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-27', name: 'Iduladha 1447 H', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-06-01', name: 'Hari Lahir Pancasila', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-06-16', name: 'Tahun Baru Islam 1448 H', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-08-17', name: 'Hari Kemerdekaan RI', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-08-25', name: 'Maulid Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-12-25', name: 'Hari Raya Natal', kind: 'nasional', penetapan: 'tetap' },
+    ],
   };
+
+  /* ---- Saldo cuti BAWAAN tahun lalu ----
+     PRD sdm-kepatuhan PR-1: `ent` dan `used` DICABUT dari sini.
+
+     `used` dulu adalah literal, dan `LEAVE_REQUESTS` daftar terpisah yang tak
+     pernah menyentuhnya: menyetujui LV-0048 mengubah status barisnya dan
+     membiarkan saldo Dimas tetap 1. Kolom "Sisa", KPI "Pemanfaatan Kuota", dan
+     peringatan `sisa ≤ 2` semuanya berdiri di atas angka yang tak pernah disentuh
+     persetujuan apa pun. Kini `used` DITURUNKAN dari permintaan yang disetujui
+     (`canon_leave.leaveLedger`) dan `ent` dari tahun bergabung (UU 13/2003 Ps. 79).
+
+     `carry` bertahan karena ia satu-satunya fakta di sini yang memang TIDAK dapat
+     diturunkan dari peristiwa tahun berjalan. */
+  const LEAVE_BALANCE = {
+    'EMP-001': { carry: 2 }, 'EMP-002': { carry: 0 },
+    'EMP-003': { carry: 1 }, 'EMP-007': { carry: 3 },
+    'EMP-008': { carry: 0 }, 'EMP-012': { carry: 2 },
+    'EMP-021': { carry: 0 }, 'EMP-022': { carry: 0 },
+    'EMP-031': { carry: 0 }, 'EMP-032': { carry: 0 },
+    'EMP-501': { carry: 1 }, 'EMP-601': { carry: 0 }, // firm-ops (FIRM_STAFF)
+  };
+  /* Register peristiwa cuti = SSOT saldo terpakai.
+     Baris LV-0021..LV-0031 adalah cuti Jan–Feb 2026 yang SEBELUMNYA hanya ada
+     sebagai angka `used` tanpa peristiwa apa pun di belakangnya. Hari kerja tiap
+     rentang dihitung ulang dan menutup PERSIS ke `used` lama — pencabutan literal
+     ini nol-delta, dan diuji satu per satu di `leave_register.test.ts`. */
   const LEAVE_REQUESTS = [
+    { id: 'LV-0021', emp: 'EMP-001', name: 'Hartono Wijaya', type: 'Cuti Tahunan', from: '2026-01-05', to: '2026-01-07', days: 3, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Rudi Gunawan' },
+    { id: 'LV-0022', emp: 'EMP-501', name: 'Yuni Marlina', type: 'Cuti Tahunan', from: '2026-01-08', to: '2026-01-09', days: 2, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0023', emp: 'EMP-008', name: 'Bayu Saputra', type: 'Cuti Tahunan', from: '2026-01-12', to: '2026-01-20', days: 6, reason: 'Cuti panjang pasca musim audit', status: 'Disetujui', approver: 'Rudi Gunawan' },
+    { id: 'LV-0024', emp: 'EMP-003', name: 'Sari Dewanti', type: 'Cuti Tahunan', from: '2026-01-22', to: '2026-01-23', days: 2, reason: 'Urusan pribadi', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0025', emp: 'EMP-022', name: 'Sinta Wulandari', type: 'Cuti Tahunan', from: '2026-01-28', to: '2026-01-30', days: 3, reason: 'Liburan', status: 'Disetujui', approver: 'Sari Dewanti' },
+    { id: 'LV-0026', emp: 'EMP-002', name: 'Rudi Gunawan', type: 'Cuti Tahunan', from: '2026-02-02', to: '2026-02-06', days: 5, reason: 'Liburan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0027', emp: 'EMP-007', name: 'Anindya Pramesti', type: 'Cuti Tahunan', from: '2026-02-09', to: '2026-02-12', days: 4, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0028', emp: 'EMP-032', name: 'Rina Kusuma', type: 'Cuti Tahunan', from: '2026-02-12', to: '2026-02-13', days: 2, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Bayu Saputra' },
+    { id: 'LV-0029', emp: 'EMP-601', name: 'Teguh Prasetyo', type: 'Cuti Tahunan', from: '2026-02-16', to: '2026-02-20', days: 4, reason: 'Libur Imlek keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0030', emp: 'EMP-021', name: 'Dimas Raharjo', type: 'Cuti Tahunan', from: '2026-02-20', to: '2026-02-20', days: 1, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Anindya Pramesti' },
+    { id: 'LV-0031', emp: 'EMP-012', name: 'Citra Halim', type: 'Cuti Tahunan', from: '2026-02-24', to: '2026-02-26', days: 3, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
     { id: 'LV-0042', emp: 'EMP-012', name: 'Citra Halim', type: 'Cuti Tahunan', from: '2026-03-09', to: '2026-03-13', days: 5, reason: 'Liburan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
     { id: 'LV-0048', emp: 'EMP-021', name: 'Dimas Raharjo', type: 'Cuti Tahunan', from: '2026-03-24', to: '2026-03-25', days: 2, reason: 'Urusan pribadi', status: 'Menunggu', approver: 'Anindya Pramesti' },
     { id: 'LV-0049', emp: 'EMP-032', name: 'Rina Kusuma', type: 'Sakit', from: '2026-03-06', to: '2026-03-07', days: 2, reason: 'Surat dokter terlampir', status: 'Menunggu', approver: 'Bayu Saputra' },
@@ -604,4 +666,4 @@ import { fmt } from './data_base';
      exec: peta { [no]: bool } status pelaksanaan (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
 
-export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
+export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
