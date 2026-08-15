@@ -26,7 +26,7 @@ function PModal({ title, sub, icon = 'doc', onClose, children, footer, width = 5
             <div className="pmodal-title">{title}</div>
             {sub && <div className="tiny muted" style={{ marginTop: 1 }}>{sub}</div>}
           </div>
-          <button className="top-btn" onClick={onClose} style={{ width: 30, height: 30, color: 'var(--ink-3)' }}><I.x size={16} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ width: 30, height: 30, color: 'var(--ink-3)' }}><I.x size={16} /></button>
         </div>
         <div className="pmodal-body">{children}</div>
         {footer && <div className="pmodal-foot">{footer}</div>}

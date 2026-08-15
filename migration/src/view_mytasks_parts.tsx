@@ -184,7 +184,7 @@ function AddTaskForm({ mt, onClose }: any) {
   };
   return (
     <Panel noBody style={{ marginBottom: 12 }}>
-      <div className="panel-h"><h3>Tugas Pribadi Baru</h3><div style={{ flex: 1 }} /><button className="mt-sub-del" onClick={onClose}><I.x size={15} /></button></div>
+      <div className="panel-h"><h3>Tugas Pribadi Baru</h3><div style={{ flex: 1 }} /><button aria-label="Tutup" className="mt-sub-del" onClick={onClose}><I.x size={15} /></button></div>
       <div style={{ padding: 14, display: 'grid', gap: 10 }}>
         <input className="input" autoFocus value={d.label} placeholder="Apa yang perlu dikerjakan?"
           onChange={(e: any) => setD((s: any) => ({ ...s, label: e.target.value }))}

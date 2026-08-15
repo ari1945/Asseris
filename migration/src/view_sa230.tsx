@@ -683,7 +683,7 @@ function D2DepTable({ items, onOpen }: any) {
           </div>
           <div className="row ac gap8" style={{ flex: '0 0 auto' }}>
             <Badge kind={it.kind}>{it.status}</Badge>
-            <button className="btn sm icon" onClick={() => onOpen(it.ref)}><I.arrowRight size={13} /></button>
+            <button aria-label="Buka referensi kertas kerja" className="btn sm icon" onClick={() => onOpen(it.ref)}><I.arrowRight size={13} /></button>
           </div>
         </div>
       ))}

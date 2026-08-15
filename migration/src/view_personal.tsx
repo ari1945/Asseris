@@ -338,7 +338,7 @@ function DataPersonalSaya() {
         <SubBar moduleId="personal" right={<Btn sm onClick={back}><I.arrowLeft size={13} /> Kembali</Btn>} />
         <div className="view-scroll"><div className="view-pad">
           <div className="row ac gap8" style={{ marginBottom: 12 }}>
-            <button className="btn sm" onClick={back}><I.arrowLeft size={13} /></button>
+            <button aria-label="Kembali" className="btn sm" onClick={back}><I.arrowLeft size={13} /></button>
             <IconC size={18} /><span style={{ fontSize: 15, fontWeight: 700 }}>{meta.title}</span>
             <div style={{ flex: 1 }} /><Badge kind="blue">Data milik Anda</Badge>
           </div>

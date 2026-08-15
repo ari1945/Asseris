@@ -217,7 +217,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
             <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>IDX</span>}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{p.industry} · {p.service} · {p.standard} · {p.partner.split(',')[0]}</div>
           </div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
 
         <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
@@ -525,7 +525,7 @@ function ProspectForm({ onClose, onAdd }: any) {
       header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(

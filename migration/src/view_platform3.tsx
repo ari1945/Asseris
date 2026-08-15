@@ -267,7 +267,7 @@ function AuditEntryDrawer({ e, onClose, nav, verified }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>ENTRI #{String(e.seq).padStart(3, '0')}</span>
-            <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+            <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
           <div className="row ac gap8"><Badge kind={(AT_ACT_COLOR as any)[e.action] || 'gray'}>{e.action}</Badge><span style={{ fontSize: 15, fontWeight: 700 }}>{e.target || who}</span></div>
           <div className="tiny" style={{ color: '#bcd6e4', marginTop: 4 }}>{e.detail}</div>

@@ -182,7 +182,7 @@ function BudgetLineDrill({ b, onClose }: any) {
     <div style={{ minWidth: 0 }}>
       <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{b.line}</div><div className="tiny muted">{isCost ? 'Beban' : 'Pendapatan'} · fasing triwulanan</div></div>
-        <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
+        <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
       <div style={{ padding: 14 }}>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -497,7 +497,7 @@ function DepreciationSchedule({ a, onClose }: any) {
     <div style={{ minWidth: 0 }}>
       <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 13 }} className="truncate">{a.name}</div><div className="tiny muted mono">{a.id} · {a.cat}</div></div>
-        <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
+        <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
       <div style={{ padding: 14 }}>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>

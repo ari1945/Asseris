@@ -155,7 +155,7 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
       header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.calendar size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Booking Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Alokasikan anggota ke engagement</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(

@@ -225,7 +225,7 @@ function RecognitionDrill({ r, onClose }: any) {
     <div style={{ minWidth: 0 }}>
       <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{r.client.replace('PT ', '')}</div><div className="tiny muted mono">{r.id} · {r.partner} · {r.method}</div></div>
-        <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
+        <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
       <div style={{ padding: 14 }}>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>

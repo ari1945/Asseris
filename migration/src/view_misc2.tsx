@@ -235,7 +235,7 @@ function TemplateDetail({ t, onClose }: any) {
             <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
           </div>
           <span className={'badge b-' + st.k} style={{ marginRight: 4 }}>{t.status}</span>
-          <button className="top-btn" onClick={onClose}><I.x size={20} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={20} /></button>
         </div>
 
         <div className="split" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', overflow: 'hidden', flex: 1 }}>

@@ -394,7 +394,7 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
             <div className="tiny" style={{ color: '#bcd6e4' }}>Detail transaksi per akun untuk drill sub-ledger nyata · kolom: Kode · Tanggal · Uraian · Dokumen · Jumlah (atau Debit/Kredit)</div>
           </div>
           {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(
@@ -551,7 +551,7 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
             <div className="tiny" style={{ color: '#bcd6e4' }}>Sumber INDEPENDEN untuk menelusuri saldo awal — tanpa ini, kolom "TA Lalu" tak dapat diverifikasi terhadap apa pun</div>
           </div>
           {locked ? <Badge kind="amber">Terkunci</Badge> : !canEdit ? <Badge kind="amber">Hanya-baca</Badge> : null}
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(
@@ -711,7 +711,7 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
             <div className="tiny" style={{ color: '#bcd6e4' }}>Petakan akun klien ke kode standar agar engine PSAK & FS Generator mengenalinya. Akun yang dipetakan ke kode sama digabung.</div>
           </div>
           {!canMap && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
     >
@@ -906,7 +906,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
           </div>
           {locked ? <Badge kind="amber">Berkas terarsip — terkunci</Badge>
             : !hasCap ? <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge> : null}
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(
@@ -1319,7 +1319,7 @@ function WtbDrill({ row, onClose, nav }: any) {
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
           <Badge kind="blue" title={LEAD_SRC_TITLE[row.leadSrc || ''] || undefined}>WP {row.lead}{row.leadSrc === 'guess' ? '?' : ''}</Badge>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', display: 'flex', gap: 22, flexWrap: 'wrap' }}>
           <div><div className="tiny muted upper">Saldo Unadjusted</div><div className="mono" style={{ fontWeight: 700, fontSize: 15 }}>Rp {fmt(row.unadj / 1e6, 1)} jt</div></div>
@@ -1653,7 +1653,7 @@ function AJEForm({ accounts, onClose, onPost }: any) {
         <div style={{ background: 'var(--navy-solid)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ opacity: .82 }}>Diajukan untuk persetujuan · belum memengaruhi WTB</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(

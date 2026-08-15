@@ -177,7 +177,7 @@ function EthicsDeclaration() {
                       <td className="num mono" style={{ fontWeight: 600, color: over ? 'var(--amber)' : 'var(--ink)' }}>{fmt(g.value, 0)}</td>
                       <td className="tiny muted truncate" style={{ maxWidth: 150 }}>{g.action}</td>
                       <td>{g.status === 'Menunggu'
-                        ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => decideGift(g.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button className="btn sm" style={{ height: 22, color: 'var(--red)' }} onClick={() => decideGift(g.id, 'Ditolak')}><I.x size={12} /></button></div>
+                        ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => decideGift(g.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button aria-label="Tolak" className="btn sm" style={{ height: 22, color: 'var(--red)' }} onClick={() => decideGift(g.id, 'Ditolak')}><I.x size={12} /></button></div>
                         : <Badge kind={g.status === 'Disetujui' ? 'green' : g.status === 'Ditolak' ? 'red' : 'gray'}>{g.status}</Badge>}</td>
                     </tr>
                   );
@@ -296,7 +296,7 @@ function HRCases() {
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
                   <Avatar name={p.name} size={40} />
                   <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{cur.id} · {cur.cat}</div></div>
-                  <button className="top-btn" onClick={() => setSel(null)}><I.x size={16} /></button>
+                  <button aria-label="Tutup" className="top-btn" onClick={() => setSel(null)}><I.x size={16} /></button>
                 </div>
                 <div style={{ padding: 14 }}>
                   <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>

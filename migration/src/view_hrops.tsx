@@ -69,7 +69,7 @@ function LeaveAttendance() {
                     <td className="tiny muted truncate" style={{ maxWidth: 140 }}>{r.reason}</td>
                     <td className="tiny muted">{r.approver}</td>
                     <td>{r.status === 'Menunggu'
-                      ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => setStatus(r.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button className="btn sm" style={{ height: 22 }} onClick={() => setStatus(r.id, 'Ditolak')}><I.x size={12} /></button></div>
+                      ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => setStatus(r.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button aria-label="Tolak permintaan" className="btn sm" style={{ height: 22 }} onClick={() => setStatus(r.id, 'Ditolak')}><I.x size={12} /></button></div>
                       : <Badge kind={(LV_STAT as any)[r.status]}>{r.status}</Badge>}</td>
                   </tr>
                 ))}

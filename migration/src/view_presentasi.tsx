@@ -618,9 +618,9 @@ function PresentasiKlien() {
               })}
             </div>
             <div className="pr-controls-r">
-              <button className="pr-navbtn" disabled={idx === 0} onClick={() => go(-1)}><I.arrowLeft size={15} /></button>
+              <button aria-label="Slide sebelumnya" className="pr-navbtn" disabled={idx === 0} onClick={() => go(-1)}><I.arrowLeft size={15} /></button>
               <span className="pr-counter">{String(idx + 1).padStart(2, '0')} <i>/</i> {String(total).padStart(2, '0')}</span>
-              <button className="pr-navbtn" disabled={idx === total - 1} onClick={() => go(1)}><I.arrowRight size={15} /></button>
+              <button aria-label="Slide berikutnya" className="pr-navbtn" disabled={idx === total - 1} onClick={() => go(1)}><I.arrowRight size={15} /></button>
             </div>
           </div>
           <div className="pr-dots">
@@ -640,7 +640,7 @@ function PresentasiKlien() {
                 <div className="pr-cfg-title">Susun Presentasi</div>
                 <div className="pr-cfg-sub">Pilih bagian yang ingin ditampilkan · <b>{activeCount}</b> dari {allSlides.length} slide aktif</div>
               </div>
-              <button className="pr-cfg-x" onClick={() => setCfg(false)}><I.x size={16} /></button>
+              <button aria-label="Tutup" className="pr-cfg-x" onClick={() => setCfg(false)}><I.x size={16} /></button>
             </div>
             <div className="pr-cfg-body">
               {cfgGroups.map((g: any) => {

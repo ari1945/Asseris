@@ -473,7 +473,7 @@ function ServiceLineDrill({ l, total, onClose }: any) {
       <div className="panel" style={{ width: 480, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: l.color, color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{l.line}</div><div className="tiny" style={{ opacity: .85 }}>Rincian pendapatan · {(l.rev / total * 100).toFixed(0)}% dari total KAP</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16 }}>
           <div className="row jb ac" style={{ marginBottom: 12 }}>

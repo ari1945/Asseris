@@ -223,7 +223,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={r.name} size={42} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
           <div className="row jb ac" style={{ marginBottom: 14 }}><span className="tiny muted upper">Slip Gaji · {R.period}</span><span className="badge b-blue tiny">TER {(r.p.ter * 100).toFixed(2)}% · Kat. {r.p.terCat}</span></div>
