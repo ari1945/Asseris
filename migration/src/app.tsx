@@ -8,7 +8,7 @@ import { Copilot } from './copilot';
 import { I, MODULE_INDEX } from './icons';
 import { MiniMap } from './minimap';
 import { ModuleLineage, StandardLinkback } from './related_modules';
-import { buildHash, initialLocation, parseHash, resolveRoute } from './route_hash';
+import { buildHash, initialLocation, oneShotSeeds, parseHash, resolveRoute } from './route_hash';
 import { Sidebar, SubBar, TopBar } from './shell';
 import { Btn, StubView } from './ui';
 import { amsApplyPrefs } from './prefs';
@@ -133,6 +133,14 @@ function SARefDrawer({ data, onClose, onNavigate }: any) {
   );
 }
 
+/* PR-6 (SC-15) — tulis seed satu-tembak dari alamat. Perhitungannya MURNI dan
+   diuji di `route_hash` (`oneShotSeeds`); di sini hanya efek sampingnya. */
+function seedOneShotFromHash(loc: { route: string; sel: string | null; tab: string | null } | null): void {
+  try {
+    oneShotSeeds(loc).forEach((s) => sessionStorage.setItem(s.key, s.value));
+  } catch (e) { /* private mode */ }
+}
+
 function App() {
   /* Fase 7 — default landing berbasis peran = Beranda (bukan lagi 'dashboard' statis).
      Rute terakhir tetap dipulihkan saat reload (lihat Root.enter: hanya login EKSPLISIT
@@ -146,7 +154,9 @@ function App() {
     const known = (id: string): boolean => id === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[id];
     let last: string | null = null;
     try { last = localStorage.getItem('ams.route'); } catch (e) { /* private mode */ }
-    return initialLocation(typeof location === 'undefined' ? '' : location.hash, last, known).loc.route;
+    const boot = initialLocation(typeof location === 'undefined' ? '' : location.hash, last, known);
+    seedOneShotFromHash(boot.loc);
+    return boot.loc.route;
   });
   const [collapsed, setCollapsed] = useStateApp(() => localStorage.getItem('ams.sidebarCollapsed') === '1');
   const [copilot, setCopilot] = useStateApp(false);
@@ -211,6 +221,7 @@ function App() {
       const route = resolveRoute(loc.route);   // bookmark ber-id lama tetap mendarat benar
       const known = route === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[route];
       if (!known) return;                     // tautan busuk: diamkan, jangan buang halaman
+      seedOneShotFromHash(loc);               // SC-15: Back/Forward & URL tempel ikut membuka rekamannya
       setRoute((cur: string) => (cur === route ? cur : route));
     };
     window.addEventListener('hashchange', onHash);

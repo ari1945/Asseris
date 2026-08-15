@@ -3,6 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmCoa } from './use_firm_coa';
+import { usePipelineRegister } from './use_pipeline';
+import { grossValue, openOpportunities, stageSummary, weightedValue } from './canon_pipeline';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -51,7 +53,11 @@ function FirmBI() {
   const nav = useNav();
   const B: any = AMS.BI_DATA;
   const CLIENTS = AMS.CLIENTS;
-  const PIPELINE = AMS.PIPELINE;
+  /* PRD Sales Pipeline PR-1 — register hidup, bukan literal seed `AMS.PIPELINE`.
+     Dulu memindahkan kartu di modul Sales Pipeline tidak menggerakkan satu pun
+     angka di layar ini; kini satu register untuk seluruh firma (intake +
+     cross-sell, yang selama ini tak pernah terhitung di pipeline firma). */
+  const { register: PIPELINE } = usePipelineRegister();
   const EQR: any = AMS.EQR_REVIEWS;
   const [metric, setMetric] = useBI('rev');
 
@@ -67,14 +73,10 @@ function FirmBI() {
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   /* weighted pipeline */
-  const openPipe = PIPELINE.filter((p) => !['Won', 'Lost'].includes(p.stage));
-  const gross = openPipe.reduce((s: any, p: any) => s + p.value, 0);
-  const weighted = openPipe.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0);
-  const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
-  const byStage = stages.map((st: any) => {
-    const items = openPipe.filter((p: any) => p.stage === st);
-    return { st, gross: items.reduce((s: any, p: any) => s + p.value, 0), wt: items.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0), n: items.length };
-  });
+  const openPipe = openOpportunities(PIPELINE);
+  const gross = grossValue(openPipe);
+  const weighted = weightedValue(openPipe);
+  const byStage = stageSummary(openPipe).map((s) => ({ st: s.stage, gross: s.gross, wt: s.weighted, n: s.n }));
   const maxStage = Math.max(...byStage.map((s: any) => s.gross), 1);
 
   /* client concentration */

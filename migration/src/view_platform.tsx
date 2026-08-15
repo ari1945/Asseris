@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
+import { usePipelineRegister } from './use_pipeline';
 /* PR-2 — rantai AJE punya satu penghasil; antrean ini hanya memanggilnya. */
 import { AJE_SLA_HOURS, ajeApproveOverlay, ajeRejectOverlay, ajeReviseOverlay, applyAjeOverlay, nowStamp, parseStamp, stepAuthority } from './aje_approval';
 
@@ -114,10 +115,17 @@ function Approvals() {
      sebelum 2026-08-15 hanya write-down yang sudah ada di seed sub-buku yang masuk. */
   const [wipAdj] = useAmsPersist('wip.adj', () => ({}));
 
+  /* PRD Sales Pipeline PR-1 — item "Penerimaan klien" pada antrean ini diturunkan
+     dari pipeline. `buildApprovals` sudah menerima `ctx.pipeline`, tetapi TIDAK ADA
+     pemanggil yang mengirimnya → ia jatuh ke literal seed `A.PIPELINE`, sehingga
+     memindahkan peluang ke Proposal/Negotiation tak pernah memunculkan antrean
+     persetujuannya. Kini register hidup yang dikirim. */
+  const { register: pipelineReg } = usePipelineRegister();
+
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId, wipAdj }),
-    [aje, engagements, clients, activeEngagementId, wipAdj]);
+    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId, wipAdj, pipeline: pipelineReg }),
+    [aje, engagements, clients, activeEngagementId, wipAdj, pipelineReg]);
   const items = useMemoPF(() => derived.map((d: any) => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
   /* PR-B — kewenangan kini per-ITEM & per-LANGKAH, bukan satu boolean global. */
