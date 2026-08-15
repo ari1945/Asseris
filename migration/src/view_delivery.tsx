@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
-import { milestoneSlip, normalizeDeliveryPlan, overdueVsBaseline, planSlipSummary, seedDeliveryPlan, shiftMilestone, shiftRequiresReason, withMilestoneStatus } from './canon_delivery';
-import type { DeliveryEngPlan, DeliveryPhase, MilestoneShift, SeedEngPlan } from './canon_delivery';
+import { MILESTONE_KIND_LABEL, milestoneSlip, normalizeDeliveryPlan, overdueVsBaseline, planConsistencyAll, planSlipSummary, seedDeliveryPlan, shiftMilestone, shiftRequiresReason, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryEngPlan, DeliveryPhase, MilestoneKind, MilestoneShift, PlanIssue, SeedEngPlan } from './canon_delivery';
 import { Overlay } from './overlay';
 import type { ClientRow, EngagementRow } from './ams_types';
 import { I } from './icons';
@@ -28,6 +28,11 @@ interface PendingShift { engId: string; idx: number; from: string; to: string; l
 interface ShiftReasonProps { ask: PendingShift; onConfirm: (reason: string) => void; onCancel: () => void }
 /* Satu baris jejak pergeseran, sudah dilabeli milestone asalnya. */
 type TrailRow = MilestoneShift & { label: string };
+
+const PLAN_ISSUE_LABEL: Record<PlanIssue['kind'], string> = {
+  sequence: 'Urutan', 'phase-overlap': 'Fase tumpang-tindih',
+  'phase-gap': 'Lubang fase', 'past-deadline': 'Lewat tenggat',
+};
 
 const DLV_PHASE_COLOR = { Perencanaan: 'var(--purple)', Eksekusi: 'var(--blue)', Finalisasi: 'var(--teal)' };
 const DLV_MS_COLOR = { done: 'var(--green)', due: 'var(--amber)', upcoming: 'var(--ink-4)' };
@@ -73,7 +78,7 @@ function DeliveryMilestones() {
       /* PR-2 — ekspor membawa baseline & pergeseran. Rencana yang diekspor tanpa
          komitmen semula menyembunyikan perlonggaran yang justru ingin ditelusuri. */
       const planRows = DELIVERY.flatMap((p) => p.milestones.map((m) => [
-        p.id, m.label, m.baselineDate, m.date,
+        p.id, m.label, MILESTONE_KIND_LABEL[m.kind], m.baselineDate, m.date,
         m.slip === 0 ? '—' : (m.slip > 0 ? '+' : '') + m.slip,
         m.done ? 'Selesai' : 'Terbuka',
         (m.shifts || []).map((s) => `${s.at} ${s.by}: ${s.from}→${s.to}${s.reason ? ' (' + s.reason + ')' : ''}`).join(' · ') || '—',
@@ -88,12 +93,18 @@ function DeliveryMilestones() {
           `Tergeser ${slip.shiftedCount} milestone · total ${slip.totalSlipDays} hari mundur`],
         sheets: [
           { name: 'Milestone', heading: 'Milestone pengiriman per engagement (baseline = komitmen semula)',
-            columns: ['Engagement', 'Milestone', 'Komitmen semula', 'Tanggal kini', 'Geser (hari)', 'Status', 'Jejak pergeseran'],
-            rows: planRows, colWidths: [14, 40, 15, 13, 12, 10, 60] },
+            columns: ['Engagement', 'Milestone', 'Jenis', 'Komitmen semula', 'Tanggal kini', 'Geser (hari)', 'Status', 'Jejak pergeseran'],
+            rows: planRows, colWidths: [14, 36, 20, 15, 13, 12, 10, 60] },
           { name: 'Fase', heading: 'Fase pengiriman per engagement',
             columns: ['Engagement', 'Fase', 'Mulai', 'Selesai'],
             rows: DELIVERY.flatMap((p: DeliveryEngPlan) => p.phases.map((ph: DeliveryPhase) => [p.id, ph.name, ph.start, ph.end])),
             colWidths: [14, 30, 12, 12] },
+          /* PR-3 — pengecualian ikut diekspor: rencana yang diekspor tanpa temuannya
+             membaca seperti rencana yang konsisten. */
+          { name: 'Pengecualian', heading: 'Temuan konsistensi rencana',
+            columns: ['Engagement', 'Jenis temuan', 'Rincian'],
+            rows: issues.map((is) => [is.eng, PLAN_ISSUE_LABEL[is.kind], is.detail]),
+            colWidths: [14, 22, 90] },
         ],
       });
     } finally {
@@ -167,6 +178,9 @@ function DeliveryMilestones() {
      Keduanya ditampilkan berdampingan; selisihnya ADALAH perlonggaran komitmen. */
   const overdueBaseline = overdueVsBaseline(plan, today);
   const slip = planSlipSummary(plan);
+  /* PR-3 — rencana yang tidak konsisten kini punya SUARA: urutan terbalik, fase
+     tumpang-tindih/berlubang, dan milestone yang jatuh setelah tenggat perikatan. */
+  const issues: PlanIssue[] = planConsistencyAll(plan, (id) => engById(id));
 
   const shown = filter === 'Semua' ? rows : filter === 'Aktif' ? rows.filter((r: any) => r.e.status !== 'Completed') : rows.filter((r: any) => DLV_daysTo(r.e.deadline, today) <= 14 && r.e.progress < 85 && r.e.status !== 'Completed');
 
@@ -210,6 +224,22 @@ function DeliveryMilestones() {
               </span>
               <span style={{ flex: 1 }} />
               <span className="tiny muted">{overdueBaseline} milestone lewat komitmen semula &amp; belum selesai</span>
+            </div>
+          </Panel>
+        )}
+
+        {/* PR-3 — Pengecualian rencana. Sebuah "rencana" yang tak pernah bisa
+            dinyatakan tidak konsisten bukanlah rencana. */}
+        {issues.length > 0 && (
+          <Panel title="Pengecualian Rencana" sub={`${issues.length} temuan konsistensi`} style={{ marginBottom: 12 }}>
+            <div style={{ display: 'grid', gap: 0 }}>
+              {issues.map((is, i) => (
+                <div key={i} className="row ac gap8" style={{ padding: '7px 0', borderBottom: i < issues.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                  <Badge kind={is.kind === 'past-deadline' || is.kind === 'sequence' ? 'red' : 'amber'}>{PLAN_ISSUE_LABEL[is.kind]}</Badge>
+                  <span className="tiny mono muted" style={{ flex: '0 0 108px' }}>{is.eng}</span>
+                  <span className="tiny" style={{ flex: 1, minWidth: 0 }}>{is.detail}</span>
+                </div>
+              ))}
             </div>
           </Panel>
         )}
@@ -420,7 +450,8 @@ function DeliveryDetail({ row, eng, client, today, canEdit, onToggleMs, onDateMs
                     style={{ background: 'none', border: 0, padding: 0, cursor: canEdit ? 'pointer' : 'not-allowed', color: (DLV_MS_COLOR as any)[m.status], display: 'inline-flex' }}>
                     {m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}
                   </button>
-                  <span className="tiny truncate" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'line-through' : 'none', color: m.status === 'done' ? 'var(--ink-4)' : 'var(--ink)' }}>{m.label}</span>
+                  <span className="tiny truncate" title={'Jenis: ' + MILESTONE_KIND_LABEL[m.kind as MilestoneKind]}
+                    style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'line-through' : 'none', color: m.status === 'done' ? 'var(--ink-4)' : 'var(--ink)' }}>{m.label}</span>
                 </span>
                 <span className="row ac gap6">
                   {/* PR-2 — komitmen SEMULA selalu ikut tampil bila berbeda. Tidak ada

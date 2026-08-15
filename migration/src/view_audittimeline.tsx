@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useFirm, useNav } from './contexts';
-import { normalizeDeliveryPlan, seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
+import { milestoneOfKind, normalizeDeliveryPlan, seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryMilestone } from './canon_delivery';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -128,7 +129,10 @@ function AuditTimeline() {
 
   // KPI
   const phEnd = plan.phases.length ? plan.phases[plan.phases.length - 1].end : null;
-  const signMs = plan.milestones.find((m: any) => /sign|opini/i.test(m.label));
+  /* PR-3 — dulu `/sign|opini/i.test(m.label)`: mengganti label "Sign-off" menjadi
+     "Penerbitan laporan" membuat linimasa yang DIHADAPKAN KE KLIEN kehilangan
+     tanggal tanda tangannya, diam-diam. Kini lewat KONTRAK `kind`. */
+  const signMs = milestoneOfKind<DeliveryMilestone>(plan.milestones, 'signoff');
   const target = signMs ? signMs.date : eng.deadline;
   const durWk = plan.phases.length ? Math.round((ATL_ms(phEnd) - ATL_ms(plan.phases[0].start)) / 864e5 / 7) : 0;
   const dueSoon = plan.milestones.filter((m: any) => m.status !== 'done' && ATL_daysTo(m.date, today) >= 0 && ATL_daysTo(m.date, today) <= 14).length;

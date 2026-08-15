@@ -28,7 +28,7 @@ import {
 const TODAY = '2026-03-09';
 
 const ms = (o: Partial<DeliveryMilestone>): DeliveryMilestone => ({
-  label: 'X', date: '2026-03-20', baselineDate: '2026-03-20', done: false, shifts: [], ...o,
+  label: 'X', kind: 'other', date: '2026-03-20', baselineDate: '2026-03-20', done: false, shifts: [], ...o,
 });
 
 describe('seedDeliveryPlan — baseline lahir dari seed', () => {
