@@ -54,12 +54,14 @@ describe('SC-1/SC-2 — satu akun buku besar per rekening', () => {
     expect(seedCoa().some(c => c.code === '1-100')).toBe(false);
   });
 
-  it('Σ sub-akun kas == kontrol kas == 8.420 jt (nilai `1-100` yang digantikan)', () => {
+  it('Σ sub-akun kas == kontrol kas', () => {
     const c = cash();
     const codes = bankAccounts().map(a => a.acct);
     const sum = derivedCoa().filter(a => codes.includes(a.code)).reduce((s, a) => s + a.bal, 0);
     expect(c.control).toBe(sum);
-    expect(c.control).toBe(8_420_000_000);
+    /* 8.420 jt (nilai `1-100` yang digantikan) + 60,638 jt revaluasi PSAK 10 yang
+       kini DIPOSTING (JV-0319/0320) — satu-satunya angka firma yang memang berubah. */
+    expect(c.control).toBe(8_480_638_000);
   });
 
   it('saldo buku tiap rekening = saldo akunnya (turunan jurnal), bukan literal', () => {
@@ -116,12 +118,22 @@ describe('SC-4 — tiap rekening menutup', () => {
     expect(p.adjustedBank).toBe(4_427_150_000);
   });
 
-  it('valas dibandingkan pada KURS BUKU — selisih ke kurs pasar bukan item rekonsiliasi', () => {
+  it('valas dibandingkan pada KURS PENUTUP — buku sudah dijabarkan ulang (PSAK 10)', () => {
     const p = cash().per.find(r => r.id === 'BCA-USD') as Acct;
-    expect(p.bankIDR).toBe(48_500 * 15_780);
-    expect(p.bookIDR).toBe(48_500 * 15_780);
+    expect(p.bankIDR).toBe(48_500 * 16_250);
+    expect(p.bookIDR).toBe(48_500 * 16_250);   // termasuk JV-0319
     expect(p.reconciled).toBe(true);
-    expect(p.reval).toBe(48_500 * (16_250 - 15_780));
+  });
+
+  it('MEMBATALKAN posting revaluasi membuat rekening valas TIDAK menutup', () => {
+    /* Konsekuensi yang dikehendaki: tanpa penjabaran ulang, buku ada pada kurs
+       perolehan sementara bank pada kurs penutup — memang tak menutup. */
+    const gl = seedGl().map(j => j.id === 'JV-0319' ? { ...j, posted: false } : j);
+    const coa = derivedCoa(gl);
+    const c = FIRMFIN.cash({ coa, engagements: AMS.ENGAGEMENTS, clients: AMS.CLIENTS }) as unknown as Cash;
+    const p = c.per.find(r => r.id === 'BCA-USD') as Acct;
+    expect(p.reconciled).toBe(false);
+    expect(p.residual).toBe(22_795_000);
   });
 });
 
@@ -138,10 +150,11 @@ describe('SC-5 — baris Kas menutup & ekspor terbuka', () => {
 
   it('komponen jembatan berjumlah persis selisihnya', () => {
     const c = cash();
-    /* USD 48.500 × (16.250 − 15.780) + SGD 92.300 × (12.050 − 11.640) */
-    expect(c.reval).toBe(22_795_000 + 37_843_000);
-    /* BCA-OPS 72,15 + MDR-PAY 23,15 + BNI-TAX 1,60 */
+    /* Revaluasi TIDAK lagi jadi komponen jembatan — ia sudah ada di dalam saldo buku.
+       Yang menjelaskan selisih hanyalah item rekonsiliasi yang dienumerasi:
+       BCA-OPS 72,15 + MDR-PAY 23,15 + BNI-TAX 1,60 */
     expect(c.reconItems).toBe(72_150_000 + 23_150_000 + 1_600_000);
+    expect(c.bridgeTotal).toBe(-(72_150_000 + 23_150_000 + 1_600_000));
     expect(c.control - c.totalIDR).toBe(c.bridgeTotal);
   });
 });
@@ -203,9 +216,12 @@ describe('SC-6 — GERBANG DAPAT MERAH (jembatan dienumerasi, bukan diturunkan d
 describe('SC-9 — nol-delta di luar Kas', () => {
   it('P&L, laba & modal kerja tidak bergerak', () => {
     const p = FIRMFIN.pl(ctxWith()) as unknown as { revenue: number; opProfit: number; totalExpense: number };
+    /* Pendapatan jasa TIDAK bergerak — akun 5-600 sengaja bertipe Beban bersaldo kredit,
+       supaya selisih kurs tidak menggelembungkan "Pendapatan KAP (GL 4-100)". */
     expect(p.revenue).toBe(11_300_000_000);
-    expect(p.totalExpense).toBe(8_500_000_000);
-    expect(p.opProfit).toBe(2_800_000_000);
+    /* Beban neto turun sebesar laba selisih kurs yang kini DIBUKUKAN (PSAK 10). */
+    expect(p.totalExpense).toBe(8_500_000_000 - 60_638_000);
+    expect(p.opProfit).toBe(2_800_000_000 + 60_638_000);
   });
 
   it('ketiga baris rekonsiliasi lain tetap seperti sebelumnya', () => {
@@ -244,5 +260,50 @@ describe('Cache `bankrecon` basi tidak merusak rekonsiliasi', () => {
     const sekali = mergeSeedReconLines(disunting, seedReconLines());
     expect(sekali.find(l => l.id === 'OPS-3')?.matched).toBe(true);
     expect(mergeSeedReconLines(sekali, seedReconLines())).toHaveLength(sekali.length);
+  });
+});
+
+describe('F-4 — revaluasi PSAK 10 DIBUKUKAN, bukan sekadar ditampilkan', () => {
+  /* Sebelum ini aplikasi menghitung "+Rp 61 jt selisih kurs belum terealisasi" di satu
+     tab dan tak pernah membukukannya: angka di layar yang tidak ada di buku besar —
+     kelas cacat yang sama dengan kolom `actual` anggaran (#242) dan `wip.adj` (#237). */
+  const gl = () => AMS.FIRM_GL as unknown as GlJournal[];
+
+  it('ada jurnal revaluasi terposting untuk TIAP rekening valas', () => {
+    const valas = bankAccounts().filter(a => a.ccy !== 'IDR');
+    expect(valas).toHaveLength(2);
+    for (const a of valas) {
+      const j = gl().filter(x => x.posted && x.dr === a.acct && x.cr === '5-600');
+      expect(j.length, a.id).toBe(1);
+    }
+  });
+
+  it('nilainya = saldo × (kurs penutup − kurs perolehan), bukan angka karangan', () => {
+    const usd = gl().find(j => j.id === 'JV-0319') as GlJournal;
+    const sgd = gl().find(j => j.id === 'JV-0320') as GlJournal;
+    expect(usd.amount).toBe(48_500 * (16_250 - 15_780));
+    expect(sgd.amount).toBe(92_300 * (12_050 - 11_640));
+  });
+
+  it('akun 5-600 seluruhnya berasal dari jurnal — saldo awalnya NOL', () => {
+    /* Bukti bahwa ia tidak diseed sebagai konstanta lalu "dijelaskan" belakangan. */
+    const coa = seedCoa();
+    const open = coa.map(a => ({ code: a.code, bal: a.bal }));
+    const fx = open.find(a => a.code === '5-600') as { bal: number };
+    expect(fx.bal).toBe(-(22_795_000 + 37_843_000));
+  });
+
+  it('laba operasi naik persis sebesar revaluasi — satu-satunya angka firma yang berubah', () => {
+    const p = FIRMFIN.pl(ctxWith()) as unknown as { revenue: number; opProfit: number };
+    expect(p.revenue).toBe(11_300_000_000);            // pendapatan jasa TIDAK bergerak
+    expect(p.opProfit).toBe(2_860_638_000);
+  });
+
+  it('gerbang CAKUPAN anggaran (#242) tetap hijau — 5-600 punya baris anggaran', () => {
+    /* Menambah akun P&L tanpa baris anggaran akan MEMERAHKANNYA; itu diuji terpisah di
+       `firmfin_budget.test.ts`. Di sini yang dipaku: kita tidak meninggalkannya merah. */
+    const b = FIRMFIN.budget(ctxWith()) as unknown as { covered: boolean; lines: Array<{ acct: string }> };
+    expect(b.covered).toBe(true);
+    expect(b.lines.some(l => l.acct === '5-600')).toBe(true);
   });
 });

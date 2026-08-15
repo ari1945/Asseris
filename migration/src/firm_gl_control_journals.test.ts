@@ -63,8 +63,9 @@ describe('SC-9 — nol-delta: jejak bertambah, angka tidak', () => {
   it('laporan keuangan tidak bergerak sedikit pun', () => {
     const st = statements(coa, gl, gl);
     expect(st.revenue).toBe(11_300_000_000);
-    expect(st.expense).toBe(8_500_000_000);
-    expect(st.netProfit).toBe(2_800_000_000);
+    /* Beban neto setelah revaluasi PSAK 10 diposting (#248). */
+    expect(st.expense).toBe(8_500_000_000 - 60_638_000);
+    expect(st.netProfit).toBe(2_800_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 });
@@ -199,8 +200,11 @@ describe('Saldo awal tetap masuk akal setelah dijangkar ke jurnal baru', () => {
     const open = openingBalances(coa, gl);
     for (const a of coa) {
       const debitNormal = a.type === 'Aset' || a.type === 'Beban';
-      if (debitNormal) expect(open[a.code], a.code).toBeGreaterThan(0);
-      else expect(open[a.code], a.code).toBeLessThan(0);
+      /* `>= 0` / `<= 0`: akun yang LAHIR dari jurnal periode ini bersaldo awal NOL —
+         mis. 5-600 Laba (Rugi) Selisih Kurs, yang seluruhnya berasal dari JV-0319/0320.
+         Yang dijaga tetap sama: tak ada saldo awal yang berpindah SISI. */
+      if (debitNormal) expect(open[a.code], a.code).toBeGreaterThanOrEqual(0);
+      else expect(open[a.code], a.code).toBeLessThanOrEqual(0);
     }
   });
 });

@@ -422,8 +422,8 @@
     { code: '1-101', name: 'BCA — Operasional', type: 'Aset', bal: 4_425_000_000 },
     { code: '1-102', name: 'Mandiri — Penggajian', type: 'Aset', bal: 1_180_000_000 },
     { code: '1-103', name: 'BNI — Pajak & Escrow', type: 'Aset', bal: 940_000_000 },
-    { code: '1-104', name: 'BCA — Valas USD', type: 'Aset', bal: 765_330_000 },      // USD 48.500 @ kurs buku 15.780
-    { code: '1-105', name: 'DBS — Cabang Singapura', type: 'Aset', bal: 1_074_372_000 }, // SGD 92.300 @ kurs buku 11.640
+    { code: '1-104', name: 'BCA — Valas USD', type: 'Aset', bal: 788_125_000 },      // USD 48.500 @ kurs penutup 16.250 (setelah JV-0319)
+    { code: '1-105', name: 'DBS — Cabang Singapura', type: 'Aset', bal: 1_112_215_000 }, // SGD 92.300 @ kurs penutup 12.050 (setelah JV-0320)
     { code: '1-106', name: 'Kas Kecil', type: 'Aset', bal: 35_298_000 },
     { code: '1-200', name: 'Piutang Usaha (klien)', type: 'Aset', bal: 4_440_000_000 },
     { code: '1-300', name: 'WIP Belum Ditagih', type: 'Aset', bal: 9_300_000_000 },
@@ -439,6 +439,14 @@
     { code: '5-300', name: 'Beban Umum & Administrasi', type: 'Beban', bal: 540_000_000 },
     { code: '5-400', name: 'Beban Pemasaran & Pengembangan', type: 'Beban', bal: 360_000_000 },
     { code: '5-500', name: 'Beban Teknologi & Lisensi', type: 'Beban', bal: 610_000_000 },
+    /* PSAK 10: pos moneter valas dijabarkan ulang pada kurs penutup, selisihnya diakui
+       dalam laba rugi. Sebelum ini aplikasi MENGHITUNG selisih itu (tab "Revaluasi
+       Valas": +Rp 61 jt "belum terealisasi") tetapi tak pernah membukukannya — angka di
+       layar yang tak ada di buku besar, kelas cacat yang sama dengan kolom `actual`
+       anggaran (#242). Kini ia diposting lewat JV-0319/JV-0320.
+       Bertipe `Beban` dengan saldo KREDIT (negatif) = laba neto, supaya "Pendapatan KAP
+       (GL 4-100)" tetap berarti pendapatan jasa dan tidak digelembungkan selisih kurs. */
+    { code: '5-600', name: 'Laba (Rugi) Selisih Kurs — neto', type: 'Beban', bal: -60_638_000 },
   ];
 
   /* ---- F: Firm GL — journal entries ----
@@ -459,6 +467,11 @@
 
      Urutan menurun (terbaru di atas) mengikuti tampilan modul Firm GL. */
   const FIRM_GL = [
+    /* Penjabaran ulang pos moneter valas pada kurs penutup (PSAK 10). Saldo awal tiap
+       akun valas tetap pada kurs buku; jurnal inilah yang membawanya ke kurs penutup,
+       sehingga buku besar — bukan sekadar sebuah tab — yang menyatakannya. */
+    { id: 'JV-0320', date: '2026-03-31', desc: 'Revaluasi kurs penutup — DBS SGD (11.640 → 12.050)', dr: '1-105', cr: '5-600', amount: 37_843_000, posted: true },
+    { id: 'JV-0319', date: '2026-03-31', desc: 'Revaluasi kurs penutup — BCA Valas USD (15.780 → 16.250)', dr: '1-104', cr: '5-600', amount: 22_795_000, posted: true },
     { id: 'JV-0318', date: '2026-03-16', desc: 'Langganan lisensi perangkat audit tahunan', dr: '5-500', cr: '2-100', amount: 240_000_000, posted: true },
     { id: 'JV-0317', date: '2026-03-14', desc: 'Beban pemasaran & pengembangan praktik', dr: '5-400', cr: '2-100', amount: 185_000_000, posted: true },
     { id: 'JV-0316', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', dr: '2-100', cr: '1-101', amount: 910_000_000, posted: true },

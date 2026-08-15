@@ -94,6 +94,11 @@ import { fmt } from './data_base';
     { line: 'Beban Umum & Administrasi', budget: 560_000_000, type: 'cost', acct: '5-300' },
     { line: 'Beban Pemasaran & Pengembangan', budget: 420_000_000, type: 'cost', acct: '5-400' },
     { line: 'Beban Teknologi & Lisensi', budget: 540_000_000, type: 'cost', acct: '5-500' },
+    /* Ditambahkan bersama akun 5-600 (revaluasi PSAK 10 diposting). Tanpa baris ini
+       gerbang CAKUPAN #242 memerah — dan itu memang perilaku yang benar: akun P&L yang
+       diposting tapi tak pernah dianggarkan membuat laba anggaran understated.
+       Anggaran bertanda negatif = laba selisih kurs yang direncanakan. */
+    { line: 'Laba (Rugi) Selisih Kurs', budget: -40_000_000, type: 'cost', acct: '5-600' },
   ];
   /* 6-month rolling cash-flow forecast (Rp jt) */
   const CASH_FORECAST = [
