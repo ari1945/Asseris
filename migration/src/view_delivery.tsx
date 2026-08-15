@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAuth, useNav } from './contexts';
+import { CAP } from './rbac';
 import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
 import type { DeliveryEngPlan, DeliveryMilestone, DeliveryPhase, SeedEngPlan } from './canon_delivery';
 import type { ClientRow, EngagementRow } from './ams_types';
@@ -39,6 +40,15 @@ function DeliveryMilestones() {
   const [sel, setSel] = useStateDlv(null);
   const [exporting, setExporting] = useStateDlv(false);
 
+  /* PR-1 — SoD rencana pengiriman: menulis deliveryPlan.v1 = ENGAGEMENT_MANAGE
+     (Partner/Manajer), sejajar rencana kapasitas. Gate UI ini WAJIB selaras dengan
+     capForWrite('firm','deliveryPlan.v1'); kalau tidak, milestone berubah di layar
+     lalu tulisannya ditolak SENYAP oleh server (FORBIDDEN tidak memunculkan toast —
+     hanya konflik CAS yang punya toast). Peran lain melihat modul BACA-SAJA dengan
+     alasan yang terlihat, bukan kontrol aktif yang tulisannya dibuang. */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_MANAGE));
+
   /* K-06 lanjutan — wire tombol "Ekspor Rencana" (dulu mati): ekspor XLSX tersegel
      linimasa pengiriman per engagement (fase + milestone). */
   const onExportXlsx = async () => {
@@ -73,8 +83,12 @@ function DeliveryMilestones() {
   /* rencana + status milestone turunan (done/due/upcoming vs today). */
   const DELIVERY = useMemoDlv(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
   /* jalur tulis milestone: tandai selesai/urung + geser tanggal → deliveryPlan.v1 */
-  const setMsDone = (engId: string, idx: number, done: boolean) => setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
+  const setMsDone = (engId: string, idx: number, done: boolean) => {
+    if (!canEdit) return;
+    setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
+  };
   const setMsDate = (engId: string, idx: number, date: string) => {
+    if (!canEdit) return;
     if (!date) return; // date picker yang dikosongkan → jangan timpa tanggal valid dgn '' (→ "Invalid Date"/NaN status)
     setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, date } : m) } : p));
   };
@@ -113,6 +127,7 @@ function DeliveryMilestones() {
     <>
       <SubBar moduleId="delivery" right={
         <div className="row gap8 ac">
+          {!canEdit && <span className="chip tiny muted" title="Menyunting rencana pengiriman (tandai milestone selesai / geser tanggal) dibatasi peran Partner / Manajer — setara rencana kapasitas & roster perikatan"><I.lock size={11} /> Read-only</span>}
           <Seg options={['Semua', 'Aktif', 'At-risk']} value={filter} onChange={setFilter} />
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Rencana'}</Btn>
         </div>
@@ -224,7 +239,7 @@ function DeliveryMilestones() {
             </div>
           </Panel>
 
-          {selRow && <DeliveryDetail row={selRow} eng={selRow.e} client={selRow.c} today={today}
+          {selRow && <DeliveryDetail row={selRow} eng={selRow.e} client={selRow.c} today={today} canEdit={canEdit}
             onToggleMs={(idx: number, done: boolean) => setMsDone(selRow.id, idx, done)}
             onDateMs={(idx: number, date: string) => setMsDate(selRow.id, idx, date)}
             onClose={() => setSel(null)} onNav={nav} />}
@@ -234,7 +249,7 @@ function DeliveryMilestones() {
   );
 }
 
-function DeliveryDetail({ row, eng, client, today, onToggleMs, onDateMs, onClose, onNav }: any) {
+function DeliveryDetail({ row, eng, client, today, canEdit, onToggleMs, onDateMs, onClose, onNav }: any) {
   const { fmt } = AMS;
   const burn = eng.budgetHrs ? Math.round(eng.actualHrs / eng.budgetHrs * 100) : 0;
   const overburn = burn > eng.progress + 12;
@@ -264,21 +279,26 @@ function DeliveryDetail({ row, eng, client, today, onToggleMs, onDateMs, onClose
           ))}
         </div>
 
-        <div className="row ac jb" style={{ marginBottom: 7 }}><span className="tiny muted upper">Milestone</span><span className="tiny muted">klik status = tandai selesai · tanggal dapat disunting</span></div>
+        <div className="row ac jb" style={{ marginBottom: 7 }}><span className="tiny muted upper">Milestone</span>
+          <span className="tiny muted">{canEdit ? 'klik status = tandai selesai · tanggal dapat disunting' : 'baca-saja — perlu peran Partner / Manajer'}</span></div>
         <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
           {row.milestones.map((m: any, i: any) => {
             const dl = DLV_daysTo(m.date, today);
             return (
               <div key={i} className="row ac jb" style={{ padding: '6px 0', borderBottom: i < row.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span className="row ac gap8" style={{ minWidth: 0 }}>
-                  <button type="button" title={m.done ? 'Tandai belum selesai' : 'Tandai selesai'} onClick={() => onToggleMs && onToggleMs(i, !m.done)}
-                    style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', color: (DLV_MS_COLOR as any)[m.status], display: 'inline-flex' }}>
+                  <button type="button" disabled={!canEdit}
+                    title={canEdit ? (m.done ? 'Tandai belum selesai' : 'Tandai selesai') : 'Menandai milestone dibatasi peran Partner / Manajer'}
+                    aria-label={(m.done ? 'Tandai belum selesai: ' : 'Tandai selesai: ') + m.label}
+                    onClick={() => onToggleMs && onToggleMs(i, !m.done)}
+                    style={{ background: 'none', border: 0, padding: 0, cursor: canEdit ? 'pointer' : 'not-allowed', color: (DLV_MS_COLOR as any)[m.status], display: 'inline-flex' }}>
                     {m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}
                   </button>
                   <span className="tiny truncate" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'line-through' : 'none', color: m.status === 'done' ? 'var(--ink-4)' : 'var(--ink)' }}>{m.label}</span>
                 </span>
-                <input type="date" value={m.date} onChange={(e: { target: { value: string } }) => onDateMs && onDateMs(i, e.target.value)}
-                  title={dl < 0 ? Math.abs(dl) + ' hari lewat' : dl + ' hari lagi'}
+                <input type="date" value={m.date} disabled={!canEdit} onChange={(e: { target: { value: string } }) => onDateMs && onDateMs(i, e.target.value)}
+                  aria-label={'Tanggal milestone: ' + m.label}
+                  title={(dl < 0 ? Math.abs(dl) + ' hari lewat' : dl + ' hari lagi') + (canEdit ? '' : ' · baca-saja (perlu peran Partner / Manajer)')}
                   className="mono tiny" style={{ border: '1px solid var(--line)', borderRadius: 4, background: 'var(--surface)', color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)', height: 24, padding: '0 4px' }} />
               </div>
             );

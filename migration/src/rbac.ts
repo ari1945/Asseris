@@ -184,6 +184,15 @@ export function capForWrite(scope: any, key: any) {
     // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal
     // SENYAP (tak tersimpan, tampak berhasil sampai reload). Sejajar roster/priorYear.
     if (key === 'capacityPlan.v1') return ENGAGEMENT_MANAGE;
+    // 2026-08-16 (PRD Delivery & Milestones PR-1) — rencana pengiriman per perikatan
+    // (deliveryPlan.v1: fase + milestone + komitmen tanggal ke klien). Perencanaan
+    // pengiriman adalah tugas Partner/Manajer, SEJAJAR capacityPlan.v1. Tanpa cabang ini
+    // kunci jatuh ke FIRM_ADMIN (Partner-only) → seorang Manajer menandai milestone
+    // selesai, melihatnya berubah di layar, lalu tulisannya ditolak SENYAP: `flush()` di
+    // contexts.tsx hanya menangani isConflict(err); FORBIDDEN jatuh ke cabang "offline"
+    // yang mempertahankan nilai lokal TANPA toast. Kelas cacat yang sama persis dengan
+    // priorYear / capacityPlan.v1 / pipeline di atas.
+    if (key === 'deliveryPlan.v1') return ENGAGEMENT_MANAGE;
     /* 2026-08-12 (PRD Kesiapan P2PK PR-3) — atestasi mutu firma. SMM 1 ¶20
        MEMBAGI tanggung jawab: ¶20(b) operasional SMM ada pada Pimpinan SOQM,
        yang di firma ini seorang Audit Manager — dan yang namanya justru dicetak
