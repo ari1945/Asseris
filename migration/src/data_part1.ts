@@ -422,8 +422,30 @@
     { code: '5-500', name: 'Beban Teknologi & Lisensi', type: 'Beban', bal: 610_000_000 },
   ];
 
-  /* ---- F: Firm GL — journal entries ---- */
+  /* ---- F: Firm GL — journal entries ----
+     PRD budget-actual-ledger-derived 2026-08-15, Bagian B: JEJAK POSTING AKUN KONTROL.
+
+     #239 & #240 menjembatani sub-buku WIP/AR/AP ke "akun kontrol GL". Diukur, ketiga
+     akun kontrol itu hampir tak punya jejak posting sama sekali: 1-300 (WIP) NOL jurnal,
+     1-200 mutasi 8% dari saldonya, 2-100 mutasi 19%. Selama itu benar, "akun kontrol"
+     hanyalah nama untuk sebuah konstanta — tak ada yang bisa ditelusuri.
+
+     JV-0313..JV-0318 memberi ketiganya riwayat operasi biasa: WIP diakui sepanjang waktu
+     (PSAK 72), WIP ditagihkan menjadi piutang, faktur & pembayaran vendor.
+
+     NOL-DELTA SECARA ALJABAR: `opening = seed − efek(seedGl)`, jadi menambah jurnal seed
+     menggeser SALDO AWAL, bukan saldo kini. Tak satu angka pun di layar berubah —
+     yang bertambah hanya jejaknya. (`firm_ledger.test.ts` memaku saldo awal secara
+     eksplisit, jadi angka-angka itu memang bergerak di sana — dan memang harus.)
+
+     Urutan menurun (terbaru di atas) mengikuti tampilan modul Firm GL. */
   const FIRM_GL = [
+    { id: 'JV-0318', date: '2026-03-16', desc: 'Langganan lisensi perangkat audit tahunan', dr: '5-500', cr: '2-100', amount: 240_000_000, posted: true },
+    { id: 'JV-0317', date: '2026-03-14', desc: 'Beban pemasaran & pengembangan praktik', dr: '5-400', cr: '2-100', amount: 185_000_000, posted: true },
+    { id: 'JV-0316', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', dr: '2-100', cr: '1-100', amount: 910_000_000, posted: true },
+    { id: 'JV-0315', date: '2026-03-11', desc: 'Faktur vendor jasa profesional & langganan riset', dr: '5-300', cr: '2-100', amount: 265_000_000, posted: true },
+    { id: 'JV-0314', date: '2026-03-10', desc: 'Penagihan WIP menjadi piutang klien (batch Maret)', dr: '1-200', cr: '1-300', amount: 1_640_000_000, posted: true },
+    { id: 'JV-0313', date: '2026-03-09', desc: 'Pengakuan WIP jasa audit berjalan (PSAK 72 — sepanjang waktu)', dr: '1-300', cr: '4-100', amount: 2_850_000_000, posted: true },
     { id: 'JV-0312', date: '2026-03-08', desc: 'Penerimaan pembayaran INV-2026-031 (Sentosa)', dr: '1-100', cr: '1-200', amount: 925_000_000, posted: true },
     { id: 'JV-0311', date: '2026-03-07', desc: 'Pembayaran gaji staf Maret', dr: '5-100', cr: '1-100', amount: 1_820_000_000, posted: true },
     { id: 'JV-0310', date: '2026-03-05', desc: 'Faktur vendor IT & lisensi software', dr: '5-200', cr: '2-100', amount: 340_000_000, posted: true },
