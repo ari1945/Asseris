@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) · **PR-5** (SC-7·8) SELESAI. PR-6 menyusul. ⚠ Uji backend merah karena sebab PRA-ADA (lihat §16) — belum boleh merge sebelum itu tuntas |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) · **PR-5** (SC-7·8) SELESAI. PR-6 menyusul. Uji backend TUNTAS (§16): klien Prisma tergenerasi dari worktree lain; `npm run verify` kini hijau penuh |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -436,28 +436,39 @@ ditampilkan. (2) `pipelineDemand` tanpa tarif menerbitkan **1 jam/minggu** karen
 `Math.max(1, …)` — angka karangan yang tampak seperti hasil hitungan; kini 0 jam dengan
 alasan "TIDAK DAPAT DIHITUNG — tarif charge-out firma tidak tersedia".
 
-## 16. ⚠ Uji backend merah — sebab PRA-ADA, di luar arc ini
+## 16. Uji backend merah — TUNTAS (klien Prisma dari worktree lain)
 
-Saat menutup PR-5, `npm run verify` gagal pada langkah **backend tests** (34–36 uji,
-seluruhnya di `server/src/__tests__/state.test.ts` dan kerabatnya, dengan
-`version-mismatch:server=0`).
+Saat menutup PR-5, `npm run verify` gagal pada langkah **backend tests** (34 uji di
+`state.test.ts` dkk, `version-mismatch:server=0`). Kegagalan yang sama muncul pada tip
+PR-4 dengan seluruh perubahan PR-5 di-stash, dan `server/` tak disentuh arc ini.
 
-Bukti bahwa ini BUKAN akibat arc Sales Pipeline:
-- Kegagalan yang sama muncul pada commit `8867587` (tip PR-4) **dengan seluruh perubahan
-  PR-5 di-stash** — 34 gagal.
-- Tak satu pun berkas di `server/` disentuh arc ini (`git status server/` bersih).
-- `verify` PR-1..PR-4 hijau ±1 jam sebelumnya atas kode server yang identik.
-- Klien Prisma cocok dengan `schema.prisma` (hanya beda perapian spasi); `test.db`
-  dibuat ulang segar oleh `globalSetup` tiap jalan.
-- Jumlah kegagalan bervariasi antar-jalan (36 → 34).
+**Akar masalah.** Prisma Client MEMANGGANG direktori skema asal generasinya ke dalam
+berkas JS-nya, dan seluruh path SQLite relatif (`file:./test.db`) diselesaikan relatif
+terhadap direktori itu — bukan terhadap cwd proses. Sesi lain menjalankan
+`prisma generate` di dalam git worktree, dan karena `server/node_modules` dibagi
+antar-worktree, klien di pohon UTAMA ikut memanggang:
 
-Seluruh gerbang frontend hijau satu per satu (lint · typecheck · typecheck:test ·
-ratchet `:any` · vitest · build · budget-bundle).
+```
+D:\…\Audit System\.claude\worktrees\jolly-wing-9ca99f\server\prisma
+```
 
-Worktree ini DIBAGI dengan sesi lain yang aktif menulis (terlihat dari stash cabang
-`feat/timeline-…`, worktree `cockpit`, dan suntingan pada `.claude/launch.json` &
-`docs/PRD-REGISTRY.md` di tengah sesi). Akar masalahnya perlu sesi terfokus dengan
-proses lain diistirahatkan. **Branch ini tidak boleh di-merge sebelum itu tuntas.**
+Akibatnya seluruh uji backend membaca-menulis `test.db` MILIK WORKTREE ITU — berkas yang
+tak pernah direset `globalSetup` (ia mereset `server/prisma/test.db` di pohon ini).
+StateDoc & riwayat lama menumpuk di sana, sehingga jalur create menabrak baris yang sudah
+ada dan gagal sebagai konflik.
+
+Diagnosisnya lambat karena **dua lapis pesan yang menyesatkan**: `state.set` membuang
+pesan galat dalam dan selalu melaporkan `version-mismatch:server=<n>`, dan gerbang
+`ensure-prisma-client` hanya membandingkan PROVIDER — cocok sepanjang waktu — sehingga
+mencetak "OK" di atas klien yang menunjuk pohon lain.
+
+**Perbaikan.** (a) `prisma generate` ulang dari pohon utama; (b) `tools/ensure-prisma-client.mjs`
+kini juga memeriksa DIREKTORI SKEMA yang terpanggang dan meregenerasi bila ia menunjuk
+pohon lain. Perbandingannya PREFIKS absolut, bukan substring: path worktree juga
+mengandung `server/prisma`, dan versi pertama gerbang ini lolos begitu saja — ketahuan
+hanya karena gerbangnya diuji-GAGALKAN dulu sebelum dipakai.
+
+Sesudahnya: backend 30/30 berkas uji hijau, `npm run verify` hijau penuh.
 
 ## 17. Catatan
 
