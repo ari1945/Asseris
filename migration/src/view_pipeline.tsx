@@ -16,6 +16,23 @@ import {
   stageSummary, weightedValue, winLoss, wonYtd,
 } from './canon_pipeline';
 import type { Opportunity } from './canon_pipeline';
+import { acceptanceReadiness } from './canon_pipeline_acceptance';
+import type { IndependenceRow, ProspectLike, ReadinessRow, ReadinessStatus, VerdictState } from './canon_pipeline_acceptance';
+import type { ClientRow } from './ams_types';
+
+/* Warna status kesiapan — merah BUKAN dekorasi: baris `issue` adalah hal yang
+   menghalangi penerimaan, bukan sekadar catatan. */
+const READY_COLOR: Record<ReadinessStatus, string> = {
+  ok: 'var(--green)', issue: 'var(--red)', 'belum-dinilai': 'var(--ink-4)',
+};
+const VERDICT_BG: Record<VerdictState, string> = {
+  'tanpa-prospek': 'var(--surface-2)',
+  'klien-eksisting': 'var(--surface-2)',
+  'dalam-penilaian': 'var(--amber-bg)',
+  'ditolak': 'var(--red-bg)',
+  'diterima': 'var(--amber-bg)',
+  'siap-surat': 'var(--green-bg)',
+};
 
 /* Program B lanjutan (K-07) — tarif pembagi estimasi jam anggaran prospek dari
    SSOT FIRMFIN.WIP_BILL (dulu literal 700rb = tarif Senior — duplikat terpecah). */
@@ -42,6 +59,17 @@ function SalesPipeline() {
   const [dragId, setDragId] = useStateD1(null);
   const [over, setOver] = useStateD1(null);
   const [detail, setDetail] = useStateD1(null);
+
+  /* Kesiapan penerimaan per peluang — dihitung sekali untuk seluruh papan agar
+     hal terbuka terlihat TANPA membuka satu per satu (dulu tak terlihat sama
+     sekali: setiap kartu tampak sama-sama bersih). */
+  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS) as [ProspectLike[], unknown];
+  const readinessById = useMemoD1(() => {
+    const ctx = { prospects, independence: (AMS.INDEPENDENCE || []) as IndependenceRow[], clients: AMS.CLIENTS as ClientRow[] };
+    const m: Record<string, ReturnType<typeof acceptanceReadiness>> = {};
+    opps.forEach((o: Opportunity) => { m[o.id] = acceptanceReadiness(o, ctx); });
+    return m;
+  }, [opps, prospects]);
 
   const openList = openOpportunities(opps);
   const weighted = weightedValue(openList);
@@ -122,7 +150,14 @@ function SalesPipeline() {
                       </div>
                       <div className="row jb ac gap6" style={{ marginTop: 6 }}>
                         <span className="row ac gap6"><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
-                        {o.origin === 'cross-sell' && <span className="badge b-purple" title="Cross-sell ke klien eksisting">Cross-sell</span>}
+                        <span className="row ac gap6">
+                          {o.origin === 'cross-sell' && <span className="badge b-purple" title="Cross-sell ke klien eksisting">Cross-sell</span>}
+                          {readinessById[o.id] && readinessById[o.id].issues > 0 && (
+                            <span className="badge b-red" title={readinessById[o.id].rows.filter((r: ReadinessRow) => r.status === 'issue').map((r: ReadinessRow) => r.label + ': ' + r.basis).join('\n')}>
+                              <I.alert size={10} /> {readinessById[o.id].issues}
+                            </span>
+                          )}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -189,6 +224,10 @@ function OppForm({ onClose, onAdd }: any) {
 function OppDetail({ o, onClose, onMove }: any) {
   const { fmt } = AMS;
   const nav = useNav();
+  /* Register prospek HIDUP (dokumen yang sama dengan modul Onboarding), bukan
+     seed — keputusan akseptasi yang baru diambil di sana harus langsung terbaca
+     di sini. */
+  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS) as [ProspectLike[], unknown];
   const toOnboarding = () => {
     const blank = (AMS as any).PROSPECTS[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
     (window as any).amsAddProspect({
@@ -205,12 +244,12 @@ function OppDetail({ o, onClose, onMove }: any) {
     onClose();
     nav('onboarding');
   };
-  const accept = [
-    { t: 'Integritas & reputasi calon klien', ok: true },
-    { t: 'Independensi & potensi konflik kepentingan', ok: true },
-    { t: 'Kompetensi & kapasitas sumber daya', ok: o.stage !== 'Lead' },
-    { t: 'Penilaian risiko perikatan & fee proporsional', ok: o.prob >= 50 },
-  ];
+  /* PR-2 — kesiapan penerimaan DITURUNKAN dari register prospek + register
+     independensi. Dulu dua baris dipaku `ok: true` dan dua sisanya dihitung
+     dari `stage`/`prob` — sirkular, dan secara struktural tak pernah merah. */
+  const readiness = acceptanceReadiness(o, {
+    prospects, independence: (AMS.INDEPENDENCE || []) as IndependenceRow[], clients: AMS.CLIENTS as ClientRow[],
+  });
   return (
     <Overlay
       variant="sheet"
@@ -242,17 +281,46 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
             <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
           </div>
-          <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penerimaan Klien (SA 220 / SMM)</div>
-          <div style={{ display: 'grid', gap: 0, marginBottom: 16 }}>
-            {accept.map((a, i) => (
-              <div key={i} className="row gap8 ac" style={{ padding: '8px 0', borderBottom: i < accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                <span style={{ color: a.ok ? 'var(--green)' : 'var(--ink-4)' }}>{a.ok ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <span style={{ fontSize: 12, flex: 1 }}>{a.t}</span>
+          <div className="row jb ac" style={{ marginBottom: 8 }}>
+            <span className="tiny muted upper">Penerimaan Klien (SA 220 / SMM)</span>
+            {readiness.prospect
+              ? <span className="tiny mono muted" title={'Tertaut lewat ' + (readiness.linkedBy === 'source' ? 'field source' : 'kecocokan nama')}>{readiness.prospect.id}{readiness.composite !== null ? ' · skor ' + readiness.composite.toFixed(2) + '/5' : ''}</span>
+              : <span className="tiny muted">belum ada prospek</span>}
+          </div>
+          <div style={{ display: 'grid', gap: 0, marginBottom: 12 }}>
+            {readiness.rows.map((r, i) => (
+              <div key={r.key} className="row gap8" style={{ padding: '8px 0', borderBottom: i < readiness.rows.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
+                <span style={{ color: READY_COLOR[r.status], flex: '0 0 16px', marginTop: 1 }}>
+                  {r.status === 'ok' ? <I.checkCircle size={16} /> : r.status === 'issue' ? <I.alert size={16} /> : <I.clock size={16} />}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="row jb ac gap6">
+                    <span style={{ fontSize: 12, fontWeight: r.status === 'issue' ? 700 : 400 }}>{r.label}</span>
+                    <span className="tiny muted mono">{r.score !== null ? r.score + '/5' : '—'} · {r.weight}%</span>
+                  </div>
+                  {/* Dasar penilaian SELALU disebut — baris tanpa dasar adalah
+                      centang yang tak bisa diperiksa siapa pun. */}
+                  <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 2 }}>{r.basis}</div>
+                </div>
               </div>
             ))}
           </div>
-          <div className="panel" style={{ padding: '10px 12px', background: o.prob >= 50 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.4 }}>{o.prob >= 50 ? 'Penilaian penerimaan memadai — siap terbitkan engagement letter & konversi ke perikatan.' : 'Lengkapi penilaian penerimaan sebelum mengirim proposal.'}</div>
+
+          {readiness.feeMismatch && (
+            <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 12 }}>
+              <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.4 }}>
+                Nilai peluang Rp {fmt(readiness.feeMismatch.opp / 1e6, 0)} jt ≠ fee prospek Rp {fmt(readiness.feeMismatch.prospect / 1e6, 0)} jt — dua angka untuk satu perikatan.
+              </div>
+            </div>
+          )}
+
+          <div className="panel" style={{ padding: '10px 12px', background: VERDICT_BG[readiness.verdict.state], borderColor: 'transparent' }}>
+            <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>{readiness.verdict.text}</div>
+            <div className="row gap6 ac" style={{ marginTop: 7, flexWrap: 'wrap' }}>
+              {([['Akseptasi', readiness.gates.acceptance], ['PMPJ', readiness.gates.pmpj], ['Surat SA 210', readiness.gates.letter], ['Konversi', readiness.gates.converted]] as [string, boolean][]).map(([lbl, done]) => (
+                <span key={lbl} className={'badge ' + (done ? 'b-green' : 'b-gray')}>{done ? '✓' : '○'} {lbl}</span>
+              ))}
+            </div>
           </div>
         </div>
     </Overlay>

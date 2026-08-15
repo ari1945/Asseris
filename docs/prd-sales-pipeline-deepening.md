@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1 SELESAI** — SC-1 · SC-2 · SC-9 · SC-10 tertutup, `npm run verify` hijau (1920 uji frontend + 431 server), live-verified. PR-2..PR-6 menyusul |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1 SELESAI** (SC-1 · SC-2 · SC-9 · SC-10) · **PR-2 SELESAI** (SC-4 · SC-5). PR-3..PR-6 menyusul |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -333,7 +333,36 @@ di atas dasar yang sudah benar.
 
 ---
 
-## 12. Catatan
+## 12. Hasil PR-2 atas seed nyata
+
+Setelah panel dapat bernilai merah, **8 dari 14 peluang membawa hal terbuka** —
+seluruhnya dulu tampil sebagai centang hijau:
+
+| Peluang | Hal terbuka | Sumber |
+|---|---|---|
+| OPP-107 Bahari Logistik | Independensi | Pemilik **Bayu Saputra `declared: false`** — tim menilai dirinya **5/5** "tidak ada konflik"; akseptasi sudah 'Terima' 10 Feb 2026 dan **surat SA 210 sudah ditandatangani** |
+| OPP-102 · OPP-104 · OPP-210 · OPP-212 | Independensi | **Sari Dewanti `conflicts: 1`** — "Saudara bekerja di calon klien (di-mitigasi)" |
+| OPP-201 · OPP-202 | Independensi | **Rotasi tahun ke-5 dari batas 5** atas PT Sentosa Makmur (PP 20/2015 Ps. 11) |
+| OPP-214 | Independensi | **Rotasi tahun ke-7 dari batas 5** atas PT Graha Properti Investama |
+| OPP-103 Pelita Energi | Risiko | PMPJ risiko **Tinggi** (EDD) belum diverifikasi; kecocokan PEP kini disebut, bukan disembunyikan |
+
+Dua keputusan yang diambil saat implementasi, di luar teks PRD:
+
+1. **Register mengalahkan penilaian-diri.** Skor faktor adalah penilaian tim atas
+   dirinya sendiri; deklarasi independensi, kecocokan skrining, dan tenur rotasi
+   adalah fakta terdaftar. Bila berselisih, yang terdaftar menang.
+2. **Hal terbuka MENGHALANGI, bukan sekadar dicatat.** "Siap terbitkan surat
+   perikatan" kini menuntut `issues === 0`, bukan hanya akseptasi + PMPJ. Tanpa ini
+   OPP-107 tetap berbunyi "dapat diterbitkan" di atas independensi yang belum
+   dideklarasikan.
+
+Ditemukan **verifikasi hidup, bukan uji**: fallback pencocokan prospek lewat NAMA
+menautkan OPP-201 (ESG Assurance Rp 480 jt) ke PROS-04 — catatan prospek AUDIT
+klien yang sama (Rp 1.850 jt) — sehingga papan menampilkan keputusan penerimaan
+perikatan lain seolah milik peluang ini. Fallback nama kini intake-saja; cross-sell
+hanya tertaut lewat `source` eksplisit.
+
+## 13. Catatan
 
 Temuan 1.4 dan 1.5 bukan sekadar utang fitur — keduanya menghasilkan **artefak yang
 menyesatkan atas nama standar profesi**: layar bertajuk SA 220/SMM yang mencentang
