@@ -186,12 +186,33 @@ export function mergeSeedOpportunities(stored: Opportunity[] | null | undefined,
   if (!stored || !stored.length) return seed;
   const have = new Set(stored.map((o) => o.id));
   const missing = seed.filter((o) => !have.has(o.id));
-  /* Dokumen lama tak punya `origin`/`clientId` → isi dari seed bila cocok id. */
+  /* Dokumen lama tak punya `origin`/`clientId`/`history` → isi dari seed bila
+     cocok id.
+
+     RIWAYAT (PR-4) butuh kehati-hatian yang tidak diperlukan dua field lainnya:
+     `origin`/`clientId` adalah fakta tetap tentang peluang, sedangkan riwayat
+     adalah rangkaian peristiwa yang HARUS berakhir pada tahap yang sekarang
+     ditempati. Terbukti hidup: dokumen terpersist di lingkungan dev memuat 7
+     peluang bentuk lama, salah satunya sudah berpindah tahap (OPP-107 ada di
+     Lead sementara seed menaruhnya di Qualified). Menempelkan riwayat seed ke
+     peluang itu akan MENGARANG jejak yang bertentangan dengan keadaannya.
+
+     Karena itu riwayat hanya diadopsi bila tahap akhir seed = tahap tersimpan.
+     Bila berbeda, riwayat sengaja DIBIARKAN KOSONG: turunan siklus hidup
+     mengembalikan null ("—"), yang jujur — kita memang tidak tahu kapan peluang
+     itu berpindah. */
   const seedById = new Map(seed.map((o) => [o.id, o]));
   const healed = stored.map((o) => {
-    if (o.origin) return o;
     const s = seedById.get(o.id);
-    return { ...o, origin: (s ? s.origin : 'baru') as PipeOrigin, clientId: s ? s.clientId : null };
+    let next = o;
+    if (!next.origin) {
+      next = { ...next, origin: (s ? s.origin : 'baru') as PipeOrigin, clientId: s ? s.clientId : null };
+    }
+    if ((!next.history || !next.history.length) && s && s.history && s.history.length) {
+      const seedFinal = s.history[s.history.length - 1];
+      if (seedFinal.stage === next.stage) next = { ...next, history: s.history };
+    }
+    return next;
   });
   return [...healed, ...missing];
 }

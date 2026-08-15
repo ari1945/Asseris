@@ -104,6 +104,38 @@ describe('mergeSeedOpportunities — menyembuhkan yang HILANG, bukan yang BERUBA
     const merged = mergeSeedOpportunities(tanpaOrigin, seed);
     expect(merged[0].origin).toBe('baru');
   });
+
+  /* PR-4 lanjutan — ditemukan VERIFIKASI HIDUP: dokumen terpersist memuat 7
+     peluang bentuk pra-PR-1 tanpa `history`, sehingga backfill riwayat tak
+     pernah sampai ke siapa pun yang sudah punya register. */
+  it('dokumen lama tanpa history mendapat riwayat seed bila tahapnya masih sama', () => {
+    const lama = seed.filter((o) => o.origin === 'baru').map((o) => { const c = { ...o }; delete c.history; return c; });
+    expect(lama.every((o) => !o.history)).toBe(true);
+    const merged = mergeSeedOpportunities(lama, seed);
+    lama.forEach((o) => {
+      const m = merged.find((x) => x.id === o.id)!;
+      expect(m.history, o.id).toBeTruthy();
+      expect(m.history![m.history!.length - 1].stage, o.id).toBe(o.stage);
+    });
+  });
+
+  it('peluang yang TAHAPNYA sudah bergeser TIDAK diberi riwayat karangan', () => {
+    /* Kasus nyata: OPP-107 tersimpan di Lead sementara seed menaruhnya di
+       Qualified. Menempelkan riwayat seed = mengarang jejak yang bertentangan
+       dengan keadaan peluang. Lebih jujur: tanpa riwayat ⇒ turunan "—". */
+    const geser = seed.filter((o) => o.id === 'OPP-107').map((o) => { const c = { ...o, stage: 'Lead' }; delete c.history; return c; });
+    const merged = mergeSeedOpportunities(geser, seed);
+    const m = merged.find((x) => x.id === 'OPP-107')!;
+    expect(m.stage).toBe('Lead');
+    expect(m.history).toBeUndefined();
+  });
+
+  it('riwayat yang SUDAH ada tidak pernah ditimpa seed', () => {
+    const punya = [{ ...seed[0], history: [{ stage: seed[0].stage, at: '2026-03-01', by: 'Pengguna' }] }] as Opportunity[];
+    const merged = mergeSeedOpportunities(punya, seed);
+    expect(merged[0].history).toHaveLength(1);
+    expect(merged[0].history![0].by).toBe('Pengguna');
+  });
 });
 
 describe('turunan', () => {
