@@ -94,9 +94,18 @@ describe('SC-13 — win rate PER PERIODE & forecast basi', () => {
 
   it('win rate YTD hanya menghitung keputusan DI DALAM periode', () => {
     const ytd = winLossBetween(REG, yearStart(TODAY), TODAY);
+    /* Populasi YTD 2026 dieja agar uji ini gagal saat seed berubah — dan memang
+       pernah: backfill PR-6 menambah OPP-086 (kalah 23 Jan 2026). */
+    const diPeriode = REG.filter((o) => {
+      const d = decidedAt(o);
+      return !!d && d >= yearStart(TODAY) && d <= TODAY;
+    }).map((o) => o.id).sort();
+    expect(diPeriode).toEqual(['OPP-086', 'OPP-105', 'OPP-106', 'OPP-214']);
     expect(ytd.won).toBe(1);                            /* OPP-105 (1 Mar) */
-    expect(ytd.lost).toBe(2);                           /* OPP-106 & OPP-214 (Feb) */
-    expect(ytd.winRate).toBe(33);
+    expect(ytd.lost).toBe(3);                           /* OPP-086 · OPP-106 · OPP-214 */
+    expect(ytd.winRate).toBe(25);
+    /* keputusan tahun lalu TIDAK ikut, walau ada beberapa di seed */
+    expect(REG.some((o) => (decidedAt(o) || '') < yearStart(TODAY))).toBe(true);
     /* periode tanpa keputusan ⇒ null, BUKAN 0% yang menyesatkan */
     expect(winLossBetween(REG, '2020-01-01', '2020-12-31').winRate).toBeNull();
   });

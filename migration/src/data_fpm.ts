@@ -180,11 +180,13 @@ import { AMS } from './data';
     { bucket: '61–90 hari', amount: 680 * M, color: '#d98324' },
     { bucket: '> 90 hari', amount: 420 * M, color: '#b3261e' },
   ];
-  const BI_WINLOSS = {
-    won: 6, lost: 2, winRate: 75,
-    byQuarter: [{ q: 'Q1', w: 1, l: 1 }, { q: 'Q2', w: 2, l: 0 }, { q: 'Q3', w: 1, l: 1 }, { q: 'Q4', w: 2, l: 0 }],
-    lossReasons: [{ r: 'Harga / fee', n: 1 }, { r: 'Rotasi wajib', n: 1 }],
-  };
+  /* PR-6 (prd-sales-pipeline-deepening) — `BI_WINLOSS` DICABUT. Ia literal:
+     `won: 6, lost: 2, winRate: 75` beserta alasan kalah untuk peluang yang tak
+     pernah punya field alasan kalah. Angkanya bertentangan dengan register (33%)
+     dan tak pernah bergerak ketika perikatan benar-benar menang atau kalah.
+     Penggantinya: `winLossByQuarter` & `lossReasons` di canon_pipeline_lifecycle,
+     diturunkan dari riwayat tahap (tanggal keputusan) + alasan yang DITANGKAP
+     saat transisi ke Won/Lost. */
   const BI_RETENTION = {
     cohorts: [
       { year: '2021', start: 8, retained: [8, 8, 7, 7, 6] },
@@ -221,7 +223,7 @@ import { AMS } from './data';
   ];
 
   /* ---- merge into AMS ---- */
-  const add = { CRM_360, ACTIVITY_META, ENG_DETAIL, RISK_CONTROLS, RISK_TREND, BI_INDUSTRY, BI_AR_AGING, BI_WINLOSS, BI_RETENTION, INTEGRITY_RULES, AUDIT_TRAIL };
+  const add = { CRM_360, ACTIVITY_META, ENG_DETAIL, RISK_CONTROLS, RISK_TREND, BI_INDUSTRY, BI_AR_AGING, BI_RETENTION, INTEGRITY_RULES, AUDIT_TRAIL };
   Object.assign(AMS, add);
 })();
 

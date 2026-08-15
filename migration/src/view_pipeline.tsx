@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useInitialSelection, useNav } from './contexts';
 import { probError, dueBeforeIssued } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -20,6 +20,7 @@ import { applyHandoff, planHandoff } from './canon_pipeline_handoff';
 import { effortPlan, feeBasis } from './canon_pipeline_fee';
 import { FIRMFIN } from './data_firmfin';
 import {
+  LOSS_REASON_PRESETS, WIN_REASON_PRESETS,
   ageDays, daysInStage, isOverdue, moveWithHistory, probCheck,
   stageFlow, stallInfo, winLossBetween, yearStart,
 } from './canon_pipeline_lifecycle';
@@ -60,12 +61,19 @@ const { useState: useStateD1, useMemo: useMemoD1 } = React;
 
 function SalesPipeline() {
   const { fmt } = AMS;
+  const nav = useNav();
   const { register: opps, setRegister: setOpps, canEdit } = usePipelineRegister();
   const { logActivity } = useAudit();
   const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
   const [dragId, setDragId] = useStateD1(null);
   const [over, setOver] = useStateD1(null);
-  const [detail, setDetail] = useStateD1(null);
+  /* PR-6 (SC-15) — sheet detail BERALAMAT: `#/pipeline/<OPP-id>` (pola V-9).
+     Dulu seleksi hanya hidup di state React, jadi peluang tak dapat ditautkan,
+     di-bookmark, atau dibagikan ke rekan. */
+  const seedSel = useInitialSelection('pipeline');
+  const [detail, setDetail] = useStateD1(seedSel);
+  const openDetail = (id: string) => { setDetail(id); nav('pipeline', { sel: id }); };
+  const closeDetail = () => { setDetail(null); nav('pipeline', { sel: null }); };
 
   /* Kesiapan penerimaan per peluang — dihitung sekali untuk seluruh papan agar
      hal terbuka terlihat TANPA membuka satu per satu (dulu tak terlihat sama
@@ -97,17 +105,17 @@ function SalesPipeline() {
      sejajar roster klien & prospek. Gate UI ini WAJIB selaras dengan
      capForWrite('firm','pipeline') — kalau tidak, kartu bergerak di layar lalu
      tulisannya ditolak SENYAP oleh server. */
-  const move = (id: any, stage: any) => {
+  const move = (id: any, stage: any, reason?: string) => {
     if (!canEdit) return;
     const from = opps.find((o) => o.id === id);
     if (!from || from.stage === stage) return;
     /* PR-4 — perpindahan MENCATAT (siapa · kapan · probabilitas yang berlaku).
        `moveWithHistory` juga memulihkan probabilitas lama saat peluang kembali
        dari Won/Lost; `move()` lama membiarkan 100% terbawa keluar dari Won. */
-    setOpps((list: Opportunity[]) => list.map((o) => o.id === id ? moveWithHistory(o, stage, { by: who, at: AMS.TODAY }) : o));
+    setOpps((list: Opportunity[]) => list.map((o) => o.id === id ? moveWithHistory(o, stage, { by: who, at: AMS.TODAY, reason }) : o));
     logActivity && logActivity({
       who, action: 'OPP_STAGE',
-      detail: `Peluang ${id} · ${from.name} dipindahkan ${from.stage} → ${stage}`,
+      detail: `Peluang ${id} · ${from.name} dipindahkan ${from.stage} → ${stage}` + (reason ? ` · alasan: ${reason}` : ''),
     });
   };
   const detailOpp = detail ? opps.find((o) => o.id === detail) : null;
@@ -189,10 +197,11 @@ function SalesPipeline() {
                 })()}
                 <div className="grid" style={{ gap: 8 }}>
                   {st.items.map((o) => (
-                    <div key={o.id} className="panel" draggable={canEdit}
+                    <button key={o.id} type="button" className="panel opp-card" draggable={canEdit}
                       onDragStart={() => setDragId(o.id)} onDragEnd={() => { setDragId(null); setOver(null); }}
-                      onClick={() => setDetail(o.id)}
-                      style={{ padding: 10, cursor: canEdit ? 'grab' : 'pointer', borderTop: '3px solid ' + color, opacity: dragId === o.id ? .4 : 1 }}>
+                      onClick={() => openDetail(o.id)}
+                      aria-label={`${o.name} · ${o.service} · Rp ${fmt(o.value / 1e6, 0)} juta · tahap ${o.stage} · probabilitas ${o.prob}%`}
+                      style={{ padding: 10, cursor: canEdit ? 'grab' : 'pointer', borderTop: '3px solid ' + color, opacity: dragId === o.id ? .4 : 1, textAlign: 'left', width: '100%', font: 'inherit', color: 'inherit' }}>
                       <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{o.name.replace('PT ', '')}</div>
                       <div className="tiny muted" style={{ marginBottom: 6 }}>{o.service}</div>
                       <div className="row jb ac">
@@ -220,7 +229,7 @@ function SalesPipeline() {
                           )}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -228,7 +237,7 @@ function SalesPipeline() {
           })}
         </div>
       </div></div>
-      {detailOpp && <OppDetail o={detailOpp} onClose={() => setDetail(null)} onMove={move} />}
+      {detailOpp && <OppDetail o={detailOpp} onClose={closeDetail} onMove={move} />}
       {showNew && <OppForm onClose={() => setShowNew(false)} onAdd={(o: any) => { addOpp(o); setShowNew(false); }} />}
     </>
   );
@@ -285,6 +294,10 @@ function OppForm({ onClose, onAdd }: any) {
 function OppDetail({ o, onClose, onMove }: any) {
   const { fmt } = AMS;
   const nav = useNav();
+  const uidD = React.useId();
+  const [decide, setDecide] = useStateD1(null);
+  const [reasonPick, setReasonPick] = useStateD1('');
+  const [reasonNote, setReasonNote] = useStateD1('');
   /* Register prospek HIDUP (dokumen yang sama dengan modul Onboarding), bukan
      seed — keputusan akseptasi yang baru diambil di sana harus langsung terbaca
      di sini. */
@@ -344,10 +357,38 @@ function OppDetail({ o, onClose, onMove }: any) {
               : canHandoff
                 ? <Btn variant="primary" onClick={toOnboarding}><I.arrowRight size={14} /> Buat Prospek {plan.draft!.id} &amp; Mulai Penerimaan</Btn>
                 : <span className="chip tiny muted" style={{ justifyContent: 'center' }} title="Membuat prospek dibatasi peran Partner / Manajer (ENGAGEMENT_MANAGE)"><I.lock size={11} /> Serah-terima dibatasi peran</span>}
-          <div className="row gap8">
-            <Btn style={{ flex: 1 }} onClick={() => { onMove(o.id, 'Won'); onClose(); }}><I.check size={14} /> Tandai Menang</Btn>
-            <Btn onClick={() => { onMove(o.id, 'Lost'); onClose(); }}>Kalah</Btn>
-          </div>
+          {/* PR-6 — KEPUTUSAN MENANG/KALAH MENANGKAP ALASANNYA. Dulu "Kalah"
+              hanya menyetel prob=0; tak ada yang ditanya, tak ada yang disimpan —
+              sementara BI menampilkan daftar "alasan kalah" yang literal. */}
+          {decide
+            ? (
+              <div className="grid" style={{ gap: 8 }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={uidD + '-alasan'}>{decide === 'Won' ? 'Alasan menang' : 'Alasan kalah'}</label>
+                  <select id={uidD + '-alasan'} className="select" value={reasonPick} onChange={(e: { target: { value: string } }) => setReasonPick(e.target.value)}>
+                    {(decide === 'Won' ? WIN_REASON_PRESETS : LOSS_REASON_PRESETS).map((r) => <option key={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={uidD + '-catatan'}>Catatan (opsional)</label>
+                  <input id={uidD + '-catatan'} className="input" value={reasonNote} placeholder="mis. imbalan pesaing 18% lebih rendah"
+                    onChange={(e: { target: { value: string } }) => setReasonNote(e.target.value)} />
+                </div>
+                <div className="row gap8">
+                  <Btn style={{ flex: 1 }} variant="primary"
+                    onClick={() => { onMove(o.id, decide, reasonPick + (reasonNote.trim() ? ' — ' + reasonNote.trim() : '')); onClose(); }}>
+                    <I.check size={14} /> Simpan {decide === 'Won' ? 'Menang' : 'Kalah'}
+                  </Btn>
+                  <Btn onClick={() => setDecide(null)}>Batal</Btn>
+                </div>
+              </div>
+            )
+            : (
+              <div className="row gap8">
+                <Btn style={{ flex: 1 }} onClick={() => { setReasonPick(WIN_REASON_PRESETS[0]); setReasonNote(''); setDecide('Won'); }}><I.check size={14} /> Tandai Menang</Btn>
+                <Btn onClick={() => { setReasonPick(LOSS_REASON_PRESETS[0]); setReasonNote(''); setDecide('Lost'); }}>Kalah</Btn>
+              </div>
+            )}
         </div>
       )}
       header={(
@@ -365,6 +406,20 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
             <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} accent={isOverdue(o, AMS.TODAY) ? 'var(--red)' : undefined} />
           </div>
+          {/* PR-6 (SC-14) — PINDAH TAHAP TANPA TETIKUS. Sebelum ini satu-satunya
+              cara memindahkan peluang adalah drag-and-drop: mustahil dengan
+              keyboard, dan mustahil bagi pengguna teknologi bantu. Kontrol
+              native `<select>` memberi jalur yang setara. */}
+          {onMove && (
+            <div className="field" style={{ marginBottom: 14 }}>
+              <label htmlFor={uidD + '-tahap'}>Pindahkan ke tahap</label>
+              <select id={uidD + '-tahap'} className="select" value={o.stage}
+                onChange={(e: { target: { value: string } }) => { if (e.target.value !== o.stage) onMove(o.id, e.target.value); }}>
+                {PIPE_STAGES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </div>
+          )}
+
           {/* PR-5 — DASAR NILAI. Nilai peluang yang punya build-up dapat
               dipertanggungjawabkan (jam × tarif firma); yang tanpa build-up
               dikatakan apa adanya, bukan diam-diam dianggap setara. */}

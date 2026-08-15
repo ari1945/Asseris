@@ -326,7 +326,7 @@
   },
   "src/view_bi2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 48
+      "count": 44
     }
   },
   "src/view_bo1.tsx": {

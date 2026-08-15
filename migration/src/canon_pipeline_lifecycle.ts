@@ -217,6 +217,102 @@ export function winLossBetween(reg: OpportunityWithHistory[], from: string, to: 
 /** Awal tahun takwim dari sebuah tanggal ISO. */
 export function yearStart(asOf: string): string { return (asOf || '').slice(0, 4) + '-01-01'; }
 
+/**
+ * PR-6 — WIN/LOSS PER KUARTAL & ALASAN KALAH, DITURUNKAN.
+ *
+ * `BI_WINLOSS` menyimpan `{ won: 6, lost: 2, winRate: 75, byQuarter, lossReasons }`
+ * sebagai literal — termasuk ALASAN KALAH untuk peluang yang tak pernah punya
+ * field alasan kalah. Angkanya bertentangan dengan register (75% vs 33%) dan tak
+ * pernah bergerak ketika perikatan benar-benar menang atau kalah.
+ *
+ * Semua di bawah ini hanya mungkin karena keputusan menang/kalah kini punya
+ * TANGGAL (riwayat tahap) dan alasannya DITANGKAP saat transisi.
+ */
+export function quarterOf(iso: string): string | null {
+  if (!iso || iso.length < 7) return null;
+  const y = iso.slice(0, 4), m = +iso.slice(5, 7);
+  if (!(m >= 1 && m <= 12)) return null;
+  return `${y}-Q${Math.ceil(m / 3)}`;
+}
+
+/** Mundur `n` kuartal dari kuartal sebuah tanggal, terlama → terbaru. */
+export function lastQuarters(asOf: string, n: number): string[] {
+  const cur = quarterOf(asOf);
+  if (!cur) return [];
+  let y = +cur.slice(0, 4), q = +cur.slice(6);
+  const out: string[] = [];
+  for (let i = 0; i < n; i++) {
+    out.unshift(`${y}-Q${q}`);
+    q -= 1;
+    if (q === 0) { q = 4; y -= 1; }
+  }
+  return out;
+}
+
+/** `'2025-Q3'` → `'2025-07-01'`. */
+export function quarterStart(quarter: string): string {
+  const m = /^(\d{4})-Q([1-4])$/.exec(quarter || '');
+  if (!m) return '';
+  return `${m[1]}-${String((+m[2] - 1) * 3 + 1).padStart(2, '0')}-01`;
+}
+
+export interface QuarterWinLoss { quarter: string; won: number; lost: number; winRate: number | null }
+
+export function winLossByQuarter(reg: OpportunityWithHistory[], quarters: string[]): QuarterWinLoss[] {
+  return quarters.map((quarter) => {
+    const decided = (reg || []).filter((o) => quarterOf(decidedAt(o) || '') === quarter);
+    const won = decided.filter((o) => o.stage === 'Won').length;
+    const lost = decided.filter((o) => o.stage === 'Lost').length;
+    return { quarter, won, lost, winRate: won + lost ? Math.round(won / (won + lost) * 100) : null };
+  });
+}
+
+export interface LossReason { reason: string; n: number; value: number }
+
+/**
+ * Alasan kalah dari peristiwa Lost yang tercatat. Peluang yang kalah TANPA alasan
+ * dikelompokkan apa adanya — jumlahnya adalah ukuran disiplin pencatatan, bukan
+ * sesuatu yang boleh disembunyikan.
+ */
+export const LOSS_REASON_UNRECORDED = 'Tidak dicatat';
+
+/**
+ * Taksonomi alasan kalah. Daftar tertutup + catatan bebas: tanpa taksonomi,
+ * "harga terlalu mahal" dan "fee pesaing lebih rendah" jadi dua baris berbeda
+ * pada analitik dan polanya tak pernah terlihat.
+ */
+export const LOSS_REASON_PRESETS = [
+  'Imbalan / harga',
+  'Rotasi wajib (PP 20/2015)',
+  'Kapasitas & waktu firma',
+  'Klien menunda / membatalkan',
+  'Hubungan dengan auditor incumbent',
+  'Lingkup di luar kompetensi firma',
+] as const;
+
+/** Alasan menang — populasi pembanding untuk analitik kalah. */
+export const WIN_REASON_PRESETS = [
+  'Keahlian industri',
+  'Imbalan kompetitif',
+  'Hubungan & rekam jejak',
+  'Kesiapan tim & jadwal',
+  'Rekomendasi / rujukan',
+] as const;
+
+export function lossReasons(reg: OpportunityWithHistory[], from?: string, to?: string): LossReason[] {
+  const m = new Map<string, LossReason>();
+  (reg || []).filter((o) => o.stage === 'Lost').forEach((o) => {
+    const at = decidedAt(o);
+    if (from && to && (!at || at < from || at > to)) return;
+    const reason = currentEvent(o)?.reason?.trim() || LOSS_REASON_UNRECORDED;
+    const row = m.get(reason) || { reason, n: 0, value: 0 };
+    row.n += 1;
+    row.value += o.value || 0;
+    m.set(reason, row);
+  });
+  return [...m.values()].sort((a, b) => b.n - a.n || b.value - a.value);
+}
+
 /* ---------------------------------------------------------------
    Perpindahan tahap yang MENCATAT — dan memulihkan yang pernah dicatat
    --------------------------------------------------------------- */

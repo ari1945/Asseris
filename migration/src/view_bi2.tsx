@@ -5,6 +5,7 @@ import { FIRMFIN } from './data_firmfin';
 import { useFirmCoa } from './use_firm_coa';
 import { usePipelineRegister } from './use_pipeline';
 import { PIPE_OPEN_STAGES, PIPE_STAGE_COLOR, byOwner, grossValue, openOpportunities, weightedValue } from './canon_pipeline';
+import { lastQuarters, lossReasons, quarterStart, winLossByQuarter } from './canon_pipeline_lifecycle';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui';
@@ -95,7 +96,21 @@ function BIPipeline() {
      seed. Peta warna tahap juga dari kanon: dulu berkas ini, view_pipeline, dan
      view_crm2 masing-masing punya peta sendiri yang saling berbeda. */
   const { register: PIPE } = usePipelineRegister();
-  const WL: any = AMS.BI_WINLOSS;
+  /* PR-6 — win/loss DITURUNKAN dari register. `BI_WINLOSS` literal menyatakan
+     6 menang · 2 kalah · 75%, bertentangan dengan register (33%), lengkap dengan
+     ALASAN KALAH untuk peluang yang dulu tak punya field alasan kalah. Angka itu
+     tak pernah bergerak ketika perikatan benar-benar menang atau kalah. */
+  const QUARTERS = lastQuarters(AMS.TODAY, 4);
+  const wlQ = winLossByQuarter(PIPE, QUARTERS);
+  const wlTtm = {
+    won: wlQ.reduce((a, q) => a + q.won, 0),
+    lost: wlQ.reduce((a, q) => a + q.lost, 0),
+  };
+  const ttmRate = wlTtm.won + wlTtm.lost ? Math.round(wlTtm.won / (wlTtm.won + wlTtm.lost) * 100) : null;
+  /* Alasan kalah dibatasi jendela yang SAMA dengan grafiknya (4 kuartal terakhir),
+     supaya judul, batang, dan daftar alasan bicara tentang populasi yang sama. */
+  const ttmFrom = quarterStart(QUARTERS[0]);
+  const reasons = lossReasons(PIPE, ttmFrom, AMS.TODAY);
 
   const open = openOpportunities(PIPE);
   const gross = grossValue(open);
@@ -107,14 +122,14 @@ function BIPipeline() {
     return { label: st, value: g, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: PIPE_STAGE_COLOR[st] };
   });
   const byPartner = byOwner(open).map((r) => ({ owner: r.owner, gross: r.gross, wt: r.weighted, n: r.n }));
-  const maxWL = Math.max(...WL.byQuarter.map((q: any) => q.w + q.l), 1);
+  const maxWL = Math.max(...wlQ.map((q) => q.won + q.lost), 1);
 
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(gross / 1e9, 2) + ' M'} label="Pipeline Gross" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Tertimbang Probabilitas" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={WL.winRate + '%'} label="Win Rate (TTM)" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={ttmRate === null ? '—' : ttmRate + '%'} label="Win Rate (TTM)" accent="var(--green)" delta={wlTtm.won + ' menang · ' + wlTtm.lost + ' kalah'} /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(avgDeal / 1e6, 0) + ' jt'} label="Rata-rata Deal" /></div></Panel>
       </div>
 
@@ -123,16 +138,16 @@ function BIPipeline() {
           <div style={{ padding: '16px 14px' }}><Funnel stages={funnel} /></div>
         </Panel>
 
-        <Panel title="Win / Loss per Kuartal" sub={WL.won + ' menang · ' + WL.lost + ' kalah'}>
+        <Panel title="Win / Loss per Kuartal" sub={wlTtm.won + ' menang · ' + wlTtm.lost + ' kalah · 4 kuartal terakhir'}>
           <div style={{ padding: '14px 16px' }}>
             <div className="row gap12" style={{ alignItems: 'flex-end', height: 130 }}>
-              {WL.byQuarter.map((q: any) => (
-                <div key={q.q} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+              {wlQ.map((q) => (
+                <div key={q.quarter} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
                   <div style={{ width: '60%', display: 'flex', flexDirection: 'column-reverse', height: '100%', justifyContent: 'flex-start' }}>
-                    <div style={{ height: (q.w / maxWL * 100) + '%', background: '#1f7a4d', borderRadius: '3px 3px 0 0', minHeight: q.w ? 4 : 0 }} title={q.w + ' menang'} />
-                    <div style={{ height: (q.l / maxWL * 100) + '%', background: '#b3261e', minHeight: q.l ? 4 : 0 }} title={q.l + ' kalah'} />
+                    <div style={{ height: (q.won / maxWL * 100) + '%', background: '#1f7a4d', borderRadius: '3px 3px 0 0', minHeight: q.won ? 4 : 0 }} title={q.won + ' menang'} />
+                    <div style={{ height: (q.lost / maxWL * 100) + '%', background: '#b3261e', minHeight: q.lost ? 4 : 0 }} title={q.lost + ' kalah'} />
                   </div>
-                  <span className="tiny muted">{q.q}</span>
+                  <span className="tiny muted">{q.quarter.replace('-', ' ')}</span>
                 </div>
               ))}
             </div>
@@ -140,7 +155,9 @@ function BIPipeline() {
               <span className="row ac gap6 tiny" style={{ fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#1f7a4d' }} />Menang</span>
               <span className="row ac gap6 tiny" style={{ fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#b3261e' }} />Kalah</span>
               <div style={{ flex: 1 }} />
-              <span className="tiny muted">Alasan kalah: {WL.lossReasons.map((r: any) => r.r).join(', ')}</span>
+              <span className="tiny muted" title={reasons.map((r) => `${r.reason} — ${r.n} peluang · Rp ${fmt(r.value / 1e6, 0)} jt`).join('\n')}>
+                {reasons.length ? 'Alasan kalah: ' + reasons.map((r) => `${r.reason.replace(/[.;].*$/, '')} (${r.n})`).join(' · ') : 'Belum ada kekalahan tercatat pada periode ini.'}
+              </span>
             </div>
           </div>
         </Panel>

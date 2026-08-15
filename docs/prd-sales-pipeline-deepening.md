@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) · **PR-5** (SC-7·8) SELESAI. PR-6 menyusul. Uji backend TUNTAS (§16): klien Prisma tergenerasi dari worktree lain; `npm run verify` kini hijau penuh |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) · **PR-5** (SC-7·8) · **PR-6** (SC-3·14·15) SELESAI — **seluruh arc tuntas**, SC-1..SC-16 tertutup, `npm run verify` hijau penuh |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -470,7 +470,35 @@ hanya karena gerbangnya diuji-GAGALKAN dulu sebelum dipakai.
 
 Sesudahnya: backend 30/30 berkas uji hijau, `npm run verify` hijau penuh.
 
-## 17. Catatan
+## 17. Hasil PR-6 — arc ditutup
+
+**SC-3 · literal terakhir dicabut.** `BI_WINLOSS` (`won: 6, lost: 2, winRate: 75`,
+lengkap dengan "alasan kalah" untuk peluang yang tak pernah punya field alasan kalah)
+DIHAPUS dari data. Penggantinya `winLossByQuarter` & `lossReasons`, diturunkan dari
+tanggal keputusan + alasan yang kini DITANGKAP saat transisi ke Won/Lost. Kontradiksi
+75% vs 33% yang sengaja dibiarkan terlihat sejak PR-1 kini hilang karena sumbernya satu.
+
+Seed di-backfill 6 peluang yang sudah diputuskan (2025-Q2 … 2026-Q1) — tanpa itu
+analitik kuartalan tak punya populasi: register hanya memuat satu Won dan dua Lost,
+seluruhnya di satu kuartal. Ini keputusan Q-5(a).
+
+**SC-14 · papan dapat dioperasikan keyboard.** Kartu peluang menjadi `<button>` native
+dengan `aria-label` deskriptif (gerbang axe `button-name`), dan — yang lebih penting —
+ada **jalur pindah-tahap tanpa tetikus**: `<select>` native di sheet detail. Sebelumnya
+drag-and-drop adalah SATU-SATUNYA cara memindahkan peluang, yang berarti mustahil bagi
+pengguna keyboard dan teknologi bantu. Cincin fokus tidak dimatikan.
+
+**SC-15 · sheet detail beralamat** `#/pipeline/<OPP-id>`.
+
+Menutupnya menyingkap **lubang pada kontrak V-9 itu sendiri**: sumbu `tab`/`sel` sudah
+DITULIS ke alamat sejak V-9, tetapi tak pernah DIBACA saat masuk dari luar —
+`useInitialTab`/`useInitialSelection` hanya membaca kunci sessionStorage yang diisi
+`navigate()`. Tautan yang dibagikan mendarat di modul yang benar dengan rekaman **tidak
+terbuka**, dan cacat itu tak pernah terlihat dari dalam aplikasi karena navigasi internal
+selalu lewat `navigate()`. Diperbaiki di router (`oneShotSeeds` di `route_hash`, murni
+dan diuji), sehingga **seluruh modul ber-alamat** ikut sembuh — bukan hanya pipeline.
+
+## 18. Catatan
 
 Temuan 1.4 dan 1.5 bukan sekadar utang fitur — keduanya menghasilkan **artefak yang
 menyesatkan atas nama standar profesi**: layar bertajuk SA 220/SMM yang mencentang

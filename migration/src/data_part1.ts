@@ -299,6 +299,56 @@
      berada di tahap itu, sehingga angka lama dapat dipulihkan bila peluang
      kembali dari Won/Lost. Klok demo = AMS.TODAY (2026-03-09).                */
   const PIPELINE = [
+    /* Peluang yang SUDAH diputuskan pada periode lalu (PR-6). Tanpa ini, win rate
+       per kuartal & analitik alasan kalah tak punya populasi: register hanya
+       memuat satu Won dan dua Lost, seluruhnya di Q1 2026. `BI_WINLOSS` literal
+       dulu mengaku 6 menang · 2 kalah lintas empat kuartal — angka yang tak
+       pernah ada dasarnya. Baris di bawah adalah DATA DEMO yang di-backfill
+       (Q-5 opsi a) supaya turunannya punya isi yang dapat diperiksa. */
+    { id: 'OPP-081', name: 'PT Anugerah Sawit Lestari', service: 'Audit Laporan Keuangan', stage: 'Won', value: 880_000_000, prob: 100, owner: 'Hartono Wijaya', close: '2025-06-20', industry: 'Agribisnis',
+      history: [
+        { stage: 'Lead', at: '2025-02-10', by: 'Hartono Wijaya', prob: 20 },
+        { stage: 'Qualified', at: '2025-03-14', by: 'Hartono Wijaya', prob: 40 },
+        { stage: 'Proposal', at: '2025-04-18', by: 'Hartono Wijaya', prob: 60 },
+        { stage: 'Negotiation', at: '2025-05-22', by: 'Hartono Wijaya', prob: 80 },
+        { stage: 'Won', at: '2025-06-20', by: 'Hartono Wijaya', prob: 100 },
+      ] },
+    { id: 'OPP-082', name: 'PT Sinar Kimia Industri', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 620_000_000, prob: 0, owner: 'Sari Dewanti', close: '2025-08-11', industry: 'Kimia',
+      history: [
+        { stage: 'Lead', at: '2025-04-02', by: 'Sari Dewanti', prob: 20 },
+        { stage: 'Qualified', at: '2025-05-19', by: 'Sari Dewanti', prob: 40 },
+        { stage: 'Proposal', at: '2025-06-30', by: 'Sari Dewanti', prob: 60 },
+        { stage: 'Lost', at: '2025-08-11', by: 'Sari Dewanti', prob: 0, reason: 'Imbalan pesaing 18% lebih rendah; lingkup setara.' },
+      ] },
+    { id: 'OPP-083', name: 'PT Bahtera Niaga Samudra', service: 'Audit + Tax', stage: 'Won', value: 1_150_000_000, prob: 100, owner: 'Rudi Gunawan', close: '2025-09-30', industry: 'Perdagangan',
+      history: [
+        { stage: 'Lead', at: '2025-05-06', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-06-17', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-07-25', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Negotiation', at: '2025-08-28', by: 'Rudi Gunawan', prob: 75 },
+        { stage: 'Won', at: '2025-09-30', by: 'Rudi Gunawan', prob: 100 },
+      ] },
+    { id: 'OPP-084', name: 'PT Cipta Rasa Boga', service: 'Review (SPR 2400)', stage: 'Lost', value: 340_000_000, prob: 0, owner: 'Bayu Saputra', close: '2025-11-14', industry: 'F&B',
+      history: [
+        { stage: 'Lead', at: '2025-08-19', by: 'Bayu Saputra', prob: 20 },
+        { stage: 'Qualified', at: '2025-09-23', by: 'Bayu Saputra', prob: 40 },
+        { stage: 'Lost', at: '2025-11-14', by: 'Bayu Saputra', prob: 0, reason: 'Klien menunda perikatan; rencana IPO digeser ke 2027.' },
+      ] },
+    { id: 'OPP-085', name: 'PT Wahana Medika Utama', service: 'Audit Laporan Keuangan', stage: 'Won', value: 760_000_000, prob: 100, owner: 'Sari Dewanti', close: '2025-12-12', industry: 'Kesehatan',
+      history: [
+        { stage: 'Lead', at: '2025-07-14', by: 'Sari Dewanti', prob: 20 },
+        { stage: 'Qualified', at: '2025-09-01', by: 'Sari Dewanti', prob: 40 },
+        { stage: 'Proposal', at: '2025-10-13', by: 'Sari Dewanti', prob: 60 },
+        { stage: 'Negotiation', at: '2025-11-10', by: 'Sari Dewanti', prob: 75 },
+        { stage: 'Won', at: '2025-12-12', by: 'Sari Dewanti', prob: 100 },
+      ] },
+    { id: 'OPP-086', name: 'PT Galuh Semen Nusantara', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 1_020_000_000, prob: 0, owner: 'Rudi Gunawan', close: '2026-01-23', industry: 'Semen',
+      history: [
+        { stage: 'Lead', at: '2025-09-08', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-10-20', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-11-28', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Lost', at: '2026-01-23', by: 'Rudi Gunawan', prob: 0, reason: 'Rotasi wajib: KAP kami sudah 5 tahun berturut-turut (PP 20/2015).' },
+      ] },
     { id: 'OPP-101', name: 'PT Karya Beton Perkasa', service: 'Audit Laporan Keuangan', stage: 'Proposal', value: 640_000_000, prob: 60, owner: 'Hartono Wijaya', close: '2026-04-30', industry: 'Konstruksi',
       buildUp: [{ grade: 'Partner', hours: 60 }, { grade: 'Manager', hours: 180 }, { grade: 'Senior', hours: 320 }, { grade: 'Junior', hours: 320 }], durationWeeks: 20, startPlanned: '2026-05-11',
       history: [
