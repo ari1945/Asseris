@@ -790,7 +790,7 @@ function SecAksesReadOnly({ auth }: any) {
         <div style={{ padding: 14 }}>
           <div className="row ac jb" style={{ marginBottom: 12 }}>
             <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 15 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
-            <span className="chip tiny" style={{ background: 'var(--green-050, var(--surface-3))', color: 'var(--green)' }} title="Peran berasal dari sesi login & ditegakkan di server"><I.lock size={11} /> Ditegakkan di server</span>
+            <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)' }} title="Peran berasal dari sesi login & ditegakkan di server"><I.lock size={11} /> Ditegakkan di server</span>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
             <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Sign-off</div><div style={{ fontSize: 12, fontWeight: 600 }}>{cap.sign}</div></div>

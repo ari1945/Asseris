@@ -104,7 +104,7 @@ function DiagNarration({ findings }: any) {
 
       {phase === 'done' && (
         <div style={{ marginTop: 9 }}>
-          <div className="tiny" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.55, color: 'var(--ink-1)' }}>{text}</div>
+          <div className="tiny" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.55, color: 'var(--ink)' }}>{text}</div>
           <div className="tiny muted" style={{ marginTop: 8, paddingTop: 7, borderTop: '1px solid var(--line-soft)', lineHeight: 1.45 }}>
             <I.alert size={10} style={{ verticalAlign: '-1px' }} /> Dihasilkan {meta && meta.provider ? meta.provider + ' · ' + meta.model : 'model bahasa'} dari teks temuan deterministik (ter-redaksi). <b>Verifikasi sebelum dipakai di kertas kerja</b> — narasi tak menggantikan temuan/keputusan auditor.
           </div>

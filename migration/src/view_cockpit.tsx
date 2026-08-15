@@ -252,7 +252,7 @@ function AuditProgramme() {
               <Seg options={[{ value: 'all', label: 'Semua' }, { value: 'notstarted', label: 'Belum' }, { value: 'progress', label: 'Berjalan' }, { value: 'review', label: 'Direviu' }, { value: 'done', label: 'Selesai' }]} value={statusFilter} onChange={setStatusFilter} />
               <div className="row ac gap6" style={{ flex: '1 1 200px', maxWidth: 320, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 7, padding: '0 10px', height: 30 }}>
                 <I.search2 size={14} style={{ color: 'var(--ink-3)' }} />
-                <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari prosedur, WP, preparer…" style={{ border: 0, outline: 'none', background: 'transparent', fontSize: 12, width: '100%', color: 'var(--ink-1)' }} />
+                <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari prosedur, WP, preparer…" style={{ border: 0, outline: 'none', background: 'transparent', fontSize: 12, width: '100%', color: 'var(--ink)' }} />
               </div>
               <div style={{ flex: 1 }} />
               <span className="tiny muted">{visibleCount} dari {allProcs.length} prosedur</span>
@@ -527,7 +527,7 @@ function AuditProgramme() {
           .prg-modal-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
           .prg-fld{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
           .prg-fld label{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
-          .prg-fld input,.prg-fld select,.prg-fld textarea{height:32px;border:1px solid var(--line);border-radius:7px;padding:0 9px;font:13px inherit;background:#fff;color:var(--ink-1)}
+          .prg-fld input,.prg-fld select,.prg-fld textarea{height:32px;border:1px solid var(--line);border-radius:7px;padding:0 9px;font:13px inherit;background:#fff;color:var(--ink)}
           .prg-fld textarea{height:auto;min-height:52px;padding:7px 9px;resize:vertical}
           .prg-sug{border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:8px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
           .prg-sug.on{border-color:var(--blue);background:var(--blue-050)}

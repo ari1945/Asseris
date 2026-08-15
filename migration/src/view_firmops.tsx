@@ -30,7 +30,7 @@ function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }: any) {
   const Ic = (I as any)[m.icon] || I.building;
   return (
     <button type="button" className="panel fops-card" onClick={() => onNav(m.id, { from: 'firmops' })}
-      style={{ padding: '12px 13px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 7, border: '1px solid var(--line)', background: 'var(--surface-1)' }}>
+      style={{ padding: '12px 13px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 7, border: '1px solid var(--line)', background: 'var(--surface)' }}>
       <div className="row ac gap8">
         <span style={{ width: 28, height: 28, borderRadius: 7, display: 'grid', placeItems: 'center', flex: '0 0 28px', background: m.c + '1a', color: m.c }}><Ic size={15} /></span>
         <span style={{ fontWeight: 600, fontSize: 12, lineHeight: 1.2 }}>{m.label}</span>

@@ -196,7 +196,7 @@ function MatrixTable({ title, group, leads, covByLead, sel, onPick, fmt, pm }: {
 function MatrixCell({ cell, active, onClick }: any) {
   /* tak relevan & tak diuji → titik redup, tak interaktif */
   if (!cell || (!cell.relevant && !cell.procedures.length)) {
-    return <td style={{ textAlign: 'center', color: 'var(--ink-5, var(--ink-4))' }}>·</td>;
+    return <td style={{ textAlign: 'center', color: 'var(--ink-4)' }}>·</td>;
   }
   const sm = ASSERTION_STATUS_META[cell.status as keyof typeof ASSERTION_STATUS_META];
   const faint = !cell.relevant; // tambahan (diuji tapi tak ditandai relevan)

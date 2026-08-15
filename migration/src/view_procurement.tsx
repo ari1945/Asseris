@@ -46,7 +46,7 @@ function P2PFunnel({ stages, onJump }: any) {
     <div style={{ display: 'grid', gap: 7 }}>
       {stages.map((s: any, i: any) => (
         <button key={s.key} type="button" className="p2p-stage" onClick={() => onJump && onJump(s.key)}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <span style={{ width: 22, height: 22, borderRadius: 6, flex: '0 0 22px', display: 'grid', placeItems: 'center', background: s.c + '1a', color: s.c, fontWeight: 800, fontSize: 11 }} className="mono">{s.n}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="row ac jb">
@@ -83,7 +83,7 @@ function ProcAlerts({ B, P, nav, setTab, setVSel }: any) {
     <div style={{ display: 'grid', gap: 7 }}>
       {items.slice(0, 7).map((a, i) => (
         <button key={i} type="button" onClick={a.go}
-          style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 300 }}>{a.t}</div>

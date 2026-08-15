@@ -57,7 +57,7 @@ function RCRow({ r, nav }: any) {
 
       <div style={{ padding: '11px 13px', display: 'grid', gap: 9 }}>
         {/* sumber kebenaran */}
-        <div onClick={r.sourceRoute ? () => nav(r.sourceRoute) : undefined} className="row ac gap8" style={{ padding: '8px 11px', borderRadius: 8, background: 'var(--navy-bg, var(--surface-2))', cursor: r.sourceRoute ? 'pointer' : 'default' }}>
+        <div onClick={r.sourceRoute ? () => nav(r.sourceRoute) : undefined} className="row ac gap8" style={{ padding: '8px 11px', borderRadius: 8, background: 'var(--surface-2)', cursor: r.sourceRoute ? 'pointer' : 'default' }}>
           <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="tiny upper muted" style={{ letterSpacing: '.05em', fontWeight: 700 }}>Sumber kebenaran</div>
