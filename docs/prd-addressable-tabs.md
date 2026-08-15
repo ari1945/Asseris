@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-14 |
 | Pemilik | Ari Widodo |
-| Status | Draft — **Q-1·Q-2·Q-3 TERJAWAB** (Claude atas delegasi Ari, 2026-08-14, §12); F-3 dicabut → arc menjadi dua fase; menunggu sign-off ("Proceed.") |
+| Status | **Implemented** — dieksekusi 2026-08-15 ("lanjut prd v9"). F-1 + F-2 SELESAI, `npm run verify` hijau (1754 uji), **SC-1..SC-9 tertutup & live-verified**. Q-1·Q-2·Q-3 terjawab §12. |
 | Engagement ID terkait | — (lintas-aplikasi; router `app.tsx`, hook `contexts.tsx`, 72 modul bertab) |
 | PRD terkait | Kontrak Overlay & objek beralamat (arc `route_hash.ts`) — PRD ini melanjutkannya ke sumbu tab |
 | Ditemukan | Tinjauan visual hidup 2026-08-14 (V-9), saat menutup utang tinjauan PR-8a-1/8b |
