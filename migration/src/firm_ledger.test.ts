@@ -19,8 +19,11 @@ const byCode = (bal: Record<string, number>, code: string) => bal[code];
 describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
   it('saldo awal = seed − Σ jurnal SEED terposting', () => {
     const open = openingBalances(coa, seedGl);
-    // Kas: JV-0312 dr +925 · JV-0311 cr −1.820 · JV-0308 cr −480 · JV-0316 cr −910 → net −2.285
-    expect(byCode(open, '1-100')).toBe(8_420_000_000 + 2_285_000_000);
+    /* Kas kini SATU akun per rekening (PRD cash-bank-reconciliation-register); tak ada
+       lagi `1-100`. BCA Operasional: JV-0312 dr +925 · JV-0308 cr −480 · JV-0316 cr −910
+       → net −465. Penggajian Mandiri: JV-0311 cr −1.820. */
+    expect(byCode(open, '1-101')).toBe(4_425_000_000 + 465_000_000);
+    expect(byCode(open, '1-102')).toBe(1_180_000_000 + 1_820_000_000);
     // Piutang: JV-0312 cr −925 · JV-0309 dr +555 · JV-0314 dr +1.640 → net +1.270
     expect(byCode(open, '1-200')).toBe(4_440_000_000 - 1_270_000_000);
     // WIP: JV-0313 dr +2.850 · JV-0314 cr −1.640 → net +1.210
@@ -47,7 +50,7 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
   it('membatalkan posting jurnal menggeser TB (P0: posting berdampak)', () => {
     const changed = seedGl.map((j) => j.id === 'JV-0312' ? { ...j, posted: false } : j);
     const cur = currentBalances(coa, seedGl, changed);
-    expect(byCode(cur, '1-100')).toBe(8_420_000_000 - 925_000_000); // kas turun
+    expect(byCode(cur, '1-101')).toBe(4_425_000_000 - 925_000_000); // kas turun
     expect(byCode(cur, '1-200')).toBe(4_440_000_000 + 925_000_000); // piutang naik
   });
 
@@ -64,15 +67,15 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     expect(tb.totalDr).toBe(36_760_000_000);
     expect(tb.totalCr).toBe(36_760_000_000);
     // baris TB memakai saldo turunan (bukan seed)
-    expect(tb.rows.find((r) => r.code === '1-100')?.bal).toBe(8_420_000_000);
+    expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_425_000_000);
   });
 
   it('TB tetap seimbang SETELAH ada jurnal baru (double-entry)', () => {
-    const withNew = [...seedGl, { id: 'JV-0999', date: '2026-03-09', desc: 'tes', dr: '1-100', cr: '4-100', amount: 100_000_000, posted: true }];
+    const withNew = [...seedGl, { id: 'JV-0999', date: '2026-03-09', desc: 'tes', dr: '1-101', cr: '4-100', amount: 100_000_000, posted: true }];
     const tb = trialBalance(coa, seedGl, withNew);
     expect(tb.balanced).toBe(true);
     expect(tb.totalDr).toBe(36_860_000_000);
-    expect(tb.rows.find((r) => r.code === '1-100')?.bal).toBe(8_520_000_000);
+    expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_525_000_000);
     expect(tb.rows.find((r) => r.code === '4-100')?.bal).toBe(-11_400_000_000);
   });
 
@@ -95,16 +98,16 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     expect(st.balanced).toBe(true);
   });
 
-  it('buku besar: saldo awal 10.705 → berjalan → saldo akhir seed 8.420', () => {
-    const lg = accountLedger(coa, seedGl, seedGl, '1-100');
-    expect(lg.opening).toBe(10_705_000_000);
-    expect(lg.closing).toBe(8_420_000_000);
-    expect(lg.totalDr).toBe(925_000_000);  // JV-0312 dr
-    expect(lg.totalCr).toBe(3_210_000_000); // JV-0308 + JV-0311 + JV-0316 cr
-    expect(lg.rows).toHaveLength(4);
+  it('buku besar BCA Operasional: saldo awal 4.890 → berjalan → saldo akhir seed 4.425', () => {
+    const lg = accountLedger(coa, seedGl, seedGl, '1-101');
+    expect(lg.opening).toBe(4_890_000_000);
+    expect(lg.closing).toBe(4_425_000_000);
+    expect(lg.totalDr).toBe(925_000_000);   // JV-0312 dr
+    expect(lg.totalCr).toBe(1_390_000_000); // JV-0308 + JV-0316 cr
+    expect(lg.rows).toHaveLength(3);
     expect(lg.rows[0].id).toBe('JV-0308'); // urut tanggal
-    expect(lg.rows[0].running).toBe(10_705_000_000 - 480_000_000);
-    expect(lg.rows[3].running).toBe(8_420_000_000);
+    expect(lg.rows[0].running).toBe(4_890_000_000 - 480_000_000);
+    expect(lg.rows[2].running).toBe(4_425_000_000);
   });
 
   it('GL kosong → saldo = SALDO AWAL (bukan seed), TB tetap seimbang', () => {

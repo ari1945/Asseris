@@ -61,7 +61,7 @@
   },
   "src/data_firmfin.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 118
+      "count": 113
     }
   },
   "src/data_firmops.ts": {
@@ -76,7 +76,7 @@
   },
   "src/data_import.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 41
+      "count": 40
     }
   },
   "src/data_isak35.ts": {
@@ -531,7 +531,7 @@
   },
   "src/view_firmtreasury.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 81
+      "count": 78
     }
   },
   "src/view_forensic.tsx": {

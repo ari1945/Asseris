@@ -69,7 +69,7 @@ const IMPORT = (function () {
   function controlTotal(id: any) {
     try {
       if (id === 'coretax') { const v = sum((A.EFAKTUR || []).filter((e: any) => e.kind === 'Keluaran'), (e: any) => e.ppn); return { label: 'Σ PPN Keluaran (e-Faktur)', value: jt(v), owner: 'firmtax' }; }
-      if (id === 'bank') { const v = (A.BANK_RECON || {}).bankBalance || sum((A.BANK_ACCOUNTS || []), (a: any) => a.balance); return { label: 'Saldo bank per rekening koran', value: jt(v), owner: 'cashbank' }; }
+      if (id === 'bank') { const v = sum((A.BANK_ACCOUNTS || []).filter((x: { ccy: string }) => x.ccy === 'IDR'), (x: { balance: number }) => x.balance); return { label: 'Saldo bank per rekening koran (IDR)', value: jt(v), owner: 'cashbank' }; }
       if (id === 'esign') { const v = (A.ENGAGEMENTS || []).filter((e: any) => e.phase === 'Finalisasi' || e.status === 'Completed').length; return { label: 'Sertifikat ↔ laporan final', value: v + ' dok', owner: 'opinion' }; }
       if (id === 'dms') { const v = (A.WORKPAPERS || []).length; return { label: 'Indeks WP ↔ arsip', value: v + ' WP', owner: 'workpapers' }; }
       if (id === 'ahu') { const v = (A.CLIENTS || []).length; return { label: 'Entitas terverifikasi', value: v + ' entitas', owner: 'onboarding' }; }
@@ -174,7 +174,7 @@ const IMPORT = (function () {
     { field: 'Modul tujuan (pemilik data)', source: 'AMS.PLATFORM.INTEGRATION_FEEDS', module: 'dataflow', label: 'Alur Data & Integritas' },
     { field: 'Jumlah baris di-posting', source: 'AMS.PLATFORM.feedCounts()', module: 'dataflow', label: 'feedCounts (live)' },
     { field: 'Total kontrol pajak (PPN)', source: 'AMS.EFAKTUR', module: 'firmtax', label: 'Pajak Firma' },
-    { field: 'Total kontrol bank (saldo)', source: 'AMS.BANK_RECON', module: 'cashbank', label: 'Kas, Bank & Rekonsiliasi' },
+    { field: 'Total kontrol bank (saldo)', source: 'AMS.BANK_ACCOUNTS + BANK_RECONS', module: 'cashbank', label: 'Kas, Bank & Rekonsiliasi' },
     { field: 'Setiap impor → entri jejak', source: 'AMS.PLATFORM.buildAuditStream', module: 'audittrail', label: 'Audit Trail' },
     { field: 'Otorisasi & gerbang posting', source: 'AMS.PLATFORM.ROUTING_RULES', module: 'approvals', label: 'Approvals' },
   ];

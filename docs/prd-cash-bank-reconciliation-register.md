@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **Draft** — menunggu sign-off ("Proceed.") |
+| Status | **In Progress** — "Proceed." 2026-08-15 tanpa koreksi ⇒ seluruh rekomendasi: Q-1=a sub-akun kas · Q-2=a selaraskan saldo bank seed · Q-3=a revaluasi jadi jurnal terposting · Q-4=a periode Maret 2026 · Q-5=a dua PR · Q-6=a cabut chip bank feed. **Pembagian PR disesuaikan** (lihat §10): PR-1 = F-1..F-3 supaya aplikasi koheren & baris Kas dapat ditutup; PR-2 = F-4 (revaluasi + `FX_BOOK` SSOT) + Q-6 + bukti hidup konsekuensinya pada gerbang cakupan anggaran. |
 | Pemicu | Baris Kas 1-100 `open` sejak #240 — satu-satunya baris rekonsiliasi yang masih merah, dan ia mengunci ekspor Laporan Keuangan |
 | PRD terkait | `prd-ar-ap-bridge-falsifiable.md` · `prd-wip-rollforward-falsifiable.md` · `prd-firmfin-ledger-derived.md` · `prd-budget-actual-ledger-derived.md` (semua Implemented) |
 | Prasyarat | Di atas `master` `ac31d5e` |
