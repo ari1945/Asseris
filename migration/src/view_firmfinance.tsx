@@ -450,7 +450,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
         </tbody>
       </table>
       <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
-        Aktual diturunkan dari saldo akun buku besar — memposting jurnal menggesernya. Baris <b>LABA OPERASI</b>
+        Aktual diturunkan dari saldo akun buku besar — memposting jurnal menggesernya. Baris <b>LABA OPERASI</b>{' '}
         membandingkan Σ akun yang <i>dianggarkan</i> dengan laba operasi P&L atas <i>seluruh</i> akun Pendapatan &amp; Beban;
         keduanya sama hanya bila pemetaan lengkap dua arah.
         {!D.budget.covered && <> Selisih cakupan Rp {jt(Math.abs(D.budget.coverageGap))} jt.</>}
