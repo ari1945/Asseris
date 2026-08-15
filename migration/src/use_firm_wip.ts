@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAmsPersist, useFirm, useAudit } from './contexts';
+import { useFirmCoa } from './use_firm_coa';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
@@ -81,7 +82,10 @@ export function useFirmWip(provFactor?: number) {
      = FIRMFIN_EDIT (rbac.ts) — SoD finansial ditegakkan server, UI hanya mencerminkan. */
   const [adj, setAdj] = useAmsPersist('wip.adj', {}) as [WipAdj, SetWipAdj];
 
-  const ctx = React.useMemo(() => ({ engagements, clients }), [engagements, clients]);
+  /* Kontrol GL 1-300 kini dari BUKU BESAR, bukan seed: memposting jurnal ke akun WIP
+     menggeser `control` — dan karenanya `glResidual` — di seluruh konsumen WIP. */
+  const { coa } = useFirmCoa();
+  const ctx = React.useMemo(() => ({ engagements, clients, coa }), [engagements, clients, coa]);
 
   /* overlay jam-aktual T&B untuk engagement aktif → std/biaya/jam = live,
      bukan std seed. null bila engagement aktif tak punya timesheet. */

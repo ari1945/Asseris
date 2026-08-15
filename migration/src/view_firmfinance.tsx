@@ -9,6 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmWip } from './use_firm_wip';
+import { useFirmCoa } from './use_firm_coa';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -30,7 +31,11 @@ function FirmFinance() {
   const [tab, setTab] = useStateFF('ikhtisar');
   const [drill, setDrill] = useStateFF(null);
 
-  const ctx = useMemoFF(() => ({ engagements, clients }), [engagements, clients]);
+  /* Seluruh figur keuangan firma diturunkan dari jurnal terposting. Sebelum
+     2026-08-15 ctx ini tak memuat `coa`, sehingga FIRMFIN jatuh ke seed statis dan
+     memposting jurnal di Firm GL tak menggeser apa pun di layar ini. */
+  const { coa, pending, balanced } = useFirmCoa();
+  const ctx = useMemoFF(() => ({ engagements, clients, coa }), [engagements, clients, coa]);
   /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
      WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
   const { wip: wipLive } = useFirmWip();
@@ -88,7 +93,20 @@ function FirmFinance() {
     <>
       <SubBar moduleId="firmfinance" right={
         <div className="row gap8 ac">
-          <span className="chip tiny" title="Seluruh angka ditarik dari Buku Besar firma & sub-ledger pemiliknya"><I.link2 size={11} /> Satu sumber kebenaran</span>
+          <span className="chip tiny" title="Saldo akun diturunkan dari jurnal TERPOSTING (firm_ledger), bukan seed statis"><I.link2 size={11} /> Dari buku besar</span>
+          {/* Q-2 (Ari): jurnal tertunda adalah keadaan NORMAL — ditampilkan sebagai
+              informasi dengan jalan pintas ke pemiliknya, BUKAN gerbang. Berbeda dari
+              sub-buku yang tak menutup (#239/#240), yang memang memblokir ekspor. */}
+          {pending.length > 0 && (
+            <span className="chip tiny" style={{ background: 'var(--amber-bg)', color: 'var(--amber)', cursor: 'pointer' }}
+              title="Jurnal ini belum diposting, jadi belum tercermin di angka mana pun — buka General Ledger"
+              onClick={() => nav('firmgl', { from: 'firmfinance' })}><I.clock size={11} /> {pending.length} jurnal belum diposting</span>
+          )}
+          {!balanced && (
+            <span className="chip tiny" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}
+              title="Aset ≠ Liabilitas + Ekuitas menurut buku besar">
+              <I.alert size={11} /> Neraca tidak seimbang</span>
+          )}
           <Seg options={['FY2025', 'FY2024']} value="FY2025" onChange={() => {}} />
           <Btn sm onClick={onExportLk} disabled={exportingLk || D.recon.some((r: { status: string }) => r.status === 'open')}
             title={D.recon.some((r: { status: string }) => r.status === 'open') ? 'Ekspor dikunci: ada akun kontrol dengan selisih belum dijelaskan — lihat tab Sumber Kebenaran' : 'Ekspor Laporan Keuangan KAP tersegel'}>

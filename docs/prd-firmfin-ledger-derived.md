@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **Draft** — Q-1·Q-2·Q-3 menunggu jawaban; lalu sign-off ("Proceed.") |
+| Status | **Implemented** — "Proceed." 2026-08-15 tanpa koreksi ⇒ rekomendasi (Q-1=a ketiga pemanggil · Q-2=a penanda informasi · Q-3=a jurnal kontrol arc sendiri). F-1..F-3 SELESAI, `npm run verify` hijau (1791 uji), SC-1..SC-8 tertutup & live-verified DUA ARAH. |
 | Pemicu | Non-Scope yang ditinggalkan DUA kali (#239 & #240): "kontrol GL belum benar-benar terposting" |
 | PRD terkait | `prd-wip-rollforward-falsifiable.md` · `prd-ar-ap-bridge-falsifiable.md` (keduanya Implemented) |
 | Prasyarat | Di atas `master` `4d6bf52` |
@@ -170,3 +170,27 @@ Menambahkan jurnal seed **tidak mengubah angka** (saldo awal ikut menyesuaikan s
 aljabar), tetapi memberi ketiganya riwayat yang dapat ditelusuri.
 - **(a)** Tidak sekarang — arc ini fokus pada penyaluran; jurnal kontrol arc sendiri. ← *rekomendasi: menjaga PR tetap dapat ditinjau*
 - **(b)** Sekalian, supaya "kontrol GL" benar-benar berarti kontrol.
+
+---
+
+## 12. Hasil
+
+**Terverifikasi hidup** — memposting `JV-0307` lewat modul Firm GL:
+
+| | Sebelum | Sesudah | Setelah dibatalkan |
+|---|---:|---:|---:|
+| Laba operasi Firm Finance | Rp 2,80 M | **Rp 2,59 M** | Rp 2,80 M |
+| Margin operasi | 24,8% | **22,9%** | 24,8% |
+| Chip "jurnal belum diposting" | 1 | **hilang** | 1 |
+
+Sebelum arc ini angka itu tidak akan bergerak sama sekali. Keadaan demo dipulihkan
+sesudahnya (`JV-0307` kembali draft).
+
+**Nol-delta pada seed bersih terbukti** (SC-5): saat `gl == seedGl`, seluruh saldo turunan
+identik dengan seed — jadi arc ini tak menggeser satu angka pun sampai seseorang benar-benar
+memposting.
+
+**Konsekuensi yang memang dikehendaki:** memposting jurnal ke akun kontrol tanpa pasangan
+di sub-buku kini memerahkan rekonsiliasi #239/#240 (`glResidual` naik, status `open`).
+Dipaku uji SC-3. Itu perilaku yang benar — jurnal yang menggeser kontrol tanpa sub-buku
+memang selisih nyata.
