@@ -13,6 +13,7 @@
 import { describe, it, expect } from 'vitest';
 import { FIRM_COA, FIRM_GL } from './data_part1';
 import { accountLedger, netEffect, openingBalances, currentBalances, mergeSeedJournals, trialBalance, statements } from './firm_ledger';
+import type { GlJournal } from './firm_ledger';
 
 const coa = FIRM_COA;
 const gl = FIRM_GL;
@@ -128,8 +129,33 @@ describe('Cache firmgl basi tidak boleh merusak saldo', () => {
     expect(mergeSeedJournals(sekali, gl)).toHaveLength(sekali.length);
   });
 
-  it('daftar yang sudah lengkap dikembalikan apa adanya', () => {
+  it('daftar yang sudah lengkap & mutakhir dikembalikan apa adanya', () => {
     expect(mergeSeedJournals(gl, gl)).toBe(gl);
+  });
+
+  it('jurnal seed yang BERUBAH disegarkan — cache lama tak boleh menang atas isinya', () => {
+    /* Ditemukan hidup saat PRD cash-bank-reconciliation-register memecah `1-100`
+       menjadi enam sub-akun: cache `firmgl` dari rilis sebelumnya tetap memenangkan
+       `cr: '1-100'` untuk empat jurnal kas. Akun itu sudah tidak ada, jadi NOL jurnal
+       menyentuh kas — saldo kini = saldo awal, kontrol Kas melonjak 8.420 → 10.705 jt.
+       Neraca tetap seimbang; tak satu gerbang pun berbunyi. */
+    const basi = gl.map(j => j.id === 'JV-0312' ? { ...j, cr: '1-100', amount: 1 } : j);
+    const sembuh = mergeSeedJournals(basi, gl);
+    const j = sembuh.find(x => x.id === 'JV-0312') as GlJournal;
+    expect(j.cr).toBe('1-200');
+    expect(j.dr).toBe('1-101');
+    expect(j.amount).toBe(925_000_000);
+    /* dan saldo pulih persis ke seed */
+    const cur = currentBalances(coa, gl, sembuh);
+    for (const a of coa) expect(cur[a.code], a.code).toBe(a.bal);
+  });
+
+  it('status posting yang disunting pengguna TETAP menang saat penyegaran', () => {
+    const disunting = gl.map(j => j.id === 'JV-0312' ? { ...j, cr: '1-100', posted: false } : j);
+    const sembuh = mergeSeedJournals(disunting, gl);
+    const j = sembuh.find(x => x.id === 'JV-0312') as GlJournal;
+    expect(j.cr).toBe('1-200');    // isi dari seed
+    expect(j.posted).toBe(false);  // posting dari pengguna
   });
 });
 

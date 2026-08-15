@@ -277,7 +277,7 @@ const FIRMFIN = (function () {
     const totAset = sumType(coa, 'Aset');
     const totLiab = -sumType(coa, 'Liabilitas');
     const totEkuitas = -sumType(coa, 'Ekuitas') + netProfit;
-    const ca = acct(coa, '1-100').bal + acct(coa, '1-200').bal + acct(coa, '1-300').bal;
+    const ca = cashControl(coa) + acct(coa, '1-200').bal + acct(coa, '1-300').bal;
     const cl = -(acct(coa, '2-100').bal + acct(coa, '2-200').bal + acct(coa, '2-300').bal);
     return {
       assets: coa.filter((a: any) => a.type === 'Aset').map((a: any) => ({ ...a })),
@@ -378,13 +378,100 @@ const FIRMFIN = (function () {
 
 
   /* ---------- Kas & bank (sumber: BANK_ACCOUNTS + FX_RATES) ---------- */
-  function cash(ctx: any) {
-    const accts = A().BANK_ACCOUNTS || [], fx = A().FX_RATES || { IDR: 1 };
-    const rows = accts.map((a: any) => ({ ...a, idr: a.balance * (fx[a.ccy] || 1) }))
-      .sort((a: any, b: any) => b.idr - a.idr);
-    const totalIDR = sumf(rows, (a: any) => a.idr);
-    const control = acct(coaOf(ctx), '1-100').bal;
-    return { rows, totalIDR, control, diff: totalIDR - control };
+  /* ---------- Kas & bank: SATU akun buku besar per rekening ----------
+     PRD cash-bank-reconciliation-register 2026-08-15.
+
+     DULU `1-100 Kas & Bank` tunggal untuk enam rekening. Sisi BUKU dari rekonsiliasi
+     bank karena itu tak dapat diturunkan untuk satu rekening pun; yang ada hanya satu
+     literal `BANK_RECON.bookBalance`. Selisih Rp 2.055 jt antara Σ rekening dan kontrol
+     tak punya pemilik — 97% tanpa penjelasan — dan ia sendirian mengunci ekspor LK.
+
+     Kini tiap rekening menunjuk akunnya (`BANK_ACCOUNTS[].acct`), jadi:
+       · saldo BUKU per rekening = saldo akun (turunan jurnal terposting)
+       · saldo BANK per rekening = data eksternal (tetap literal — DUA sumber independen)
+       · selisihnya dijelaskan item rekonsiliasi per rekening, atau MEMERAH.
+
+     Valas: buku besar mencatat pada KURS BUKU. Perbandingan bank↔buku karena itu
+     dilakukan pada kurs buku; selisih ke kurs pasar adalah REVALUASI, komponen
+     tersendiri — bukan item rekonsiliasi. */
+  interface BankAccountSeed { id: string; bank: string; name: string; no: string; ccy: string; acct: string; balance: number }
+  interface ReconLine { id: string; account?: string; date?: string; desc?: string; amount: number; matched?: boolean; ref?: string }
+  interface ReconSeed { account: string; period: string; lines: ReconLine[] }
+  type Rates = Record<string, number>;
+
+  const cashAccounts = (): string[] => (A().BANK_ACCOUNTS as BankAccountSeed[]).map((a) => a.acct);
+  const cashControl = (coa: CoaLine[]): number => {
+    const codes = cashAccounts();
+    return coa.filter((a) => codes.includes(a.code)).reduce((s, a) => s + a.bal, 0);
+  };
+
+  /* Rekonsiliasi bank per rekening: bank ± item sisi-bank == buku ± item sisi-buku. */
+  function bankRecon(ctx: unknown) {
+    const coa = coaOf(ctx) as CoaLine[];
+    const accts = A().BANK_ACCOUNTS as BankAccountSeed[];
+    const regs = (A().BANK_RECONS || []) as ReconSeed[];
+    const fx = (A().FX_RATES || { IDR: 1 }) as Rates;
+    const fxBook = (A().FX_BOOK || { IDR: 1 }) as Rates;
+    /* `ctx.reconLines` = daftar datar hasil `useBankRecon()` (mencakup status `matched`
+       yang disunting pengguna). Tanpa penyaluran ini, mencocokkan baris di modul
+       Rekonsiliasi Bank tak akan menggeser residual Kas maupun gerbang ekspor. */
+    const override = (ctx as { reconLines?: ReconLine[] } | null)?.reconLines;
+    const isBankSide = (l: ReconLine) => l.ref === 'outstanding' || l.ref === 'transit';
+    const total = (xs: ReconLine[]) => xs.reduce((s, l) => s + l.amount, 0);
+    return accts.map((a) => {
+      const reg = regs.find((r) => r.account === a.id);
+      const lines: ReconLine[] = override
+        ? override.filter((l) => l.account === a.id)
+        : ((reg && reg.lines) || []);
+      const open = lines.filter((l) => !l.matched);
+      const bookSide = total(open.filter((l) => !isBankSide(l)));
+      const bankSide = total(open.filter(isBankSide));
+      /* Sisi buku dibandingkan pada kurs buku — dasar pencatatan buku besar. */
+      const bookIDR = acct(coa, a.acct).bal as number;
+      const bankIDR = a.balance * (fxBook[a.ccy] || 1);
+      const adjustedBook = bookIDR + bookSide;
+      const adjustedBank = bankIDR + bankSide;
+      const residual = adjustedBank - adjustedBook;
+      return {
+        ...a, period: (reg && reg.period) || '—', lines,
+        bookIDR, bankIDR, bookSide, bankSide, adjustedBook, adjustedBank, residual,
+        reconciled: Math.abs(residual) < RECON_TOLERANCE,
+        openCount: open.length,
+        idrMarket: a.balance * (fx[a.ccy] || 1),
+        reval: a.balance * ((fx[a.ccy] || 1) - (fxBook[a.ccy] || 1)),
+      };
+    });
+  }
+
+  function cash(ctx: unknown) {
+    const coa = coaOf(ctx) as CoaLine[];
+    const per = bankRecon(ctx);
+    const rows = per.map((r) => ({ ...r, idr: r.idrMarket })).sort((a, b) => b.idr - a.idr);
+    const sum = (f: (r: typeof per[number]) => number) => per.reduce((s, r) => s + f(r), 0);
+    const totalIDR = sum((r) => r.idrMarket);   // Σ saldo bank @ kurs pasar
+    const totalBankBook = sum((r) => r.bankIDR); // Σ saldo bank @ kurs buku
+    const control = cashControl(coa);
+    /* Komponen BERNAMA yang menjelaskan selisih kontrol ↔ Σ rekening. KEDUANYA
+       DIENUMERASI, tak satu pun diturunkan dari selisih yang hendak dijelaskannya:
+         · `reval`      = Σ saldo × (kurs pasar − kurs buku) — dihitung dari kurs & saldo
+         · `reconItems` = Σ (item sisi-buku − item sisi-bank) — dijumlah dari BARIS register
+
+       Ini yang membuat gerbangnya dapat MERAH. Bila `bridgeTotal` didefinisikan sebagai
+       `−(reval + (totalBankBook − control))`, `residual` menjadi nol SECARA ALJABAR:
+       badge hijau selamanya, tak peduli apa yang sebenarnya terjadi — persis cacat
+       `note` hardcode #240 dan empat plug #239. Selisih yang tak dicatat siapa pun di
+       register HARUS muncul di sini. */
+    const reval = sum((r) => r.reval);
+    const reconItems = sum((r) => r.bookSide - r.bankSide);
+    const bridgeTotal = -(reval + reconItems);
+    const unreconciled = per.filter((r) => !r.reconciled);
+    return {
+      rows, per, totalIDR, totalBankBook, control,
+      reval, reconItems, bridgeTotal,
+      residual: (control - totalIDR) - bridgeTotal,
+      unreconciled,
+      diff: totalIDR - control,
+    };
   }
 
   /* Bentuk data anggaran. `actual` SENGAJA tidak ada di baris seed — ia turunan. */
@@ -503,15 +590,14 @@ const FIRMFIN = (function () {
         note, bridgeTotal, residual, status };
     };
 
-    /* Kas: register `BANK_RECON` + modul pemilik (`cashbank`) sudah ada, jadi selisihnya
-       memang punya rumah — tetapi belum dijumlahkan di sini (Q-1 = hanya status logic).
-       Konsekuensinya jujur: selama komponennya belum disambungkan, barisnya `open`. */
-    const cashResidual = c.control - c.totalIDR;
+    /* Kas: sejak PRD cash-bank-reconciliation-register komponennya DIENUMERASI
+       (revaluasi valas + item rekonsiliasi per rekening), jadi barisnya bisa `bridged`.
+       Yang tak dicatat siapa pun di register tetap muncul sebagai `residual` → `open`. */
     return [
-      mk('cash', 'Kas & Bank', '1-100', 'cashbank', 'Kas, Bank & Rekonsiliasi',
-        c.control, c.totalIDR, 'Σ saldo rekening (multi-mata uang, ekuiv. IDR)',
-        'Selisih kurs & item rekonsiliasi bank berjalan — lihat modul Rekonsiliasi Bank',
-        0, cashResidual),
+      mk('cash', 'Kas & Bank', '1-101…1-106', 'cashbank', 'Kas, Bank & Rekonsiliasi',
+        c.control, c.totalIDR, 'Σ saldo menurut bank (multi-mata uang, ekuiv. IDR)',
+        'Revaluasi valas + item rekonsiliasi per rekening (register BANK_RECONS)',
+        c.bridgeTotal, c.residual),
       mk('ar', 'Piutang Usaha', '1-200', 'apar', 'AP / AR Firma',
         arr.control, arr.open, 'Faktur terbuka (modul Billing)',
         'Termin & retensi belum difakturkan (register AR_BRIDGE)',
@@ -545,7 +631,7 @@ const FIRMFIN = (function () {
   return {
     REFDATE, BLENDED_RATE, STD_RATE, WIP_PROV_MATRIX, SERVICE_MIX,
     WIP_BILL, WIP_COST, WIP_ROSTER_ENG, engagementWip,
-    pl, balanceSheet, serviceLines, partners, arAging, ap, wip, cash, budget,
+    pl, balanceSheet, serviceLines, partners, arAging, ap, wip, cash, bankRecon, budget,
     kpis, reconciliations, provenance,
   };
 })();

@@ -10,6 +10,7 @@ import { RowKv } from './view_calc';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmWip } from './use_firm_wip';
 import { useFirmCoa } from './use_firm_coa';
+import { useBankRecon } from './use_bank_recon';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -39,7 +40,10 @@ function FirmFinance() {
      2026-08-15 ctx ini tak memuat `coa`, sehingga FIRMFIN jatuh ke seed statis dan
      memposting jurnal di Firm GL tak menggeser apa pun di layar ini. */
   const { coa, pending, balanced } = useFirmCoa();
-  const ctx = useMemoFF(() => ({ engagements, clients, coa }), [engagements, clients, coa]);
+  /* `reconLines` disalurkan supaya pencocokan di modul Rekonsiliasi Bank benar-benar
+     menggeser residual Kas & gerbang ekspor di layar ini (PRD cash-bank-recon). */
+  const { lines: reconLines } = useBankRecon();
+  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines }), [engagements, clients, coa, reconLines]);
   /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
      WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
   const { wip: wipLive } = useFirmWip();

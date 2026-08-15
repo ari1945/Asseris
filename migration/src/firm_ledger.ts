@@ -59,14 +59,38 @@ export interface GlJournal {
    meledakkannya lagi. Karena itu diperbaiki di sumbernya, bukan dengan menghapus
    kunci persist.
 
-   Suntingan pengguna dipertahankan: entri tersimpan menang (status posting yang
-   dia ubah tidak ditimpa); hanya jurnal seed yang HILANG yang ditambahkan.
+   Jurnal seed yang HILANG ditambahkan — dan jurnal seed yang BERUBAH disegarkan.
+   Versi pertama fungsi ini hanya menambahkan yang hilang; itu tidak cukup. Saat PRD
+   cash-bank-reconciliation-register memecah `1-100` menjadi enam sub-akun dan
+   mengarahkan ulang `dr`/`cr` empat jurnal kas, cache lama tetap memenangkan
+   posting-nya ke akun yang SUDAH TIDAK ADA. Hasilnya di peramban: nol jurnal
+   menyentuh sub-akun kas, saldo kini = saldo awal, dan kontrol Kas melonjak
+   8.420 → 10.705 jt. Sekali lagi tak ada gerbang yang berbunyi — hanya terlihat hidup.
+
+   Batasnya jelas karena UI-nya sempit: satu-satunya field yang dapat disunting
+   pengguna atas jurnal seed adalah `posted` (tombol Posting). Isi jurnalnya —
+   `dr`/`cr`/`amount`/`date`/`desc` — hanya berasal dari seed. Jadi SEED otoritatif
+   untuk isi, PENYIMPANAN otoritatif untuk `posted`. Jurnal buatan pengguna (id di
+   luar seed) tak tersentuh.
    ------------------------------------------------------------------ */
 export function mergeSeedJournals(gl: GlJournal[], seedGl: GlJournal[]): GlJournal[] {
+  const seedById = new Map((seedGl || []).map((j) => [j.id, j]));
   const have = new Set((gl || []).map((j) => j.id));
+  /* Isi jurnal (bukan `posted`) harus sama dengan seed; kalau tidak, entri itu basi. */
+  const isStale = (j: GlJournal, seed: GlJournal) =>
+    j.dr !== seed.dr || j.cr !== seed.cr || j.amount !== seed.amount
+    || j.date !== seed.date || j.desc !== seed.desc;
   const missing = (seedGl || []).filter((j) => !have.has(j.id));
-  if (!missing.length) return gl || [];
-  return [...(gl || []), ...missing].sort((a, b) => +new Date(b.date || 0) - +new Date(a.date || 0));
+  const stale = (gl || []).some((j) => {
+    const seed = seedById.get(j.id);
+    return !!seed && isStale(j, seed);
+  });
+  if (!missing.length && !stale) return gl || [];
+  const refreshed = (gl || []).map((j) => {
+    const seed = seedById.get(j.id);
+    return seed ? { ...seed, posted: j.posted } : j;
+  });
+  return [...refreshed, ...missing].sort((a, b) => +new Date(b.date || 0) - +new Date(a.date || 0));
 }
 
 /** Efek neto jurnal-jurnal terposting atas satu akun: Σ debit − Σ kredit. */

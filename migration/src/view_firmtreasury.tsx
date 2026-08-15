@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmCoa } from './use_firm_coa';
+import { useBankRecon } from './use_bank_recon';
 import { useAmsPersist, useAudit, useAuth } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -17,7 +18,7 @@ import { CAP } from './rbac';
    Anggaran & Forecast · Arus Kas · Rekonsiliasi Bank (multi-ccy) ·
    Register Aset Tetap kantor.
    ============================================================ */
-const { useState: useStateTR } = React;
+const { useState: useStateTR, useMemo: useMemoTR } = React;
 
 const CCY_SYMBOL = { IDR: 'Rp', USD: 'US$', SGD: 'S$', EUR: '€' };
 
@@ -218,15 +219,24 @@ function BudgetLineDrill({ b, onClose }: any) {
    Kas, Bank & Rekonsiliasi (multi-currency)
    ============================================================ */
 /* Historical booking rate for valas (avg cost) — for unrealized FX reval */
-const FX_BOOK = { IDR: 1, USD: 15_780, SGD: 11_640, EUR: 17_120 };
+/* Kurs buku pindah ke SSOT (`AMS.FX_BOOK`) — dulu konstanta PRIVAT di sini, sehingga
+   lapisan kanon tak bisa membandingkan sisi bank & sisi buku pada dasar yang sama. */
 
 function CashBank() {
   const { fmt } = AMS;
   const FX: any = AMS.FX_RATES;
+  const FX_BOOK: any = AMS.FX_BOOK;
   const accts: any = AMS.BANK_ACCOUNTS;
   const [tab, setTab] = useStateTR('positions');
-  const R: any = AMS.BANK_RECON;
-  const [lines, setLines] = useAmsPersist('bankrecon', () => R.lines);
+  /* Rekonsiliasi PER REKENING (PRD cash-bank-reconciliation-register). Dulu satu objek
+     `BANK_RECON` untuk satu rekening, dengan `bookBalance` LITERAL. Kini sisi buku
+     diturunkan dari akun buku besar rekening ybs., dan overrides `matched` disalurkan
+     ke ctx FIRMFIN supaya pencocokan di sini benar-benar menggeser residual Kas. */
+  const { coa } = useFirmCoa();
+  const { lines, setLines } = useBankRecon();
+  const per: any[] = useMemoTR(() => FIRMFIN.bankRecon({ coa, reconLines: lines }) as any[], [coa, lines]);
+  const [selAcct, setSelAcct] = useStateTR(per[0] ? per[0].id : '');
+  const R: any = per.find((p: any) => p.id === selAcct) || per[0];
   /* SoD finansial (Program E): pencocokan rekonsiliasi = FIRMFIN_EDIT (server
      capForWrite sudah menegakkan 'bankrecon'; gate UI mencegah ditolak senyap). */
   const auth = useAuth();
@@ -243,21 +253,26 @@ function CashBank() {
     setLines((list: any) => list.map((x: { id: string; matched: boolean }) => x.id === id ? { ...x, matched: !x.matched } : x));
     logActivity && logActivity({ who, action: 'RECON_TOGGLE', detail: `${id} ${l && l.desc ? '· ' + l.desc.slice(0, 40) : ''} → ${l && l.matched ? 'belum cocok' : 'cocok'}` });
   };
-  const unrec = lines.filter((l: any) => !l.matched);
-  const adjustedBook = R.bookBalance + lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s: any, l: any) => s + l.amount, 0);
-  const adjustedBank = R.bankBalance + lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s: any, l: any) => s + l.amount, 0);
-  const reconciled = Math.abs(adjustedBank - adjustedBook) < 1e6;
+  /* Aritmetikanya TIDAK dihitung ulang di sini — seluruhnya datang dari
+     `FIRMFIN.bankRecon()`, supaya layar ini dan baris Kas di Firm Finance mustahil
+     menyatakan hal yang berbeda untuk rekening yang sama. */
+  const unrec = per.reduce((n: number, p: any) => n + p.openCount, 0);
+  const accLines = R ? R.lines : [];
+  const adjustedBook = R ? R.adjustedBook : 0;
+  const adjustedBank = R ? R.adjustedBank : 0;
+  const reconciled = !!R && R.reconciled;
+  const belumSeimbang = per.filter((p: any) => !p.reconciled).length;
 
-  // FX revaluation
+  // FX revaluation — kurs buku kini dari SSOT (AMS.FX_BOOK), bukan konstanta privat view
   const valas = accts.filter((a: any) => a.ccy !== 'IDR');
   const reval = valas.map((a: any) => {
-    const bookIDR = a.balance * (FX_BOOK as any)[a.ccy];
+    const bookIDR = a.balance * FX_BOOK[a.ccy];
     const mktIDR = a.balance * FX[a.ccy];
-    return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: (FX_BOOK as any)[a.ccy] };
+    return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: FX_BOOK[a.ccy] };
   });
   const totReval = reval.reduce((s: any, r: any) => s + r.gain, 0);
 
-  const tabs = [{ id: 'positions', label: 'Posisi Kas & Bank' }, { id: 'recon', label: 'Rekonsiliasi Bank', count: unrec.length }, { id: 'fx', label: 'Revaluasi Valas', count: valas.length }];
+  const tabs = [{ id: 'positions', label: 'Posisi Kas & Bank' }, { id: 'recon', label: 'Rekonsiliasi Bank', count: unrec }, { id: 'fx', label: 'Revaluasi Valas', count: valas.length }];
 
   return (
     <>
@@ -267,7 +282,7 @@ function CashBank() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={accts.length} label="Rekening Aktif" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Belum Terealisasi" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={unrec.length} label="Item Belum Direkonsiliasi" accent={unrec.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={unrec} label="Item Belum Direkonsiliasi" accent={unrec ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -295,30 +310,45 @@ function CashBank() {
 
           {tab === 'recon' && (
             <div style={{ padding: 14 }}>
+              {/* Satu rekonsiliasi PER REKENING. Dulu hanya BCA-OPS yang punya, karena
+                  buku besar cuma punya satu akun kas untuk enam rekening. */}
+              <div className="row gap6 ac" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+                {per.map((p: any) => (
+                  <Btn key={p.id} sm variant={p.id === selAcct ? 'primary' : 'ghost'} onClick={() => setSelAcct(p.id)}
+                    title={p.name + ' · GL ' + p.acct + (p.reconciled ? ' · seimbang' : ' · belum dijelaskan')}>
+                    {p.bank} {p.name}
+                    <span style={{ marginLeft: 6, color: p.reconciled ? 'var(--green)' : 'var(--red)' }}>●</span>
+                    {p.openCount > 0 && <span className="tiny muted" style={{ marginLeft: 4 }}>{p.openCount}</span>}
+                  </Btn>
+                ))}
+                <span className="tiny muted" style={{ marginLeft: 'auto' }}>
+                  {belumSeimbang === 0 ? 'Seluruh rekening menutup' : belumSeimbang + ' rekening belum menutup'} · {unrec} item terbuka
+                </span>
+              </div>
               <div className="row jb ac" style={{ marginBottom: 12 }}>
-                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {accts.find((a: any) => a.id === R.account).name} ({R.account})</div><div className="tiny muted">{canEdit ? 'Periode ' + R.period + ' · klik baris untuk tandai cocok/belum' : 'Periode ' + R.period + ' · tampilan read-only — pencocokan dibatasi peran Finance Firma / Partner'}</div></div>
-                <span className={'badge b-' + (reconciled ? 'green' : 'amber')} style={{ padding: '3px 10px' }}>{reconciled ? <><I.check size={12} /> Seimbang</> : 'Selisih Rp ' + fmt(Math.abs(adjustedBank - adjustedBook) / 1e6, 0) + ' jt'}</span>
+                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {R ? R.name : '—'} <span className="tiny muted">({R ? R.id : '—'} · GL {R ? R.acct : '—'})</span></div><div className="tiny muted">{canEdit ? 'Periode ' + (R ? R.period : '—') + ' · klik baris untuk tandai cocok/belum' : 'Periode ' + (R ? R.period : '—') + ' · tampilan read-only — pencocokan dibatasi peran Finance Firma / Partner'}</div></div>
+                <span className={'badge b-' + (reconciled ? 'green' : 'red')} style={{ padding: '3px 10px' }}>{reconciled ? <><I.check size={12} /> Seimbang</> : 'BELUM DIJELASKAN Rp ' + fmt(Math.abs(adjustedBank - adjustedBook) / 1e6, 1) + ' jt'}</span>
               </div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Bank</div>
-                  <RowKv label="Saldo rekening koran" v={'Rp ' + fmt(R.bankBalance / 1e6, 0) + ' jt'} />
-                  {lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map((l: any) => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
+                  <RowKv label={'Saldo rekening koran' + (R && R.ccy !== 'IDR' ? ' (ekuiv. kurs buku)' : '')} v={'Rp ' + fmt((R ? R.bankIDR : 0) / 1e6, 1) + ' jt'} />
+                  {accLines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map((l: any) => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 1) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
-                  <RowKv label="Saldo bank disesuaikan" v={'Rp ' + fmt(adjustedBank / 1e6, 0) + ' jt'} strong />
+                  <RowKv label="Saldo bank disesuaikan" v={'Rp ' + fmt(adjustedBank / 1e6, 1) + ' jt'} strong />
                 </div>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Buku (GL)</div>
-                  <RowKv label="Saldo buku besar" v={'Rp ' + fmt(R.bookBalance / 1e6, 0) + ' jt'} />
-                  {lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').map((l: any) => <RowKv key={l.id} label={(l.amount < 0 ? '− ' : '+ ') + l.desc.slice(0, 22)} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, l.amount < 1e7 ? 1 : 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
+                  <RowKv label={'Saldo buku besar (' + (R ? R.acct : '—') + ')'} v={'Rp ' + fmt((R ? R.bookIDR : 0) / 1e6, 1) + ' jt'} />
+                  {accLines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').map((l: any) => <RowKv key={l.id} label={(l.amount < 0 ? '− ' : '+ ') + String(l.desc).slice(0, 22)} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 1) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
-                  <RowKv label="Saldo buku disesuaikan" v={'Rp ' + fmt(adjustedBook / 1e6, 0) + ' jt'} strong />
+                  <RowKv label="Saldo buku disesuaikan" v={'Rp ' + fmt(adjustedBook / 1e6, 1) + ' jt'} strong />
                 </div>
               </div>
               <table className="dtbl">
                 <thead><tr><th>Tanggal</th><th>Keterangan (rekening koran)</th><th className="num">Jumlah</th><th>Ref. GL</th><th>Status</th></tr></thead>
                 <tbody>
-                  {lines.map((l: any) => (
+                  {accLines.map((l: any) => (
                     <tr key={l.id} onClick={() => canEdit && toggleMatch(l.id)} style={{ cursor: canEdit ? 'pointer' : 'default' }}>
                       <td className="mono tiny muted">{new Date(l.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td>{l.desc}</td>

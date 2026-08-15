@@ -405,7 +405,26 @@
 
   /* ---- F: Firm GL — chart of accounts ---- */
   const FIRM_COA = [
-    { code: '1-100', name: 'Kas & Bank', type: 'Aset', bal: 8_420_000_000 },
+    /* KAS PER REKENING (PRD cash-bank-reconciliation-register 2026-08-15).
+       Dulu SATU akun `1-100 Kas & Bank` untuk ENAM rekening. Akibatnya saldo BUKU per
+       rekening tak dapat diturunkan dari mana pun — padahal itu satu sisi dari setiap
+       rekonsiliasi bank. Rekonsiliasi lima rekening bukan "belum dikerjakan", ia
+       MUSTAHIL dirumuskan; dan selisih Rp 2.055 jt antara Σ rekening dan kontrol GL
+       tak punya pemilik (97% tanpa penjelasan).
+
+       Kini tiap rekening punya akunnya sendiri, sehingga saldo buku DITURUNKAN dari
+       jurnal terposting dan `Σ sub-akun == kontrol kas` benar SECARA KONSTRUKSI,
+       bukan karena dicocokkan. Σ keenam = 8.420.000.000, persis saldo `1-100` yang
+       digantikannya → nol-delta pada figur firma mana pun.
+
+       Valas dicatat pada KURS BUKU (`FX_BOOK`); selisih ke kurs pasar adalah
+       revaluasi, bukan item rekonsiliasi. Lihat `data_part2.BANK_RECONS`. */
+    { code: '1-101', name: 'BCA — Operasional', type: 'Aset', bal: 4_425_000_000 },
+    { code: '1-102', name: 'Mandiri — Penggajian', type: 'Aset', bal: 1_180_000_000 },
+    { code: '1-103', name: 'BNI — Pajak & Escrow', type: 'Aset', bal: 940_000_000 },
+    { code: '1-104', name: 'BCA — Valas USD', type: 'Aset', bal: 765_330_000 },      // USD 48.500 @ kurs buku 15.780
+    { code: '1-105', name: 'DBS — Cabang Singapura', type: 'Aset', bal: 1_074_372_000 }, // SGD 92.300 @ kurs buku 11.640
+    { code: '1-106', name: 'Kas Kecil', type: 'Aset', bal: 35_298_000 },
     { code: '1-200', name: 'Piutang Usaha (klien)', type: 'Aset', bal: 4_440_000_000 },
     { code: '1-300', name: 'WIP Belum Ditagih', type: 'Aset', bal: 9_300_000_000 },
     { code: '1-400', name: 'Aset Tetap — neto', type: 'Aset', bal: 6_100_000_000 },
@@ -442,15 +461,15 @@
   const FIRM_GL = [
     { id: 'JV-0318', date: '2026-03-16', desc: 'Langganan lisensi perangkat audit tahunan', dr: '5-500', cr: '2-100', amount: 240_000_000, posted: true },
     { id: 'JV-0317', date: '2026-03-14', desc: 'Beban pemasaran & pengembangan praktik', dr: '5-400', cr: '2-100', amount: 185_000_000, posted: true },
-    { id: 'JV-0316', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', dr: '2-100', cr: '1-100', amount: 910_000_000, posted: true },
+    { id: 'JV-0316', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', dr: '2-100', cr: '1-101', amount: 910_000_000, posted: true },
     { id: 'JV-0315', date: '2026-03-11', desc: 'Faktur vendor jasa profesional & langganan riset', dr: '5-300', cr: '2-100', amount: 265_000_000, posted: true },
     { id: 'JV-0314', date: '2026-03-10', desc: 'Penagihan WIP menjadi piutang klien (batch Maret)', dr: '1-200', cr: '1-300', amount: 1_640_000_000, posted: true },
     { id: 'JV-0313', date: '2026-03-09', desc: 'Pengakuan WIP jasa audit berjalan (PSAK 72 — sepanjang waktu)', dr: '1-300', cr: '4-100', amount: 2_850_000_000, posted: true },
-    { id: 'JV-0312', date: '2026-03-08', desc: 'Penerimaan pembayaran INV-2026-031 (Sentosa)', dr: '1-100', cr: '1-200', amount: 925_000_000, posted: true },
-    { id: 'JV-0311', date: '2026-03-07', desc: 'Pembayaran gaji staf Maret', dr: '5-100', cr: '1-100', amount: 1_820_000_000, posted: true },
+    { id: 'JV-0312', date: '2026-03-08', desc: 'Penerimaan pembayaran INV-2026-031 (Sentosa)', dr: '1-101', cr: '1-200', amount: 925_000_000, posted: true },
+    { id: 'JV-0311', date: '2026-03-07', desc: 'Pembayaran gaji staf Maret', dr: '5-100', cr: '1-102', amount: 1_820_000_000, posted: true },
     { id: 'JV-0310', date: '2026-03-05', desc: 'Faktur vendor IT & lisensi software', dr: '5-200', cr: '2-100', amount: 340_000_000, posted: true },
     { id: 'JV-0309', date: '2026-03-04', desc: 'Pengakuan pendapatan termin INV-2026-040', dr: '1-200', cr: '4-100', amount: 555_000_000, posted: true },
-    { id: 'JV-0308', date: '2026-03-03', desc: 'Sewa kantor kuartal Q1', dr: '5-200', cr: '1-100', amount: 480_000_000, posted: true },
+    { id: 'JV-0308', date: '2026-03-03', desc: 'Sewa kantor kuartal Q1', dr: '5-200', cr: '1-101', amount: 480_000_000, posted: true },
     { id: 'JV-0307', date: '2026-03-01', desc: 'Akrual PPh 21 karyawan', dr: '5-100', cr: '2-200', amount: 210_000_000, posted: false },
   ];
 

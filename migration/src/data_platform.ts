@@ -313,7 +313,7 @@ import { WIP_WRITEOFF_APPROVAL_MIN } from './data_firmfin';
     ],
     bank: [
       { module: 'cashbank', label: 'Kas, Bank & Rekonsiliasi', count: () => (A.BANK_ACCOUNTS || []).length, unit: 'rekening firma' },
-      { module: 'reconcile', label: 'Rekonsiliasi Bank', count: () => ((A.BANK_RECON || {}).lines || []).length, unit: 'item rekonsiliasi' },
+      { module: 'reconcile', label: 'Rekonsiliasi Bank', count: () => (A.BANK_RECONS || []).reduce((n: number, r: { lines?: unknown[] }) => n + ((r.lines || []).length), 0), unit: 'item rekonsiliasi' },
       { module: 'treasury', label: 'Anggaran & Arus Kas', count: () => (A.CASH_FORECAST || []).length, unit: 'proyeksi arus kas' },
     ],
     esign: [

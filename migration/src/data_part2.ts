@@ -4,29 +4,81 @@
 import { fmt } from './data_base';
 
   const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
+  /* Kurs BUKU — kurs saat transaksi dibukukan; buku besar mencatat valas pada kurs ini.
+     Sampai 2026-08-15 ia konstanta PRIVAT di dalam `view_firmtreasury.tsx` (tak diekspor,
+     tak di AMS), sehingga lapisan kanon tak bisa membandingkan sisi bank dengan sisi buku
+     pada dasar yang sama. Selisihnya terhadap `FX_RATES` adalah REVALUASI — bukan item
+     rekonsiliasi. (PRD cash-bank-reconciliation-register 2026-08-15.) */
+  const FX_BOOK = { IDR: 1, USD: 15_780, SGD: 11_640, EUR: 17_120 };
 
   /* Cash & bank accounts (multi-currency) */
+  /* Saldo menurut BANK — data EKSTERNAL, karena itu tetap literal.
+     PRD cash-bank-reconciliation-register 2026-08-15: jangan menurunkannya dari buku
+     besar. Seluruh guna rekonsiliasi bank adalah mempertemukan DUA sumber yang
+     independen; menurunkan sisi bank dari GL menghapus pekerjaannya.
+
+     `acct` mengikat tiap rekening ke akun buku besarnya, sehingga sisi BUKU-nya
+     diturunkan dari jurnal terposting. Saldo di bawah diselaraskan ke buku besar
+     (Q-2): selisihnya terhadap saldo buku dijelaskan seluruhnya oleh `BANK_RECONS`.
+     Sebelum ini Σ rekening 10.475 jt vs kontrol 8.420 jt — selisih Rp 2.055 jt yang
+     97%-nya tak pernah punya pemilik, lahir dari dua angka yang dipilih terpisah. */
   const BANK_ACCOUNTS = [
-    { id: 'BCA-OPS', bank: 'BCA', name: 'Operasional', no: '••• 4471', ccy: 'IDR', balance: 6_120_000_000 },
-    { id: 'MDR-PAY', bank: 'Mandiri', name: 'Penggajian', no: '••• 0098', ccy: 'IDR', balance: 1_480_000_000 },
-    { id: 'BNI-TAX', bank: 'BNI', name: 'Pajak & Escrow', no: '••• 5520', ccy: 'IDR', balance: 940_000_000 },
-    { id: 'BCA-USD', bank: 'BCA', name: 'Valas USD', no: '••• 7782', ccy: 'USD', balance: 48_500 },
-    { id: 'DBS-SGD', bank: 'DBS', name: 'Cabang Singapura', no: '••• 3310', ccy: 'SGD', balance: 92_300 },
-    { id: 'KAS-PTY', bank: 'Tunai', name: 'Kas Kecil', no: 'Petty cash', ccy: 'IDR', balance: 35_000_000 },
+    { id: 'BCA-OPS', bank: 'BCA', name: 'Operasional', no: '••• 4471', ccy: 'IDR', acct: '1-101', balance: 4_497_150_000 },
+    { id: 'MDR-PAY', bank: 'Mandiri', name: 'Penggajian', no: '••• 0098', ccy: 'IDR', acct: '1-102', balance: 1_203_150_000 },
+    { id: 'BNI-TAX', bank: 'BNI', name: 'Pajak & Escrow', no: '••• 5520', ccy: 'IDR', acct: '1-103', balance: 941_600_000 },
+    { id: 'BCA-USD', bank: 'BCA', name: 'Valas USD', no: '••• 7782', ccy: 'USD', acct: '1-104', balance: 48_500 },
+    { id: 'DBS-SGD', bank: 'DBS', name: 'Cabang Singapura', no: '••• 3310', ccy: 'SGD', acct: '1-105', balance: 92_300 },
+    { id: 'KAS-PTY', bank: 'Tunai', name: 'Kas Kecil', no: 'Petty cash', ccy: 'IDR', acct: '1-106', balance: 35_298_000 },
   ];
 
-  /* Bank reconciliation (BCA Operasional · Feb 2026) */
-  const BANK_RECON = {
-    account: 'BCA-OPS', period: 'Februari 2026', bankBalance: 6_120_000_000, bookBalance: 6_047_850_000,
-    lines: [
-      { id: 'S1', date: '2026-02-27', desc: 'Transfer masuk — Sentosa Makmur (INV-2026-031)', amount: 925_000_000, matched: true, ref: 'JV-0312' },
-      { id: 'S2', date: '2026-02-26', desc: 'Pembayaran gaji staf Februari', amount: -1_820_000_000, matched: true, ref: 'JV-0311' },
-      { id: 'S3', date: '2026-02-28', desc: 'Biaya administrasi & RTGS bank', amount: -1_250_000, matched: false, ref: '' },
-      { id: 'S4', date: '2026-02-28', desc: 'Jasa giro (bunga)', amount: 3_400_000, matched: false, ref: '' },
-      { id: 'S5', date: '2026-02-25', desc: 'Cek beredar #00124 — sewa kantor Q1', amount: -480_000_000, matched: false, ref: 'outstanding' },
-      { id: 'S6', date: '2026-02-24', desc: 'Setoran dalam perjalanan — Graha Properti', amount: 410_000_000, matched: false, ref: 'transit' },
-    ],
-  };
+  /* Register rekonsiliasi bank — PER REKENING, PER PERIODE.
+     PRD cash-bank-reconciliation-register 2026-08-15.
+
+     DULU satu objek `BANK_RECON` untuk SATU rekening (BCA-OPS) berperiode "Februari
+     2026" — sementara SELURUH jurnal buku besar bertanggal Maret 2026. Rekonsiliasi
+     bicara tentang periode yang berbeda dari buku yang direkonsiliasinya, dan lima
+     rekening lain tak punya rekonsiliasi sama sekali. Periode kini selaras (Q-4).
+
+     Saldo BUKU tidak disimpan di sini — ia diturunkan dari akun `acct` rekening yang
+     bersangkutan (`FIRMFIN.bankRecon`). Yang disimpan hanya item rekonsiliasi, yakni
+     hal-hal yang MEMANG hanya diketahui salah satu pihak:
+       · sisi BUKU  (`ref: ''`)          — bank tahu, buku belum: biaya adm, jasa giro
+       · sisi BANK  (`outstanding`/`transit`) — buku tahu, bank belum: cek beredar,
+                                            setoran dalam perjalanan
+     Item `matched: true` sudah tercermin di kedua sisi; ia riwayat, bukan penyesuaian.
+
+     Rekonsiliasi menutup bila  saldoBuku + Σ sisi-buku  ==  saldoBank + Σ sisi-bank.
+     Sisa apa pun di luar itu TIDAK dinamai di sini dan akan memerahkan baris Kas. */
+  const BANK_RECONS = [
+    {
+      account: 'BCA-OPS', period: 'Maret 2026',
+      lines: [
+        { id: 'OPS-1', date: '2026-03-08', desc: 'Transfer masuk — Sentosa Makmur (INV-2026-031)', amount: 925_000_000, matched: true, ref: 'JV-0312' },
+        { id: 'OPS-2', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', amount: -910_000_000, matched: true, ref: 'JV-0316' },
+        { id: 'OPS-3', date: '2026-03-31', desc: 'Biaya administrasi & RTGS bank', amount: -1_250_000, matched: false, ref: '' },
+        { id: 'OPS-4', date: '2026-03-31', desc: 'Jasa giro (bunga)', amount: 3_400_000, matched: false, ref: '' },
+        { id: 'OPS-5', date: '2026-03-03', desc: 'Cek beredar #00124 — sewa kantor Q1', amount: -480_000_000, matched: false, ref: 'outstanding' },
+        { id: 'OPS-6', date: '2026-03-30', desc: 'Setoran dalam perjalanan — Graha Properti', amount: 410_000_000, matched: false, ref: 'transit' },
+      ],
+    },
+    {
+      account: 'MDR-PAY', period: 'Maret 2026',
+      lines: [
+        { id: 'PAY-1', date: '2026-03-07', desc: 'Pembayaran gaji staf Maret', amount: -1_820_000_000, matched: true, ref: 'JV-0311' },
+        { id: 'PAY-2', date: '2026-03-31', desc: 'Biaya administrasi rekening penggajian', amount: -850_000, matched: false, ref: '' },
+        { id: 'PAY-3', date: '2026-03-28', desc: 'Cek gaji belum dicairkan — 3 karyawan', amount: -24_000_000, matched: false, ref: 'outstanding' },
+      ],
+    },
+    {
+      account: 'BNI-TAX', period: 'Maret 2026',
+      lines: [
+        { id: 'TAX-1', date: '2026-03-31', desc: 'Jasa giro rekening escrow pajak', amount: 1_600_000, matched: false, ref: '' },
+      ],
+    },
+    { account: 'BCA-USD', period: 'Maret 2026', lines: [] },
+    { account: 'DBS-SGD', period: 'Maret 2026', lines: [] },
+    { account: 'KAS-PTY', period: 'Maret 2026', lines: [] },
+  ];
 
   /* Anggaran firma (FY2025, P&L) — RENCANA saja.
      PRD budget-actual-ledger-derived 2026-08-15: kolom `actual` DIHAPUS. Aktual bukan
@@ -547,4 +599,4 @@ import { fmt } from './data_base';
      exec: peta { [no]: bool } status pelaksanaan (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
 
-export { FX_RATES, BANK_ACCOUNTS, BANK_RECON, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
+export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };

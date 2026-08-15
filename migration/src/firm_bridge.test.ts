@@ -80,13 +80,32 @@ describe('SC-3 — status dari ANGKA, bukan dari ada-tidaknya kalimat', () => {
   });
 
   it('baris ber-`note` TETAP bisa berstatus open — inilah cacat yang dicabut', () => {
-    /* Kas punya `note` yang panjang & meyakinkan, tetapi komponennya belum
-       dijumlahkan di sini (Q-1 = hanya status logic). Dulu `note` itu sendiri
-       cukup untuk membuatnya "Terjembatani" selamanya. */
+    /* Dulu contoh hidupnya adalah baris Kas, yang `open` karena komponennya memang
+       belum pernah disambungkan. Sejak PRD cash-bank-reconciliation-register ia
+       menutup — jadi keadaan merahnya sekarang DIBUAT, bukan ditumpangi: satu saldo
+       bank dinaikkan tanpa item rekonsiliasi yang menjelaskannya.
+
+       Yang diuji tetap sama dan justru lebih kuat: `note` yang panjang & meyakinkan
+       TIDAK boleh cukup untuk membuat sebuah baris "Terjembatani". */
+    const orig = AMS.BANK_ACCOUNTS;
+    try {
+      (AMS as unknown as { BANK_ACCOUNTS: unknown }).BANK_ACCOUNTS =
+        (orig as unknown as Array<{ id: string; balance: number }>)
+          .map(a => a.id === 'BNI-TAX' ? { ...a, balance: a.balance + 300_000_000 } : a);
+      const c = row('cash');
+      expect(c.note.length).toBeGreaterThan(10);
+      expect(Math.abs(c.residual)).toBe(300_000_000);
+      expect(c.status).toBe('open');
+    } finally {
+      (AMS as unknown as { BANK_ACCOUNTS: unknown }).BANK_ACCOUNTS = orig;
+    }
+  });
+
+  it('pada seed bersih baris Kas menutup lewat komponen bernama, bukan lewat `note`', () => {
     const c = row('cash');
-    expect(c.note.length).toBeGreaterThan(10);
-    expect(c.bridgeTotal).toBe(0);
-    expect(c.status).toBe('open');
+    expect(c.bridgeTotal).not.toBe(0);
+    expect(Math.abs(c.residual)).toBeLessThan(1_000_000);
+    expect(c.status).toBe('bridged');
   });
 
   it('`bridged` menuntut komponen bernama yang benar-benar ada (bukan nol)', () => {
