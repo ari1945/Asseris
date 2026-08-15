@@ -7,6 +7,7 @@ import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { AMS } from './data';
 import { CONT_FACTORS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
 import { FIRMFIN } from './data_firmfin';
+import { useFirmCoa } from './use_firm_coa';
 import { feeConcentration, feeConcentrationMap, FEE_CONCENTRATION_CONFIG } from './fee_concentration';
 import { verdict, weightedScore, type AssessmentFactor } from './assessment_model';
 import { amsExportPdf } from './export_pdf';
@@ -203,7 +204,10 @@ function ContinuanceRegister() {
   const enrichedClients = clients.map((c: { id: string }) => ({ ...c, priorYear: priorYearMap[c.id] }));
   // Konsentrasi imbalan (Kode Etik/IESBA 290): rasio fee klien thd pendapatan firma
   // (GL 4-100 via FIRMFIN.pl) & portofolio partner → pemicu keberlanjutan + panel.
-  const firmRevenue: number = FIRMFIN.pl({}).revenue || 0;
+  /* Pendapatan firma dari BUKU BESAR (akun 4-100) yang diturunkan jurnal terposting —
+     dulu `FIRMFIN.pl({})` telanjang, yang jatuh ke seed statis. */
+  const { coa: firmCoa } = useFirmCoa();
+  const firmRevenue: number = (FIRMFIN.pl({ coa: firmCoa }) as { revenue?: number }).revenue || 0;
   const feeConc = feeConcentration(enrichedClients, firmRevenue);
   const concMap = feeConcentrationMap(feeConc);
   const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR, concMap);
