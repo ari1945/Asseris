@@ -153,7 +153,7 @@ const SIDE_SYNONYMS: Record<string, string> = {
   governance: 'tata kelola mutu', dashboard: 'dasbor firma ringkasan', bi: 'intelijen bisnis konsolidasi',
   crm: 'klien pelanggan relasi', engagement: 'manajemen perikatan', onboarding: 'penerimaan klien',
   dataflow: 'alur data integritas', continuance: 'keberlanjutan klien', teamindep: 'independensi tim',
-  wip: 'pekerjaan dalam proses valuasi', wipreal: 'wip realisasi', revenue: 'pendapatan',
+  wip: 'pekerjaan dalam proses valuasi realisasi wipreal', revenue: 'pendapatan',
   firmgl: 'buku besar general ledger', apar: 'utang piutang', treasury: 'anggaran arus kas treasuri',
   cashbank: 'kas bank rekonsiliasi', fixedassets: 'aset tetap kantor', firmtax: 'pajak firma', profitability: 'profitabilitas laba',
 };

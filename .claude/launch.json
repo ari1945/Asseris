@@ -20,6 +20,17 @@
       "port": 5180
     },
     {
+      "name": "vite-5185",
+      "runtimeExecutable": "pwsh",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-Command",
+        "Set-Location migration; npm run dev -- --port 5185 --strictPort"
+      ],
+      "port": 5185,
+      "autoPort": false
+    },
+    {
       "name": "dev-all",
       "runtimeExecutable": "pwsh",
       "runtimeArgs": [

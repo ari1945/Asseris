@@ -29,7 +29,7 @@ const HM_SRC_ICON = { 'Review Note': 'doc', 'Siapkan WP': 'layers', 'Reviu WP': 
    kartu tautan-cepat "Area Kerja Saya" menggantikan panel "Perikatan Saya" auditor. */
 const HM_FIRMOPS_AREAS: Record<string, { title: string; ids: string[] }> = {
   'Admin & HR Firma': { title: 'SDM & Kepatuhan', ids: ['hcm', 'payroll', 'leave', 'performance', 'cpe', 'ethics', 'independence', 'hrcase'] },
-  'Finance Firma': { title: 'Keuangan Firma (ERP)', ids: ['firmgl', 'apar', 'revenue', 'treasury', 'cashbank', 'firmtax', 'profitability', 'wipreal'] },
+  'Finance Firma': { title: 'Keuangan Firma (ERP)', ids: ['firmgl', 'apar', 'revenue', 'treasury', 'cashbank', 'firmtax', 'profitability', 'wip'] },
 };
 
 const hmFirstName = (name: string) => (name || '').trim().split(/\s+/)[0] || 'Rekan';

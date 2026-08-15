@@ -7,9 +7,9 @@
    rusak yang bisa datang dari tautan tempelan pengguna.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { parseHash, buildHash, sameLocation, initialLocation } from './route_hash';
+import { parseHash, buildHash, sameLocation, initialLocation, resolveRoute, ROUTE_ALIAS } from './route_hash';
 
-const KNOWN = ['home', 'wtb', 'workpapers', 'psak46', 'sa530', 'continuance'];
+const KNOWN = ['home', 'wtb', 'workpapers', 'psak46', 'sa530', 'continuance', 'wip'];
 const isKnown = (id: string): boolean => KNOWN.includes(id);
 
 describe('parseHash — bentuk yang benar', () => {
@@ -153,5 +153,54 @@ describe('initialLocation — presedens hash > sesi terakhir > home', () => {
 
   it('hash rusak + sesi terakhir rusak → home', () => {
     expect(initialLocation('#/%', 'juga-tak-ada', isKnown).loc.route).toBe('home');
+  });
+});
+
+/* ============================================================
+   Alias rute — modul yang DIGABUNG meninggalkan id yatim di bookmark
+   pengguna, `ams.route` sesi terakhir, dan `sourceRoute` item persetujuan
+   lama. Tanpa terjemahan, tautan itu diam-diam mendarat di halaman lain.
+   docs/prd-wip-merge-valuasi-realisasi.md (SC-1).
+   ============================================================ */
+describe('resolveRoute — alias id lama', () => {
+  it('id lama diterjemahkan ke penggantinya', () => {
+    expect(resolveRoute('wipreal')).toBe('wip');
+  });
+
+  it('id yang bukan alias dikembalikan apa adanya', () => {
+    expect(resolveRoute('wtb')).toBe('wtb');
+    expect(resolveRoute('home')).toBe('home');
+    expect(resolveRoute('tidak-ada')).toBe('tidak-ada');
+  });
+
+  it('tak terkecoh properti bawaan Object (hasOwnProperty, bukan `in`)', () => {
+    expect(resolveRoute('constructor')).toBe('constructor');
+    expect(resolveRoute('toString')).toBe('toString');
+    expect(resolveRoute('__proto__')).toBe('__proto__');
+  });
+
+  it('alias tak pernah berantai — nilai peta bukan kunci peta', () => {
+    for (const target of Object.values(ROUTE_ALIAS)) {
+      expect(Object.prototype.hasOwnProperty.call(ROUTE_ALIAS, target)).toBe(false);
+    }
+  });
+});
+
+describe('initialLocation — bookmark ber-id lama tetap mendarat benar', () => {
+  it('hash `#/wipreal` → modul penggantinya, BUKAN dianggap tautan busuk', () => {
+    const r = initialLocation('#/wipreal', 'wtb', isKnown);
+    expect(r.source).toBe('hash');
+    expect(r.loc.route).toBe('wip');
+  });
+
+  it('seleksi & tab pada tautan lama ikut terbawa', () => {
+    const r = initialLocation('#/wipreal/ENG-2025-014?tab=valuasi', null, isKnown);
+    expect(r.loc).toEqual({ route: 'wip', sel: 'ENG-2025-014', tab: 'valuasi' });
+  });
+
+  it('`ams.route` sesi terakhir ber-id lama juga diterjemahkan (bukan dibuang ke home)', () => {
+    const r = initialLocation('', 'wipreal', isKnown);
+    expect(r.source).toBe('storage');
+    expect(r.loc.route).toBe('wip');
   });
 });

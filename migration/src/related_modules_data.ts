@@ -245,7 +245,7 @@ const FIRM_LINEAGE = {
   revenue: { std: 'ERP Firma · Pendapatan & WIP',
     up: [
       { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'Faktur & termin → pendapatan' },
-      { id: 'wipreal', ic: 'hourglass', lbl: 'WIP & Realisasi', rel: 'WIP → realisasi pendapatan' },
+      { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi & Realisasi', rel: 'WIP → realisasi pendapatan' },
       { id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Jam terpakai → akrual WIP' },
     ],
     down: [
@@ -345,7 +345,7 @@ const FIRM_LINEAGE = {
     down: [
       { id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Alokasi → timesheet' },
       { id: 'delivery', ic: 'flag', lbl: 'Delivery & Milestones', rel: 'Jadwal milestone' },
-      { id: 'wipreal', ic: 'hourglass', lbl: 'WIP & Realisasi', rel: 'Alokasi → akrual WIP' },
+      { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi & Realisasi', rel: 'Alokasi → akrual WIP' },
     ] },
   capacity: { std: 'Operasi · Perencanaan Kapasitas',
     up: [
@@ -380,23 +380,13 @@ const FIRM_LINEAGE = {
   /* ---------- Jembatan Operasi (menghubungkan ERP & SDM) ---------- */
   billing: { std: 'Operasi · Penagihan',
     up: [
-      { id: 'wipreal', ic: 'hourglass', lbl: 'WIP & Realisasi', rel: 'WIP → dasar tagihan' },
+      { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi & Realisasi', rel: 'WIP → dasar tagihan' },
       { id: 'delivery', ic: 'flag', lbl: 'Delivery & Milestones', rel: 'Milestone → termin' },
       { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan & WIP', rel: 'Pendapatan diakui' },
     ],
     down: [
       { id: 'apar', ic: 'coins', lbl: 'AP / AR Firma', rel: 'Faktur → piutang usaha' },
       { id: 'profitability', ic: 'trend', lbl: 'Profitability', rel: 'Realisasi vs WIP' },
-    ] },
-  wipreal: { std: 'Operasi · WIP & Realisasi',
-    up: [
-      { id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Jam terpakai → WIP' },
-      { id: 'scheduler', ic: 'users', lbl: 'Resource Scheduler', rel: 'Alokasi tim' },
-    ],
-    down: [
-      { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'WIP → faktur' },
-      { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan & WIP', rel: 'Realisasi pendapatan' },
-      { id: 'profitability', ic: 'trend', lbl: 'Profitability', rel: 'Write-off & realisasi' },
     ] },
   delivery: { std: 'Operasi · Pengiriman & Milestone',
     up: [
@@ -419,15 +409,14 @@ const FIRM_LINEAGE = {
 };
 Object.assign(LINEAGE, FIRM_LINEAGE);
 
-/* Valuasi WIP (route 'wip') — modul valuasi mendalam. Hulu: jam (Time),
-   realisasi & write-down (WIP & Realisasi), alokasi (Scheduler). Hilir:
+/* WIP · Valuasi & Realisasi (route 'wip'). Hulu: jam (Time),
+   alokasi (Scheduler). Hilir:
    penagihan, pendapatan diakui (PSAK 72), kontrol GL 1-300 & profitabilitas.
    Satu sumber kebenaran: FIRMFIN.wip() → sub-buku WIP_ENG → kontrol 1-300. */
 LINEAGE.wip = {
   std: 'Firm Finance · Valuasi WIP (PSAK 72 · kontrol GL 1-300)',
   up: [
     { id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Jam ter-charge × tarif standar → nilai standar WIP terbentuk' },
-    { id: 'wipreal', ic: 'hourglass', lbl: 'WIP & Realisasi', rel: 'Write-up/down & realisasi per partner (sub-buku yang sama)' },
     { id: 'scheduler', ic: 'users', lbl: 'Resource Scheduler', rel: 'Alokasi tim → akrual jam yang membentuk WIP' },
   ],
   down: [
@@ -477,7 +466,7 @@ const ENGAGEMENT_EXTRA = {
       { id: 'scheduler', ic: 'users', lbl: 'Resource Scheduler', rel: 'Alokasi tim → timesheet' },
     ],
     down: [
-      { id: 'wipreal', ic: 'hourglass', lbl: 'WIP & Realisasi', rel: 'Jam terpakai → WIP' },
+      { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi & Realisasi', rel: 'Jam terpakai → WIP' },
       { id: 'profitability', ic: 'trend', lbl: 'Profitability', rel: 'Biaya & utilisasi' },
       { id: 'performance', ic: 'target', lbl: 'Siklus Kinerja', rel: 'Utilisasi staf' },
     ] },
