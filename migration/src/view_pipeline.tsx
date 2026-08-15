@@ -14,9 +14,13 @@ import {
   PIPE_STAGES, PIPE_STAGE_COLOR, nextOppId, openOpportunities,
   stageSummary, weightedValue, winLoss, wonYtd,
 } from './canon_pipeline';
-import type { Opportunity } from './canon_pipeline';
+import type { Opportunity, StageEvent } from './canon_pipeline';
 import { acceptanceReadiness } from './canon_pipeline_acceptance';
 import { applyHandoff, planHandoff } from './canon_pipeline_handoff';
+import {
+  ageDays, daysInStage, isOverdue, moveWithHistory, probCheck,
+  stageFlow, stallInfo, winLossBetween, yearStart,
+} from './canon_pipeline_lifecycle';
 import type { IndependenceRow, ProspectLike, ReadinessRow, ReadinessStatus, VerdictState } from './canon_pipeline_acceptance';
 import type { ClientRow, StaffRow } from './ams_types';
 
@@ -77,7 +81,15 @@ function SalesPipeline() {
   const won = wonYtd(opps, AMS.TODAY);
   const openCount = openList.length;
   const wl = winLoss(opps);
+  /* PR-4 — win rate PERIODE. Angka sepanjang-masa tak pernah bergerak dan tak
+     menjawab pertanyaan siapa pun ("bagaimana kita tahun ini?"). Mungkin hanya
+     karena keputusan menang/kalah kini punya tanggal. */
+  const wlYtd = winLossBetween(opps, yearStart(AMS.TODAY), AMS.TODAY);
   const crossSell = openList.filter((o) => o.origin === 'cross-sell').length;
+  const stalled = openList.filter((o) => stallInfo(o, AMS.TODAY).stalled);
+  const overdue = openList.filter((o) => isOverdue(o, AMS.TODAY));
+  const unexplained = openList.filter((o) => probCheck(o).unexplained);
+  const flows = stageFlow(opps);
 
   /* SoD business development (PR-1): register peluang = ENGAGEMENT_MANAGE,
      sejajar roster klien & prospek. Gate UI ini WAJIB selaras dengan
@@ -87,7 +99,10 @@ function SalesPipeline() {
     if (!canEdit) return;
     const from = opps.find((o) => o.id === id);
     if (!from || from.stage === stage) return;
-    setOpps((list: Opportunity[]) => list.map((o) => o.id === id ? { ...o, stage, prob: stage === 'Won' ? 100 : stage === 'Lost' ? 0 : o.prob } : o));
+    /* PR-4 — perpindahan MENCATAT (siapa · kapan · probabilitas yang berlaku).
+       `moveWithHistory` juga memulihkan probabilitas lama saat peluang kembali
+       dari Won/Lost; `move()` lama membiarkan 100% terbawa keluar dari Won. */
+    setOpps((list: Opportunity[]) => list.map((o) => o.id === id ? moveWithHistory(o, stage, { by: who, at: AMS.TODAY }) : o));
     logActivity && logActivity({
       who, action: 'OPP_STAGE',
       detail: `Peluang ${id} · ${from.name} dipindahkan ${from.stage} → ${stage}`,
@@ -119,8 +134,32 @@ function SalesPipeline() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openCount} label="Peluang Aktif" delta={crossSell ? crossSell + ' cross-sell' : null} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Pipeline Tertimbang" accent="var(--blue)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(won / 1e9, 2) + ' M'} label={'Dimenangkan (YTD ' + String(AMS.TODAY).slice(0, 4) + ')'} accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={wl.winRate + '%'} label="Win Rate" delta={wl.won + ' menang · ' + wl.lost + ' kalah'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={wlYtd.winRate === null ? '—' : wlYtd.winRate + '%'} label={'Win Rate (YTD ' + String(AMS.TODAY).slice(0, 4) + ')'} delta={wlYtd.won + ' menang · ' + wlYtd.lost + ' kalah · sepanjang masa ' + wl.winRate + '%'} /></div></Panel>
         </div>
+
+        {/* PR-4 — eksepsi siklus hidup. Tanpa stempel waktu, tak satu pun dari
+            tiga hal ini pernah dapat dilihat: peluang yang mandek, forecast yang
+            sudah lewat tanggal, dan keyakinan yang menyimpang tanpa alasan. */}
+        {(stalled.length > 0 || overdue.length > 0 || unexplained.length > 0) && (
+          <div className="row gap8 ac" style={{ flexWrap: 'wrap', marginBottom: 12 }}>
+            {stalled.length > 0 && (
+              <span className="badge b-amber" title={stalled.map((o) => `${o.id} ${o.name} — ${stallInfo(o, AMS.TODAY).days} hari di ${o.stage} (ambang ${stallInfo(o, AMS.TODAY).threshold})`).join('\n')}>
+                <I.clock size={11} /> {stalled.length} peluang macet
+              </span>
+            )}
+            {overdue.length > 0 && (
+              <span className="badge b-red" title={overdue.map((o) => `${o.id} ${o.name} — target close ${o.close} sudah lewat`).join('\n')}>
+                <I.alert size={11} /> {overdue.length} lewat target close
+              </span>
+            )}
+            {unexplained.length > 0 && (
+              <span className="badge b-amber" title={unexplained.map((o) => { const p = probCheck(o); return `${o.id} ${o.name} — ${p.actual}% vs default tahap ${o.stage} ${p.expected}%, tanpa alasan tercatat`; }).join('\n')}>
+                <I.trend size={11} /> {unexplained.length} probabilitas menyimpang tanpa alasan
+              </span>
+            )}
+            <span className="tiny muted">per {new Date(AMS.TODAY).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+          </div>
+        )}
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 10, alignItems: 'start' }}>
           {stageSummary(opps, PIPE_STAGES).map(st => {
@@ -137,6 +176,15 @@ function SalesPipeline() {
                   <span className="chip tiny">{st.n}</span>
                 </div>
                 <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(st.gross / 1e6, 0)} jt</div>
+                {(() => {
+                  const f = flows.find((x) => x.stage === st.stage);
+                  if (!f || !f.entered) return null;
+                  return (
+                    <div className="tiny muted" style={{ padding: '0 3px 8px' }} title={`${f.advanced} dari ${f.entered} peluang yang pernah masuk ${st.stage} melaju ke tahap berikutnya`}>
+                      konversi {f.conversion}%{f.medianDays !== null ? ' · median ' + f.medianDays + ' hari' : ''}
+                    </div>
+                  );
+                })()}
                 <div className="grid" style={{ gap: 8 }}>
                   {st.items.map((o) => (
                     <div key={o.id} className="panel" draggable={canEdit}
@@ -152,6 +200,16 @@ function SalesPipeline() {
                       <div className="row jb ac gap6" style={{ marginTop: 6 }}>
                         <span className="row ac gap6"><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
                         <span className="row ac gap6">
+                          {(() => {
+                            const si = stallInfo(o, AMS.TODAY);
+                            if (si.days === null) return null;
+                            return (
+                              <span className={'tiny ' + (si.stalled ? '' : 'muted')} style={si.stalled ? { color: 'var(--amber)', fontWeight: 700 } : undefined}
+                                title={`${si.days} hari di tahap ${o.stage}` + (si.stalled ? ` — melewati ambang ${si.threshold} hari` : '') + (ageDays(o, AMS.TODAY) !== null ? ` · umur ${ageDays(o, AMS.TODAY)} hari` : '')}>
+                                {si.days}h
+                              </span>
+                            );
+                          })()}
                           {o.origin === 'cross-sell' && <span className="badge b-purple" title="Cross-sell ke klien eksisting">Cross-sell</span>}
                           {readinessById[o.id] && readinessById[o.id].issues > 0 && (
                             <span className="badge b-red" title={readinessById[o.id].rows.filter((r: ReadinessRow) => r.status === 'issue').map((r: ReadinessRow) => r.label + ': ' + r.basis).join('\n')}>
@@ -303,8 +361,50 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Nilai Estimasi" v={'Rp ' + fmt(o.value / 1e6, 0) + ' jt'} />
             <KvBox label="Probabilitas" v={o.prob + '%'} accent={o.prob >= 70 ? 'var(--green)' : 'var(--amber)'} />
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
-            <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
+            <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} accent={isOverdue(o, AMS.TODAY) ? 'var(--red)' : undefined} />
           </div>
+          {/* PR-4 — disiplin probabilitas. Angka yang menyimpang dari default
+              tahap boleh, tetapi harus terlihat dan beralasan: "Pipeline
+              Tertimbang" firma dibangun dari angka-angka ini. */}
+          {(() => {
+            const pc = probCheck(o);
+            if (!pc.deviates) return null;
+            return (
+              <div className="panel" style={{ padding: '9px 11px', marginBottom: 14, background: pc.unexplained ? 'var(--amber-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
+                <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>
+                  Probabilitas {pc.actual}% menyimpang {pc.delta > 0 ? '+' : ''}{pc.delta} poin dari default tahap {o.stage} ({pc.expected}%).
+                  {pc.reason ? ' Alasan: ' + pc.reason : ' Belum ada alasan tercatat.'}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Riwayat tahap — dasar seluruh turunan siklus hidup. */}
+          {!!(o.history && o.history.length) && (
+            <>
+              <div className="row jb ac" style={{ marginBottom: 8 }}>
+                <span className="tiny muted upper">Riwayat Tahap</span>
+                <span className="tiny muted">
+                  umur {ageDays(o, AMS.TODAY)} hari · {daysInStage(o, AMS.TODAY)} hari di {o.stage}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gap: 0, marginBottom: 16 }}>
+                {o.history.slice().reverse().map((e: StageEvent, i: number) => (
+                  <div key={e.stage + e.at + i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < o.history!.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: PIPE_STAGE_COLOR[e.stage], flex: '0 0 8px', marginTop: 4 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="row jb ac gap6">
+                        <span style={{ fontSize: 12, fontWeight: 600 }}>{e.stage}</span>
+                        <span className="tiny muted mono">{e.at}{typeof e.prob === 'number' ? ' · ' + e.prob + '%' : ''}</span>
+                      </div>
+                      <div className="tiny muted">{e.by}{e.reason ? ' — ' + e.reason : ''}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* Hasil serah-terima — pesannya SELALU muncul, termasuk ketika tidak
               ada yang dibuat. Dulu kegagalan duplikat tak meninggalkan jejak apa
               pun di layar. */}

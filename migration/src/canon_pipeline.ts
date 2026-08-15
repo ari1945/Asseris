@@ -61,11 +61,29 @@ export function isClosed(stage: string): boolean {
 /** Asal peluang: klien baru (intake) vs cross-sell ke klien eksisting. */
 export type PipeOrigin = 'baru' | 'cross-sell';
 
+/**
+ * Satu perpindahan tahap (PR-4). Ini DATA REGISTER, bukan turunan: tanpa jejak
+ * ini umur peluang, waktu-di-tahap, deteksi macet, conversion rate, dan win rate
+ * per periode semuanya mustahil dihitung. `prob` merekam keyakinan yang berlaku
+ * selama berada di tahap itu, sehingga dapat dipulihkan bila peluang kembali
+ * dari Won/Lost.
+ */
+export interface StageEvent {
+  stage: PipeStage;
+  /** ISO yyyy-mm-dd. */
+  at: string;
+  by: string;
+  prob?: number;
+  /** Alasan penyimpangan probabilitas, atau alasan menang/kalah. */
+  reason?: string;
+}
+
 export interface Opportunity extends PipelineOpp {
   /** Membedakan intake klien baru dari cross-sell — dulu dua register terpisah. */
   origin: PipeOrigin;
   /** Terisi untuk cross-sell (klien eksisting); null untuk calon klien baru. */
   clientId: string | null;
+  history?: StageEvent[];
 }
 
 /* ---------------------------------------------------------------
@@ -96,6 +114,8 @@ export function monthEnd(close: string): string {
 /** Bentuk mentah peluang cross-sell di dalam `CRM_360[clientId].opps`. */
 export interface CrmOppSeed {
   id: string; svc: string; value: number; stage: string; prob: number; close: string;
+  /* PR-4 — jejak perpindahan tahap; dibawa apa adanya ke register. */
+  history?: StageEvent[];
 }
 export interface Crm360Entry { partnerRel?: string; opps?: CrmOppSeed[] }
 
@@ -124,6 +144,7 @@ export function crossSellOpportunities(
         close: monthEnd(o.close),
         origin: 'cross-sell',
         clientId,
+        ...(o.history ? { history: o.history } : {}),
       });
     });
   });
@@ -132,7 +153,12 @@ export function crossSellOpportunities(
 
 /** Peluang intake (klien baru) → bentuk register. */
 export function newClientOpportunities(pipeline: PipelineOpp[]): Opportunity[] {
-  return (pipeline || []).map((o) => ({ ...o, close: monthEnd(o.close), origin: 'baru' as PipeOrigin, clientId: null }));
+  return (pipeline || []).map((o) => ({
+    ...o, close: monthEnd(o.close), origin: 'baru' as PipeOrigin, clientId: null,
+    /* Seed menyimpan `stage` sebagai string lebar (ia bukan literal union di
+       ams_types); penyempitan terjadi di batas ini, satu kali, bukan `any`. */
+    history: o.history as StageEvent[] | undefined,
+  }));
 }
 
 /**

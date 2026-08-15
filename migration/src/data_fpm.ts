@@ -15,8 +15,8 @@ import { AMS } from './data';
         { id: 'CTR-014-B', type: 'Jasa Pajak (PPh Badan)', value: 320 * M, start: '2026-01-12', end: '2026-12-31', status: 'Aktif', renewal: 'Tahunan' },
       ],
       opps: [
-        { id: 'OPP-201', svc: 'ESG Assurance (SJAH 3000)', value: 480 * M, stage: 'Proposal', prob: 55, close: '2026-05' },
-        { id: 'OPP-202', svc: 'Reviu Pengendalian Internal', value: 260 * M, stage: 'Qualified', prob: 35, close: '2026-07' },
+        { id: 'OPP-201', svc: 'ESG Assurance (SJAH 3000)', value: 480 * M, stage: 'Proposal', prob: 55, close: '2026-05', history: [{ stage: 'Lead', at: '2025-12-11', by: 'Hartono Wijaya', prob: 20 }, { stage: 'Qualified', at: '2026-01-13', by: 'Hartono Wijaya', prob: 40 }, { stage: 'Proposal', at: '2026-02-09', by: 'Hartono Wijaya', prob: 55 }] },
+        { id: 'OPP-202', svc: 'Reviu Pengendalian Internal', value: 260 * M, stage: 'Qualified', prob: 35, close: '2026-07', history: [{ stage: 'Lead', at: '2026-01-28', by: 'Hartono Wijaya', prob: 20 }, { stage: 'Qualified', at: '2026-02-24', by: 'Hartono Wijaya', prob: 35 }] },
       ],
       activities: [
         { d: '2026-03-04', type: 'meeting', who: 'Hartono W.', note: 'Progress review Q1 dengan CFO & Komite Audit' },
@@ -26,7 +26,7 @@ import { AMS } from './data';
       ] },
     'C-040': { csat: 4.2, nps: 48, health: 74, sentiment: 'Netral', tenure: 9, dso: 58, billedYtd: 980 * M, outstanding: 1_360 * M, lastContact: '2026-03-01', partnerRel: 'Rudi Gunawan',
       contracts: [{ id: 'CTR-040-A', type: 'Engagement Letter · Audit LK', value: 2_340 * M, start: '2026-01-20', end: '2026-07-15', status: 'Aktif', renewal: 'Tender 3-thn' }],
-      opps: [{ id: 'OPP-205', svc: 'Audit Kepatuhan OJK', value: 540 * M, stage: 'Negotiation', prob: 70, close: '2026-04' }],
+      opps: [{ id: 'OPP-205', svc: 'Audit Kepatuhan OJK', value: 540 * M, stage: 'Negotiation', prob: 70, close: '2026-04', history: [{ stage: 'Lead', at: '2025-11-05', by: 'Rudi Gunawan', prob: 20 }, { stage: 'Qualified', at: '2025-12-15', by: 'Rudi Gunawan', prob: 40 }, { stage: 'Proposal', at: '2026-01-20', by: 'Rudi Gunawan', prob: 60 }, { stage: 'Negotiation', at: '2026-02-23', by: 'Rudi Gunawan', prob: 70 }] }],
       activities: [
         { d: '2026-03-01', type: 'meeting', who: 'Rudi G.', note: 'Pembahasan model ECL PSAK 71 & data historis' },
         { d: '2026-02-10', type: 'call', who: 'Bayu S.', note: 'Eskalasi keterlambatan data pinjaman' },
@@ -34,7 +34,7 @@ import { AMS } from './data';
       ] },
     'C-031': { csat: 3.9, nps: 31, health: 61, sentiment: 'Perlu Perhatian', tenure: 6, dso: 72, billedYtd: 620 * M, outstanding: 980 * M, lastContact: '2026-02-25', partnerRel: 'Hartono Wijaya',
       contracts: [{ id: 'CTR-031-A', type: 'Engagement Letter · Audit LK', value: 1_120 * M, start: '2026-02-02', end: '2026-07-31', status: 'Aktif', renewal: 'Tahunan' }],
-      opps: [{ id: 'OPP-208', svc: 'Due Diligence Akuisisi Lahan', value: 720 * M, stage: 'Lead', prob: 20, close: '2026-08' }],
+      opps: [{ id: 'OPP-208', svc: 'Due Diligence Akuisisi Lahan', value: 720 * M, stage: 'Lead', prob: 20, close: '2026-08', history: [{ stage: 'Lead', at: '2026-02-25', by: 'Hartono Wijaya', prob: 20 }] }],
       activities: [
         { d: '2026-02-25', type: 'meeting', who: 'Hartono W.', note: 'Diskusi sengketa lahan & going concern' },
         { d: '2026-02-02', type: 'doc', who: 'Anindya P.', note: 'Engagement letter ditandatangani' },
@@ -42,14 +42,14 @@ import { AMS } from './data';
       ] },
     'C-022': { csat: 4.4, nps: 55, health: 82, sentiment: 'Positif', tenure: 7, dso: 38, billedYtd: 540 * M, outstanding: 180 * M, lastContact: '2026-02-28', partnerRel: 'Sari Dewanti',
       contracts: [{ id: 'CTR-022-A', type: 'Engagement Letter · Reviu (SPR 2400)', value: 720 * M, start: '2026-02-05', end: '2026-08-31', status: 'Aktif', renewal: 'Tahunan' }],
-      opps: [{ id: 'OPP-210', svc: 'Upgrade ke Audit Penuh', value: 360 * M, stage: 'Qualified', prob: 40, close: '2026-09' }],
+      opps: [{ id: 'OPP-210', svc: 'Upgrade ke Audit Penuh', value: 360 * M, stage: 'Qualified', prob: 40, close: '2026-09', history: [{ stage: 'Lead', at: '2025-12-22', by: 'Sari Dewanti', prob: 20 }, { stage: 'Qualified', at: '2026-01-26', by: 'Sari Dewanti', prob: 40 }] }],
       activities: [
         { d: '2026-02-28', type: 'call', who: 'Bayu S.', note: 'Konfirmasi ruang lingkup reviu interim' },
         { d: '2026-02-05', type: 'doc', who: 'Sari D.', note: 'Engagement letter SPR 2400 ditandatangani' },
       ] },
     'C-047': { csat: 4.7, nps: 70, health: 90, sentiment: 'Positif', tenure: 4, dso: 29, billedYtd: 290 * M, outstanding: 60 * M, lastContact: '2026-03-03', partnerRel: 'Sari Dewanti',
       contracts: [{ id: 'CTR-047-A', type: 'Agreed-Upon Procedures', value: 410 * M, start: '2026-02-14', end: '2026-09-30', status: 'Aktif', renewal: 'Per-proyek' }],
-      opps: [{ id: 'OPP-212', svc: 'SOC 1 Type II (Service Org)', value: 620 * M, stage: 'Proposal', prob: 50, close: '2026-06' }],
+      opps: [{ id: 'OPP-212', svc: 'SOC 1 Type II (Service Org)', value: 620 * M, stage: 'Proposal', prob: 50, close: '2026-06', history: [{ stage: 'Lead', at: '2025-11-24', by: 'Sari Dewanti', prob: 20 }, { stage: 'Qualified', at: '2025-12-29', by: 'Sari Dewanti', prob: 40 }, { stage: 'Proposal', at: '2026-02-02', by: 'Sari Dewanti', prob: 50 }] }],
       activities: [
         { d: '2026-03-03', type: 'meeting', who: 'Sari D.', note: 'Demo platform & scoping SOC report' },
         { d: '2026-02-14', type: 'doc', who: 'Bayu S.', note: 'AUP engagement letter ditandatangani' },
@@ -63,7 +63,7 @@ import { AMS } from './data';
       ] },
     'C-063': { csat: 4.0, nps: 38, health: 68, sentiment: 'Perlu Perhatian', tenure: 11, dso: 63, billedYtd: 1_180 * M, outstanding: 520 * M, lastContact: '2026-03-02', partnerRel: 'Rudi Gunawan',
       contracts: [{ id: 'CTR-063-A', type: 'Engagement Letter · Audit LK', value: 1_640 * M, start: '2025-12-20', end: '2026-05-31', status: 'Aktif', renewal: 'Rotasi partner 2026' }],
-      opps: [{ id: 'OPP-214', svc: 'Valuasi Properti Independen', value: 450 * M, stage: 'Lost', prob: 0, close: '2026-02' }],
+      opps: [{ id: 'OPP-214', svc: 'Valuasi Properti Independen', value: 450 * M, stage: 'Lost', prob: 0, close: '2026-02', history: [{ stage: 'Lead', at: '2025-10-13', by: 'Rudi Gunawan', prob: 20 }, { stage: 'Qualified', at: '2025-11-17', by: 'Rudi Gunawan', prob: 40 }, { stage: 'Lost', at: '2026-02-09', by: 'Rudi Gunawan', prob: 0, reason: 'Klien memilih penilai properti tersertifikasi MAPPI (bukan lingkup KAP).' }] }],
       activities: [
         { d: '2026-03-02', type: 'meeting', who: 'Rudi G.', note: 'EQR clearance & resolusi temuan revaluasi' },
         { d: '2026-02-08', type: 'call', who: 'Citra H.', note: 'Diskusi rotasi partner wajib (SA 700/PPPK)' },

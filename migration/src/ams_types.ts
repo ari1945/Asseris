@@ -193,6 +193,8 @@ export interface PipelineOpp {
   owner: string;
   close: string;
   industry: string;
+  /** PR-4 (prd-sales-pipeline-deepening) — jejak perpindahan tahap. */
+  history?: { stage: string; at: string; by: string; prob?: number; reason?: string }[];
 }
 
 /* ---------- Invoices (piutang firma) ---------- */

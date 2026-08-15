@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1 · SC-2 · SC-9 · SC-10) · **PR-2** (SC-4 · SC-5) · **PR-3** (SC-6) SELESAI. PR-4..PR-6 menyusul |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) SELESAI. PR-5..PR-6 menyusul |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -382,7 +382,35 @@ perikatan kini punya dua gerbang baru — **materialitas awal ditetapkan (SA 320
 **partner penanggung jawab ditunjuk (SA 220.14)** — supaya materialitas kosong
 memblokir, bukan diam-diam menerbitkan perikatan berambang nol.
 
-## 14. Catatan
+## 14. Hasil PR-4
+
+`history: [{ stage, at, by, prob, reason }]` menjadi **data register**, di-backfill
+pada seluruh 14 peluang seed (Q-4 opsi a). Dari satu fakta itu lahir seluruh turunan
+siklus hidup: umur, waktu-di-tahap, deteksi macet per-tahap, conversion rate
+antar-tahap, median hari per tahap, dan **win rate per periode**.
+
+Angka yang berubah wataknya:
+
+| KPI | Dulu | Sekarang |
+|---|---|---|
+| Win Rate | 33% sepanjang masa — tak pernah bergerak | **YTD 2026: 33%** (1 menang · 2 kalah), sepanjang-masa tetap ditampilkan sebagai pembanding |
+| — | tak ada | strip eksepsi: peluang **macet**, **lewat target close**, **probabilitas menyimpang tanpa alasan** |
+| Kolom tahap | hanya jumlah & nilai | + **konversi %** dan **median hari** dari riwayat |
+
+**Disiplin probabilitas (SC-12).** Tiap tahap punya default firma (Lead 20 · Qualified 40
+· Proposal 60 · Negotiation 75) dengan toleransi ±10 poin. Menyimpang boleh — tetapi
+ditandai, dan tanpa alasan tercatat ia masuk hitungan "menyimpang tanpa alasan". Ini
+yang membuat "Pipeline Tertimbang" dapat dipertanggungjawabkan: sebelumnya kartu di
+Lead boleh 90% tanpa siapa pun tahu.
+
+**Cacat yang ditemukan verifikasi PR-1, kini ditutup.** `move()` lama menyetel prob=100
+saat Won dan tidak memulihkannya saat kartu ditarik kembali — OPP-103 kembali ke
+Negotiation membawa 100% alih-alih 75%, menaikkan tertimbang firma **Rp 320 jt** dari
+satu perjalanan bolak-balik. `moveWithHistory` memulihkan angka yang memang tercatat,
+dan bila tahap tujuan belum pernah dikunjungi ia memakai default tahap — bukan mewarisi
+keyakinan tahap lama diam-diam.
+
+## 15. Catatan
 
 Temuan 1.4 dan 1.5 bukan sekadar utang fitur — keduanya menghasilkan **artefak yang
 menyesatkan atas nama standar profesi**: layar bertajuk SA 220/SMM yang mencentang
