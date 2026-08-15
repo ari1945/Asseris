@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { FIRMFIN } from './data_firmfin';
+import { useFirmCoa } from './use_firm_coa';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui';
@@ -18,12 +20,12 @@ function BIPendapatan() {
   const { fmt } = AMS;
   const B: any = AMS.BI_DATA;
   const IND: any = AMS.BI_INDUSTRY;
-  const FB: any = AMS.FIRM_BUDGET;
   const totalInd = IND.reduce((s: any, x: any) => s + x.rev, 0);
 
-  const actRev = FB.filter((b: any) => b.type === 'rev').reduce((s: any, b: any) => s + b.actual, 0);
-  const actCost = FB.filter((b: any) => b.type === 'cost').reduce((s: any, b: any) => s + b.actual, 0);
-  const profit = actRev - actCost;
+  /* Aktual DITURUNKAN dari buku besar — lihat catatan di `view_bi.tsx`. */
+  const { coa } = useFirmCoa();
+  const bud: any = FIRMFIN.budget({ coa });
+  const actRev = bud.actRev, profit = bud.actProfit;
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   return (

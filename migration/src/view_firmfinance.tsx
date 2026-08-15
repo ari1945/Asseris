@@ -23,6 +23,10 @@ import { amsExportXlsx } from './export_xlsx';
    ============================================================ */
 const { useState: useStateFF, useMemo: useMemoFF } = React;
 
+/* Baris tabel C — bentuknya dijamin `FIRMFIN.budget()`; `actual` selalu turunan GL. */
+interface BudgetRow { line: string; acct: string; acctName: string | null; type: string; budget: number; actual: number; mapped: boolean }
+interface UnbudgetedRow { code: string; name: string; actual: number }
+
 function FirmFinance() {
   const { fmt } = AMS;
   const FF = FIRMFIN;
@@ -49,6 +53,8 @@ function FirmFinance() {
   const jt = (v: any) => fmt(v / 1e6, 0);
   const M = (v: any, d = 1) => fmt(v / 1e9, d);
   const k = D.kpis;
+  /* Varians pendapatan aktual (GL) terhadap anggaran — dipakai apa adanya di headline. */
+  const budVarPct = D.budget.budRev ? (D.budget.actRev / D.budget.budRev - 1) * 100 : 0;
 
   /* K-06 lanjutan — wire tombol "Laporan Keuangan KAP" (dulu mati): ekspor XLSX tersegel
      laporan keuangan firma — P&L & posisi keuangan (SSOT FIRMFIN). */
@@ -117,7 +123,11 @@ function FirmFinance() {
         <div className="view-pad">
           {/* headline KPI — semua diturunkan dari FIRMFIN */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.revenue) + ' M'} label="Pendapatan KAP (GL 4-100)" delta={'+' + ((D.budget.actRev / D.budget.budRev - 1) * 100 + 6).toFixed(1) + '%'} deltaDir="up" /></div></Panel>
+            {/* Varians pendapatan APA ADANYA. Dulu baris ini berbunyi `… * 100 + 6`:
+                varians sesungguhnya −5,8% (DI BAWAH anggaran) ditampilkan sebagai
+                "+0,2%" dengan panah hijau ke atas. Konstanta itu bukan pembulatan —
+                ia membalik tanda. Dicabut (PRD budget-actual-ledger-derived §1.4). */}
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.revenue) + ' M'} label="Pendapatan KAP (GL 4-100)" delta={budVarPct.toFixed(1) + '% vs anggaran'} deltaDir={budVarPct >= 0 ? 'up' : 'down'} /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.opProfit, 2) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={(k.margin * 100).toFixed(1) + '%'} label="Margin Operasi" accent="var(--green)" /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.cashControl, 2) + ' M'} label="Posisi Kas (GL 1-100)" /></div></Panel>
@@ -397,23 +407,54 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
         {cashRecon && cashRecon.status === 'open' && <> Selisih kas Rp {jt(Math.abs(cashRecon.residual))} jt belum dijumlahkan di sini — register <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('reconcile', { from: 'firmfinance' })}>Rekonsiliasi Bank</span> hanya mencakup satu rekening & satu periode.</>}
       </div>
 
-      {/* C. Anggaran tie-out */}
-      <div className="tiny upper muted" style={{ fontWeight: 700, margin: '18px 0 8px' }}>C · Anggaran vs Aktual — tiap baris terikat ke akun GL</div>
+      {/* C. Anggaran — CAKUPAN, bukan tie-out.
+          Sejak "aktual" diturunkan dari saldo akun GL, membandingkan aktual dengan
+          saldo GL adalah tautologi: selalu hijau, tak pernah bisa merah. Yang
+          direkonsiliasi di sini adalah KELENGKAPAN PEMETAAN — akun P&L yang diposting
+          tapi tak pernah dianggarkan membuat laba anggaran understated, dan itu yang
+          benar-benar berisiko. */}
+      <div className="tiny upper muted" style={{ fontWeight: 700, margin: '18px 0 8px' }}>C · Anggaran vs Aktual — aktual = saldo akun buku besar</div>
       <table className="dtbl">
-        <thead><tr><th>Pos (P&L)</th><th>Akun GL</th><th className="num">Aktual (Budget)</th><th className="num">Saldo GL</th><th>Status</th></tr></thead>
+        <thead><tr><th>Pos (P&L)</th><th>Akun GL</th><th className="num">Anggaran</th><th className="num">Aktual (GL)</th><th className="num">Varians</th><th>Pemetaan</th></tr></thead>
         <tbody>
-          {D.budget.tie.map((b: any) => (
-            <tr key={b.line}>
-              <td style={{ fontWeight: 600 }}>{b.line}</td>
-              <td className="mono tiny muted">{b.acct}</td>
-              <td className="num">{jt(b.actual)}</td>
-              <td className="num muted">{jt(b.glVal)}</td>
-              <td><Badge kind={b.tied ? 'green' : 'red'}>{b.tied ? 'Cocok' : 'Selisih'}</Badge></td>
+          {D.budget.lines.map((b: BudgetRow) => {
+            const v = b.type === 'rev' ? b.actual - b.budget : b.budget - b.actual;
+            return (
+              <tr key={b.line}>
+                <td style={{ fontWeight: 600 }}>{b.line}</td>
+                <td className="mono tiny muted">{b.acct}{b.acctName ? ' · ' + b.acctName : ''}</td>
+                <td className="num muted">{jt(b.budget)}</td>
+                <td className="num">{jt(b.actual)}</td>
+                <td className="num" style={{ color: v < 0 ? 'var(--num-neg)' : undefined }}>{jt(v)}</td>
+                <td><Badge kind={b.mapped ? 'green' : 'red'}>{b.mapped ? 'Terpetakan' : 'AKUN TAK ADA'}</Badge></td>
+              </tr>
+            );
+          })}
+          {D.budget.unbudgeted.map((a: UnbudgetedRow) => (
+            <tr key={a.code} style={{ background: 'var(--red-bg)' }}>
+              <td style={{ fontWeight: 600 }}>{a.name}</td>
+              <td className="mono tiny muted">{a.code}</td>
+              <td className="num muted">—</td>
+              <td className="num">{jt(a.actual)}</td>
+              <td className="num">—</td>
+              <td><Badge kind="red">TAK DIANGGARKAN</Badge></td>
             </tr>
           ))}
-          <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}><td colSpan={2}>LABA OPERASI</td><td className="num">{jt(D.budget.actProfit)}</td><td className="num">{jt(D.pl.opProfit)}</td><td><Badge kind={Math.abs(D.budget.actProfit - D.pl.opProfit) < 1e6 ? 'green' : 'red'}>{Math.abs(D.budget.actProfit - D.pl.opProfit) < 1e6 ? 'Cocok' : 'Selisih'}</Badge></td></tr>
+          <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}>
+            <td colSpan={2}>LABA OPERASI</td>
+            <td className="num muted">{jt(D.budget.budProfit)}</td>
+            <td className="num">{jt(D.budget.actProfit)}</td>
+            <td className="num muted">{jt(D.pl.opProfit)} <span className="tiny">(P&L)</span></td>
+            <td><Badge kind={D.budget.covered ? 'green' : 'red'}>{D.budget.covered ? 'Cakupan penuh' : 'Tak menutup'}</Badge></td>
+          </tr>
         </tbody>
       </table>
+      <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
+        Aktual diturunkan dari saldo akun buku besar — memposting jurnal menggesernya. Baris <b>LABA OPERASI</b>
+        membandingkan Σ akun yang <i>dianggarkan</i> dengan laba operasi P&L atas <i>seluruh</i> akun Pendapatan &amp; Beban;
+        keduanya sama hanya bila pemetaan lengkap dua arah.
+        {!D.budget.covered && <> Selisih cakupan Rp {jt(Math.abs(D.budget.coverageGap))} jt.</>}
+      </div>
     </>
   );
 }

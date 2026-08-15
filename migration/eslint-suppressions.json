@@ -61,7 +61,7 @@
   },
   "src/data_firmfin.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 127
+      "count": 118
     }
   },
   "src/data_firmops.ts": {
@@ -321,12 +321,12 @@
   },
   "src/view_bi.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 53
+      "count": 47
     }
   },
   "src/view_bi2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 70
+      "count": 64
     }
   },
   "src/view_bo1.tsx": {
@@ -501,7 +501,7 @@
   },
   "src/view_firmfinance.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 29
+      "count": 28
     }
   },
   "src/view_firmgl.tsx": {
@@ -531,7 +531,7 @@
   },
   "src/view_firmtreasury.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 84
+      "count": 81
     }
   },
   "src/view_forensic.tsx": {

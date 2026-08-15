@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { FIRMFIN } from './data_firmfin';
+import { useFirmCoa } from './use_firm_coa';
 import { useAmsPersist, useAudit, useAuth } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -30,18 +32,24 @@ const CASH_SCENARIOS = {
 
 function FirmTreasury() {
   const { fmt } = AMS;
-  const B: any = AMS.FIRM_BUDGET;
   const F: any = AMS.CASH_FORECAST;
   const [tab, setTab] = useStateTR('budget');
   const [scenario, setScenario] = useStateTR('base');
   const [selLine, setSelLine] = useStateTR(null);
 
+  /* Aktual = saldo akun buku besar, bukan kolom literal (PRD budget-actual-ledger-derived).
+     Modul ini dulu membaca `AMS.FIRM_BUDGET` mentah dan menjumlahkan `actual` sendiri —
+     salinan keempat dari aritmetika yang sudah ada di `FIRMFIN.budget()`. Seluruh tab
+     Anggaran (headline, tabel, ekspor, drill-down) karena itu membeku saat jurnal
+     diposting. `B` kini baris yang SUDAH diperkaya aktual turunan. */
+  const { coa } = useFirmCoa();
+  const bud: any = FIRMFIN.budget({ coa });
+  const B: any = bud.lines;
   const rev = B.filter((b: any) => b.type === 'rev');
   const cost = B.filter((b: any) => b.type === 'cost');
-  const sum = (arr: any, k: any) => arr.reduce((s: any, x: any) => s + x[k], 0);
-  const budRev = sum(rev, 'budget'), actRev = sum(rev, 'actual');
-  const budCost = sum(cost, 'budget'), actCost = sum(cost, 'actual');
-  const budProfit = budRev - budCost, actProfit = actRev - actCost;
+  const budRev = bud.budRev, actRev = bud.actRev;
+  const budCost = bud.budCost, actCost = bud.actCost;
+  const budProfit = bud.budProfit, actProfit = bud.actProfit;
 
   const sc = (CASH_SCENARIOS as any)[scenario];
   const fc = F.map((r: any) => {

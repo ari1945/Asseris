@@ -387,19 +387,66 @@ const FIRMFIN = (function () {
     return { rows, totalIDR, control, diff: totalIDR - control };
   }
 
-  /* ---------- Anggaran vs aktual (sumber: FIRM_BUDGET) + tie-out ke GL ---------- */
-  function budget(ctx: any) {
-    const B = A().FIRM_BUDGET || [], coa = coaOf(ctx);
-    const rev = B.filter((b: any) => b.type === 'rev'), cost = B.filter((b: any) => b.type === 'cost');
-    const tie = B.map((b: any) => {
-      const ga = acct(coa, b.acct);
-      const glVal = b.type === 'rev' ? -ga.bal : ga.bal;
-      return { ...b, glVal, tied: Math.abs(glVal - b.actual) < 1e6 };
+  /* Bentuk data anggaran. `actual` SENGAJA tidak ada di baris seed — ia turunan. */
+  interface BudgetSeedLine { line: string; budget: number; type: string; acct: string }
+  interface CoaLine { code: string; name: string; type: string; bal: number }
+  interface BudgetLine extends BudgetSeedLine { actual: number; mapped: boolean; acctName: string | null }
+
+  /* ---------- Anggaran vs aktual — "AKTUAL" ADALAH BUKU BESAR ----------
+     PRD budget-actual-ledger-derived 2026-08-15.
+
+     DULU `FIRM_BUDGET` membawa kolom `actual` literal DI SAMPING `acct` yang menunjuk
+     akun GL: dua set angka untuk satu peristiwa, dan harapan bahwa keduanya tak
+     menyimpang. Harapan itu tak bertahan — memposting `JV-0307` (Rp 210 jt) membuat
+     BI Kinerja, BI Industri & Treasury (yang membaca kolom itu MENTAH, tanpa lewat
+     lapisan ini) menyatakan laba 2.800 jt sementara buku besar menyatakan 2.590 jt.
+
+     Kolom itu kini tidak ada. Aktual DITURUNKAN dari saldo akun yang dipetakan —
+     secara akuntansi memang begitu: "aktual" dalam laporan anggaran-vs-aktual ADALAH
+     buku besar, tidak ada register aktual yang terpisah.
+
+     KONSEKUENSI YANG HARUS DIURUS: gerbang lama ("aktual == saldo GL?") menjadi
+     TAUTOLOGI — selalu hijau, tak pernah bisa merah. Membiarkannya = mengulang cacat
+     `note` hardcode #240. Ia DIGANTI, bukan dibuang: yang direkonsiliasi sekarang
+     adalah CAKUPAN — apakah tiap akun Pendapatan/Beban di buku besar punya tepat satu
+     baris anggaran, dan tiap baris anggaran menunjuk akun yang benar-benar ada. Beban
+     yang diposting tanpa pernah dianggarkan memerahkan laporan ini. Itu yang benar-benar
+     berisiko, dan itu yang sekarang diuji. */
+  function budget(ctx: unknown) {
+    const B = (A().FIRM_BUDGET || []) as BudgetSeedLine[];
+    const coa = coaOf(ctx) as CoaLine[];
+    /* Konvensi tanda FIRM_COA: pendapatan bersaldo kredit (negatif) → dibalik agar
+       terbaca positif. `mapped: false` bila baris menunjuk akun yang tak ada di COA —
+       jangan pakai `acct()` di sini, fallback-nya menyamarkan itu jadi saldo 0. */
+    const lines: BudgetLine[] = B.map((b) => {
+      const ga = coa.find((a) => a.code === b.acct);
+      return {
+        ...b,
+        actual: ga ? (b.type === 'rev' ? -ga.bal : ga.bal) : 0,
+        mapped: !!ga,
+        acctName: ga ? ga.name : null,
+      };
     });
-    const actRev = sumf(rev, (b: any) => b.actual), actCost = sumf(cost, (b: any) => b.actual);
-    const budRev = sumf(rev, (b: any) => b.budget), budCost = sumf(cost, (b: any) => b.budget);
+    const total = (arr: BudgetLine[], k: 'actual' | 'budget') => arr.reduce((s, l) => s + l[k], 0);
+    const rev = lines.filter((l) => l.type === 'rev'), cost = lines.filter((l) => l.type === 'cost');
+    const actRev = total(rev, 'actual'), actCost = total(cost, 'actual');
+    const budRev = total(rev, 'budget'), budCost = total(cost, 'budget');
+
+    /* --- Gerbang CAKUPAN (pengganti tie-out) --- */
+    const budgeted = new Set(B.map((b) => b.acct));
+    /* Akun P&L di buku besar yang TAK punya baris anggaran → laba anggaran understated. */
+    const unbudgeted = coa
+      .filter((a) => (a.type === 'Pendapatan' || a.type === 'Beban') && !budgeted.has(a.code))
+      .map((a) => ({ code: a.code, name: a.name, type: a.type, actual: a.type === 'Pendapatan' ? -a.bal : a.bal }));
+    /* Baris anggaran yang menunjuk akun tak dikenal → aktualnya mustahil diturunkan. */
+    const unmapped = lines.filter((l) => !l.mapped);
+    /* Σ baris anggaran vs Σ SELURUH akun P&L. Nol hanya bila pemetaan lengkap dua arah. */
+    const coverageGap = (pl(ctx).opProfit as number) - (actRev - actCost);
+    const covered = unbudgeted.length === 0 && unmapped.length === 0
+      && Math.abs(coverageGap) < RECON_TOLERANCE;
+
     return {
-      lines: B, tie, allTied: tie.every((t: any) => t.tied),
+      lines, unbudgeted, unmapped, coverageGap, covered,
       actRev, actCost, actProfit: actRev - actCost,
       budRev, budCost, budProfit: budRev - budCost,
     };
@@ -490,7 +537,7 @@ const FIRMFIN = (function () {
       { label: 'Beban langsung staf', value: p.directCost, owner: 'payroll', ownerLabel: 'Payroll & PPh 21', source: 'FIRM_COA · akun 5-100', tied: true },
       { label: 'Beban overhead & umum', value: p.overheadTotal, owner: 'firmops', ownerLabel: 'Operasi Firma', source: 'FIRM_COA · 5-200…5-500 (= sub-ledger)', tied: true },
       { label: 'Laba operasi', value: p.opProfit, owner: 'firmgl', ownerLabel: 'General Ledger', source: 'Pendapatan − Σ beban', tied: true },
-      { label: 'Anggaran vs aktual', value: b.actProfit, owner: 'treasury', ownerLabel: 'Anggaran & Arus Kas', source: 'FIRM_BUDGET (aktual ≡ akun GL)', tied: b.allTied },
+      { label: 'Anggaran vs aktual', value: b.actProfit, owner: 'treasury', ownerLabel: 'Anggaran & Arus Kas', source: 'FIRM_COA (aktual = saldo akun) · anggaran FIRM_BUDGET', tied: b.covered },
       { label: 'Portofolio fee partner', value: partners(ctx).total, owner: 'profitability', ownerLabel: 'Profitability', source: 'ENGAGEMENTS × CLIENTS.fee', tied: true },
     ];
   }
