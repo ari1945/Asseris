@@ -281,3 +281,43 @@ suka satu tinjauan — lihat Q-4.
 **Q-5 · Konstanta `+ 6`.**
 - **(a)** Dicabut dalam arc ini — ia ada di fungsi yang sama persis yang sedang disentuh. ← *rekomendasi*
 - **(b)** Arc/PR sendiri.
+
+---
+
+## 12. Hasil — Bagian C
+
+`npm run verify` hijau; uji **1791 → 1805** (+14); ratchet `:any` **8058 → 8033** (turun 25,
+sebab `budget()` & tabel C diketik, bukan di-suppress).
+
+**Gerbang dibuktikan MERAH sebelum diterima** (bukan sekadar hijau): menyisipkan
+`covered = true` dan mengembalikan satu kolom `actual` ke seed menjatuhkan **5 uji** —
+SC-1 dan keempat uji SC-6. Pelanggaran lalu dicabut.
+
+**Terverifikasi hidup, dua arah** — memposting `JV-0307` lewat modul Firm GL:
+
+| Layar | Sebelum | Sesudah posting | Setelah dibatalkan |
+|---|---:|---:|---:|
+| BI Kinerja — Laba Operasi | Rp 2,8 M | **Rp 2,6 M** | Rp 2,8 M |
+| BI Kinerja — Margin | 25% | **23%** | 25% |
+| BI Pendapatan — Laba Operasi | Rp 2,8 M | **Rp 2,6 M** | Rp 2,8 M |
+| Treasury — Laba Operasi Aktual | Rp 2,8 M | **Rp 2,6 M** | Rp 2,8 M |
+| Treasury — baris Beban Gaji | 5.420 | **5.630** | 5.420 |
+| Firm Finance — Laba Operasi | Rp 2,80 M | Rp 2,59 M | Rp 2,80 M |
+
+Sebelum arc ini, **empat baris pertama tidak bergerak sama sekali**.
+
+**Konstanta `+ 6` tercabut, terlihat di layar:** headline "Pendapatan KAP (GL 4-100)" dulu
+`▲ +0,2%` (hijau, naik) — kini `▼ −5,8% vs anggaran` (turun). Angkanya sekarang varians
+yang sesungguhnya.
+
+**Gerbang cakupan dibuktikan merah DI PERAMBAN**, bukan hanya di uji: menambah akun
+`5-600 Beban Litigasi` (Rp 300 jt) ke COA tanpa baris anggaran memunculkan baris merah
+`TAK DIANGGARKAN`, total `TAK MENUTUP`, dan catatan `Selisih cakupan Rp 300 jt`.
+Pelanggaran dicabut sesudahnya; `data_part1.ts` bersih.
+
+**Ditemukan hanya lewat verifikasi hidup:** spasi hilang di catatan tabel
+("Baris LABA OPERASImembandingkan") — JSX menelan spasi setelah `<b>`. Diperbaiki `f224bc5`.
+
+**Catatan terbuka (bukan bagian dari arc ini):** kontrol status posting di `view_firmgl`
+adalah `<span onClick>` — tak muncul di pohon aksesibilitas dan tak dapat dioperasikan
+keyboard. Melanggar CLAUDE.md §3.7 (kontrol form = NATIVE). Perlu PR sendiri.
