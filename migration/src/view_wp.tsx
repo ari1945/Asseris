@@ -994,6 +994,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
    di sini, jadi satu klik backdrop membuang catatan review setengah tertulis
    tanpa peringatan (docs/prd-overlay-contract-and-addressable-objects.md §1 P2). */
 function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, setDraft }: any) {
+  const uid = React.useId();
   const { short: me } = useCurrentAuditor();
   const [to, setTo] = useStateWP('Dimas R.');
   const [prio, setPrio] = useStateWP('medium');
@@ -1018,8 +1019,8 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, set
         <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <textarea className="input" value={draft} onChange={(e: any) => setDraft(e.target.value)} placeholder="Tulis catatan review / coaching untuk WP ini…" style={{ height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', width: '100%', marginBottom: 8 }} />
           <div className="row ac gap8">
-            <div className="field"><label>Ditujukan ke</label><select className="select" value={to} onChange={(e: any) => setTo(e.target.value)}>{['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
-            <div className="field"><label>Prioritas</label><select className="select" value={prio} onChange={(e: any) => setPrio(e.target.value)}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-ditujukan-ke'}>Ditujukan ke</label><select id={uid+'-ditujukan-ke'} className="select" value={to} onChange={(e: any) => setTo(e.target.value)}>{['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-prioritas'}>Prioritas</label><select id={uid+'-prioritas'} className="select" value={prio} onChange={(e: any) => setPrio(e.target.value)}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
             <div style={{ flex: 1 }} />
             <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah Catatan</Btn>
           </div>

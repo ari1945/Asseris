@@ -131,6 +131,7 @@ function ResourceScheduler() {
 }
 
 function BookingForm({ schedule, onClose, onAdd }: any) {
+  const uid = React.useId();
   const engs: any = AMS.ENGAGEMENTS, cl: any = AMS.CLIENTS;
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
   const initial = { member: schedule[0].member, eng: engs[0].id, hrs: 8 };
@@ -165,9 +166,9 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
       )}
     >
         <div>
-          <div className="field"><label>Anggota Tim</label><select className="select" value={d.member} onChange={(e: any) => set('member', e.target.value)}>{schedule.map((m: any) => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
-          <div className="field"><label>Engagement</label><select className="select" value={d.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map((x: any) => { const c = cl.find((y: any) => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
-          <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" min={0} value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+          <div className="field"><label htmlFor={uid+'-anggota-tim'}>Anggota Tim</label><select id={uid+'-anggota-tim'} className="select" value={d.member} onChange={(e: any) => set('member', e.target.value)}>{schedule.map((m: any) => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-engagement'}>Engagement</label><select id={uid+'-engagement'} className="select" value={d.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map((x: any) => { const c = cl.find((y: any) => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
+          <div className="field"><label htmlFor={uid+'-jam-minggu'}>Jam / Minggu</label><input id={uid+'-jam-minggu'} className="input mono" type="number" min={0} value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           <div className="tiny" style={{ padding: '8px 10px', borderRadius: 6, background: proj.over ? 'var(--amber-bg)' : 'var(--surface-2)', color: proj.over ? 'var(--amber)' : 'var(--ink-2)', fontWeight: proj.over ? 600 : 400 }}>
             {proj.over
               ? <><I.alert size={12} style={{ verticalAlign: -2 }} /> {member.member.split(',')[0]} akan teralokasi <b>{proj.projected}h</b> dari kapasitas {member.capacity}h (util <b>{proj.pct}%</b>) — melebihi {proj.overBy}h. Booking tetap diperbolehkan bila disengaja.</>

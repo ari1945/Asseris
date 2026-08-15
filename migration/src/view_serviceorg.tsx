@@ -352,6 +352,7 @@ function SOImpact({ orgs }: { orgs: ServiceOrgRow[] }) {
 
 /* ---------------- Tab: Register Laporan Asurans ---------------- */
 function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setOrgs: (fn: (l: ServiceOrgRow[]) => ServiceOrgRow[]) => void; me: string; locked: boolean }) {
+  const uid = React.useId();
   const [selId, setSelId] = useStateSO('SO-02');
   const sel = orgs.find(o => o.id === selId) || orgs[0] || null;
   const nav = useNav();
@@ -406,22 +407,22 @@ function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setO
             </div>
             {editable && (
               <div style={{ padding: 14, borderBottom: '1px solid var(--line)', display: 'grid', gap: 8 }}>
-                <div className="field"><label>Nama Organisasi Jasa</label><input className="input" value={sel.name} onChange={(e: Ev) => patch(sel.id, { name: e.target.value })} /></div>
-                <div className="field"><label>Jasa</label><input className="input" value={sel.svc} onChange={(e: Ev) => patch(sel.id, { svc: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-nama-organisasi-jasa'}>Nama Organisasi Jasa</label><input id={uid+'-nama-organisasi-jasa'} className="input" value={sel.name} onChange={(e: Ev) => patch(sel.id, { name: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-jasa'}>Jasa</label><input id={uid+'-jasa'} className="input" value={sel.svc} onChange={(e: Ev) => patch(sel.id, { svc: e.target.value })} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Tipe Laporan</label><select className="select" value={sel.reportType} onChange={(e: Ev) => patch(sel.id, { reportType: e.target.value })}>{SO_REPORT_TYPES.map(s => <option key={s}>{s}</option>)}</select></div>
-                  <div className="field"><label>Cakupan</label><select className="select" value={sel.coverage} onChange={(e: Ev) => patch(sel.id, { coverage: e.target.value })}>{SO_COVERAGE.map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-tipe-laporan'}>Tipe Laporan</label><select id={uid+'-tipe-laporan'} className="select" value={sel.reportType} onChange={(e: Ev) => patch(sel.id, { reportType: e.target.value })}>{SO_REPORT_TYPES.map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-cakupan'}>Cakupan</label><select id={uid+'-cakupan'} className="select" value={sel.coverage} onChange={(e: Ev) => patch(sel.id, { coverage: e.target.value })}>{SO_COVERAGE.map(s => <option key={s}>{s}</option>)}</select></div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Standar</label><input className="input" value={sel.std} onChange={(e: Ev) => patch(sel.id, { std: e.target.value })} /></div>
-                  <div className="field"><label>Periode</label><input className="input" value={sel.period} onChange={(e: Ev) => patch(sel.id, { period: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-standar'}>Standar</label><input id={uid+'-standar'} className="input" value={sel.std} onChange={(e: Ev) => patch(sel.id, { std: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-periode'}>Periode</label><input id={uid+'-periode'} className="input" value={sel.period} onChange={(e: Ev) => patch(sel.id, { period: e.target.value })} /></div>
                 </div>
-                <div className="field"><label>Auditor Jasa</label><input className="input" value={sel.auditor} onChange={(e: Ev) => patch(sel.id, { auditor: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-auditor-jasa'}>Auditor Jasa</label><input id={uid+'-auditor-jasa'} className="input" value={sel.auditor} onChange={(e: Ev) => patch(sel.id, { auditor: e.target.value })} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Opini Auditor Jasa</label><input className="input" value={sel.opinion} onChange={(e: Ev) => patch(sel.id, { opinion: e.target.value })} /></div>
-                  <div className="field"><label>Signifikansi</label><select className="select" value={sel.sig} onChange={(e: Ev) => patch(sel.id, { sig: e.target.value })}>{SO_SIG.map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-opini-auditor-jasa'}>Opini Auditor Jasa</label><input id={uid+'-opini-auditor-jasa'} className="input" value={sel.opinion} onChange={(e: Ev) => patch(sel.id, { opinion: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-signifikansi'}>Signifikansi</label><select id={uid+'-signifikansi'} className="select" value={sel.sig} onChange={(e: Ev) => patch(sel.id, { sig: e.target.value })}>{SO_SIG.map(s => <option key={s}>{s}</option>)}</select></div>
                 </div>
-                <div className="field"><label>Strategi/Status Respons</label><input className="input" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-strategi-status-respons'}>Strategi/Status Respons</label><input id={uid+'-strategi-status-respons'} className="input" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })} /></div>
                 {sel.by && <div className="tiny muted"><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
               </div>
             )}

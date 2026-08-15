@@ -150,6 +150,7 @@ function nextMitiId(list: Mitigation[]) {
 function covBreached(c: Covenant) { return c.dir === '≥' ? c.actual < c.threshold : c.actual > c.threshold; }
 
 function GoingConcern() {
+  const uid = React.useId();
   const { fmt } = AMS;
   const firm = useFirm();
   const auth = useAuth();
@@ -334,9 +335,9 @@ function GoingConcern() {
               <div className="divider" />
               <div className="tiny muted upper" style={{ marginBottom: 6 }}>Asumsi Proyeksi Arus Kas (Rp M)</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                <div className="field"><label>Kas awal</label><input className="input mono" type="number" step="0.1" value={assumptions.openingCash} disabled={locked} onChange={(e: Ev) => setAssumption({ openingCash: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
-                <div className="field"><label>Arus masuk/bln</label><input className="input mono" type="number" step="0.1" value={assumptions.baseInflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseInflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
-                <div className="field"><label>Arus keluar/bln</label><input className="input mono" type="number" step="0.1" value={assumptions.baseOutflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseOutflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label htmlFor={uid+'-kas-awal'}>Kas awal</label><input id={uid+'-kas-awal'} className="input mono" type="number" step="0.1" value={assumptions.openingCash} disabled={locked} onChange={(e: Ev) => setAssumption({ openingCash: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label htmlFor={uid+'-arus-masuk-bln'}>Arus masuk/bln</label><input id={uid+'-arus-masuk-bln'} className="input mono" type="number" step="0.1" value={assumptions.baseInflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseInflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label htmlFor={uid+'-arus-keluar-bln'}>Arus keluar/bln</label><input id={uid+'-arus-keluar-bln'} className="input mono" type="number" step="0.1" value={assumptions.baseOutflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseOutflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
                 <div className="field"><label>Utang JT (Rp M)</label>
                   <div style={{ display: 'grid', gap: 4 }}>
                     {assumptions.debtMonths.map((d, i) => (

@@ -183,6 +183,7 @@ function S250Framework() {
 }
 
 function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; setItems: (fn: (l: NoclarItem[]) => NoclarItem[]) => void; me: string; locked: boolean }) {
+  const uid = React.useId();
   const list: NoclarItem[] = items || [];
   const [selId, setSelId] = useStateSC(list[0]?.id || null);
   const sel = list.find((r: NoclarItem) => r.id === selId) || list[0] || null;
@@ -237,14 +238,14 @@ function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; se
               </>
             ) : (
               <div style={{ display: 'grid', gap: 9 }}>
-                <div className="field"><label>Area</label><input className="input" value={sel.area} onChange={(e: Ev) => patch(sel.id, { area: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-area'}>Area</label><input id={uid+'-area'} className="input" value={sel.area} onChange={(e: Ev) => patch(sel.id, { area: e.target.value })} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-                  <div className="field"><label>Kategori</label><select className="select" value={sel.cat} onChange={(e: Ev) => patch(sel.id, { cat: e.target.value as NoclarItem['cat'] })}><option value="direct">Dampak Langsung (¶6a)</option><option value="indirect">Fundamental Operasi (¶6b)</option></select></div>
-                  <div className="field"><label>Severitas</label><select className="select" value={sel.sev} onChange={(e: Ev) => patch(sel.id, { sev: e.target.value })}>{NOCLAR_SEV.map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-kategori'}>Kategori</label><select id={uid+'-kategori'} className="select" value={sel.cat} onChange={(e: Ev) => patch(sel.id, { cat: e.target.value as NoclarItem['cat'] })}><option value="direct">Dampak Langsung (¶6a)</option><option value="indirect">Fundamental Operasi (¶6b)</option></select></div>
+                  <div className="field"><label htmlFor={uid+'-severitas'}>Severitas</label><select id={uid+'-severitas'} className="select" value={sel.sev} onChange={(e: Ev) => patch(sel.id, { sev: e.target.value })}>{NOCLAR_SEV.map(s => <option key={s}>{s}</option>)}</select></div>
                 </div>
-                <div className="field"><label>Uraian</label><textarea className="input" value={sel.desc} onChange={(e: Ev) => patch(sel.id, { desc: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} placeholder="Uraian ketidakpatuhan & dasar identifikasi…" /></div>
-                <div className="field"><label>Dampak terhadap LK</label><input className="input" value={sel.fsImpact} onChange={(e: Ev) => patch(sel.id, { fsImpact: e.target.value })} placeholder="mis. Material — provisi pajak" /></div>
-                <div className="field"><label>Status</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{NOCLAR_STATUS.map(s => <option key={s}>{s}</option>)}</select></div>
+                <div className="field"><label htmlFor={uid+'-uraian'}>Uraian</label><textarea id={uid+'-uraian'} className="input" value={sel.desc} onChange={(e: Ev) => patch(sel.id, { desc: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} placeholder="Uraian ketidakpatuhan & dasar identifikasi…" /></div>
+                <div className="field"><label htmlFor={uid+'-dampak-terhadap-lk'}>Dampak terhadap LK</label><input id={uid+'-dampak-terhadap-lk'} className="input" value={sel.fsImpact} onChange={(e: Ev) => patch(sel.id, { fsImpact: e.target.value })} placeholder="mis. Material — provisi pajak" /></div>
+                <div className="field"><label htmlFor={uid+'-status'}>Status</label><select id={uid+'-status'} className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{NOCLAR_STATUS.map(s => <option key={s}>{s}</option>)}</select></div>
               </div>
             )}
             <div style={{ height: 12 }} />
@@ -644,6 +645,7 @@ function SA265View() {
 }
 
 function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDefs: (v: Deficiency[]) => void; me: string; locked: boolean }) {
+  const uid = React.useId();
   const list: Deficiency[] = defs || [];
   const [selId, setSelId] = useStateSC(list[0]?.id || null);
   const sel = list.find(d => d.id === selId) || list[0] || null;
@@ -694,12 +696,12 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
               </>
             ) : (
               <div style={{ display: 'grid', gap: 9 }}>
-                <div className="field"><label>Defisiensi</label><textarea className="input" value={sel.t} onChange={(e: Ev) => patch(sel.id, { t: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
-                <div className="field"><label>Penyebab</label><textarea className="input" value={sel.cause} onChange={(e: Ev) => patch(sel.id, { cause: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
-                <div className="field"><label>Dampak Potensial</label><textarea className="input" value={sel.impact} onChange={(e: Ev) => patch(sel.id, { impact: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="field"><label htmlFor={uid+'-defisiensi'}>Defisiensi</label><textarea id={uid+'-defisiensi'} className="input" value={sel.t} onChange={(e: Ev) => patch(sel.id, { t: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="field"><label htmlFor={uid+'-penyebab'}>Penyebab</label><textarea id={uid+'-penyebab'} className="input" value={sel.cause} onChange={(e: Ev) => patch(sel.id, { cause: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="field"><label htmlFor={uid+'-dampak-potensial'}>Dampak Potensial</label><textarea id={uid+'-dampak-potensial'} className="input" value={sel.impact} onChange={(e: Ev) => patch(sel.id, { impact: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-                  <div className="field"><label>Klasifikasi</label><select className="select" value={sel.sig ? 'sig' : 'biasa'} onChange={(e: Ev) => patch(sel.id, { sig: e.target.value === 'sig', status: e.target.value === 'sig' ? 'Tertulis ke TCWG' : 'Lisan ke manajemen' })}><option value="sig">Signifikan</option><option value="biasa">Biasa</option></select></div>
-                  <div className="field"><label>Komunikasi</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{DEFIC_COMM.map(s => <option key={s}>{s}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-klasifikasi'}>Klasifikasi</label><select id={uid+'-klasifikasi'} className="select" value={sel.sig ? 'sig' : 'biasa'} onChange={(e: Ev) => patch(sel.id, { sig: e.target.value === 'sig', status: e.target.value === 'sig' ? 'Tertulis ke TCWG' : 'Lisan ke manajemen' })}><option value="sig">Signifikan</option><option value="biasa">Biasa</option></select></div>
+                  <div className="field"><label htmlFor={uid+'-komunikasi'}>Komunikasi</label><select id={uid+'-komunikasi'} className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{DEFIC_COMM.map(s => <option key={s}>{s}</option>)}</select></div>
                 </div>
               </div>
             )}

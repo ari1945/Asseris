@@ -271,6 +271,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
    ============================================================ */
 type AccTrail = { action: string; by: string; at: string };
 function StepAcceptance({ p, onPatch }: any) {
+  const uid = React.useId();
   const a = p.acceptance;
   const score = obAccScore(p);
   const verdict = obAccVerdict(score);
@@ -352,14 +353,14 @@ function StepAcceptance({ p, onPatch }: any) {
           </div>
 
           <div className="panel" style={{ padding: 14, display: 'grid', gap: 10 }}>
-            <div className="field"><label>Keputusan Partner</label>
-              <select className="select" value={a.decision || verdict.l} disabled={a.approved} onChange={(e: any) => setAcc({ decision: e.target.value })}>
+            <div className="field"><label htmlFor={uid+'-keputusan-partner'}>Keputusan Partner</label>
+              <select id={uid+'-keputusan-partner'} className="select" value={a.decision || verdict.l} disabled={a.approved} onChange={(e: any) => setAcc({ decision: e.target.value })}>
                 {['Terima', 'Terima dengan Syarat', 'Tolak'].map(d => <option key={d}>{d}</option>)}
               </select>
             </div>
             {(a.decision === 'Terima dengan Syarat' || (!a.decision && verdict.l === 'Terima dengan Syarat')) && (
-              <div className="field"><label>Safeguard / Syarat</label>
-                <textarea className="input" value={a.safeguard} disabled={a.approved} onChange={(e: any) => setAcc({ safeguard: e.target.value })} placeholder="mis. tambahkan spesialis industri; EDD pemilik manfaat…" style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} />
+              <div className="field"><label htmlFor={uid+'-safeguard-syarat'}>Safeguard / Syarat</label>
+                <textarea id={uid+'-safeguard-syarat'} className="input" value={a.safeguard} disabled={a.approved} onChange={(e: any) => setAcc({ safeguard: e.target.value })} placeholder="mis. tambahkan spesialis industri; EDD pemilik manfaat…" style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} />
               </div>
             )}
             {a.approved ? (
@@ -500,6 +501,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
 const PROSPECT_FORM_INIT = { name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false };
 
 function ProspectForm({ onClose, onAdd }: any) {
+  const uid = React.useId();
   const blankFactors = (AMS.PROSPECTS as any)[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
   const [d, setD] = useStateOB({ ...PROSPECT_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
@@ -534,26 +536,26 @@ function ProspectForm({ onClose, onAdd }: any) {
       )}
     >
         <div>
-          <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
+          <div className="field"><label htmlFor={uid+'-nama-entitas'}>Nama Entitas</label><input id={uid+'-nama-entitas'} className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
-            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta" /></div>
+            <div className="field"><label htmlFor={uid+'-industri'}>Industri</label><input id={uid+'-industri'} className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
+            <div className="field"><label htmlFor={uid+'-domisili'}>Domisili</label><input id={uid+'-domisili'} className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Tipe</label><select className="select" value={d.kind} onChange={(e: any) => set('kind', e.target.value)}>{['Klien Baru', 'Keberlanjutan'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Jenis Jasa</label><select className="select" value={d.service} onChange={(e: any) => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Audit LK + Jasa Pajak', 'Due Diligence'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-tipe'}>Tipe</label><select id={uid+'-tipe'} className="select" value={d.kind} onChange={(e: any) => set('kind', e.target.value)}>{['Klien Baru', 'Keberlanjutan'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-jenis-jasa'}>Jenis Jasa</label><select id={uid+'-jenis-jasa'} className="select" value={d.service} onChange={(e: any) => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Audit LK + Jasa Pajak', 'Due Diligence'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-standar'}>Standar</label><select id={uid+'-standar'} className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-partner'}>Partner</label><select id={uid+'-partner'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-manajer'}>Manajer</label><select id={uid+'-manajer'} className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Imbalan (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
+            <div className="field"><label htmlFor={uid+'-imbalan-rp'}>Imbalan (Rp)</label><input id={uid+'-imbalan-rp'} className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label htmlFor={uid+'-anggaran-jam'}>Anggaran Jam</label><input id={uid+'-anggaran-jam'} className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label htmlFor={uid+'-tenggat'}>Tenggat</label><input id={uid+'-tenggat'} className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
           </div>
-          <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
+          <div className="field"><label htmlFor={uid+'-npwp'}>NPWP</label><input id={uid+'-npwp'} className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
         </div>
     </Overlay>
   );

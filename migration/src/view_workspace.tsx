@@ -61,6 +61,7 @@ const RN_PHASE_META = {
 
 /* ---------------- Review Notes ---------------- */
 function ReviewNotes() {
+  const uid = React.useId();
   const nav = useNav();
   const firm = useFirm();
   const { reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAuditHeavy(['reviewNotes', 'noteThreads']);  // P5 Fase 2: catatan engagement aktif
@@ -255,11 +256,11 @@ function ReviewNotes() {
                 </div>
                 <textarea className="input" value={draft.text} onChange={(e: any) => setDraft((d: any) => ({ ...d, text: e.target.value }))} placeholder="Tulis catatan review / coaching / query…" style={{ height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
                 <div className="grid" style={{ gridTemplateColumns: draft.module === 'workpapers' ? '1.3fr 1.4fr 1fr 1fr 1fr' : '1.4fr 1fr 1fr 1fr', gap: 10 }}>
-                  <div className="field"><label>Modul</label><select className="select" value={draft.module} onChange={(e: any) => setDraft((d: any) => ({ ...d, module: e.target.value }))}>{MODULES.flatMap(g => g.items).filter(m => m.deep).map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
-                  {draft.module === 'workpapers' && <div className="field"><label>Kertas Kerja</label><select className="select" value={draft.wpRef} onChange={(e: any) => setDraft((d: any) => ({ ...d, wpRef: e.target.value }))}>{wpRefs.map((w: any) => <option key={w.ref} value={w.ref}>{w.ref} · {w.title}</option>)}</select></div>}
-                  <div className="field"><label>Ditujukan ke</label><select className="select" value={draft.to} onChange={(e: any) => setDraft((d: any) => ({ ...d, to: e.target.value }))}>{['Dimas R.', 'Anindya P.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
-                  <div className="field"><label>Prioritas</label><select className="select" value={draft.priority} onChange={(e: any) => setDraft((d: any) => ({ ...d, priority: e.target.value }))}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select></div>
-                  <div className="field"><label>Jatuh Tempo</label><input type="date" className="input" value={draft.due} onChange={(e: any) => setDraft((d: any) => ({ ...d, due: e.target.value }))} /></div>
+                  <div className="field"><label htmlFor={uid+'-modul'}>Modul</label><select id={uid+'-modul'} className="select" value={draft.module} onChange={(e: any) => setDraft((d: any) => ({ ...d, module: e.target.value }))}>{MODULES.flatMap(g => g.items).filter(m => m.deep).map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
+                  {draft.module === 'workpapers' && <div className="field"><label htmlFor={uid+'-kertas-kerja'}>Kertas Kerja</label><select id={uid+'-kertas-kerja'} className="select" value={draft.wpRef} onChange={(e: any) => setDraft((d: any) => ({ ...d, wpRef: e.target.value }))}>{wpRefs.map((w: any) => <option key={w.ref} value={w.ref}>{w.ref} · {w.title}</option>)}</select></div>}
+                  <div className="field"><label htmlFor={uid+'-ditujukan-ke'}>Ditujukan ke</label><select id={uid+'-ditujukan-ke'} className="select" value={draft.to} onChange={(e: any) => setDraft((d: any) => ({ ...d, to: e.target.value }))}>{['Dimas R.', 'Anindya P.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-prioritas'}>Prioritas</label><select id={uid+'-prioritas'} className="select" value={draft.priority} onChange={(e: any) => setDraft((d: any) => ({ ...d, priority: e.target.value }))}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-jatuh-tempo'}>Jatuh Tempo</label><input id={uid+'-jatuh-tempo'} type="date" className="input" value={draft.due} onChange={(e: any) => setDraft((d: any) => ({ ...d, due: e.target.value }))} /></div>
                 </div>
                 <input className="input" value={draft.ref} onChange={(e: any) => setDraft((d: any) => ({ ...d, ref: e.target.value }))} placeholder="Referensi silang (opsional) — mis. WP B-3, AJE-01, R-01" />
                 <div className="row je gap8"><Btn sm onClick={() => setShowForm(false)}>Batal</Btn><Btn sm variant="primary" onClick={submitNew}><I.check size={13} /> Simpan Catatan</Btn></div>
@@ -286,16 +287,16 @@ function ReviewNotes() {
           </div>
           <div style={{ flex: 1 }} />
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <label style={{ textTransform: 'none', letterSpacing: 0 }}>Sumber</label>
-            <select className="select" value={sourceF} onChange={(e: any) => setSourceF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option><option value="module">Modul</option><option value="wp">Kertas Kerja</option></select>
+            <label htmlFor={uid+'-sumber'} style={{ textTransform: 'none', letterSpacing: 0 }}>Sumber</label>
+            <select id={uid+'-sumber'} className="select" value={sourceF} onChange={(e: any) => setSourceF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option><option value="module">Modul</option><option value="wp">Kertas Kerja</option></select>
           </div>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <label style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
-            <select className="select" value={assigneeF} onChange={(e: any) => setAssigneeF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
+            <label htmlFor={uid+'-penerima'} style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
+            <select id={uid+'-penerima'} className="select" value={assigneeF} onChange={(e: any) => setAssigneeF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
           </div>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <label style={{ textTransform: 'none', letterSpacing: 0 }}>Kelompok</label>
-            <select className="select" value={groupBy} onChange={(e: any) => setGroupBy(e.target.value)} style={{ width: 130 }}><option value="none">Tidak ada</option><option value="reviewer">Reviewer</option><option value="assignee">Penerima</option><option value="module">Modul</option><option value="type">Tipe</option><option value="priority">Prioritas</option></select>
+            <label htmlFor={uid+'-kelompok'} style={{ textTransform: 'none', letterSpacing: 0 }}>Kelompok</label>
+            <select id={uid+'-kelompok'} className="select" value={groupBy} onChange={(e: any) => setGroupBy(e.target.value)} style={{ width: 130 }}><option value="none">Tidak ada</option><option value="reviewer">Reviewer</option><option value="assignee">Penerima</option><option value="module">Modul</option><option value="type">Tipe</option><option value="priority">Prioritas</option></select>
           </div>
         </div>
 
@@ -416,6 +417,7 @@ function RN_Row({ n, active, onClick }: any) {
 
 /* ---- detail / conversation pane ---- */
 function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComposer, clearNote, reopenNote, openSource, canClear, updateReviewNote }: any) {
+  const uid = React.useId();
   const t = (RN_TYPES as any)[n.type] || RN_TYPES.review;
   const ph = (RN_PHASE_META as any)[phase];
   const resolved = n.status === 'resolved';
@@ -501,15 +503,15 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
           <span className="vdivider" style={{ height: 26 }} />
           {editable && !firm.locked ? (
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <label style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
-              <select className="select" value={n.to} onChange={(e: any) => updateReviewNote(n.id, { to: e.target.value })} style={{ height: 24, width: 110 }}>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
+              <label htmlFor={uid+'-penerima'} style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
+              <select id={uid+'-penerima'} className="select" value={n.to} onChange={(e: any) => updateReviewNote(n.id, { to: e.target.value })} style={{ height: 24, width: 110 }}>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
             </div>
           ) : <RN_Meta label="Ditujukan ke" value={n.to} />}
           <span className="vdivider" style={{ height: 26 }} />
           {editable && !firm.locked ? (
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <label style={{ textTransform: 'none', letterSpacing: 0 }}>Prioritas</label>
-              <select className="select" value={n.priority} onChange={(e: any) => updateReviewNote(n.id, { priority: e.target.value })} style={{ height: 24, width: 100 }}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select>
+              <label htmlFor={uid+'-prioritas'} style={{ textTransform: 'none', letterSpacing: 0 }}>Prioritas</label>
+              <select id={uid+'-prioritas'} className="select" value={n.priority} onChange={(e: any) => updateReviewNote(n.id, { priority: e.target.value })} style={{ height: 24, width: 100 }}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select>
             </div>
           ) : <RN_Meta label="Prioritas" value={(RN_PRIO as any)[n.priority].label} />}
           <span className="vdivider" style={{ height: 26 }} />

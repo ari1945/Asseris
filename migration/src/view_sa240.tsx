@@ -356,6 +356,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
 
 /* ---------------- Tab: Register Risiko ---------------- */
 function F240Register({ register, setRegister, me, locked }: { register: FraudRisk[]; setRegister: (fn: (l: FraudRisk[]) => FraudRisk[]) => void; me: string; locked: boolean }) {
+  const uid = React.useId();
   const [selId, setSelId] = useStateS240('FR-01');
   const sel = register.find(r => r.id === selId) || register[0] || null;
   const patch = (id: string, p: Partial<FraudRisk>) => setRegister(l => l.map(r => r.id === id ? { ...r, ...p, by: me, at: fraudToday() } : r));
@@ -409,16 +410,16 @@ function F240Register({ register, setRegister, me, locked }: { register: FraudRi
               </>
             ) : (
               <div style={{ display: 'grid', gap: 9 }}>
-                <div className="field"><label>Risiko Kecurangan</label><textarea className="input" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="field"><label htmlFor={uid+'-risiko-kecurangan'}>Risiko Kecurangan</label><textarea id={uid+'-risiko-kecurangan'} className="input" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-                  <div className="field"><label>Jenis</label><select className="select" value={sel.type} onChange={(e: Ev) => patch(sel.id, { type: e.target.value })}>{FRAUD_TYPES.map(t => <option key={t}>{t}</option>)}</select></div>
-                  <div className="field"><label>Tingkat</label><select className="select" value={sel.lvl} onChange={(e: Ev) => patch(sel.id, { lvl: e.target.value })}>{FRAUD_LVL.map(t => <option key={t}>{t}</option>)}</select></div>
-                  <div className="field"><label>Akun Terdampak</label><input className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
-                  <div className="field"><label>Asersi</label><input className="input" value={sel.assertion} onChange={(e: Ev) => patch(sel.id, { assertion: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-jenis'}>Jenis</label><select id={uid+'-jenis'} className="select" value={sel.type} onChange={(e: Ev) => patch(sel.id, { type: e.target.value })}>{FRAUD_TYPES.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-tingkat'}>Tingkat</label><select id={uid+'-tingkat'} className="select" value={sel.lvl} onChange={(e: Ev) => patch(sel.id, { lvl: e.target.value })}>{FRAUD_LVL.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-akun-terdampak'}>Akun Terdampak</label><input id={uid+'-akun-terdampak'} className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-asersi'}>Asersi</label><input id={uid+'-asersi'} className="input" value={sel.assertion} onChange={(e: Ev) => patch(sel.id, { assertion: e.target.value })} /></div>
                 </div>
-                <div className="field"><label>Respons Audit yang Direncanakan</label><textarea className="input" value={sel.response} onChange={(e: Ev) => patch(sel.id, { response: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="field"><label htmlFor={uid+'-respons-audit-yang'}>Respons Audit yang Direncanakan</label><textarea id={uid+'-respons-audit-yang'} className="input" value={sel.response} onChange={(e: Ev) => patch(sel.id, { response: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-                  <div className="field"><label>Status</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{FRAUD_STATUS.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-status'}>Status</label><select id={uid+'-status'} className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{FRAUD_STATUS.map(t => <option key={t}>{t}</option>)}</select></div>
                   <div className="row ac gap10" style={{ paddingTop: 18 }}>
                     <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 12 }}><input type="checkbox" checked={sel.sig} onChange={() => patch(sel.id, { sig: !sel.sig })} /> Signifikan</label>
                     <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 12 }}><input type="checkbox" checked={sel.presumed} onChange={() => patch(sel.id, { presumed: !sel.presumed })} /> Presumsi wajib</label>

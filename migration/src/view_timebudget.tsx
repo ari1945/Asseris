@@ -356,6 +356,7 @@ function TBRoleMix({ m }: any) {
 
 /* =================== TIMESHEET =================== */
 function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const [form, setForm] = useTB({ member: 'Anindya Pramesti', phase: 'Eksekusi', task: '', hours: '' });
   const [fMember, setFMember] = useTB('all');
@@ -388,10 +389,10 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
         </div>
         {!locked && (
           <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)', display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="field" style={{ flex: '1 1 120px' }}><label>Anggota</label><select className="select" value={form.member} onChange={(ev: any) => setForm((f: any) => ({ ...f, member: ev.target.value }))}>{team.map((t: any) => <option key={t.name}>{t.name}</option>)}</select></div>
-            <div className="field" style={{ flex: '0 0 110px' }}><label>Fase</label><select className="select" value={form.phase} onChange={(ev: any) => setForm((f: any) => ({ ...f, phase: ev.target.value }))}>{phaseOpts.map(p => <option key={p}>{p}</option>)}</select></div>
-            <div className="field" style={{ flex: '2 1 160px' }}><label>Tugas</label><input className="input" value={form.task} onChange={(ev: any) => setForm((f: any) => ({ ...f, task: ev.target.value }))} placeholder="Deskripsi pekerjaan" /></div>
-            <div className="field" style={{ flex: '0 0 64px' }}><label>Jam</label><input className="input mono" type="number" value={form.hours} onChange={(ev: any) => setForm((f: any) => ({ ...f, hours: ev.target.value }))} style={{ textAlign: 'right' }} /></div>
+            <div className="field" style={{ flex: '1 1 120px' }}><label htmlFor={uid+'-anggota'}>Anggota</label><select id={uid+'-anggota'} className="select" value={form.member} onChange={(ev: any) => setForm((f: any) => ({ ...f, member: ev.target.value }))}>{team.map((t: any) => <option key={t.name}>{t.name}</option>)}</select></div>
+            <div className="field" style={{ flex: '0 0 110px' }}><label htmlFor={uid+'-fase'}>Fase</label><select id={uid+'-fase'} className="select" value={form.phase} onChange={(ev: any) => setForm((f: any) => ({ ...f, phase: ev.target.value }))}>{phaseOpts.map(p => <option key={p}>{p}</option>)}</select></div>
+            <div className="field" style={{ flex: '2 1 160px' }}><label htmlFor={uid+'-tugas'}>Tugas</label><input id={uid+'-tugas'} className="input" value={form.task} onChange={(ev: any) => setForm((f: any) => ({ ...f, task: ev.target.value }))} placeholder="Deskripsi pekerjaan" /></div>
+            <div className="field" style={{ flex: '0 0 64px' }}><label htmlFor={uid+'-jam'}>Jam</label><input id={uid+'-jam'} className="input mono" type="number" value={form.hours} onChange={(ev: any) => setForm((f: any) => ({ ...f, hours: ev.target.value }))} style={{ textAlign: 'right' }} /></div>
             <Btn sm variant="primary" onClick={submit}><I.plus size={13} /> Catat</Btn>
           </div>
         )}

@@ -174,6 +174,7 @@ function TaskRow({ t, selected, onSelect, mt }: any) {
 
 /* add-personal-task inline form */
 function AddTaskForm({ mt, onClose }: any) {
+  const uid = React.useId();
   const [d, setD] = useStateMT({ label: '', priority: 'medium', dueDate: mtAddDays(MT_TODAY, 2).toISOString().slice(0, 10), route: 'cockpit', est: '2' });
   const modules = MODULES.flatMap(g => g.items).filter(m => m.deep);
   const submit = () => {
@@ -189,10 +190,10 @@ function AddTaskForm({ mt, onClose }: any) {
           onChange={(e: any) => setD((s: any) => ({ ...s, label: e.target.value }))}
           onKeyDown={(e: any) => { if (e.key === 'Enter') submit(); }} />
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 0.7fr', gap: 10 }}>
-          <div className="field"><label>Prioritas</label><select className="select" value={d.priority} onChange={(e: any) => setD((s: any) => ({ ...s, priority: e.target.value }))}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-          <div className="field"><label>Jatuh Tempo</label><input className="input mono" type="date" value={d.dueDate} onChange={(e: any) => setD((s: any) => ({ ...s, dueDate: e.target.value }))} /></div>
-          <div className="field"><label>Tautan Modul</label><select className="select" value={d.route} onChange={(e: any) => setD((s: any) => ({ ...s, route: e.target.value }))}>{modules.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
-          <div className="field"><label>Estimasi (j)</label><input className="input mono" type="number" min="0" step="0.5" value={d.est} onChange={(e: any) => setD((s: any) => ({ ...s, est: e.target.value }))} style={{ textAlign: 'right' }} /></div>
+          <div className="field"><label htmlFor={uid+'-prioritas'}>Prioritas</label><select id={uid+'-prioritas'} className="select" value={d.priority} onChange={(e: any) => setD((s: any) => ({ ...s, priority: e.target.value }))}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-jatuh-tempo'}>Jatuh Tempo</label><input id={uid+'-jatuh-tempo'} className="input mono" type="date" value={d.dueDate} onChange={(e: any) => setD((s: any) => ({ ...s, dueDate: e.target.value }))} /></div>
+          <div className="field"><label htmlFor={uid+'-tautan-modul'}>Tautan Modul</label><select id={uid+'-tautan-modul'} className="select" value={d.route} onChange={(e: any) => setD((s: any) => ({ ...s, route: e.target.value }))}>{modules.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-estimasi-j'}>Estimasi (j)</label><input id={uid+'-estimasi-j'} className="input mono" type="number" min="0" step="0.5" value={d.est} onChange={(e: any) => setD((s: any) => ({ ...s, est: e.target.value }))} style={{ textAlign: 'right' }} /></div>
         </div>
         <div className="row je gap8"><Btn sm onClick={onClose}>Batal</Btn><Btn sm variant="primary" onClick={submit}><I.plus size={13} /> Tambah Tugas</Btn></div>
       </div>

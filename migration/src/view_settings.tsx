@@ -266,10 +266,11 @@ function SecNavigasi({ s, setGroup }: any) {
 /* ---------------- Profil & Akun ---------------- */
 /* Hoisted out of SecProfil so inputs don't lose focus on every keystroke (stable identity). */
 function ProfileField({ label, val, onChange, type = 'text', readOnly, hint, mono }: any) {
+  const uid = React.useId();
   return (
     <div className="field">
-      <label>{label}</label>
-      <input className={'input' + (mono ? ' mono' : '')} type={type} value={val || ''} readOnly={readOnly}
+      <label htmlFor={uid+'-field'}>{label}</label>
+      <input id={uid+'-field'} className={'input' + (mono ? ' mono' : '')} type={type} value={val || ''} readOnly={readOnly}
         onChange={readOnly ? undefined : ((e: any) => onChange(e.target.value))}
         style={{ height: 32, background: readOnly ? 'var(--surface-2)' : undefined, color: readOnly ? 'var(--ink-2)' : undefined, cursor: readOnly ? 'default' : undefined }} />
       {hint && <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.4 }}>{hint}</div>}
@@ -486,6 +487,7 @@ function fmtWhen(ts: any) {
 }
 
 function SecKeamanan({ s, setGroup, flash }: any) {
+  const uid = React.useId();
   const auth = useAuth();
   const sec = s.security;
 
@@ -596,10 +598,10 @@ function SecKeamanan({ s, setGroup, flash }: any) {
         <div className="panel-h"><h3>Ubah Kata Sandi</h3></div>
         <div style={{ padding: 14, display: 'grid', gap: 10, maxWidth: 420 }}>
           {pwErr && <div className="tiny" style={{ color: 'var(--red)', background: 'var(--red-bg, #fde8e8)', padding: '7px 10px', borderRadius: 7 }}>{pwErr}</div>}
-          <div className="field"><label>Sandi Saat Ini</label><input className="input" type="password" autoComplete="current-password" value={pw.old} onChange={(e: any) => setPw((p: any) => ({ ...p, old: e.target.value }))} placeholder="••••••••" style={{ height: 32 }} /></div>
-          <div className="field"><label>Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n1} onChange={(e: any) => setPw((p: any) => ({ ...p, n1: e.target.value }))} placeholder="Min. 12 karakter" style={{ height: 32 }} /></div>
-          <div className="field"><label>Konfirmasi Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n2} onChange={(e: any) => setPw((p: any) => ({ ...p, n2: e.target.value }))} style={{ height: 32 }} /></div>
-          {totpOn && <div className="field"><label>Kode 2FA Saat Ini</label><input className="input mono" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pw.totp} onChange={(e: any) => setPw((p: any) => ({ ...p, totp: e.target.value.replace(/\D/g, '') }))} placeholder="123456" style={{ width: 150, height: 32, letterSpacing: 3 }} /></div>}
+          <div className="field"><label htmlFor={uid+'-sandi-saat-ini'}>Sandi Saat Ini</label><input id={uid+'-sandi-saat-ini'} className="input" type="password" autoComplete="current-password" value={pw.old} onChange={(e: any) => setPw((p: any) => ({ ...p, old: e.target.value }))} placeholder="••••••••" style={{ height: 32 }} /></div>
+          <div className="field"><label htmlFor={uid+'-sandi-baru'}>Sandi Baru</label><input id={uid+'-sandi-baru'} className="input" type="password" autoComplete="new-password" value={pw.n1} onChange={(e: any) => setPw((p: any) => ({ ...p, n1: e.target.value }))} placeholder="Min. 12 karakter" style={{ height: 32 }} /></div>
+          <div className="field"><label htmlFor={uid+'-konfirmasi-sandi-baru'}>Konfirmasi Sandi Baru</label><input id={uid+'-konfirmasi-sandi-baru'} className="input" type="password" autoComplete="new-password" value={pw.n2} onChange={(e: any) => setPw((p: any) => ({ ...p, n2: e.target.value }))} style={{ height: 32 }} /></div>
+          {totpOn && <div className="field"><label htmlFor={uid+'-kode-2fa-saat'}>Kode 2FA Saat Ini</label><input id={uid+'-kode-2fa-saat'} className="input mono" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pw.totp} onChange={(e: any) => setPw((p: any) => ({ ...p, totp: e.target.value.replace(/\D/g, '') }))} placeholder="123456" style={{ width: 150, height: 32, letterSpacing: 3 }} /></div>}
           <div className="row je"><Btn sm variant="primary" onClick={changePw} disabled={pwBusy || !pw.old || !pw.n1}><I.lock size={13} /> Perbarui Sandi</Btn></div>
         </div>
       </Panel>
@@ -861,6 +863,7 @@ function rolesErrMsg(e: any): string {
 }
 
 function SecAksesAdmin({ flash }: any) {
+  const uid = React.useId();
   const [roles, setRoles] = useStateSet([] as any[]);
   const [loading, setLoading] = useStateSet(true);
   const [busy, setBusy] = useStateSet(false);
@@ -996,8 +999,8 @@ function SecAksesAdmin({ flash }: any) {
           bodyStyle={{ padding: 18 }}
         >
             <div className="field" style={{ marginBottom: 12 }}>
-              <label>Nama Peran</label>
-              <input className="input" value={newName} onChange={(e: any) => setNewName(e.target.value)} placeholder="mis. Tax Consultant Internal" style={{ height: 32 }} autoFocus />
+              <label htmlFor={uid+'-nama-peran'}>Nama Peran</label>
+              <input id={uid+'-nama-peran'} className="input" value={newName} onChange={(e: any) => setNewName(e.target.value)} placeholder="mis. Tax Consultant Internal" style={{ height: 32 }} autoFocus />
             </div>
             <div className="tiny muted" style={{ marginBottom: 8 }}>Kapabilitas — kosong secara default, centang yang diperlukan:</div>
             <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflow: 'auto', marginBottom: 14 }}>

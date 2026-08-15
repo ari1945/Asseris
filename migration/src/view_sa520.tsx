@@ -209,6 +209,7 @@ function SA520View() {
 
 /* ---------------- Tab: Analitis Substantif ---------------- */
 function F520Substantive({ rows, thr, setThr, flagged, patchRow, canEdit }: any) {
+  const uid = React.useId();
   const [selId, setSelId] = useState520('AP-03');
   const sel = rows.find((r: any) => r.id === selId);
   return (
@@ -263,13 +264,13 @@ function F520Substantive({ rows, thr, setThr, flagged, patchRow, canEdit }: any)
                   (dulu literal: kertas kerja ber-sign-off tanpa isi yang bisa diubah auditor). */}
               <div className="row gap10" style={{ marginBottom: 12 }}>
                 <div className="field" style={{ flex: 1 }}>
-                  <label>Ekspektasi (Rp jt)</label>
-                  <input className="input mono" type="number" style={{ height: 28, textAlign: 'right' }} value={sel.exp} disabled={!canEdit}
+                  <label htmlFor={uid+'-ekspektasi-rp-jt'}>Ekspektasi (Rp jt)</label>
+                  <input id={uid+'-ekspektasi-rp-jt'} className="input mono" type="number" style={{ height: 28, textAlign: 'right' }} value={sel.exp} disabled={!canEdit}
                     onChange={(e: { target: { value: string } }) => patchRow(sel.id, { exp: +e.target.value || 0 })} />
                 </div>
                 <div className="field" style={{ flex: 1 }}>
-                  <label>Tercatat (Rp jt)</label>
-                  <input className="input mono" type="number" style={{ height: 28, textAlign: 'right' }} value={sel.act} disabled={!canEdit}
+                  <label htmlFor={uid+'-tercatat-rp-jt'}>Tercatat (Rp jt)</label>
+                  <input id={uid+'-tercatat-rp-jt'} className="input mono" type="number" style={{ height: 28, textAlign: 'right' }} value={sel.act} disabled={!canEdit}
                     onChange={(e: { target: { value: string } }) => patchRow(sel.id, { act: +e.target.value || 0 })} />
                 </div>
               </div>

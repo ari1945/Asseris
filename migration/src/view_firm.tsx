@@ -221,6 +221,7 @@ function blankClient() {
 }
 
 function ClientForm({ form, onClose, onSave }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const [d, setD] = useStateF(form.data);
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
@@ -252,23 +253,23 @@ function ClientForm({ form, onClose, onSave }: any) {
     >
         <div>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-            <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Contoh Sejahtera Tbk" /></div>
-            <div className="field"><label>ID Klien</label><input className="input mono" value={d.id} onChange={(e: any) => set('id', e.target.value)} /></div>
+            <div className="field"><label htmlFor={uid+'-nama-entitas'}>Nama Entitas</label><input id={uid+'-nama-entitas'} className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Contoh Sejahtera Tbk" /></div>
+            <div className="field"><label htmlFor={uid+'-id-klien'}>ID Klien</label><input id={uid+'-id-klien'} className="input mono" value={d.id} onChange={(e: any) => set('id', e.target.value)} /></div>
           </div>
-          <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
+          <div className="field"><label htmlFor={uid+'-industri'}>Industri</label><input id={uid+'-industri'} className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
-            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta Selatan" /></div>
+            <div className="field"><label htmlFor={uid+'-npwp'}>NPWP</label><input id={uid+'-npwp'} className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
+            <div className="field"><label htmlFor={uid+'-domisili'}>Domisili</label><input id={uid+'-domisili'} className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta Selatan" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Tier</label><select className="select" value={d.tier} onChange={(e: any) => set('tier', e.target.value)}>{['Tier 1', 'Tier 2', 'Tier 3'].map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Status</label><select className="select" value={d.status} onChange={(e: any) => set('status', e.target.value)}>{['Proposal', 'Active', 'Completed'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-tier'}>Tier</label><select id={uid+'-tier'} className="select" value={d.tier} onChange={(e: any) => set('tier', e.target.value)}>{['Tier 1', 'Tier 2', 'Tier 3'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-risiko'}>Risiko</label><select id={uid+'-risiko'} className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-status'}>Status</label><select id={uid+'-status'} className="select" value={d.status} onChange={(e: any) => set('status', e.target.value)}>{['Proposal', 'Active', 'Completed'].map(t => <option key={t}>{t}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner Penanggung Jawab</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Annual Fee (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
-            <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
+            <div className="field"><label htmlFor={uid+'-partner-penanggung-jawab'}>Partner Penanggung Jawab</label><select id={uid+'-partner-penanggung-jawab'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-annual-fee-rp'}>Annual Fee (Rp)</label><input id={uid+'-annual-fee-rp'} className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
+            <div className="field"><label htmlFor={uid+'-klien-sejak'}>Klien Sejak</label><input id={uid+'-klien-sejak'} className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
           <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12 }}>
             {/* Program D — kontrol native (Switch) menggantikan span switch palsu. */}
@@ -484,6 +485,7 @@ function EngagementDetail({ e, client, onClose }: any) {
 const ENGAGEMENT_FORM_INIT = { clientId: '', type: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1200, materiality: 2000000000, risk: 'Medium' };
 
 function EngagementForm({ clients, onClose, onAdd }: any) {
+  const uid = React.useId();
   const [d, setD] = useStateF({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.clientId && +d.budgetHrs > 0;
@@ -508,19 +510,19 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
       )}
     >
         <div>
-          <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-klien'}>Klien</label><select id={uid+'-klien'} className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenis Perikatan</label><select className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-jenis-perikatan'}>Jenis Perikatan</label><select id={uid+'-jenis-perikatan'} className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-standar'}>Standar</label><select id={uid+'-standar'} className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-partner'}>Partner</label><select id={uid+'-partner'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-manajer'}>Manajer</label><select id={uid+'-manajer'} className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
+            <div className="field"><label htmlFor={uid+'-anggaran-jam'}>Anggaran Jam</label><input id={uid+'-anggaran-jam'} className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label htmlFor={uid+'-risiko'}>Risiko</label><select id={uid+'-risiko'} className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-tenggat'}>Tenggat</label><input id={uid+'-tenggat'} className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
           </div>
         </div>
     </Overlay>

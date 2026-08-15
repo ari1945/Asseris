@@ -105,6 +105,7 @@ function P48Kv({ label, v, strong, accent }: any) {
 }
 
 function PSAK48View() {
+  const uid = React.useId();
   const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
@@ -295,8 +296,11 @@ function PSAK48View() {
                       const changed = applied !== base;
                       return (
                         <div key={f.k} className="field">
-                          <label>{f.label}</label>
-                          <input className="input mono" type="number" step={f.step}
+                          {/* Kunci baris (`f.k`) WAJIB ikut: useId() unik per INSTANS
+                              komponen, bukan per iterasi — tanpa itu kelima baris VIU
+                              berbagi satu id dan semua label menunjuk input pertama. */}
+                          <label htmlFor={uid+'-viu-'+f.k}>{f.label}</label>
+                          <input id={uid+'-viu-'+f.k} className="input mono" type="number" step={f.step}
                             value={String(f.toUi(applied))}
                             onChange={(e: { target: { value: string } }) => setViu(f.k, e.target.value === '' ? '' : String(f.fromUi(Number(e.target.value))))}
                             style={{ textAlign: 'right', borderColor: changed ? 'var(--blue)' : undefined }} />

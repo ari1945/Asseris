@@ -156,6 +156,7 @@ function HCM() {
 const STAFF_FORM_INIT = { name: '', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', email: '' };
 
 function StaffForm({ onClose, onAdd }: any) {
+  const uid = React.useId();
   const [d, setD] = useStateE({ ...STAFF_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim();
@@ -181,12 +182,12 @@ function StaffForm({ onClose, onAdd }: any) {
       )}
     >
         <div>
-          <div className="field"><label>Nama Lengkap</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="Nama karyawan" /></div>
+          <div className="field"><label htmlFor={uid+'-nama-lengkap'}>Nama Lengkap</label><input id={uid+'-nama-lengkap'} className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="Nama karyawan" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenjang</label><select className="select" value={d.grade} onChange={(e: any) => set('grade', e.target.value)}>{['Partner', 'Manager', 'Senior', 'Junior'].map(g => <option key={g}>{g}</option>)}</select></div>
-            <div className="field"><label>Sertifikasi</label><input className="input" value={d.cert} onChange={(e: any) => set('cert', e.target.value)} placeholder="CPA / CA / S.Ak" /></div>
+            <div className="field"><label htmlFor={uid+'-jenjang'}>Jenjang</label><select id={uid+'-jenjang'} className="select" value={d.grade} onChange={(e: any) => set('grade', e.target.value)}>{['Partner', 'Manager', 'Senior', 'Junior'].map(g => <option key={g}>{g}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-sertifikasi'}>Sertifikasi</label><input id={uid+'-sertifikasi'} className="input" value={d.cert} onChange={(e: any) => set('cert', e.target.value)} placeholder="CPA / CA / S.Ak" /></div>
           </div>
-          <div className="field"><label>Email</label><input className="input" value={d.email} onChange={(e: any) => set('email', e.target.value)} placeholder="nama@whr-cpa.id" /></div>
+          <div className="field"><label htmlFor={uid+'-email'}>Email</label><input id={uid+'-email'} className="input" value={d.email} onChange={(e: any) => set('email', e.target.value)} placeholder="nama@whr-cpa.id" /></div>
         </div>
     </Overlay>
   );
@@ -299,6 +300,7 @@ function CPETracker() {
 const SKP_FORM_INIT = { id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4 };
 
 function SkpForm({ staff, onClose, onAdd }: any) {
+  const uid = React.useId();
   const [d, setD] = useStateE({ ...SKP_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.t.trim() && +d.skp > 0;
@@ -323,11 +325,11 @@ function SkpForm({ staff, onClose, onAdd }: any) {
       )}
     >
         <div>
-          <div className="field"><label>Karyawan</label><select className="select" value={d.id} onChange={(e: any) => set('id', e.target.value)}>{staff.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-          <div className="field"><label>Kegiatan / Pelatihan</label><input className="input" value={d.t} onChange={(e: any) => set('t', e.target.value)} placeholder="mis. Workshop SA Terkini IAPI" /></div>
+          <div className="field"><label htmlFor={uid+'-karyawan'}>Karyawan</label><select id={uid+'-karyawan'} className="select" value={d.id} onChange={(e: any) => set('id', e.target.value)}>{staff.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+          <div className="field"><label htmlFor={uid+'-kegiatan-pelatihan'}>Kegiatan / Pelatihan</label><input id={uid+'-kegiatan-pelatihan'} className="input" value={d.t} onChange={(e: any) => set('t', e.target.value)} placeholder="mis. Workshop SA Terkini IAPI" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenis</label><select className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Terstruktur', 'Tidak Terstruktur'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>SKP</label><input className="input mono" type="number" value={d.skp} onChange={(e: any) => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label htmlFor={uid+'-jenis'}>Jenis</label><select id={uid+'-jenis'} className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Terstruktur', 'Tidak Terstruktur'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-skp'}>SKP</label><input id={uid+'-skp'} className="input mono" type="number" value={d.skp} onChange={(e: any) => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
         </div>
     </Overlay>

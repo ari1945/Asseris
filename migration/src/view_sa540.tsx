@@ -183,6 +183,7 @@ function SA540View() {
 
 /* ---------------- Tab: Inventaris Estimasi ---------------- */
 function F540Register({ register, setRegister, me, locked }: { register: Estimate[]; setRegister: (fn: (l: Estimate[]) => Estimate[]) => void; me: string; locked: boolean }) {
+  const uid = React.useId();
   const [selId, setSelId] = useState540('E-01');
   const sel = register.find(e => e.id === selId) || register[0] || null;
   const uncKind = (u: string) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
@@ -229,27 +230,27 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
           <div style={{ padding: 14 }}>
             {!locked && (
               <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
-                <div className="field"><label>Estimasi</label><input className="input" value={sel.name} onChange={(e: Ev) => patch(sel.id, { name: e.target.value })} /></div>
+                <div className="field"><label htmlFor={uid+'-estimasi'}>Estimasi</label><input id={uid+'-estimasi'} className="input" value={sel.name} onChange={(e: Ev) => patch(sel.id, { name: e.target.value })} /></div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Akun</label><input className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
-                  <div className="field"><label>Pendekatan</label><select className="select" value={sel.approach} onChange={(e: Ev) => patch(sel.id, { approach: e.target.value })}>{EST_APPROACH.map(a => <option key={a}>{a}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-akun'}>Akun</label><input id={uid+'-akun'} className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
+                  <div className="field"><label htmlFor={uid+'-pendekatan'}>Pendekatan</label><select id={uid+'-pendekatan'} className="select" value={sel.approach} onChange={(e: Ev) => patch(sel.id, { approach: e.target.value })}>{EST_APPROACH.map(a => <option key={a}>{a}</option>)}</select></div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Titik Mgmt</label><input className="input mono" type="number" value={sel.mgmt} onChange={(e: Ev) => patch(sel.id, { mgmt: +e.target.value })} style={{ textAlign: 'right' }} /></div>
+                  <div className="field"><label htmlFor={uid+'-titik-mgmt'}>Titik Mgmt</label><input id={uid+'-titik-mgmt'} className="input mono" type="number" value={sel.mgmt} onChange={(e: Ev) => patch(sel.id, { mgmt: +e.target.value })} style={{ textAlign: 'right' }} /></div>
                   <div className="field">
-                    <label>Batas Bawah{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
-                    <input className="input mono" type="number" value={rng.lo} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
+                    <label htmlFor={uid+'-batas-bawah-terhitung'}>Batas Bawah{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
+                    <input id={uid+'-batas-bawah-terhitung'} className="input mono" type="number" value={rng.lo} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
                       onChange={(e: Ev) => patch(sel.id, { lo: +e.target.value })} style={{ textAlign: 'right' }} />
                   </div>
                   <div className="field">
-                    <label>Batas Atas{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
-                    <input className="input mono" type="number" value={rng.hi} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
+                    <label htmlFor={uid+'-batas-atas-terhitung'}>Batas Atas{rng.source === 'derived' && <span className="muted" style={{ textTransform: 'none' }}> · terhitung</span>}</label>
+                    <input id={uid+'-batas-atas-terhitung'} className="input mono" type="number" value={rng.hi} readOnly={rng.source === 'derived'} disabled={rng.source === 'derived'}
                       onChange={(e: Ev) => patch(sel.id, { hi: +e.target.value })} style={{ textAlign: 'right' }} />
                   </div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="field"><label>Ketidakpastian</label><select className="select" value={sel.unc} onChange={(e: Ev) => patch(sel.id, { unc: e.target.value })}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select></div>
-                  <div className="field"><label>Risiko</label><select className="select" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })}>{EST_RISK.map(r => <option key={r}>{r}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-ketidakpastian'}>Ketidakpastian</label><select id={uid+'-ketidakpastian'} className="select" value={sel.unc} onChange={(e: Ev) => patch(sel.id, { unc: e.target.value })}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select></div>
+                  <div className="field"><label htmlFor={uid+'-risiko'}>Risiko</label><select id={uid+'-risiko'} className="select" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })}>{EST_RISK.map(r => <option key={r}>{r}</option>)}</select></div>
                 </div>
               </div>
             )}
@@ -302,6 +303,7 @@ const RANGE_METHOD_LABEL: Record<string, string> = {
 };
 
 function RangeBasis({ est, rng, patch, locked }: { est: Estimate; rng: EffectiveRange; patch: (id: string, p: Partial<Estimate>) => void; locked: boolean }) {
+  const uid = React.useId();
   const d: EstimateDerivation = est.derivation || { method: 'manual' };
   const scenarios: RangeScenario[] = (d.scenarios || []);
   const isViu = d.method === 'viu';
@@ -324,8 +326,8 @@ function RangeBasis({ est, rng, patch, locked }: { est: Estimate; rng: Effective
 
       {!locked && (
         <div className="field" style={{ marginBottom: 8 }}>
-          <label>Metode</label>
-          <select className="select" value={d.method} onChange={(e: Ev) => setD({ method: e.target.value as EstimateDerivation['method'] })} style={{ height: 28 }}>
+          <label htmlFor={uid+'-metode'}>Metode</label>
+          <select id={uid+'-metode'} className="select" value={d.method} onChange={(e: Ev) => setD({ method: e.target.value as EstimateDerivation['method'] })} style={{ height: 28 }}>
             <option value="manual">Ditetapkan auditor (wajib beralasan)</option>
             <option value="scenarios">Terhitung dari skenario asumsi</option>
             <option value="viu">Terhitung dari mesin nilai pakai — uji penurunan nilai UPK/goodwill</option>

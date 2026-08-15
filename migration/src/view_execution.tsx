@@ -1566,6 +1566,7 @@ function fyEndDefault(eng: { fy?: string } | null | undefined): string {
 interface SadPickItem { id: string; desc?: string }
 
 function AJEForm({ accounts, onClose, onPost }: any) {
+  const uid = React.useId();
   const { fmt } = AMS;
   const { user } = useAuth();
   const { activeEngagement } = useFirm();
@@ -1665,13 +1666,13 @@ function AJEForm({ accounts, onClose, onPost }: any) {
     >
         <div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 10 }}>
-            <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
+            <div className="field"><label htmlFor={uid+'-deskripsi-penyesuaian'}>Deskripsi Penyesuaian</label><input id={uid+'-deskripsi-penyesuaian'} className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
             {/* PR-5 — Ref. WP WAJIB (Q5: untuk semua jenis). Dulu ia opsional dan
                 jatuh ke literal 'JE' — sebuah "referensi" yang tak merujuk apa pun
                 dan tak dapat dibuka `openCanonicalWp`. */}
             <div className="field">
-              <label>Ref. WP <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className="input mono" value={ref} onChange={(e: { target: { value: string } }) => setRef(e.target.value)} placeholder="D-4"
+              <label htmlFor={uid+'-ref-wp'}>Ref. WP <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input id={uid+'-ref-wp'} className="input mono" value={ref} onChange={(e: { target: { value: string } }) => setRef(e.target.value)} placeholder="D-4"
                 style={issueFor('ref') ? { borderColor: 'var(--red)' } : undefined} />
             </div>
           </div>
@@ -1679,34 +1680,34 @@ function AJEForm({ accounts, onClose, onPost }: any) {
           {/* PR-5 — tanggal efektif & sumber bukti: jangkar ke periode dan ke bukti. */}
           <div className="grid" style={{ gridTemplateColumns: '150px 1fr 1fr', gap: 10, marginBottom: 12 }}>
             <div className="field">
-              <label>Tanggal Efektif <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className="input mono" type="date" value={effectiveDate} onChange={(e: { target: { value: string } }) => setEffectiveDate(e.target.value)}
+              <label htmlFor={uid+'-tanggal-efektif'}>Tanggal Efektif <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input id={uid+'-tanggal-efektif'} className="input mono" type="date" value={effectiveDate} onChange={(e: { target: { value: string } }) => setEffectiveDate(e.target.value)}
                 style={issueFor('effectiveDate') ? { borderColor: 'var(--red)' } : undefined} />
             </div>
             <div className="field">
-              <label>Sumber Bukti <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className="input" value={evidenceSource} onChange={(e: { target: { value: string } }) => setEvidenceSource(e.target.value)}
+              <label htmlFor={uid+'-sumber-bukti'}>Sumber Bukti <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input id={uid+'-sumber-bukti'} className="input" value={evidenceSource} onChange={(e: { target: { value: string } }) => setEvidenceSource(e.target.value)}
                 placeholder="mis. Buku besar 5-3100 + faktur vendor Mar-2026"
                 style={issueFor('evidenceSource') ? { borderColor: 'var(--red)' } : undefined} />
             </div>
             <div className="field">
-              <label>Tautan DMS / Dokumen <span className="muted">(opsional)</span></label>
-              <input className="input mono" value={dmsLink} onChange={(e: { target: { value: string } }) => setDmsLink(e.target.value)} placeholder="DMS-2026-0142 atau URL" />
+              <label htmlFor={uid+'-tautan-dms-dokumen'}>Tautan DMS / Dokumen <span className="muted">(opsional)</span></label>
+              <input id={uid+'-tautan-dms-dokumen'} className="input mono" value={dmsLink} onChange={(e: { target: { value: string } }) => setDmsLink(e.target.value)} placeholder="DMS-2026-0142 atau URL" />
             </div>
           </div>
 
           {/* PR-E — klasifikasi auditor: tanpa ini entri tak pernah sampai ke SAD (SA 450) & Matriks Asersi (SA 315). */}
           <div className="grid" style={{ gridTemplateColumns: '190px 1fr', gap: 10, marginBottom: 12 }}>
             <div className="field">
-              <label>Jenis</label>
-              <select className="select" value={kind} onChange={(e: { target: { value: string } }) =>setKind(e.target.value)}>
+              <label htmlFor={uid+'-jenis'}>Jenis</label>
+              <select id={uid+'-jenis'} className="select" value={kind} onChange={(e: { target: { value: string } }) =>setKind(e.target.value)}>
                 <option value="adjusting">Penyesuaian</option>
                 <option value="reclass">Reklasifikasi</option>
               </select>
             </div>
             <div className="field">
-              <label>Mengoreksi Salah Saji (SAD · SA 450){kind === 'adjusting' ? <span style={{ color: 'var(--red)' }}> *</span> : null}</label>
-              <select className="select" value={misId} onChange={(e: { target: { value: string } }) =>setMisId(e.target.value)}
+              <label htmlFor={uid+'-mengoreksi-salah-saji'}>Mengoreksi Salah Saji (SAD · SA 450){kind === 'adjusting' ? <span style={{ color: 'var(--red)' }}> *</span> : null}</label>
+              <select id={uid+'-mengoreksi-salah-saji'} className="select" value={misId} onChange={(e: { target: { value: string } }) =>setMisId(e.target.value)}
                 style={issueFor('mis') ? { borderColor: 'var(--red)' } : undefined}>
                 <option value="">— tidak terkait item SAD —</option>
                 {sadItems.map(s => <option key={s.id} value={s.id}>{s.id} · {s.desc}</option>)}
@@ -1719,8 +1720,8 @@ function AJEForm({ accounts, onClose, onPost }: any) {
               dan ketiadaannya tak pernah menjadi keputusan siapa pun. */}
           {kind === 'adjusting' && !misId && (
             <div className="field" style={{ marginBottom: 12 }}>
-              <label>Alasan tidak terkait item SAD <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className="input" value={misNoneReason} onChange={(e: { target: { value: string } }) => setMisNoneReason(e.target.value)}
+              <label htmlFor={uid+'-alasan-tidak-terkait'}>Alasan tidak terkait item SAD <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input id={uid+'-alasan-tidak-terkait'} className="input" value={misNoneReason} onChange={(e: { target: { value: string } }) => setMisNoneReason(e.target.value)}
                 placeholder="mis. Reklasifikasi internal antar akun beban — tidak menimbulkan salah saji terhadap LK."
                 style={issueFor('mis') ? { borderColor: 'var(--red)' } : undefined} />
             </div>
