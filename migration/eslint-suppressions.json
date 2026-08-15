@@ -366,7 +366,7 @@
   },
   "src/view_cockpit2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 72
+      "count": 65
     }
   },
   "src/view_compliance.tsx": {

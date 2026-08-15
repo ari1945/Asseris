@@ -131,6 +131,8 @@ export interface ActivityItem {
   what: string;
   when: string;
   icon: string;
+  /** perikatan pemilik kejadian (PR-C-5) — konsumen berlingkup-perikatan menyaring dengannya */
+  eng?: string;
 }
 
 /* ---------- Deadlines ---------- */

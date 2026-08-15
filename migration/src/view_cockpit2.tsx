@@ -11,7 +11,7 @@ import { PROGRAMME } from './view_cockpit';
 import { FIRMFIN } from './data_firmfin';
 import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP, engagementGate, EngagementGateSummary, eqrStatusFor } from './wp_signoff';
 import { eqrGateDetail } from './canon_eqr_gate';
-import { cockpitEconomics, type CockpitWip, type CockpitMember } from './cockpit_model';
+import { cockpitEconomics, cockpitRiskCoverage, type CockpitWip, type CockpitMember, type CockpitRiskCoverage } from './cockpit_model';
 import {
   progressBridge, phaseRollups, PHASE_BUDGET_WEIGHT, CKP_PHASE_ORDER,
   type ModuleWpStatus, type PhaseRollup, type ProgressBridge,
@@ -159,8 +159,13 @@ function EngagementCockpit() {
     const PRG = (typeof PROGRAMME !== 'undefined' && Array.isArray(PROGRAMME)) ? PROGRAMME : [];
     const procs = PRG.flatMap((r: any) => r.procs || []);
     const excTot = procs.reduce((s, p) => s + (p.exc || 0), 0);
-    const sigAreas = PRG.filter((r: any) => r.sig);
-    const sigCovered = sigAreas.filter((r: any) => r.procs.some((p: any) => p.status === 'done')).length;
+    /* PR-C-5: dijodohkan lewat KUNCI (`RISKS.id` === `PROGRAMME.riskId`), bukan
+       heuristik `String.includes`; dan "tertangani" = SELURUH prosedur selesai.
+       Dulu kartu hero memakai `procs.some(done)` sementara daftar di tab Risiko
+       menandai hijau hanya bila `done === total` — dua definisi di satu layar. */
+    const sigCoverage = cockpitRiskCoverage(sigRisks, PRG);
+    const sigAreas = sigCoverage;
+    const sigCovered = sigCoverage.filter((r) => r.covered).length;
 
     /* PR-C-1 · EKONOMI PERIKATAN — satu sumber: FIRMFIN.engagementWip (roster +
        timesheet live), sama dengan Time & Budget dan modul WIP. Perikatan tanpa
@@ -226,13 +231,16 @@ function EngagementCockpit() {
       overall, asserted, econBase, bridge, rolls, wpStatuses, untaggedHrs, tsTotal,
       elapsedPct, daysLeft, burnPct,
       openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
-      sigRisks, fraudRisks, excTot, sigAreas, sigCovered,
+      sigRisks, fraudRisks, excTot, sigAreas, sigCovered, sigCoverage,
+      /* PR-C-5 · isolasi tampilan: hanya kejadian & tenggat MILIK perikatan ini */
+      activityEng: (activity || []).filter((a: { eng?: string }) => a.eng === e.id),
+      deadlinesEng: (deadlines || []).filter((d: { client?: string }) => d.client === activeClient?.name),
       schedTone, budgetTone, qualTone, riskTone, docTone, verdict,
       phaseRows, econ, fee,
       /* jam tingkat-perikatan: SSOT roster bila ada, seed bila tidak */
       budgetHrs: econ.budgetHrs, actualHrs: econ.actualHrs,
     };
-  }, [e, reviewNotesActive, aje, risks, workpapers, team, activeClient, wpState, timeEntries]);
+  }, [e, reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, activeClient, wpState, timeEntries]);
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -533,11 +541,15 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
           </div>
         </Panel>
 
-        {/* activity feed */}
+        {/* PR-C-5 · aktivitas HANYA milik perikatan ini. Dulu feed firma tampil
+            apa adanya di sini — termasuk baris "draft opini ENG-2025-063". */}
         <Panel noBody>
-          <div className="panel-h"><h3>Aktivitas Terkini</h3></div>
+          <div className="panel-h"><h3>Aktivitas Terkini</h3><span className="sub">perikatan ini</span></div>
           <div style={{ padding: '4px 12px 10px' }}>
-            {activity.map((a: any, i: any) => {
+            {D.activityEng.length === 0 && (
+              <div className="tiny muted" style={{ padding: '14px 2px' }}>Belum ada aktivitas tercatat untuk perikatan ini.</div>
+            )}
+            {D.activityEng.map((a: any, i: any) => {
               const IconC = (I as any)[(actIcon as any)[a.icon] || 'pulse'] || I.pulse;
               return (
                 <div key={i} className="ckp-act">
@@ -562,14 +574,15 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
 const MS_TONE = { done: 'green', active: 'blue', risk: 'amber', upcoming: 'gray' };
 const MS_LABEL = { done: 'Selesai', active: 'Berjalan', risk: 'Berisiko', upcoming: 'Akan datang' };
 function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
-  const dl = new Date(e.deadline);
   const span = Math.max(1, (+new Date(CKP_MILESTONES[CKP_MILESTONES.length - 1].date) - +CKP_START) / 86400000);
   const posOf = (d: any) => Math.min(100, Math.max(0, (+new Date(d) - +CKP_START) / 86400000 / span * 100));
   const todayPos = posOf(CKP_TODAY.toISOString().slice(0, 10));
-  const cname = activeClient?.name?.replace('PT ', '') || '';
-  const engDeadlines = deadlines.filter((d: any) => cname && d.client.includes(cname.split(' ')[0]));
-  const others = deadlines.filter((d: any) => !engDeadlines.includes(d));
-  const shown = [...engDeadlines, ...others].slice(0, 4);
+  /* PR-C-5: HANYA tenggat perikatan ini. Dulu daftar sengaja dipadatkan sampai
+     empat baris dengan tenggat KLIEN LAIN (`others`), tanpa penanda apa pun —
+     tenggat PT Graha Properti tampil di ruang kerja PT Sentosa Makmur. Kosong
+     kini dikatakan kosong. Pencocokan exact-match nama klien kanonik (sama
+     dengan deriveDeadlineTasks), bukan `includes` atas potongan nama. */
+  const shown = D.deadlinesEng;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -621,9 +634,12 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
 
         {/* upcoming deadlines */}
         <Panel noBody>
-          <div className="panel-h"><h3>Tenggat Mendatang</h3></div>
+          <div className="panel-h"><h3>Tenggat Mendatang</h3><span className="sub">{activeClient?.name || 'perikatan ini'}</span></div>
           <div style={{ padding: '8px 12px 12px' }}>
-            {shown.map((d, i) => (
+            {shown.length === 0 && (
+              <div className="tiny muted" style={{ padding: '12px 2px' }}>Tak ada tenggat terdaftar untuk perikatan ini.</div>
+            )}
+            {shown.map((d: { client: string; task: string; date: string; days: number; sev: string }, i: number) => (
               <div key={i} className="ckp-dl">
                 <span style={{ width: 7, height: 7, borderRadius: 50, background: TONE[d.sev === 'red' ? 'red' : d.sev === 'amber' ? 'amber' : 'gray'], flex: '0 0 7px' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -930,14 +946,13 @@ function OpinionReadinessPanel({ nav }: { nav: (id: string, opts?: Record<string
    TAB · RISIKO & KUALITAS — risk coverage, notes board, readiness gate
    ============================================================ */
 function TabRisiko({ D, e, nav }: any) {
-  const PRG = (typeof PROGRAMME !== 'undefined' && Array.isArray(PROGRAMME)) ? PROGRAMME : [];
-  const sigData = D.sigRisks.map((r: any) => {
-    const area = PRG.find((p: any) => p.area && (p.area.includes(r.area) || r.area.includes(p.area.split(' ')[0])));
-    const procs = area ? area.procs : [];
-    const dn = procs.filter((p: any) => p.status === 'done').length;
-    const exc = procs.reduce((s, p) => s + (p.exc || 0), 0);
-    return { ...r, total: procs.length, done: dn, exc };
-  });
+  /* PR-C-5: satu sumber cakupan — `cockpitRiskCoverage` (join `riskId`), sama
+     dengan yang dipakai kartu hero. Dulu tab ini menjodohkan ulang sendiri
+     dengan `String.includes` dan memakai definisi "tuntas" yang berbeda. */
+  const byId = new Map<string, CockpitRiskCoverage>(
+    (D.sigCoverage as CockpitRiskCoverage[]).map((c) => [c.id, c]),
+  );
+  const sigData = D.sigRisks.map((r: any) => ({ ...r, ...(byId.get(r.id) || { total: 0, done: 0, exc: 0, covered: false }) }));
 
   const notesByPr = { high: D.openNotes.filter((n: any) => n.priority === 'high'), medium: D.openNotes.filter((n: any) => n.priority === 'medium'), low: D.openNotes.filter((n: any) => n.priority === 'low') };
   const prTone = { high: 'red', medium: 'amber', low: 'gray' };
@@ -951,7 +966,7 @@ function TabRisiko({ D, e, nav }: any) {
           <div className="panel-h"><h3>Cakupan Risiko Signifikan (RoMM)</h3><span className="sub">{D.sigCovered}/{D.sigAreas.length} tuntas · {D.fraudRisks.length} risiko kecurangan</span></div>
           <div style={{ padding: '6px 6px 10px' }}>
             {sigData.map((r: any) => {
-              const full = r.total > 0 && r.done === r.total;
+              const full = r.covered;
               const tone = full ? 'green' : r.done > 0 ? 'amber' : 'red';
               return (
                 <div key={r.id} className="ckp-risk" onClick={() => nav('risk')}>

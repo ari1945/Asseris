@@ -130,19 +130,75 @@ export function gradeOf(role: string): string {
   return 'Junior';
 }
 
-/* Pencocokan penugasan orang↔kertas kerja.
-   UTANG DIAKUI (ditutup PR-C-5): register WP menyimpan nama disingkat
-   ('Fajar N.') sedangkan roster menyimpan nama lengkap ('Fajar Nugroho'),
-   sehingga satu-satunya jembatan yang ada saat ini adalah nama depan.
-   Dua "Dimas" di firma akan saling mengklaim kertas kerja. Perilaku ini
-   DIPERTAHANKAN apa adanya di PR-C-1 supaya perubahan angka pada PR ini
-   murni berasal dari sumber jam — bukan dari perubahan aturan pencocokan. */
-function firstName(full: string | undefined): string {
-  return (full || '').split(' ')[0];
+/* PR-C-5 · IDENTITAS ORANG.
+   Register kertas kerja menyimpan nama DISINGKAT ('Fajar N.') sementara roster
+   menyimpan nama lengkap ('Hartono Wijaya, CPA'). Sampai PR-C-5 jembatannya
+   adalah `split(' ')[0]` — NAMA DEPAN saja, sehingga dua "Dimas" di firma saling
+   mengklaim kertas kerja satu sama lain.
+
+   `staffKey` menormalkan kedua sisi ke "nama depan + inisial marga":
+       'Hartono Wijaya, CPA' → 'hartono w'
+       'Hartono W.'          → 'hartono w'
+   Gelar (', CPA') dibuang; titik & huruf besar diabaikan.
+
+   BATAS YANG DIAKUI, BUKAN DISEMBUNYIKAN: dua staf dengan nama depan DAN
+   inisial marga yang sama ('Dimas Raharjo' vs 'Dimas Rahman') masih bertabrakan.
+   Register hanya menyimpan string tersingkat itu, jadi secara informasi tak ada
+   yang bisa membedakannya di sini — perbaikan tuntas menuntut register menyimpan
+   ID staf, sebuah perubahan model data di luar cakupan PR ini. */
+export function staffKey(name: string | undefined): string {
+  const bare = (name || '').split(',')[0].trim().toLowerCase();
+  if (!bare) return '';
+  const parts = bare.split(/\s+/);
+  const first = parts[0];
+  const surname = parts[1] ? parts[1].replace(/\./g, '').charAt(0) : '';
+  return surname ? `${first} ${surname}` : first;
 }
 
-function countBy<T>(rows: T[], pick: (row: T) => string | undefined, first: string): number {
-  return rows.filter((row) => firstName(pick(row)) === first).length;
+function countBy<T>(rows: T[], pick: (row: T) => string | undefined, key: string): number {
+  return rows.filter((row) => staffKey(pick(row)) === key).length;
+}
+
+/* ---------- PR-C-5 · cakupan risiko signifikan ----------
+   Dulu risiko dijodohkan ke program audit dengan heuristik string:
+       PRG.find(p => p.area.includes(r.area) || r.area.includes(p.area.split(' ')[0]))
+   Padahal kuncinya SUDAH ADA di kedua sisi: `RISKS[].id` === `PROGRAMME[].riskId`.
+   Heuristik itu kebetulan benar pada seed sekarang dan akan salah diam-diam
+   begitu ada area yang namanya bersinggungan.
+
+   Sekaligus menutup kontradiksi DI SATU LAYAR: kartu hero menghitung "tertangani"
+   sebagai `procs.some(done)` (SATU prosedur cukup) sementara daftar di bawahnya
+   menandai hijau hanya bila `done === total`. Dua definisi, satu layar. Kini satu:
+   tuntas = SELURUH prosedur selesai. */
+export interface CockpitRiskRow { id: string; area?: string; inherent?: string; fraud?: boolean }
+export interface CockpitProgRow { riskId: string; area?: string; sig?: boolean; procs: { status?: string; exc?: number }[] }
+export interface CockpitRiskCoverage {
+  id: string;
+  area: string;
+  fraud: boolean;
+  total: number;
+  done: number;
+  exc: number;
+  /** tuntas = seluruh prosedur selesai (bukan "ada satu yang selesai") */
+  covered: boolean;
+}
+
+export function cockpitRiskCoverage(risks: CockpitRiskRow[], programme: CockpitProgRow[]): CockpitRiskCoverage[] {
+  const byRiskId = new Map(programme.map((p) => [p.riskId, p]));
+  return risks.map((r) => {
+    const prog = byRiskId.get(r.id);
+    const procs = (prog && prog.procs) || [];
+    const done = procs.filter((p) => p.status === 'done').length;
+    return {
+      id: r.id,
+      area: (prog && prog.area) || r.area || r.id,
+      fraud: !!r.fraud,
+      total: procs.length,
+      done,
+      exc: procs.reduce((s, p) => s + (p.exc || 0), 0),
+      covered: procs.length > 0 && done === procs.length,
+    };
+  });
 }
 
 /**
@@ -180,15 +236,15 @@ export function cockpitEconomics(input: CockpitEconomicsInput): CockpitEconomics
   };
 
   const members: CockpitMember[] = ew.roster.map((r) => {
-    const first = firstName(r.name);
+    const key = staffKey(r.name);
     return {
       ...r,
       grade: gradeOf(r.role),
       firmUtil: firmUtilOf(r.name),
-      wpPrep: countBy(input.workpapers, (w) => w.preparer, first),
-      wpRev: countBy(input.workpapers, (w) => w.reviewer, first),
-      procPrep: countBy(input.procs, (p) => p.prep, first),
-      procRev: countBy(input.procs, (p) => p.rev, first),
+      wpPrep: countBy(input.workpapers, (w) => w.preparer, key),
+      wpRev: countBy(input.workpapers, (w) => w.reviewer, key),
+      procPrep: countBy(input.procs, (p) => p.prep, key),
+      procRev: countBy(input.procs, (p) => p.rev, key),
     };
   });
 
