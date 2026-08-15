@@ -34,6 +34,16 @@ const { useState: useSOQM } = React;
 /* F1/PR-5 — siklus status + bentuk baris bertipe untuk jalur tulis (hindari :any baru). */
 const SOQM_MON_CYCLE = ['Belum Diuji', 'Efektif', 'Defisiensi'];
 const SOQM_CMP_CYCLE = ['Baru', 'Ditangani', 'Investigasi', 'Selesai'];
+
+/* SC-6 (PRD V-9): daftar id tab yang SAH — `?tab=` di luar daftar ini jatuh ke
+   tab awal alih-alih merender panel kosong (tautan lama ke id yang sudah
+   di-rename). Daftar `tabs` di dalam komponen memakai count dinamis sehingga
+   tak bisa diangkat utuh ke module scope; sinkronitas keduanya DIJAGA GERBANG
+   di `tab_address.test.ts`, bukan oleh kedisiplinan. */
+const SOQM_TAB_IDS = [
+  'objectives', 'register', 'monitoring', 'remediation',
+  'infocomm', 'complaints', 'evaluation', 'lineage', 'toolkit',
+];
 type SoqmMonRow = { id: string; monitor: string };
 type SoqmCmpRow = { id: string; status: string };
 
@@ -71,7 +81,7 @@ function SOQM() {
   /* Deep-link tab: `#/soqm?tab=toolkit` & `nav('soqm',{tab})`. Sebelumnya
      `useState` polos, sehingga tautan ke tab mana pun selalu mendarat di
      Register — termasuk tautan "Evaluasi Tahunan" dari Governance. */
-  const [tab, setTab] = useInitialTab('soqm', 'register');
+  const [tab, setTab] = useInitialTab('soqm', 'register', SOQM_TAB_IDS);
 
   /* PR-8b — status dokumentasi ¶57–60. `smmDocCoverage`/`auditRetention` sudah
      dibangun PR-7 lalu tidak pernah dikonsumsi view mana pun; keduanya kini

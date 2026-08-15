@@ -8,10 +8,10 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 52 |
 | Approved | 5 |
 | In Progress | 8 |
-| Implemented | 28 |
+| Implemented | 29 |
 | Superseded | 1 |
 
 ## Daftar
@@ -83,6 +83,7 @@
 | docs/PRD-excel-engagement-pack.md | Implemented — SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh) 2026-07-09 |
 | docs/prd-acceptance-to-engagement-flow-sa210.md | Draft — menunggu sign-off |
 | docs/prd-add-staff-user-cli.md | Implemented — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
+| docs/prd-addressable-tabs.md | Implemented — SELESAI 2026-08-15. F-1+F-2, SC-1..SC-9 tertutup; verify hijau + live-verified (kedua repro PRD ditutup, koreksi alamat tab busuk ditemukan saat verifikasi hidup) |
 | docs/prd-aje-immutability-live-approvals.md | Implemented — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
 | docs/prd-audit-trail-server-chain.md | Implemented — P-1..P-5 selesai 2026-08-14; verify hijau + live-verified (audit.list 200 entri, badge jujur) |
 | docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |

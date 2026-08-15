@@ -8,6 +8,7 @@ import { applyMapping } from './wtb_mapping';
 import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
 import { parseHash } from './route_hash';
+import { coerceTab, tabFromHash, writeTabToAddress } from './tab_address';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
 /* PR-1 (prd-wp-signoff-integrity) — `amsShortName` pindah ke modul murni agar
@@ -288,26 +289,75 @@ function useCurrentAuditor() {
    default/last-used hanya saat tiba via deep-link, lalu MENGONSUMSI kunci (hapus)
    sehingga kunjungan/render berikutnya kembali ke perilaku normal. Drop-in
    pengganti `useState(fallback)`: mengembalikan tuple [nilai, setter] yang sama.
-   `fallback` boleh nilai atau fungsi lazy (dievaluasi bila tak ada tab diminta). */
-function useInitialTab(moduleId: string, fallback: unknown) {
-  return useState(() => {
+   `fallback` boleh nilai atau fungsi lazy (dievaluasi bila tak ada tab diminta).
+
+   PRD V-9 (2026-08-15) — hook ini kini BERALAMAT DUA ARAH, dengan tanda tangan
+   yang sama persis sehingga seluruh modul pemakainya sembuh tanpa disentuh:
+     · state → alamat: setiap perubahan tab ditulis ke hash (`replaceState`);
+     · alamat → state: `hashchange` dari Back/Forward atau URL yang ditempel
+       menyinkronkan tab TANPA reload.
+   Sebelumnya ia murni baca-saat-mount, sehingga bilah alamat berbohong begitu
+   pengguna mengklik tab dan tautan yang disalin membuka layar lain.
+
+   `validTabs` OPSIONAL (SC-6): bila diberikan, `?tab=` yang tak dikenal jatuh ke
+   `fallback` alih-alih merender panel kosong — penting untuk tautan lama yang
+   menunjuk id tab yang sudah di-rename. Modul yang tak memberikannya berperilaku
+   seperti sebelumnya. */
+function useInitialTab(moduleId: string, fallback: unknown, validTabs?: readonly string[]) {
+  const [tab, setTab] = useState(() => {
     /* PRD Fase B — URL lebih dulu: tautan yang dibagikan (`#/wtb?tab=drill`)
        harus membuka tab yang dimaksud, dan TIDAK dikonsumsi (alamat itu
        menetap, bukan sekali-pakai). Hanya berlaku bila hash menunjuk modul
        INI — supaya `?tab=` milik modul lain tak bocor ke sini.
        sessionStorage one-shot tetap ada sebagai jalur kedua: ia dipakai
        navigasi internal dan sudah teruji sejak PRD 2026-07-18. */
+    const fb = () => (typeof fallback === 'function' ? fallback() : fallback);
     try {
-      const loc = parseHash(typeof location === 'undefined' ? '' : location.hash);
-      if (loc && loc.route === moduleId && loc.tab != null) return loc.tab;
+      const t = tabFromHash(typeof location === 'undefined' ? '' : location.hash, moduleId);
+      if (t != null) return coerceTab(t, String(fb()), validTabs);
     } catch (e) { /* URL tak terbaca */ }
     try {
       const k = 'ams.navtab.' + moduleId;
       const v = sessionStorage.getItem(k);
-      if (v != null) { sessionStorage.removeItem(k); return v; }
+      if (v != null) { sessionStorage.removeItem(k); return coerceTab(v, String(fb()), validTabs); }
     } catch (e) { /* private mode / no sessionStorage */ }
-    return typeof fallback === 'function' ? fallback() : fallback;
+    return fb();
   });
+
+  /* state → alamat. `writeTabToAddress` menolak menulis bila hash menunjuk modul
+     LAIN (mis. saat modul ini sedang unmount karena rute berpindah), sehingga tab
+     satu modul tak pernah bocor ke alamat modul lain (SC-5). Ia juga no-op bila
+     hash sudah menyatakan tab yang sama (SC-3). */
+  useEffect(() => { writeTabToAddress(moduleId, String(tab)); }, [moduleId, tab]);
+
+  /* Nilai tab TERKINI untuk listener di bawah. Listener hanya dipasang sekali
+     (deps [moduleId]); membaca `tab` dari closure akan membekukannya pada nilai
+     saat mount. */
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+
+  /* alamat → state. `replaceState` tidak memicu `hashchange`, jadi tulisan kita
+     sendiri tak pernah kembali ke sini — inilah penjaga anti-gelung utama (R-1). */
+  useEffect(() => {
+    const onHash = (): void => {
+      const t = tabFromHash(location.hash, moduleId);
+      if (t == null) return;                    // hash menunjuk modul lain / tanpa tab
+      const next = coerceTab(t, String(tabRef.current), validTabs);
+      /* URL menyebut tab yang TAK ADA (mis. tautan lama ke id yang sudah di-rename):
+         state jatuh ke tab yang berlaku — dan ALAMATNYA DIKOREKSI. Tanpa baris ini,
+         `tab` tak berubah sehingga efek "state → alamat" tak menembak, dan bilah
+         alamat kembali berbohong: menyebut tab yang tak ada sementara layar
+         menampilkan tab lain. Terlihat pada verifikasi HIDUP 2026-08-15, bukan uji. */
+      if (next !== t) writeTabToAddress(moduleId, next);
+      setTab((cur: unknown) => (cur === next ? cur : next));
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+    /* `tab` dibaca lewat `tabRef`, jadi ia sengaja di luar deps: memasukkannya akan
+       memasang-lepas listener tiap perpindahan tab tanpa manfaat apa pun. */
+  }, [moduleId]);
+
+  return [tab, setTab];
 }
 
 /* Deep-link selection (sibling `useInitialTab`): `navigate(id, { sel })` menaruh
