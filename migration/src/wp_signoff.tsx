@@ -416,25 +416,54 @@ function WpSubBarControl({ moduleId }: any) {
 /* ---- Rekap kelengkapan per-engagement (Fase 4) ----
    Dedupe per ref kanonik: modul ber-alias (lease/psak73→F, revenue/psak72→R)
    berbagi WP yg sama → dihitung SEKALI, bukan ganda. */
-function wpCompletenessFor(audit: any, moduleIds: any) {
-  const wpState = (audit && audit.wpState) || {};
-  const seen = new Set();
-  let total = 0, signed = 0, withEvidence = 0, withConclusion = 0, notStarted = 0;
-  moduleIds.forEach((mid: any) => {
+/* wpModuleStatuses (PR-C-2) — kelengkapan PER kertas kerja, bukan agregat.
+   Sampai PR ini satu-satunya pembaca `wpState` di luar view modulnya adalah
+   `wpCompletenessFor`, yang hanya mengembalikan jumlah — sehingga cockpit tak
+   bisa menunjukkan kertas kerja MANA yang tertinggal dan terpaksa memakai
+   persentase literal. Fungsi ini membuka rinciannya; `wpCompletenessFor` kini
+   dibangun di ATASNYA supaya keduanya tak bisa menyimpang. Dedupe per `ref`
+   (mis. `lease` & `psak73` berbagi ref 'F') persis seperti sebelumnya. */
+/* Bentuk MINIMAL yang dibaca fungsi ini — sengaja permisif agar menerima
+   `wpState` kanonik (yang punya lebih banyak field & mengizinkan null) tanpa
+   menyalin definisinya ke sini. */
+interface WpStateEntry {
+  chain?: { preparer?: unknown; reviewer?: unknown; partner?: unknown } | null;
+  conclusion?: { text?: string } | null;
+}
+interface WpAuditLike { wpState?: Record<string, WpStateEntry> | null }
+export interface WpModuleStatus { id: string; ref: string; signed: boolean; hasEvidence: boolean; hasConclusion: boolean; notStarted: boolean }
+
+function wpModuleStatuses(audit: WpAuditLike | null | undefined, moduleIds: string[]): WpModuleStatus[] {
+  const wpState: Record<string, WpStateEntry> = (audit && audit.wpState) || {};
+  const seen = new Set<string>();
+  const rows: WpModuleStatus[] = [];
+  moduleIds.forEach((mid) => {
     const ref = wpKeyFor(mid);
     if (seen.has(ref)) return;
     seen.add(ref);
-    total++;
     const st = wpState[ref] || {};
-    if (st.chain && st.chain.reviewer) signed++;
     const req = requiredEvidenceFor(mid);
     const att = (typeof amsEvidenceCount === 'function') ? amsEvidenceCount(mid) : 0;
     const hasConclusion = !!(st.conclusion && st.conclusion.text);
-    if (req.length ? att >= req.length : att > 0) withEvidence++;
-    if (hasConclusion) withConclusion++;
-    // "belum dimulai" (isu #3): nol bukti DAN nol kesimpulan
-    if (att === 0 && !hasConclusion) notStarted++;
+    rows.push({
+      id: mid, ref,
+      signed: !!(st.chain && st.chain.reviewer),
+      hasEvidence: req.length ? att >= req.length : att > 0,
+      hasConclusion,
+      // "belum dimulai" (isu #3): nol bukti DAN nol kesimpulan
+      notStarted: att === 0 && !hasConclusion,
+    });
   });
+  return rows;
+}
+
+function wpCompletenessFor(audit: any, moduleIds: any) {
+  const rows = wpModuleStatuses(audit, moduleIds);
+  const total = rows.length;
+  const signed = rows.filter((r) => r.signed).length;
+  const withEvidence = rows.filter((r) => r.hasEvidence).length;
+  const withConclusion = rows.filter((r) => r.hasConclusion).length;
+  const notStarted = rows.filter((r) => r.notStarted).length;
   return { total, signed, withEvidence, withConclusion, notStarted,
     signedPct: total ? Math.round(signed / total * 100) : 0,
     evidencePct: total ? Math.round(withEvidence / total * 100) : 0,
@@ -752,6 +781,6 @@ Object.assign(window, {
 
 export {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
-  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
+  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, wpModuleStatuses, WpCompletenessRecap,
   PHASE_ORDER, engagementGate, EngagementGateSummary, usePhaseGate, PhaseGateDialog, eqrStatusFor,
 };

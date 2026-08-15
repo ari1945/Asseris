@@ -3,14 +3,18 @@ import React from 'react';
 import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights';
 import { useAudit, useAuditHeavy, useFirm, useNav } from './contexts';
-import { I } from './icons';
+import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { PROGRAMME } from './view_cockpit';
 import { FIRMFIN } from './data_firmfin';
-import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff';
+import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP } from './wp_signoff';
 import { cockpitEconomics, type CockpitWip, type CockpitMember } from './cockpit_model';
+import {
+  progressBridge, phaseRollups, PHASE_BUDGET_WEIGHT, CKP_PHASE_ORDER,
+  type ModuleWpStatus, type PhaseRollup, type ProgressBridge,
+} from './cockpit_progress';
 
 /* ============================================================
    Asseris — Engagement Cockpit (DEEP)
@@ -19,39 +23,19 @@ import { cockpitEconomics, type CockpitWip, type CockpitMember } from './cockpit
    ============================================================ */
 const { useState: useStateCkp, useMemo: useMemoCkp } = React;
 
-/* roll-up completion across modules — phases of the audit lifecycle */
-const CKP_PHASES = [
-  { phase: 'Perencanaan', key: 'Perencanaan', color: '#5b3fa6', weight: 0.152, modules: [
-    { id: 'strategy', label: 'Strategy Memo', pct: 100 },
-    { id: 'materiality', label: 'Materiality', pct: 100 },
-    { id: 'risk', label: 'Risk Assessment', pct: 90 },
-    { id: 'icfr', label: 'Internal Control', pct: 75 },
-  ]},
-  { phase: 'Eksekusi', key: 'Eksekusi', color: '#005085', weight: 0.413, modules: [
-    { id: 'wtb', label: 'Working Trial Balance', pct: 100 },
-    { id: 'aje', label: 'Adjusting Entries', pct: 80 },
-    { id: 'analytical', label: 'Analytical Review', pct: 60 },
-    { id: 'sa530', label: 'Sampling', pct: 55 },
-    { id: 'confirm', label: 'Confirmation Hub', pct: 64 },
-    { id: 'jet', label: 'Journal Entry Testing', pct: 40 },
-    { id: 'workpapers', label: 'Working Papers', pct: 58 },
-  ]},
-  { phase: 'Specifics', key: 'Specifics', color: '#0a6b73', weight: 0.196, modules: [
-    { id: 'ecl', label: 'ECL (PSAK 71)', pct: 85 },
-    { id: 'psak73', label: 'Sewa (PSAK 73)', pct: 70 },
-    { id: 'related', label: 'Related Parties', pct: 50 },
-    { id: 'goingconcern', label: 'Going Concern', pct: 65 },
-    { id: 'subsequent', label: 'Subsequent Events', pct: 30 },
-  ]},
-  { phase: 'Finalisasi', key: 'Finalisasi', color: '#9a6a00', weight: 0.185, modules: [
-    { id: 'sad', label: 'SAD Ledger', pct: 45 },
-    { id: 'fsgen', label: 'Financial Statements', pct: 40 },
-    { id: 'opinion', label: 'Audit Opinion', pct: 20 },
-    { id: 'mgmtletter', label: 'Management Letter', pct: 15 },
-  ]},
-];
-/* archive carries the residual weight */
-const CKP_ARCHIVE_W = 0.054;
+/* PR-C-2: `CKP_PHASES` dulu memuat 20 persentase HARDCODE yang rata-ratanya
+   1242/20 = 62,1 → 62 — persis `e.progress` literal. Dua representasi angka
+   yang sama, ditala agar sepakat, dan tak bergerak oleh tindakan auditor mana
+   pun. Peta modul→fase + roll-up terbukti kini di `cockpit_progress.ts`,
+   dihitung dari `wpState` lewat `wpModuleStatuses`. Bobot jam anggaran per
+   fase (`PHASE_BUDGET_WEIGHT`) tetap literal — ia MODEL ALOKASI, dan kini
+   diberi label demikian alih-alih menyamar sebagai pengukuran. */
+
+/* label modul untuk pipeline fase — SSOT `MODULE_INDEX` (icons.tsx) */
+const ckpModuleLabel = (id: string): string => {
+  const m = (MODULE_INDEX as Record<string, { label?: string }>)[id];
+  return (m && m.label) || id;
+};
 
 /* engagement lifecycle milestones (critical path) */
 const CKP_MILESTONES = [
@@ -139,9 +123,15 @@ function EngagementCockpit() {
   const [tab, setTab] = useStateCkp('ringkasan');
 
   const D = useMemoCkp(() => {
-    const allMods = CKP_PHASES.flatMap((p: any) => p.modules);
-    const overall = e.progress != null ? e.progress : Math.round(allMods.reduce((s, m) => s + m.pct, 0) / allMods.length);
-    const phasePct = (p: any) => Math.round(p.modules.reduce((s: any, m: any) => s + m.pct, 0) / p.modules.length);
+    /* PR-C-2 · PROGRES — dua angka, bukan satu literal:
+         asserted = penilaian manajer perikatan (e.progress)
+         proven   = terbukti dari kertas kerja (wpState → tiga tonggak per WP)
+       `overall` yang dipakai seluruh sinyal kesehatan = TERBUKTI. */
+    const wpStatuses: ModuleWpStatus[] = wpModuleStatuses({ wpState }, Object.keys(WP_MODULE_MAP));
+    const bridge = progressBridge(wpStatuses, e.progress != null ? e.progress : null);
+    const rolls = phaseRollups(wpStatuses);
+    const overall = Math.round(bridge.provenPct);
+    const asserted = bridge.assertedPct;
 
     const dl = new Date(e.deadline);
     const totalDays = Math.max(1, (+dl - +CKP_START) / 86400000);
@@ -184,7 +174,14 @@ function EngagementCockpit() {
 
     /* health tones */
     const schedTone = overall >= elapsedPct - 4 ? 'green' : overall >= elapsedPct - 14 ? 'amber' : 'red';
-    const budgetTone = burnPct <= overall + 5 ? 'green' : burnPct <= overall + 15 ? 'amber' : 'red';
+    /* Denominator efisiensi anggaran = progres DI-ASSERT, bukan terbukti.
+       Kartu ini tentang EKONOMI (rupiah/jam yang terpakai vs pekerjaan yang
+       manajer nyatakan selesai). Memakai progres terbukti akan mencampur dua
+       masalah berbeda — keterlambatan dokumentasi menjadi "berisiko over-budget"
+       — dan membuat kartu ini kehilangan daya beda. Ketertinggalan bukti sudah
+       punya sinyalnya sendiri (kartu Jadwal + panel jembatan). */
+    const econBase = asserted != null ? asserted : overall;
+    const budgetTone = burnPct <= econBase + 5 ? 'green' : burnPct <= econBase + 15 ? 'amber' : 'red';
     const qualTone = openNotes.length === 0 ? 'green' : highOpen.length >= 3 ? 'red' : 'amber';
     const riskTone = sigAreas.length && sigCovered === sigAreas.length && excTot === 0 ? 'green' : excTot > 2 || (sigAreas.length && sigCovered < sigAreas.length / 2) ? 'red' : 'amber';
     /* P5 cleanup: signal band "Dokumentasi WP" ikut SSOT wpRecap (37 WP kanonik),
@@ -197,13 +194,36 @@ function EngagementCockpit() {
     const verdict = worst >= 2 ? { tone: 'red', l: 'Perlu Tindakan' } : worst >= 1 ? { tone: 'amber', l: 'Perlu Perhatian' } : { tone: 'green', l: 'Sehat / On-track' };
 
     /* phase hours model (data-driven from phase progress) */
-    const phaseRows = CKP_PHASES.map((p: any) => ({ phase: p.phase, color: p.color, pct: phasePct(p), bud: Math.round(p.weight * econ.budgetHrs), })).concat([{ phase: 'Review & Arsip', color: '#7a7f87', pct: 0, bud: Math.round(CKP_ARCHIVE_W * econ.budgetHrs) }]);
-    let actRaw = phaseRows.map((r: any) => r.bud * (r.pct / 100));
-    const rawSum = actRaw.reduce((s, x) => s + x, 0) || 1;
-    phaseRows.forEach((r: any, i: any) => { r.act = Math.round(actRaw[i] / rawSum * econ.actualHrs); });
+    /* PR-C-2 · JAM PER FASE. Dua kolom yang dulu tercampur, kini dipisah:
+         `bud`   = MODEL ALOKASI (bobot literal × jam anggaran) — dilabeli model
+         `tsAct` = jam yang BENAR-BENAR ber-tag fase di timesheet
+       Kolom "Aktual" lama adalah PLUG: total jam dibagi proporsional terhadap
+       progres literal, lalu disajikan sebagai pengukuran. Jam pembuka roster
+       tidak ber-tag fase, jadi jumlah `tsAct` sengaja TIDAK sama dengan total
+       jam — selisihnya dinyatakan, bukan disebar. */
+    const tsByPhase: Record<string, number> = {};
+    (timeEntries || []).forEach((t: { phase?: string; hours?: number }) => {
+      const k = t.phase || '—';
+      tsByPhase[k] = (tsByPhase[k] || 0) + (t.hours || 0);
+    });
+    const rollByPhase = new Map(rolls.map((r: PhaseRollup) => [r.phase, r]));
+    const phaseRows = [...CKP_PHASE_ORDER, 'Review & Arsip' as const].map((phase) => {
+      const roll = rollByPhase.get(phase as never);
+      return {
+        phase,
+        color: roll ? roll.token : 'var(--ink-3)',
+        pct: roll ? Math.round(roll.provenPct) : 0,
+        wpCount: roll ? roll.total : 0,
+        bud: Math.round((PHASE_BUDGET_WEIGHT as Record<string, number>)[phase] * econ.budgetHrs),
+        tsAct: Math.round(tsByPhase[phase] || 0),
+      };
+    });
+    const tsTotal = phaseRows.reduce((s, r) => s + r.tsAct, 0);
+    const untaggedHrs = Math.max(0, Math.round(econ.actualHrs - tsTotal));
 
     return {
-      overall, phasePct, elapsedPct, daysLeft, burnPct,
+      overall, asserted, econBase, bridge, rolls, wpStatuses, untaggedHrs, tsTotal,
+      elapsedPct, daysLeft, burnPct,
       openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
       sigRisks, fraudRisks, excTot, sigAreas, sigCovered,
       schedTone, budgetTone, qualTone, riskTone, docTone, verdict,
@@ -228,7 +248,10 @@ function EngagementCockpit() {
     if (exporting) return;
     setExporting(true);
     try {
-      const phaseSheet = D.phaseRows.map((p: { phase: string; pct: number; bud: number }) => [p.phase, p.pct + '%', p.bud]);
+      /* PR-C-2: sheet menyebut BASIS tiap kolom — "terbukti" bukan "progres",
+         "model alokasi" bukan "anggaran fase", dan hanya jam ber-tag fase. */
+      const phaseSheet = D.phaseRows.map((p: { phase: string; pct: number; bud: number; wpCount: number; tsAct: number }) =>
+        [p.phase, p.wpCount || '', p.wpCount ? p.pct + '%' : '—', p.bud, p.tsAct || '']);
       /* PR-C-1: kolom memisahkan tarif CHARGE-OUT dari tarif BIAYA — dulu satu
          kolom "Rate" berisi tarif biaya sementara nilainya dilabeli WIP. */
       const teamSheet = D.econ.members.map((m: CockpitMember) => [
@@ -241,13 +264,14 @@ function EngagementCockpit() {
         fileName: `Status Report - ${activeClient?.name || 'Klien'}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: `Status Report Engagement — ${activeClient?.name || ''}`,
-        meta: [`${e?.id || ''} · ${e?.fy || ''} · progres ${D.overall}% · sisa ${D.daysLeft} hari`,
+        meta: [`${e?.id || ''} · ${e?.fy || ''} · progres TERBUKTI ${D.overall}%${D.asserted != null ? ` (di-assert manajer ${D.asserted}%, selisih ${(D.bridge.gapPp ?? 0).toFixed(1)} pp)` : ''} · sisa ${D.daysLeft} hari`,
           D.econ.hasRoster
             ? `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · WIP @tarif standar Rp ${Math.round((D.econ.wipStd || 0) / 1e6)} jt · biaya waktu Rp ${Math.round((D.econ.timeCost || 0) / 1e6)} jt — jam & Rp jt`
             : `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · roster jam belum disiapkan — rincian per-anggota tak terukur`],
         sheets: [
-          { name: 'Fase', heading: 'Progres per fase (%)',
-            columns: ['Fase', 'Progres', 'Jam Anggaran'], rows: phaseSheet, colWidths: [26, 10, 14] },
+          { name: 'Fase', heading: 'Kelengkapan TERBUKTI per fase (wpState: bukti · kesimpulan SA 230 · sign-off)',
+            columns: ['Fase', 'WP kanonik', 'Terbukti', 'Jam anggaran (model alokasi)', 'Jam ber-tag fase'],
+            rows: phaseSheet, colWidths: [26, 12, 12, 28, 18] },
           { name: 'Tim', heading: D.econ.hasRoster ? 'Beban tim (jam & Rp) — roster + timesheet (SSOT Time & Budget)' : 'Beban tim — roster jam belum disiapkan',
             columns: ['Anggota', 'Grade', 'Tarif charge-out', 'Tarif biaya', 'Jam anggaran', 'Jam aktual', 'Util perikatan %', 'WP prep', 'WP rev', 'Proc prep', 'Proc rev'],
             rows: teamSheet, colWidths: [22, 10, 16, 14, 13, 12, 16, 10, 10, 10, 10] },
@@ -282,7 +306,9 @@ function EngagementCockpit() {
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', flexDirection: 'column' }}>
                 <div className="mono" style={{ fontSize: 28, fontWeight: 700 }}>{D.overall}%</div>
-                <div className="tiny" style={{ color: '#bcd6e4' }}>selesai</div>
+                {/* PR-C-2: angka utama = TERBUKTI; asersi manajer ditampilkan
+                    sebagai pembanding, bukan disembunyikan atau digantikan. */}
+                <div className="tiny" style={{ color: '#bcd6e4' }}>terbukti</div>
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
@@ -290,6 +316,7 @@ function EngagementCockpit() {
               <div style={{ fontSize: 12, color: '#bcd6e4', margin: '3px 0 9px' }}>{e.type} · {e.standard} · Partner {e.partner.split(',')[0]} · Manager {e.manager}</div>
               <div className="row gap6 wrap">
                 <span className="ckp-htag">Fase: {e.phase}</span>
+                {D.asserted != null && <span className="ckp-htag" title="Penilaian manajer perikatan — dijembatani ke progres terbukti di panel Ringkasan">Di-assert manajer {D.asserted}%</span>}
                 <span className="ckp-htag" style={{ background: e.risk === 'High' ? 'rgba(255,107,87,.24)' : 'rgba(255,255,255,.14)' }}>Risiko {e.risk}</span>
                 <span className="ckp-htag">Materialitas {rpM(e.materiality)}</span>
                 <span className="ckp-htag">Fee {rpM(D.fee)}</span>
@@ -314,10 +341,10 @@ function EngagementCockpit() {
 
         {/* ---------- HEALTH SIGNAL BAND ---------- */}
         <div className="ckp-signals">
-          <SignalCard icon="calendar" label="Jadwal" tone={D.schedTone} value={`${D.overall}% vs ${Math.round(D.elapsedPct)}% waktu`}
-            read={D.schedTone === 'green' ? 'Sesuai jadwal' : D.schedTone === 'amber' ? 'Sedikit di belakang jadwal' : 'Tertinggal dari jadwal'} onClick={() => setTab('jalur')} />
+          <SignalCard icon="calendar" label="Jadwal" tone={D.schedTone} value={`${D.overall}% terbukti vs ${Math.round(D.elapsedPct)}% waktu`}
+            read={D.schedTone === 'green' ? 'Sesuai jadwal' : D.schedTone === 'amber' ? 'Sedikit di belakang jadwal' : 'Bukti kertas kerja tertinggal dari waktu berjalan'} onClick={() => setTab('ringkasan')} />
           <SignalCard icon="coins" label="Anggaran" tone={D.budgetTone} value={`${Math.round(D.burnPct)}% terpakai`}
-            read={D.budgetTone === 'green' ? 'Efisien vs progres' : D.budgetTone === 'amber' ? 'Pantau pemakaian jam' : 'Berisiko over-budget'} onClick={() => setTab('anggaran')} />
+            read={`${D.budgetTone === 'green' ? 'Efisien' : D.budgetTone === 'amber' ? 'Pantau pemakaian jam' : 'Berisiko over-budget'} vs progres di-assert ${D.econBase}%`} onClick={() => setTab('anggaran')} />
           <SignalCard icon="check" label="Kualitas Review" tone={D.qualTone} value={`${D.openNotes.length} catatan open`}
             read={D.qualTone === 'green' ? 'Semua terselesaikan' : `${D.highOpen.length} prioritas tinggi tertunda`} onClick={() => setTab('risiko')} />
           <SignalCard icon="shield" label="Risiko & Pengecualian" tone={D.riskTone} value={`${D.excTot} pengecualian`}
@@ -343,6 +370,85 @@ function EngagementCockpit() {
 }
 
 /* ============================================================
+   PR-C-2 · JEMBATAN PROGRES — asersi manajer vs terbukti kertas kerja
+   ------------------------------------------------------------
+   Ketiga baris tonggak BENAR-BENAR menjumlah menjadi progres terbukti
+   (masing-masing maksimum 33,3 pp). Selisih terhadap asersi manajer
+   dinyatakan sebagai SATU baris bernama — tidak dipecah menjadi komponen
+   palsu, karena defisiensi antar-tonggak saling tumpang tindih dan
+   pemecahan semacam itu hanya akan menjadi plug berbaju enumerasi.
+   ============================================================ */
+function ProgressBridgePanel({ D, nav }: { D: { bridge: ProgressBridge; overall: number }; nav: (id: string) => void }) {
+  const b = D.bridge;
+  const gap = b.gapPp;
+  const maxPp = 100 / b.rows.length;
+  return (
+    <Panel noBody>
+      <div className="panel-h">
+        <h3>Progres — Asersi Manajer vs Terbukti Kertas Kerja</h3>
+        <span className="sub">dua sumber independen, selisih dinyatakan</span>
+      </div>
+      <div className="ckp-bridge">
+        <div className="ckp-bridge-nums">
+          <div className="ckp-bridge-num">
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--ink-2)' }}>
+              {b.assertedPct == null ? '—' : b.assertedPct + '%'}
+            </div>
+            <div className="tiny muted upper" style={{ fontWeight: 700 }}>Di-assert manajer</div>
+            <div className="tiny muted">penilaian profesional atas kemajuan</div>
+          </div>
+          <div className="ckp-bridge-arrow"><I.arrowRight size={18} /></div>
+          <div className="ckp-bridge-num">
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, color: ckpBar(D.overall) }}>{D.overall}%</div>
+            <div className="tiny muted upper" style={{ fontWeight: 700 }}>Terbukti kertas kerja</div>
+            <div className="tiny muted">{b.total} WP kanonik × 3 tonggak</div>
+          </div>
+        </div>
+        <div className="ckp-bridge-rows">
+          {b.rows.map((r) => (
+            <div key={r.key} className="ckp-bridge-row">
+              <span className="ckp-bridge-tick" style={{ color: r.count ? 'var(--green)' : 'var(--ink-4)' }}>
+                {r.count ? <I.checkCircle size={14} /> : <I.alert size={14} />}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row jb ac">
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{r.label} <span className="chip tiny" style={{ height: 16, fontFamily: 'var(--mono)' }}>{r.sa}</span></span>
+                  <span className="mono tiny" style={{ fontWeight: 700 }}>+{r.pp.toFixed(1)} pp <span className="muted" style={{ fontWeight: 500 }}>· {r.count}/{r.total}</span></span>
+                </div>
+                <div style={{ height: 5, borderRadius: 3, background: 'var(--surface-3)', marginTop: 4 }}>
+                  <div style={{ width: (r.pp / maxPp * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--teal)' }} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="ckp-bridge-total">
+            <span style={{ fontSize: 12, fontWeight: 700 }}>= Progres terbukti</span>
+            <span className="mono" style={{ fontWeight: 700, color: ckpBar(D.overall) }}>{b.provenPct.toFixed(1)}%</span>
+          </div>
+          {gap != null && (
+            <div className="ckp-bridge-gap">
+              <span style={{ fontSize: 12, fontWeight: 600 }}>
+                {gap >= 0 ? 'Asersi manajer yang belum terbukti kertas kerja' : 'Kertas kerja mendahului asersi manajer'}
+              </span>
+              <span className="mono tiny" style={{ fontWeight: 700, color: Math.abs(gap) > 20 ? 'var(--amber)' : 'var(--ink-2)' }}>
+                {gap >= 0 ? '' : '+'}{Math.abs(gap).toFixed(1)} pp
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="ckp-info" style={{ marginTop: 10 }}>
+          <I.lock size={13} />
+          <span>Selisih ini <b>bukan kesalahan</b> — asersi manajer dan bukti kertas kerja adalah dua sumber independen. Yang tak boleh terjadi adalah selisih yang tidak dinyatakan. Tutup selisih dengan melengkapi bukti, mencatat kesimpulan SA 230, dan sign-off penelaah.</span>
+        </div>
+        <button className="btn sm" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} onClick={() => nav('workpapers')}>
+          <I.flask size={14} /> Buka Indeks Kertas Kerja
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+/* ============================================================
    TAB · RINGKASAN — phase pipeline + needs attention + activity
    ============================================================ */
 function TabRingkasan({ D, e, nav, activity, setTab }: any) {
@@ -359,31 +465,40 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
 
   return (
     <div className="grid" style={{ gap: 12 }}>
-      {/* phase pipeline */}
+      {/* PR-C-2 · jembatan asersi → terbukti */}
+      <ProgressBridgePanel D={D} nav={nav} />
+
+      {/* phase pipeline — kini roll-up TERBUKTI dari wpState, bukan 20 literal */}
       <Panel noBody>
-        <div className="panel-h"><h3>Pipeline Fase Audit</h3><span className="sub">roll-up penyelesaian modul per fase · klik modul untuk membuka</span></div>
+        <div className="panel-h">
+          <h3>Pipeline Fase Audit</h3>
+          <span className="sub">kelengkapan terbukti per kertas kerja · {D.bridge.total} WP kanonik · klik untuk membuka</span>
+        </div>
         <div className="ckp-phases">
-          {CKP_PHASES.map((p: any) => {
-            const pp = D.phasePct(p);
+          {D.rolls.map((p: PhaseRollup) => {
+            const pp = Math.round(p.provenPct);
             const isActive = p.phase === e.phase || (e.phase === 'Eksekusi' && p.phase === 'Specifics');
             return (
               <div key={p.phase} className={'ckp-phasecol' + (isActive ? ' on' : '')}>
                 <div className="ckp-phasecol-h">
-                  <span style={{ width: 9, height: 9, borderRadius: 3, background: p.color }} />
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: p.token }} />
                   <span style={{ fontWeight: 700, fontSize: 12 }}>{p.phase}</span>
                   {isActive && <span className="ckp-now">AKTIF</span>}
                   <div style={{ flex: 1 }} />
                   <span className="mono tiny" style={{ fontWeight: 700, color: ckpBar(pp) }}>{pp}%</span>
                 </div>
-                <div style={{ padding: '8px 10px' }}>
-                  {p.modules.map((m: any) => (
-                    <div key={m.id} onClick={() => nav(m.id)} className="ckp-modrow">
+                <div className="ckp-phasecol-sub tiny muted">
+                  {p.total} kertas kerja{p.notStarted > 0 && <span> · <b style={{ color: 'var(--amber)' }}>{p.notStarted} belum dimulai</b></span>}
+                </div>
+                <div className="ckp-modlist">
+                  {p.modules.map((m) => (
+                    <button key={m.id} onClick={() => nav(m.id)} className="ckp-modrow" title={`${ckpModuleLabel(m.id)} — ${m.pct}% terbukti`}>
                       <div className="row jb ac" style={{ marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{m.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{ckpModuleLabel(m.id)}</span>
                         <span className="mono tiny" style={{ color: ckpBar(m.pct), fontWeight: 700 }}>{m.pct}%</span>
                       </div>
                       <div style={{ height: 4, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: m.pct + '%', height: '100%', borderRadius: 3, background: ckpBar(m.pct) }} /></div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -537,7 +652,8 @@ function TabAnggaran({ D, e }: any) {
      yang tak pernah dirender) dihapus. Nilai bisa `null` → perikatan tanpa roster. */
   const econ = D.econ;
   const dash = '—';
-  const variance = D.actualHrs - Math.round(D.budgetHrs * D.overall / 100);
+  /* kurva jam memakai progres DI-ASSERT (lihat catatan econBase di model D) */
+  const variance = D.actualHrs - Math.round(D.budgetHrs * D.econBase / 100);
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -548,11 +664,12 @@ function TabAnggaran({ D, e }: any) {
           <div style={{ padding: '14px 16px' }}>
             <EVBar label="Waktu berjalan" pct={D.elapsedPct} tone="gray" hint={`${D.daysLeft} hari tersisa`} />
             <EVBar label="Anggaran jam terpakai" pct={D.burnPct} tone={D.budgetTone} hint={`${fmt(D.actualHrs)}/${fmt(D.budgetHrs)} jam`} />
-            <EVBar label="Pekerjaan selesai" pct={D.overall} tone={D.schedTone} hint={`${CKP_MILESTONES.filter((m: any) => m.status === 'done').length} milestone`} />
+            <EVBar label="Pekerjaan terbukti (kertas kerja)" pct={D.overall} tone={D.schedTone} hint={`${D.bridge.total} WP kanonik`} />
+            {D.asserted != null && <EVBar label="Pekerjaan di-assert manajer" pct={D.asserted} tone="gray" hint="penilaian profesional" />}
             <div className="ckp-info" style={{ marginTop: 4 }}>
               {variance > 0
-                ? <span><b>{fmt(variance)} jam</b> di atas yang seharusnya untuk progres {D.overall}% — efisiensi perlu dipantau.</span>
-                : <span>Pemakaian jam <b>{fmt(Math.abs(variance))} jam</b> di bawah kurva progres — efisien.</span>}
+                ? <span><b>{fmt(variance)} jam</b> di atas kurva untuk progres di-assert {D.econBase}% — efisiensi perlu dipantau.</span>
+                : <span>Pemakaian jam <b>{fmt(Math.abs(variance))} jam</b> di bawah kurva progres di-assert {D.econBase}% — efisien.</span>}
             </div>
           </div>
         </Panel>
@@ -592,40 +709,53 @@ function TabAnggaran({ D, e }: any) {
         </Panel>
       </div>
 
-      {/* hours by phase */}
+      {/* PR-C-2 · jam per fase. Kolom "Aktual" lama adalah PLUG: total jam
+          dibagi proporsional terhadap progres literal, lalu disajikan sebagai
+          pengukuran. Kini hanya jam yang BENAR-BENAR ber-tag fase di timesheet
+          yang muncul, dan jam tak ber-tag dinyatakan sebagai barisnya sendiri. */}
       <Panel noBody>
-        <div className="panel-h"><h3>Jam per Fase — Budget vs Aktual</h3><span className="sub">total {fmt(D.actualHrs)} / {fmt(D.budgetHrs)} jam</span></div>
+        <div className="panel-h">
+          <h3>Jam per Fase</h3>
+          <span className="sub">anggaran = model alokasi · aktual = hanya jam ber-tag fase di timesheet</span>
+        </div>
         <table className="dtbl">
           <thead><tr>
             <th>Fase</th>
-            <th className="num" style={{ width: 90 }}>Budget</th>
-            <th className="num" style={{ width: 90 }}>Aktual</th>
-            <th className="num" style={{ width: 90 }}>Sisa</th>
-            <th style={{ width: 220 }}>Pemakaian</th>
-            <th className="num" style={{ width: 70 }}>Selesai</th>
+            <th className="num" style={{ width: 66 }}>WP</th>
+            <th className="num" style={{ width: 96 }}>Anggaran<span className="tiny muted"> (model)</span></th>
+            <th className="num" style={{ width: 108 }}>Ter-timesheet</th>
+            <th style={{ width: 200 }}>Kelengkapan terbukti</th>
+            <th className="num" style={{ width: 70 }}>Terbukti</th>
           </tr></thead>
           <tbody>
-            {D.phaseRows.map((r: any) => {
-              const used = r.bud ? r.act / r.bud * 100 : 0;
-              const over = r.act > r.bud;
-              return (
-                <tr key={r.phase}>
-                  <td><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 3, background: r.color, flex: '0 0 9px' }} /><span style={{ fontWeight: 600, fontSize: 12 }}>{r.phase}</span></span></td>
-                  <td className="num mono tiny">{fmt(r.bud)}</td>
-                  <td className="num mono tiny" style={{ fontWeight: 700 }}>{fmt(r.act)}</td>
-                  <td className="num mono tiny" style={{ color: over ? 'var(--red)' : 'var(--ink-3)' }}>{fmt(r.bud - r.act)}</td>
-                  <td>
-                    <div className="row ac gap8">
-                      <div style={{ flex: 1, height: 7, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: Math.min(100, used) + '%', height: '100%', background: over ? 'var(--red)' : r.color }} /></div>
-                      <span className="mono tiny" style={{ width: 34, textAlign: 'right', color: over ? 'var(--red)' : 'var(--ink-2)', fontWeight: 600 }}>{Math.round(used)}%</span>
-                    </div>
-                  </td>
-                  <td className="num mono tiny" style={{ color: ckpBar(r.pct), fontWeight: 700 }}>{r.pct}%</td>
-                </tr>
-              );
-            })}
+            {D.phaseRows.map((r: any) => (
+              <tr key={r.phase}>
+                <td><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 3, background: r.color, flex: '0 0 9px' }} /><span style={{ fontWeight: 600, fontSize: 12 }}>{r.phase}</span></span></td>
+                <td className="num mono tiny muted">{r.wpCount || '—'}</td>
+                <td className="num mono tiny">{fmt(r.bud)}</td>
+                <td className="num mono tiny" style={{ fontWeight: 700 }}>{r.tsAct ? fmt(r.tsAct) : <span className="muted" style={{ fontWeight: 400 }}>—</span>}</td>
+                <td>
+                  <div className="row ac gap8">
+                    <div style={{ flex: 1, height: 7, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: Math.min(100, r.pct) + '%', height: '100%', background: r.color }} /></div>
+                  </div>
+                </td>
+                <td className="num mono tiny" style={{ color: ckpBar(r.pct), fontWeight: 700 }}>{r.wpCount ? r.pct + '%' : '—'}</td>
+              </tr>
+            ))}
+            <tr>
+              <td colSpan={2} style={{ fontWeight: 600, fontSize: 12 }}>Jam tanpa tag fase (roster pembuka)</td>
+              <td className="num mono tiny muted">—</td>
+              <td className="num mono tiny" style={{ fontWeight: 700 }}>{fmt(D.untaggedHrs)}</td>
+              <td colSpan={2} className="tiny muted">jam pembuka roster tidak ber-tag fase — tidak dialokasikan paksa</td>
+            </tr>
           </tbody>
         </table>
+        <div style={{ padding: '10px 14px' }}>
+          <div className="ckp-info">
+            <I.alert size={13} />
+            <span>Total {fmt(D.actualHrs)} jam = {fmt(D.tsTotal)} ber-tag fase + {fmt(D.untaggedHrs)} tanpa tag. Kolom anggaran adalah <b>model alokasi</b> (bobot fase × jam anggaran), bukan hasil pengukuran — jangan dibaca sebagai komitmen per fase.</span>
+          </div>
+        </div>
       </Panel>
     </div>
   );
@@ -848,8 +978,23 @@ function CockpitStyles() {
     .ckp-phasecol.on { background:var(--blue-050); }
     .ckp-phasecol-h { padding:11px 13px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
     .ckp-now { font-size:11px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
-    .ckp-modrow { padding:7px 8px; border-radius:6px; cursor:pointer; margin-bottom:1px; }
+    .ckp-phasecol-sub { padding:6px 13px 0; }
+    /* daftar WP kanonik per fase bisa panjang (Specifics 26) — kolom bergulir
+       sendiri, TIDAK dipotong diam-diam. */
+    .ckp-modlist { padding:8px 10px; max-height:300px; overflow-y:auto; }
+    .ckp-modrow { display:block; width:100%; text-align:left; background:none; border:0; font:inherit; color:inherit; padding:7px 8px; border-radius:6px; cursor:pointer; margin-bottom:1px; }
     .ckp-modrow:hover { background:var(--surface-2); }
+    .ckp-modrow:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+
+    .ckp-bridge { padding:14px 16px 16px; }
+    .ckp-bridge-nums { display:flex; align-items:center; gap:18px; margin-bottom:14px; }
+    .ckp-bridge-num { flex:1; }
+    .ckp-bridge-arrow { color:var(--ink-4); flex:0 0 auto; }
+    .ckp-bridge-rows { border-top:1px solid var(--line-soft); padding-top:10px; }
+    .ckp-bridge-row { display:flex; gap:9px; align-items:flex-start; padding:6px 0; }
+    .ckp-bridge-tick { flex:0 0 auto; margin-top:2px; }
+    .ckp-bridge-total { display:flex; justify-content:space-between; align-items:center; padding:9px 0 8px; margin-top:4px; border-top:1px solid var(--line); }
+    .ckp-bridge-gap { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:7px; background:var(--surface-2); }
 
     .ckp-attn { display:flex; gap:11px; align-items:flex-start; padding:10px 10px; border-radius:8px; cursor:pointer; transition:.12s; }
     .ckp-attn:hover { background:var(--surface-2); }

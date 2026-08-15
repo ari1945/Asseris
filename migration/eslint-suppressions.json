@@ -366,7 +366,7 @@
   },
   "src/view_cockpit2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 84
+      "count": 73
     }
   },
   "src/view_compliance.tsx": {
@@ -1176,7 +1176,7 @@
   },
   "src/wp_signoff.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 49
+      "count": 48
     }
   }
 }
