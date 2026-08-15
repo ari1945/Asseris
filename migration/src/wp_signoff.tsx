@@ -666,7 +666,7 @@ function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
                 {c.met ? <I.checkCircle size={13} /> : <I.alert size={13} />}
               </span>
               <span style={{ minWidth: 0 }}>
-                <span className="tiny" style={{ fontWeight: 600, color: c.met ? 'var(--ink-1)' : 'var(--ink-2)' }}>{c.label}</span>
+                <span className="tiny" style={{ fontWeight: 600, color: c.met ? 'var(--ink)' : 'var(--ink-2)' }}>{c.label}</span>
                 <span className="tiny muted" style={{ display: 'block' }}>{c.detail}</span>
               </span>
             </span>

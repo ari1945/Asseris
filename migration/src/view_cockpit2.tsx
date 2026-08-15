@@ -57,6 +57,10 @@ const CKP_MILESTONES = [
    dan layar inert terhadap timesheet. Sekarang: `cockpit_model.cockpitEconomics()`
    di atas SSOT `FIRMFIN.engagementWip(timeEntries, engId)`. Lihat cockpit_model.ts. */
 
+/* PR-C-6: palet seri grafik dari token peran, bukan enam hex tercecer
+   (#013a52 #005085 #1d6fb8 #0a6b73 #5b3fa6 #9a6a00). */
+const CKP_SERIES = ['var(--navy-700)', 'var(--blue-solid)', 'var(--blue-400)', 'var(--teal-solid)', 'var(--purple-solid)', 'var(--amber-solid)'];
+
 const CKP_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
 const CKP_START = new Date('2026-01-06');
 
@@ -75,8 +79,12 @@ function Gauge({ pct, size = 54, stroke = 7, tone }: any) {
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={(TONE as any)[tone] || 'var(--blue)'} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${Math.min(100, pct) / 100 * c} ${c}`} />
       </svg>
+      {/* PR-C-6 · skala tipografi MENGIKAT (CLAUDE.md §5). Dulu ukuran dihitung
+          dari diameter: `size*0.27` = 14,6px pada gauge 54 (setengah langkah,
+          dilarang) dan `size*0.16` = 8,6px (di bawah lantai 11px). Kini dua
+          langkah tetap dari skala delapan-nilai. */}
       <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
-        <span className="mono" style={{ fontSize: size * 0.27, fontWeight: 700, color: 'var(--ink-1)' }}>{Math.round(pct)}<span style={{ fontSize: size * 0.16 }}>%</span></span>
+        <span className="mono" style={{ fontSize: 'var(--fs-lg)', fontWeight: 700, color: 'var(--ink)' }}>{Math.round(pct)}<span style={{ fontSize: 'var(--fs-xs)' }}>%</span></span>
       </div>
     </div>
   );
@@ -92,7 +100,7 @@ function SignalCard({ icon, label, tone, value, read, onClick }: any) {
         <div style={{ flex: 1 }} />
         <span style={{ width: 8, height: 8, borderRadius: 50, background: (TONE as any)[tone] }} />
       </div>
-      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.1 }}>{value}</div>
       <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{read}</div>
     </button>
   );
@@ -310,38 +318,38 @@ function EngagementCockpit() {
           <div className="ckp-hero">
             <div style={{ position: 'relative', width: 100, height: 100, flex: '0 0 100px' }}>
               <svg width="100" height="100" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.16)" strokeWidth="9" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#4db8ff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${D.overall / 100 * 264} 264`} />
+                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--on-dark-track)" strokeWidth="9" />
+                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--on-dark-accent)" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${D.overall / 100 * 264} 264`} />
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', flexDirection: 'column' }}>
                 <div className="mono" style={{ fontSize: 28, fontWeight: 700 }}>{D.overall}%</div>
                 {/* PR-C-2: angka utama = TERBUKTI; asersi manajer ditampilkan
                     sebagai pembanding, bukan disembunyikan atau digantikan. */}
-                <div className="tiny" style={{ color: '#bcd6e4' }}>terbukti</div>
+                <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>terbukti</div>
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em' }}>{activeClient?.name}</div>
-              <div style={{ fontSize: 12, color: '#bcd6e4', margin: '3px 0 9px' }}>{e.type} · {e.standard} · Partner {e.partner.split(',')[0]} · Manager {e.manager}</div>
+              <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', margin: '3px 0 9px' }}>{e.type} · {e.standard} · Partner {e.partner.split(',')[0]} · Manager {e.manager}</div>
               <div className="row gap6 wrap">
                 <span className="ckp-htag">Fase: {e.phase}</span>
                 {D.asserted != null && <span className="ckp-htag" title="Penilaian manajer perikatan — dijembatani ke progres terbukti di panel Ringkasan">Di-assert manajer {D.asserted}%</span>}
-                <span className="ckp-htag" style={{ background: e.risk === 'High' ? 'rgba(255,107,87,.24)' : 'rgba(255,255,255,.14)' }}>Risiko {e.risk}</span>
+                <span className="ckp-htag" style={{ background: e.risk === 'High' ? 'var(--on-dark-danger-bg)' : 'var(--on-dark-chip)' }}>Risiko {e.risk}</span>
                 <span className="ckp-htag">Materialitas {rpM(e.materiality)}</span>
                 <span className="ckp-htag">Fee {rpM(D.fee)}</span>
               </div>
             </div>
             <div className="ckp-hero-stats">
               {[
-                ['Sisa Hari', D.daysLeft + ' hari', D.daysLeft < 14 ? '#ff9b8a' : '#fff', idDate(e.deadline)],
-                ['Budget Burn', Math.round(D.burnPct) + '%', D.burnPct > 100 ? '#ff9b8a' : '#fff', `${fmt(D.actualHrs)}/${fmt(D.budgetHrs)} jam`],
-                ['Review Notes', D.openNotes.length + ' open', D.openNotes.length ? '#ffd479' : '#7fe0a8', `${D.highOpen.length} prioritas tinggi`],
-                ['Risk Signifikan', `${D.sigCovered}/${D.sigAreas.length}`, D.sigCovered < D.sigAreas.length ? '#ffd479' : '#7fe0a8', `${D.excTot} pengecualian`],
+                ['Sisa Hari', D.daysLeft + ' hari', D.daysLeft < 14 ? 'var(--on-dark-danger)' : 'var(--on-dark-fg)', idDate(e.deadline)],
+                ['Budget Burn', Math.round(D.burnPct) + '%', D.burnPct > 100 ? 'var(--on-dark-danger)' : 'var(--on-dark-fg)', `${fmt(D.actualHrs)}/${fmt(D.budgetHrs)} jam`],
+                ['Review Notes', D.openNotes.length + ' open', D.openNotes.length ? 'var(--on-dark-warn)' : 'var(--on-dark-ok)', `${D.highOpen.length} prioritas tinggi`],
+                ['Risk Signifikan', `${D.sigCovered}/${D.sigAreas.length}`, D.sigCovered < D.sigAreas.length ? 'var(--on-dark-warn)' : 'var(--on-dark-ok)', `${D.excTot} pengecualian`],
               ].map(([l, v, c, sub]) => (
                 <div key={l} className="ckp-hstat">
                   <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: c }}>{v}</div>
-                  <div className="tiny" style={{ color: '#bcd6e4', fontWeight: 600 }}>{l}</div>
-                  <div className="tiny" style={{ color: '#8fb0c2', fontSize: 11 }}>{sub}</div>
+                  <div className="tiny" style={{ color: 'var(--on-dark-muted)', fontWeight: 600 }}>{l}</div>
+                  <div className="tiny" style={{ color: 'var(--on-dark-faint)', fontSize: 11 }}>{sub}</div>
                 </div>
               ))}
             </div>
@@ -528,14 +536,14 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
             {items.map((it, i) => {
               const IconC = (I as any)[it.icon] || I.alert;
               return (
-                <div key={i} className="ckp-attn" onClick={() => nav(it.route)}>
+                <button key={i} type="button" className="ckp-attn" onClick={() => nav(it.route)} title={it.t}>
                   <span className="ckp-attn-ic" style={{ background: (TONE_BG as any)[it.tone], color: (TONE as any)[it.tone] }}><IconC size={15} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-1)' }}>{it.t}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{it.t}</div>
                     <div className="tiny muted" style={{ marginTop: 1, lineHeight: 1.4 }}>{it.sub}</div>
                   </div>
                   <span className="ckp-attn-go"><I.arrowRight size={15} /></span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -697,11 +705,11 @@ function TabAnggaran({ D, e }: any) {
           <div style={{ padding: '12px 16px' }}>
             <div className="ckp-fee-grid">
               {[
-                ['Fee Perikatan', rpM(D.fee), 'var(--ink-1)'],
+                ['Fee Perikatan', rpM(D.fee), 'var(--ink)'],
                 /* PR-C-1: WIP dinilai pada tarif CHARGE-OUT. Dulu kartu ini
                    memakai tarif BIAYA namun dilabeli "WIP Terpakai" → meleset 2×. */
                 ['WIP @ Tarif Standar', econ.wipStd == null ? dash : rpM(econ.wipStd), 'var(--blue)'],
-                ['Biaya Waktu (aktual)', econ.timeCost == null ? dash : rpM(econ.timeCost), 'var(--ink-1)'],
+                ['Biaya Waktu (aktual)', econ.timeCost == null ? dash : rpM(econ.timeCost), 'var(--ink)'],
                 ['Margin Rencana (biaya std)', econ.marginPct == null ? dash : Math.round(econ.marginPct) + '%',
                   econ.marginPct == null ? 'var(--ink-3)' : econ.marginPct >= 30 ? 'var(--green)' : 'var(--amber)'],
               ].map(([l, v, c]) => (
@@ -830,13 +838,13 @@ function TabTim({ D, nav }: any) {
           <div className="panel-h"><h3>Distribusi Beban Jam</h3></div>
           <div style={{ padding: '10px 14px 14px' }} className="row ac gap12">
             <Donut size={104} thickness={15}
-              segments={members.map((m, i) => ({ value: m.actual, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
+              segments={members.map((m, i) => ({ value: m.actual, color: CKP_SERIES[i % 6] }))}
               center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{fmt(members.reduce((s, m) => s + m.actual, 0))}</div><div className="tiny muted">jam</div></div>} />
             <div style={{ flex: 1 }}>
               {members.length === 0 && <div className="tiny muted">Tak terukur — roster jam belum disiapkan.</div>}
               {members.map((m, i) => (
                 <div key={m.name} className="row jb ac" style={{ padding: '3px 0' }}>
-                  <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }} />{m.name.split(' ')[0]}</span>
+                  <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: CKP_SERIES[i % 6] }} />{m.name.split(' ')[0]}</span>
                   <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(m.actual)}j</span>
                 </div>
               ))}
@@ -969,7 +977,7 @@ function TabRisiko({ D, e, nav }: any) {
               const full = r.covered;
               const tone = full ? 'green' : r.done > 0 ? 'amber' : 'red';
               return (
-                <div key={r.id} className="ckp-risk" onClick={() => nav('risk')}>
+                <button key={r.id} type="button" className="ckp-risk" onClick={() => nav('risk')} title={`${r.id} ${r.area} — buka register risiko`}>
                   <span className="ckp-risk-ic" style={{ background: TONE_BG[tone], color: TONE[tone] }}>{full ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
@@ -984,7 +992,7 @@ function TabRisiko({ D, e, nav }: any) {
                     <div className="mono tiny" style={{ fontWeight: 700, color: TONE[tone] }}>{r.done}/{r.total || '–'}</div>
                     <div style={{ width: 56, marginTop: 3 }}><Progress value={r.total ? r.done / r.total * 100 : 0} color={TONE[tone]} /></div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1005,15 +1013,15 @@ function TabRisiko({ D, e, nav }: any) {
               </div>
               {(notesByPr as any)[pr].length === 0 && <div className="tiny muted" style={{ padding: '10px 4px' }}>Tidak ada.</div>}
               {(notesByPr as any)[pr].map((n: any) => (
-                <div key={n.id} className="ckp-note" onClick={() => nav(n.module)}>
-                  <div className="tiny" style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--ink-1)', marginBottom: 6 }}>{n.text}</div>
+                <button key={n.id} type="button" className="ckp-note" onClick={() => nav(n.module)} title={`Buka ${n.moduleLabel}`}>
+                  <div className="tiny" style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--ink)', marginBottom: 6 }}>{n.text}</div>
                   <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
                     <span className="chip tiny" style={{ height: 16 }}>{n.moduleLabel}</span>
                     <div style={{ flex: 1 }} />
                     <Avatar name={n.author} size={16} />
                     <span className="tiny muted">→ {n.to}</span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           ))}
@@ -1026,8 +1034,8 @@ function TabRisiko({ D, e, nav }: any) {
 /* ============================================================ */
 function CockpitStyles() {
   return <style>{`
-    .ckp-hero { background: linear-gradient(120deg,#013a52,#005085); color:#fff; padding:18px 22px; display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
-    .ckp-htag { font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; background:rgba(255,255,255,.14); }
+    .ckp-hero { background: linear-gradient(120deg,var(--navy-700),var(--blue-solid)); color:var(--on-dark-fg); padding:18px 22px; display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+    .ckp-htag { font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; background:var(--on-dark-chip); }
     .ckp-hero-stats { display:flex; gap:18px; flex-wrap:nowrap; }
     .ckp-hstat { text-align:center; min-width:72px; }
 
@@ -1040,7 +1048,7 @@ function CockpitStyles() {
     .ckp-phasecol:last-child { border-right:0; }
     .ckp-phasecol.on { background:var(--blue-050); }
     .ckp-phasecol-h { padding:11px 13px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
-    .ckp-now { font-size:11px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
+    .ckp-now { font-size:11px; font-weight:800; letter-spacing:.06em; color:var(--on-dark-fg); background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
     .ckp-phasecol-sub { padding:6px 13px 0; }
     /* daftar WP kanonik per fase bisa panjang (Specifics 26) — kolom bergulir
        sendiri, TIDAK dipotong diam-diam. */
@@ -1059,7 +1067,12 @@ function CockpitStyles() {
     .ckp-bridge-total { display:flex; justify-content:space-between; align-items:center; padding:9px 0 8px; margin-top:4px; border-top:1px solid var(--line); }
     .ckp-bridge-gap { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:7px; background:var(--surface-2); }
 
-    .ckp-attn { display:flex; gap:11px; align-items:flex-start; padding:10px 10px; border-radius:8px; cursor:pointer; transition:.12s; }
+    /* PR-C-6: .ckp-attn / .ckp-risk / .ckp-note dulu <div onClick> — gagal
+       keyboard & gagal gerbang axe. Kini <button> native; reset gaya tombol
+       agar tampilannya tak berubah, plus cincin fokus yang terlihat. */
+    .ckp-attn, .ckp-risk, .ckp-note { font:inherit; color:inherit; text-align:left; width:100%; }
+    .ckp-attn:focus-visible, .ckp-risk:focus-visible, .ckp-note:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+    .ckp-attn { display:flex; gap:11px; align-items:flex-start; padding:10px 10px; border-radius:8px; cursor:pointer; transition:.12s; background:none; border:0; }
     .ckp-attn:hover { background:var(--surface-2); }
     .ckp-attn-ic { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; flex:0 0 30px; }
     .ckp-attn-go { color:var(--ink-4); display:grid; place-items:center; align-self:center; }
@@ -1073,14 +1086,14 @@ function CockpitStyles() {
     .ckp-rail-line { position:absolute; left:0; right:0; top:14px; height:3px; border-radius:3px; background:var(--surface-3); }
     .ckp-rail-fill { position:absolute; left:0; top:14px; height:3px; border-radius:3px; background:var(--blue-solid); }
     .ckp-node { position:absolute; top:5px; transform:translateX(-50%); }
-    .ckp-dot { width:22px; height:22px; border-radius:50%; color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; border:2px solid var(--surface); }
+    .ckp-dot { width:22px; height:22px; border-radius:50%; color:var(--on-dark-fg); font-size:11px; font-weight:700; display:grid; place-items:center; border:2px solid var(--surface); }
     .ckp-today { position:absolute; top:-20px; transform:translateX(-50%); }
     .ckp-today span { font-size:11px; font-weight:800; letter-spacing:.06em; color:var(--blue); background:var(--blue-050); padding:1px 6px; border-radius:8px; border:1px solid var(--blue-100); white-space:nowrap; }
     .ckp-today::after { content:''; position:absolute; left:50%; top:16px; transform:translateX(-50%); width:2px; height:18px; background:var(--blue-solid); }
 
     .ckp-ms { display:flex; gap:12px; align-items:flex-start; padding:9px 10px; border-radius:8px; }
     .ckp-ms:hover { background:var(--surface-2); }
-    .ckp-ms-dot { width:24px; height:24px; border-radius:50%; color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; flex:0 0 24px; margin-top:1px; }
+    .ckp-ms-dot { width:24px; height:24px; border-radius:50%; color:var(--on-dark-fg); font-size:11px; font-weight:700; display:grid; place-items:center; flex:0 0 24px; margin-top:1px; }
 
     .ckp-dl { display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line-soft); }
     .ckp-dl:last-child { border-bottom:0; }
@@ -1093,7 +1106,7 @@ function CockpitStyles() {
     .ckp-member { display:flex; gap:12px; align-items:flex-start; padding:11px 10px; border-radius:8px; }
     .ckp-member:hover { background:var(--surface-2); }
 
-    .ckp-risk { display:flex; gap:11px; align-items:flex-start; padding:10px 10px; border-radius:8px; cursor:pointer; }
+    .ckp-risk { display:flex; gap:11px; align-items:flex-start; padding:10px 10px; border-radius:8px; cursor:pointer; background:none; border:0; }
     .ckp-risk:hover { background:var(--surface-2); }
     .ckp-risk-ic { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; flex:0 0 30px; margin-top:1px; }
 
@@ -1104,15 +1117,15 @@ function CockpitStyles() {
     .ckp-notecol { padding:12px 14px; border-right:1px solid var(--line); }
     .ckp-notecol:last-child { border-right:0; }
     .ckp-notecol-h { font-size:12px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:10px; }
-    .ckp-note { background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 11px; margin-bottom:8px; cursor:pointer; transition:.12s; }
+    .ckp-note { display:block; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 11px; margin-bottom:8px; cursor:pointer; transition:.12s; }
     .ckp-note:hover { border-color:var(--blue-400); box-shadow:var(--shadow-sm); }
 
     @media (max-width:1180px){ .ckp-signals{ grid-template-columns:repeat(3,1fr);} }
   `}</style>;
 }
 
-Object.assign(window, { EngagementCockpit });
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
+/* PR-C-6: `Object.assign(window, { EngagementCockpit })` DILEPAS. Audit pembaca
+   (grep seluruh migration/src termasuk *.d.ts) menemukan NOL konsumen global —
+   satu-satunya jalan masuk adalah `lazy_views.tsx` yang memakai impor ESM
+   bernama. Tak terdaftar pula di daftar dual-publish tersisa (CLAUDE.md §3.1). */
 export { EngagementCockpit };
