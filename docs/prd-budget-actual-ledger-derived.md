@@ -321,3 +321,43 @@ Pelanggaran dicabut sesudahnya; `data_part1.ts` bersih.
 **Catatan terbuka (bukan bagian dari arc ini):** kontrol status posting di `view_firmgl`
 adalah `<span onClick>` — tak muncul di pohon aksesibilitas dan tak dapat dioperasikan
 keyboard. Melanggar CLAUDE.md §3.7 (kontrol form = NATIVE). Perlu PR sendiri.
+
+---
+
+## 13. Hasil — Bagian B ([#243](https://github.com/ari1945/Asseris/pull/243))
+
+`JV-0313..JV-0318` memberi ketiga akun kontrol sub-buku riwayat operasi biasa. Nol-delta
+aljabar terbukti: saldo kini tiap akun tetap identik dengan seed, laporan keuangan tak
+bergerak, status rekonsiliasi #239/#240 tak berubah.
+
+**Koreksi terhadap catatan sesi sebelumnya:** klaim bahwa 1-200 & 2-100 "tak tersentuh
+jurnal mana pun" **keliru** — 1-200 disentuh 2 jurnal, 2-100 disentuh 1; keduanya hanya
+tipis (8% & 19% dari saldo). Yang benar-benar nol hanya 1-300.
+
+**Gerbang dibuktikan merah:** mencabut `JV-0313`/`JV-0314` menjatuhkan 3 uji SC-8.
+
+### Cacat yang ditemukan verifikasi hidup, bukan oleh gerbang
+
+Saldo awal dianker ke `seedGl` (selalu kode terbaru) sedangkan `gl` dibaca dari
+localStorage dan bisa tertinggal. Menambah jurnal seed karena itu mengurangi saldo awal
+tanpa pernah menambahkan efeknya kembali. Terukur di peramban dengan `firmgl` terpersist
+dari rilis sebelumnya:
+
+| Akun | Seharusnya | Yang tampil |
+|---|---:|---:|
+| Kas 1-100 | 8.420 | **9.330** |
+| Piutang 1-200 | 4.440 | **2.800** |
+| WIP 1-300 | 9.300 | **8.090** |
+| Pendapatan 4-100 | 11.300 | **8.450** |
+
+**Neraca tetap "seimbang ✓"** — tak satu gerbang pun berbunyi. Dan ini bukan cacat satu
+rilis: setiap penambahan jurnal seed berikutnya akan meledakkannya lagi.
+
+Diperbaiki di sumbernya (`mergeSeedJournals()`), dipakai oleh KEDUA pintu pembaca kunci
+`firmgl`. Suntingan pengguna dipertahankan. Repro dipaku sebagai uji, termasuk fakta
+bahwa neraca tetap seimbang saat rusak.
+
+**Ikutan:** nomor jurnal baru dulu `'JV-0' + (313 + gl.length)` — sudah melompat ke
+JV-0319 dengan 6 jurnal seed. Kini dari nomor tertinggi yang ada + 1.
+
+Uji **1791 → 1812** (+21). Ratchet `:any` **8058 → 8057**. `npm run verify` hijau.
