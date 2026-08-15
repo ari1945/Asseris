@@ -8,10 +8,10 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 52 |
+| Draft | 53 |
 | Approved | 5 |
-| In Progress | 8 |
-| Implemented | 32 |
+| In Progress | 7 |
+| Implemented | 34 |
 | Superseded | 1 |
 
 ## Daftar
@@ -89,7 +89,7 @@
 | docs/prd-audit-trail-server-chain.md | Implemented — P-1..P-5 selesai 2026-08-14; verify hijau + live-verified (audit.list 200 entri, badge jujur) |
 | docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |
 | docs/prd-backup-restore-dr-hardening.md | Draft |
-| docs/prd-budget-actual-ledger-derived.md | In Progress — "Proceed." 2026-08-15 (Q-1=a hapus kolom `actual` · Q-2=a gerbang cakupan · Q-3=a tiga akun kontrol · Q-4=a dua PR · Q-5=a cabut `+ 6`). PR 1 = Bagian C ("aktual" diturunkan buku besar di BI Kinerja/BI Industri/Treasury + gerbang cakupan + cabut `+ 6`); PR 2 = Bagian B (jurnal seed akun kontrol) |
+| docs/prd-budget-actual-ledger-derived.md | Implemented — SELESAI 2026-08-15 (Q-1=a hapus kolom `actual` · Q-2=a gerbang cakupan · Q-3=a tiga akun kontrol · Q-4=a dua PR · Q-5=a cabut `+ 6`). Bagian C #242 (`d7f4365`) + Bagian B #243 (`b24d1d0`). SC-1..SC-12 tertutup; verify hijau (1829 uji); live-verified dua arah termasuk keadaan MERAH. Dua cacat ditemukan HANYA di peramban: cache `firmgl` basi merusak saldo diam-diam (neraca tetap seimbang), dan tab Buku Besar crash sejak Program E |
 | docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |
 | docs/prd-estimasi-terfalsifikasi.md | Implemented — PR-1..PR-5 (#182·#183·#184·#185·#186) merged 2026-08-12; K1–K13 tertutup, Q1–Q3 dijawab |
 | docs/prd-firmfin-ledger-derived.md | Implemented — SELESAI 2026-08-15. FIRMFIN menerima COA turunan-ledger di 3 pemanggil; posting jurnal kini menggeser P&L/Neraca/KPI/kontrol. Live-verified dua arah (2,80 M ⇄ 2,59 M). Nol-delta pada seed bersih |
