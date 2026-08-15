@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — "Proceed." 2026-08-15 tanpa koreksi ⇒ seluruh rekomendasi: Q-1=a sub-akun kas · Q-2=a selaraskan saldo bank seed · Q-3=a revaluasi jadi jurnal terposting · Q-4=a periode Maret 2026 · Q-5=a dua PR · Q-6=a cabut chip bank feed. **Pembagian PR disesuaikan** (lihat §10): PR-1 = F-1..F-3 supaya aplikasi koheren & baris Kas dapat ditutup; PR-2 = F-4 (revaluasi + `FX_BOOK` SSOT) + Q-6 + bukti hidup konsekuensinya pada gerbang cakupan anggaran. |
+| Status | **Implemented** — SELESAI 2026-08-15. "Proceed." tanpa koreksi ⇒ seluruh rekomendasi: Q-1=a sub-akun kas · Q-2=a selaraskan saldo bank seed · Q-3=a revaluasi jadi jurnal terposting · Q-4=a periode Maret 2026 · Q-5=a dua PR · Q-6=a cabut chip bank feed. PR-1 = [#247](https://github.com/ari1945/Asseris/pull/247) merged `f62ea7f` (F-1..F-3); PR-2 = [#249](https://github.com/ari1945/Asseris/pull/249) merged `e831df2` (F-4 + Q-6). SC-1..SC-11 tertutup; `npm run verify` hijau (1862 uji); live-verified DUA ARAH termasuk keadaan MERAH-nya. |
 | Pemicu | Baris Kas 1-100 `open` sejak #240 — satu-satunya baris rekonsiliasi yang masih merah, dan ia mengunci ekspor Laporan Keuangan |
 | PRD terkait | `prd-ar-ap-bridge-falsifiable.md` · `prd-wip-rollforward-falsifiable.md` · `prd-firmfin-ledger-derived.md` · `prd-budget-actual-ledger-derived.md` (semua Implemented) |
 | Prasyarat | Di atas `master` `ac31d5e` |
