@@ -130,6 +130,27 @@ describe('mergeSeedOpportunities — menyembuhkan yang HILANG, bukan yang BERUBA
     expect(m.history).toBeUndefined();
   });
 
+  /* PR-5 — build-up menempuh pertimbangan setara: ia MENJELASKAN `value`. */
+  it('build-up seed diadopsi bila nilai peluang belum bergeser', () => {
+    const lama = seed.filter((o) => o.buildUp && o.buildUp.length)
+      .map((o) => { const c = { ...o }; delete c.buildUp; delete c.durationWeeks; delete c.startPlanned; return c; });
+    expect(lama.length).toBeGreaterThan(0);
+    const merged = mergeSeedOpportunities(lama, seed);
+    lama.forEach((o) => {
+      const m = merged.find((x) => x.id === o.id)!;
+      expect(m.buildUp, o.id).toBeTruthy();
+      expect(m.durationWeeks, o.id).toBeTruthy();
+    });
+  });
+
+  it('build-up TIDAK diadopsi bila nilai sudah bergeser — ia tak lagi menjelaskan nilainya', () => {
+    const asal = seed.find((o) => o.buildUp && o.buildUp.length)!;
+    const geser = [{ ...asal, value: asal.value + 250_000_000 }];
+    delete geser[0].buildUp; delete geser[0].durationWeeks; delete geser[0].startPlanned;
+    const m = mergeSeedOpportunities(geser, seed).find((x) => x.id === asal.id)!;
+    expect(m.buildUp).toBeUndefined();
+  });
+
   it('riwayat yang SUDAH ada tidak pernah ditimpa seed', () => {
     const punya = [{ ...seed[0], history: [{ stage: seed[0].stage, at: '2026-03-01', by: 'Pengguna' }] }] as Opportunity[];
     const merged = mergeSeedOpportunities(punya, seed);

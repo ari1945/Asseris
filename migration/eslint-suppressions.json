@@ -351,7 +351,7 @@
   },
   "src/view_capacity.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 46
+      "count": 44
     }
   },
   "src/view_clientportal.tsx": {

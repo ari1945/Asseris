@@ -85,7 +85,11 @@ function CapacityPlanning() {
   const avgUtil = totSup ? totDem / totSup * 100 : 0;
   const deficitWeeks = weeks.filter((_: any, i: any) => series.demand[i] > series.supply[i]).length;
   const benchNext4 = weeks.slice(0, 4).reduce((s: any, _: any, i: any) => s + Math.max(0, series.supply[i] - series.demand[i]), 0);
-  const pipeProb = pipeline.reduce((s: any, p: any) => s + p.hrs * p.prob / 100, 0);
+  /* PR-5 — headline = penjumlahan BAGIAN yang ditampilkan. Menghitungnya sendiri
+     dari `pipeline` menghasilkan pembulatan yang berbeda dari `demandSplit`
+     (terlihat hidup: 171h headline di atas "95h tercatat · 77h estimasi" = 172).
+     Satu angka, satu penghasil. */
+  const pipeProb = split.total;
 
   const staffShown = grade === 'Semua' ? staff : staff.filter((s: any) => s.grade === grade);
   const utilColor = (v: any) => v > 100 ? 'var(--red)' : v >= 75 ? 'var(--green)' : 'var(--amber)';

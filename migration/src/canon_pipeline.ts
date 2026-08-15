@@ -225,6 +225,15 @@ export function mergeSeedOpportunities(stored: Opportunity[] | null | undefined,
       const seedFinal = s.history[s.history.length - 1];
       if (seedFinal.stage === next.stage) next = { ...next, history: s.history };
     }
+    /* PR-5 — build-up jam menempuh pertimbangan yang setara. Ia bukan rangkaian
+       peristiwa, tetapi ia MENJELASKAN `value`: jam × tarif − diskon = nilai yang
+       ditawarkan. Bila nilai tersimpan sudah bergeser dari seed, build-up seed
+       tidak lagi menjelaskannya — realisasi % yang dihasilkan akan menyesatkan.
+       Maka: hanya diadopsi bila `value` masih sama. Kalau tidak, peluang tampil
+       "tanpa build-up", yang jujur. */
+    if ((!next.buildUp || !next.buildUp.length) && s && s.buildUp && s.buildUp.length && s.value === next.value) {
+      next = { ...next, buildUp: s.buildUp, durationWeeks: next.durationWeeks ?? s.durationWeeks, startPlanned: next.startPlanned ?? s.startPlanned };
+    }
     return next;
   });
   return [...healed, ...missing];
