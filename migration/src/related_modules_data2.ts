@@ -307,27 +307,16 @@ LINEAGE.tax = {
    WIP: Valuasi → Realisasi → Pendapatan; PPh 23 → PPh Badan; Independensi
    Firma → Independensi Tim (SA 220).
    ============================================================ */
-LINEAGE.wip = {
-  std: 'Keuangan Firma · Valuasi WIP (pekerjaan dalam proses belum tertagih)',
-  up: [{ id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Jam tercatat per perikatan → dasar nilai WIP' }],
-  down: [
-    { id: 'wipreal', ic: 'hourglass', lbl: 'WIP · Realisasi', rel: 'Sudut lain (bukan duplikat): WIP direalisasi jadi tagihan' },
-    { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan Firma', rel: 'Nilai WIP → pengakuan pendapatan' },
-  ],
-};
-LINEAGE.wipreal = {
-  std: 'Operasi Praktik · Realisasi WIP (konversi WIP ke tagihan)',
-  up: [{ id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi', rel: 'Valuasi WIP yang direalisasikan di sini' }],
-  down: [
-    { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'WIP terealisasi → faktur klien' },
-    { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan Firma', rel: 'Realisasi → pendapatan diakui' },
-  ],
-};
+/* 2026-08-15 — `wip` & `wipreal` DILEBUR jadi satu modul, jadi cross-link
+   "sudut lain, bukan duplikat" di antara keduanya tak lagi punya makna.
+   LINEAGE.wip yang otoritatif ada di `related_modules_data.ts` (lebih kaya:
+   billing / revenue / firmfinance / profitability); override di sini DIBUANG
+   supaya tak ada dua definisi yang saling menimpa diam-diam.
+   docs/prd-wip-merge-valuasi-realisasi.md */
 LINEAGE.revenue = {
   std: 'Keuangan Firma (ERP) · Pendapatan & Pengakuan',
   up: [
-    { id: 'wipreal', ic: 'hourglass', lbl: 'WIP · Realisasi', rel: 'Realisasi WIP → pendapatan diakui' },
-    { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi', rel: 'Sudut valuasi dari pekerjaan yang sama' },
+    { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi & Realisasi', rel: 'Realisasi WIP → pendapatan diakui' },
   ],
   down: [{ id: 'firmgl', ic: 'ledger', lbl: 'General Ledger', rel: 'Pendapatan → posting buku besar firma' }],
 };

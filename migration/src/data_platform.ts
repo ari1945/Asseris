@@ -19,6 +19,7 @@ import { AMS } from './data';
    antrean ini maupun tab AJE. Dulu keduanya menyusun rantainya sendiri dengan
    aturan berbeda, dan pada AJE-01 keduanya menjawab berlainan. */
 import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, ajeDueAt, buildAjeChain } from './aje_approval';
+import { WIP_WRITEOFF_APPROVAL_MIN } from './data_firmfin';
 (function () {
   const A: any = AMS;
   if (!A) return;
@@ -252,19 +253,42 @@ import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, ajeDueAt, buildAje
       });
     });
 
-    /* ---- 6. WIP write-off — sumber: AMS.WIP_ENG ---- */
-    wip.filter((w: any) => w.writeDown >= 1e8).forEach((w: any) => {
+    /* ---- 6. WIP write-off — sumber: AMS.WIP_ENG (sub-buku) ---- */
+    wip.filter((w: any) => w.writeDown >= WIP_WRITEOFF_APPROVAL_MIN).forEach((w: any) => {
       const e = engById(w.id);
       const cli = e ? cliById(e.clientId) : null;
       const steps = [['Audit Manager', e ? e.manager : 'Anindya Pramesti'], ['Managing Partner', MANAGING]];
       out.push({
-        id: 'APR-WIP-' + w.id, kind: 'WIP Write-off', sourceModule: 'wipreal', sourceRoute: 'wipreal', sourceId: w.id,
+        id: 'APR-WIP-' + w.id, kind: 'WIP Write-off', sourceModule: 'wip', sourceRoute: 'wip', sourceId: w.id,
         ref: w.id, title: 'Penghapusan WIP tak tertagih ' + jt(w.writeDown) + ' — ' + short(cli ? cli.name : ''),
         from: e ? e.manager : 'Anindya Pramesti', role: 'Audit Manager', amount: w.writeDown, status: 'pending',
         priority: w.writeDown >= 25e7 ? 'high' : 'low', submitted: '2026-03-07 15:00', due: '2026-03-13 17:00',
         eng: w.id, engId: w.id, clientId: cli ? cli.id : null, client: cli ? cli.name : '',
         step: 0, chain: chain(steps, 0),
         prov: 'WIP ' + w.id + ' · standar ' + jt(w.std) + ' · ditagih ' + jt(w.billed), thread: [],
+      });
+    });
+
+    /* ---- 6b. WIP write-off MANUAL — sumber: persist `wip.adj` (modul WIP) ----
+       Ditambahkan 2026-08-15. Write-down yang dilakukan pengguna di modul WIP dulu
+       hanya dijaga RBAC (CAP.FIRMFIN_EDIT) dan TIDAK PERNAH masuk antrean ini —
+       padahal ekonominya identik dengan write-off sub-buku di atas. Item terpisah
+       (prefiks `APR-WIPADJ-`) supaya tak menabrak item seed pada perikatan yang sama. */
+    const wipAdj = ctx.wipAdj || {};
+    Object.keys(wipAdj).forEach((engId: string) => {
+      const amount = Math.max(0, Number(wipAdj[engId]) || 0);
+      if (amount < WIP_WRITEOFF_APPROVAL_MIN) return;
+      const e = engById(engId);
+      const cli = e ? cliById(e.clientId) : null;
+      const steps = [['Audit Manager', e ? e.manager : 'Anindya Pramesti'], ['Managing Partner', MANAGING]];
+      out.push({
+        id: 'APR-WIPADJ-' + engId, kind: 'WIP Write-off', sourceModule: 'wip', sourceRoute: 'wip', sourceId: engId,
+        ref: engId, title: 'Write-down WIP manual ' + jt(amount) + ' — ' + short(cli ? cli.name : ''),
+        from: e ? e.manager : 'Anindya Pramesti', role: 'Audit Manager', amount, status: 'pending',
+        priority: amount >= 25e7 ? 'high' : 'low', submitted: NOW, due: NOW,
+        eng: engId, engId, clientId: cli ? cli.id : null, client: cli ? cli.name : '',
+        step: 0, chain: chain(steps, 0),
+        prov: 'Penyesuaian manual `wip.adj` atas ' + engId + ' · dicatat dari modul WIP', thread: [],
       });
     });
 

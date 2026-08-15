@@ -70,9 +70,18 @@ const FIRMFIN = (function () {
   /* ---------- WIP belum ditagih (SUMBER: WIP_ENG × ENGAGEMENTS × CLIENTS) → tutup ke kontrol 1-300 ----------
      Satu engine: valuasi per-perikatan (std ± write-up/down = recoverable), realisasi,
      margin, aging berbasis umur, penyisihan matriks & roll-forward. Dikonsumsi oleh
-     WIP Valuation (route wip), WIP & Realisasi (wipreal), Dashboard & cockpit Firm Finance.
-     `provFactor` (opsional) menstres tarif matriks untuk uji sensitivitas kebijakan. */
-  function wip(ctx: any, provFactor?: any, liveByEng?: any) {
+     modul WIP (route `wip`), Dashboard & cockpit Firm Finance.
+     `provFactor` (opsional) menstres tarif matriks untuk uji sensitivitas kebijakan.
+
+     `adjByEng` (opsional) = write-down MANUAL per perikatan (persist `wip.adj`).
+     Sebelum 2026-08-15 nilai ini hidup sebagai overlay LOKAL di view WIP & Realisasi
+     yang menghitung ulang recoverable/realisasi/margin sendiri — sehingga Dashboard,
+     cockpit Beranda, Firm Finance dan ekspor menampilkan angka PRA-write-down, dan di
+     dalam view itu sendiri tabel (ber-adj) bertentangan dengan panel aging (tanpa adj).
+     Kini ia masuk di HULU: satu penambahan pada `writeDown` sebelum SELURUH turunan
+     (recoverable → unbilled → realisasi → margin → aging → penyisihan → roll-forward),
+     jadi tak ada lagi konsumen yang melihat angka berbeda. */
+  function wip(ctx: any, provFactor?: any, liveByEng?: any, adjByEng?: Record<string, number>) {
     const F = (provFactor == null ? 1 : provFactor);
     const engs = engOf(ctx), clients = cliOf(ctx);
     const SEED = A().WIP_ENG || [];
@@ -88,7 +97,13 @@ const FIRMFIN = (function () {
       const live = liveByEng && liveByEng[w.id];
       const std = live ? live.std : w.std;
       const cost = live ? live.cost : w.cost;
-      const writeUp = w.writeUp || 0, writeDown = w.writeDown || 0;
+      const writeUp = w.writeUp || 0;
+      /* write-down = seed sub-buku + penyesuaian manual (wip.adj). Manual disimpan
+         terpisah pada baris (`manualWriteDown`) supaya UI dapat menampilkan komposisinya
+         & menawarkan Reset tanpa menghitung ulang apa pun sendiri. */
+      const manualWriteDown = Math.max(0, (adjByEng && adjByEng[w.id]) || 0);
+      const seedWriteDown = w.writeDown || 0;
+      const writeDown = seedWriteDown + manualWriteDown;
       const recoverable = std + writeUp - writeDown;
       const unbilled = recoverable - w.billed;
       const realization = std ? recoverable / std : 0;
@@ -99,7 +114,7 @@ const FIRMFIN = (function () {
         id: w.id, client: c.name || w.id, clientShort: (c.name || w.id).replace('PT ', ''),
         tier: c.tier || '—', risk: c.risk || '—', partner: (e.partner || '—').split(',')[0],
         type: e.type || '—', status: e.status || '—', phase: e.phase || '—', progress: e.progress || 0,
-        std, writeUp, writeDown, recoverable, billed: w.billed, unbilled, cost,
+        std, writeUp, writeDown, seedWriteDown, manualWriteDown, recoverable, billed: w.billed, unbilled, cost,
         realization, margin, age, bucket: b.bucket, bucketKey: b.key, provRate: b.rate * F,
         overBilled: unbilled < 0, atRisk: age > 90, live: !!live,
         hours: live ? Math.round(live.actualHrs) : (STD_RATE ? Math.round(std / STD_RATE) : 0), wipValue: std, // alias kompat
@@ -114,6 +129,7 @@ const FIRMFIN = (function () {
     const totBilled = sumf(registerAll, (r: any) => r.billed);
     const totWriteUp = sumf(registerAll, (r: any) => r.writeUp);
     const totWriteDown = sumf(registerAll, (r: any) => r.writeDown);
+    const totManualWriteDown = sumf(registerAll, (r: { manualWriteDown: number }) => r.manualWriteDown);
     const totCost = sumf(registerAll, (r: any) => r.cost);
     const avgRealization = totStd ? totRecoverable / totStd : 0;
     const avgMargin = totRecoverable ? (totRecoverable - totCost) / totRecoverable : 0;
@@ -157,7 +173,7 @@ const FIRMFIN = (function () {
     return {
       register, registerAll, unbilledTotal, deferredIncome, grossWIP,
       rate: BLENDED_RATE, stdRate: STD_RATE, provFactor: F,
-      totStd, totRecoverable, totBilled, totWriteUp, totWriteDown, totCost,
+      totStd, totRecoverable, totBilled, totWriteUp, totWriteDown, totManualWriteDown, totCost,
       avgRealization, avgMargin, aging, provisionMatrix: WIP_PROV_MATRIX,
       provisionTotal, provisionPct, netRecoverable, atRiskWIP,
       movement, control, reconciling, bridge,
@@ -381,5 +397,13 @@ const FIRMFIN = (function () {
   };
 })();
 
+/* Ambang otorisasi penghapusan WIP (SA/ISQM: keputusan penghapusan aset perlu
+   otorisasi berjenjang). SATU konstanta dipakai `data_platform.buildApprovals`
+   untuk KEDUA jalur — write-down yang sudah ada di sub-buku seed DAN write-down
+   manual (`wip.adj`) yang dilakukan lewat modul WIP. Sebelum 2026-08-15 ambang
+   ini hanya literal `1e8` di data_platform dan jalur manual tak pernah lewat
+   antrean persetujuan sama sekali. */
+const WIP_WRITEOFF_APPROVAL_MIN = 1e8;
+
 /* [codemod] ESM export (window.FIRMFIN dilucuti — konsumen pakai named import) */
-export { FIRMFIN };
+export { FIRMFIN, WIP_WRITEOFF_APPROVAL_MIN };

@@ -501,7 +501,7 @@
   },
   "src/view_firmfinance.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 29
     }
   },
   "src/view_firmgl.tsx": {
@@ -1107,11 +1107,6 @@
   "src/view_timebudget.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 62
-    }
-  },
-  "src/view_wip_firm.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 37
     }
   },
   "src/view_workspace.tsx": {

@@ -8,7 +8,7 @@ import { Copilot } from './copilot';
 import { I, MODULE_INDEX } from './icons';
 import { MiniMap } from './minimap';
 import { ModuleLineage, StandardLinkback } from './related_modules';
-import { buildHash, initialLocation, parseHash } from './route_hash';
+import { buildHash, initialLocation, parseHash, resolveRoute } from './route_hash';
 import { Sidebar, SubBar, TopBar } from './shell';
 import { Btn, StubView } from './ui';
 import { amsApplyPrefs } from './prefs';
@@ -155,7 +155,12 @@ function App() {
   const [saRef, setSaRef] = useStateApp(null);
   const [navFrom, setNavFrom] = useStateApp(null);
 
-  const navigate = React.useCallback((id: any, opts: any) => {
+  const navigate = React.useCallback((rawId: any, opts: any) => {
+    /* Alias rute diterjemahkan di SATU pintu: setiap `nav('wipreal')` yang masih
+       tertinggal di modul lain, chip lineage, dan `sourceRoute` item persetujuan
+       lama semuanya lewat sini. Tanpa ini mereka menulis hash & `ams.route` ber-id
+       yatim yang lalu ditolak pembaca di bawah. */
+    const id = resolveRoute(String(rawId));
     setNavFrom(opts && opts.from ? opts.from : null);
     // Deep-link tab (PRD 2026-07-18): stash a one-shot pending-tab BEFORE setRoute
     // so the target module's useInitialTab seeds it on mount. sessionStorage +
@@ -203,9 +208,10 @@ function App() {
     const onHash = (): void => {
       const loc = parseHash(location.hash);
       if (!loc) return;
-      const known = loc.route === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[loc.route];
+      const route = resolveRoute(loc.route);   // bookmark ber-id lama tetap mendarat benar
+      const known = route === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[route];
       if (!known) return;                     // tautan busuk: diamkan, jangan buang halaman
-      setRoute((cur: string) => (cur === loc.route ? cur : loc.route));
+      setRoute((cur: string) => (cur === route ? cur : route));
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);

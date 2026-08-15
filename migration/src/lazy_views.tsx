@@ -70,7 +70,10 @@ export const LazyViews: Record<string, ReturnType<typeof lazy>> = {
   'sad': lazy(() => import('./view_sad').then(m => ({ default: m.SADLedger }))),
   'firmfinance': lazy(() => import('./view_firmfinance').then(m => ({ default: m.FirmFinance }))),
   'firmops': lazy(() => import('./view_firmops').then(m => ({ default: m.FirmOps }))),
-  'wip': lazy(() => import('./view_firmfinance').then(m => ({ default: m.WIPValuation }))),
+  /* `wip` = WIP · Valuasi & Realisasi. Peleburan `wip` + `wipreal` (2026-08-15,
+     docs/prd-wip-merge-valuasi-realisasi.md). Id lama `wipreal` tidak lagi punya
+     entri di sini — ia diterjemahkan ke `wip` oleh ROUTE_ALIAS (route_hash.ts). */
+  'wip': lazy(() => import('./view_wip').then(m => ({ default: m.WIPModule }))),
   'forensic': lazy(() => import('./view_forensic').then(m => ({ default: m.ForensicCashFlow }))),
   'procurement': lazy(() => import('./view_procurement').then(m => ({ default: m.Procurement }))),
   'facilities': lazy(() => import('./view_facilities').then(m => ({ default: m.Facilities }))),
@@ -116,7 +119,6 @@ export const LazyViews: Record<string, ReturnType<typeof lazy>> = {
   'scheduler': lazy(() => import('./view_scheduler').then(m => ({ default: m.ResourceScheduler }))),
   'delivery': lazy(() => import('./view_delivery').then(m => ({ default: m.DeliveryMilestones }))),
   'audittimeline': lazy(() => import('./view_audittimeline').then(m => ({ default: m.AuditTimeline }))),
-  'wipreal': lazy(() => import('./view_wip_firm').then(m => ({ default: m.WIPRealization }))),
   'capacity': lazy(() => import('./view_capacity').then(m => ({ default: m.CapacityPlanning }))),
   'hcm': lazy(() => import('./view_people').then(m => ({ default: m.HCM }))),
   'payroll': lazy(() => import('./view_payroll').then(m => ({ default: m.Payroll }))),

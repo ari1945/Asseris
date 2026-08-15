@@ -57,7 +57,7 @@ const APPR_SRC = {
   'Faktur': { route: 'billing', label: 'Billing & Invoicing', icon: 'receipt' },
   Engagement: { route: 'pipeline', label: 'Sales Pipeline', icon: 'trend' },
   Opini: { route: 'opinion', label: 'Audit Opinion', icon: 'gavel' },
-  'WIP Write-off': { route: 'wipreal', label: 'WIP & Realisasi', icon: 'hourglass' },
+  'WIP Write-off': { route: 'wip', label: 'WIP · Valuasi & Realisasi', icon: 'hourglass' },
   'Independensi': { route: 'independence', label: 'Independensi & Rotasi', icon: 'shield' },
 };
 
@@ -109,10 +109,15 @@ function Approvals() {
   const [selId, setSelId] = useStatePF(null);
   const [showRules, setShowRules] = useStatePF(false);
 
+  /* Write-down WIP manual (persist `wip.adj`, ditulis modul WIP). Diteruskan ke
+     buildApprovals supaya penghapusan ≥ ambang lewat UI ikut masuk antrean —
+     sebelum 2026-08-15 hanya write-down yang sudah ada di seed sub-buku yang masuk. */
+  const [wipAdj] = useAmsPersist('wip.adj', () => ({}));
+
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId }),
-    [aje, engagements, clients, activeEngagementId]);
+    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId, wipAdj }),
+    [aje, engagements, clients, activeEngagementId, wipAdj]);
   const items = useMemoPF(() => derived.map((d: any) => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
   /* PR-B — kewenangan kini per-ITEM & per-LANGKAH, bukan satu boolean global. */

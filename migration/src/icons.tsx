@@ -105,7 +105,10 @@ const MODULES = [
   { group: 'Operasi Praktik', items: [
     { id: 'pipeline',    label: 'Sales Pipeline', icon: 'filter', deep: true },
     { id: 'delivery',    label: 'Delivery & Milestones', icon: 'flag', deep: true },
-    { id: 'wipreal',     label: 'WIP · Realisasi', icon: 'hourglass', deep: true },
+    /* 2026-08-15 — `wip` (dulu di grup "Operasi & Administrasi Firma") & `wipreal`
+       dilebur jadi satu modul dan ditempatkan di sini: ekonomi perikatan satu rantai
+       dengan delivery → billing. docs/prd-wip-merge-valuasi-realisasi.md */
+    { id: 'wip',         label: 'WIP · Valuasi & Realisasi', icon: 'hourglass', deep: true },
     { id: 'billing',     label: 'Billing & Invoicing', icon: 'receipt', deep: true },
     { id: 'scheduler',   label: 'Resource Scheduler', icon: 'users', deep: true },
     { id: 'capacity',    label: 'Capacity Planning', icon: 'pulse', deep: true },
@@ -293,7 +296,6 @@ const MODULES = [
     { id: 'tax',     label: 'PPh 23 · Pemotongan', icon: 'receipt', deep: true },
     { id: 'crypto',  label: 'Compliance & Kriptografi', icon: 'lock', deep: true },
     { id: 'pdp',     label: 'Pelindungan Data Pribadi (PDP)', icon: 'lock', tag: 'NEW', deep: true },
-    { id: 'wip',     label: 'WIP · Valuasi', icon: 'hourglass', deep: true },
     { id: 'forensic', label: 'Forensic Cash Flow', icon: 'water', deep: true },
   ]},
 ];

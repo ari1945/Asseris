@@ -82,6 +82,25 @@ export function parseHash(raw: string | null | undefined): RouteLocation | null 
   return { route, sel: sel === '' ? null : sel, tab: tab === '' ? null : tab };
 }
 
+/* ---- Alias rute: id lama → id yang bertahan ----
+   Modul yang DIGABUNG meninggalkan id yatim di alam liar: bookmark pengguna,
+   `ams.route` sesi terakhir, dan `sourceRoute` pada item antrean persetujuan
+   yang sudah terlanjur dibuat. Membiarkannya "tak dikenal" berarti tautan itu
+   diam-diam mendarat di halaman lain — jadi id lama dipetakan, bukan dibuang.
+
+   Peta ini sengaja MURNI (tak menyentuh MODULE_INDEX) supaya berkas ini tetap
+   dapat diuji di environment node. Nilai peta WAJIB id yang benar-benar
+   terdaftar di MODULE_INDEX — dipaku oleh uji di `related_modules.test.ts`.
+
+   2026-08-15 — `wipreal` (WIP · Realisasi) dilebur ke `wip`
+   (WIP · Valuasi & Realisasi); lihat docs/prd-wip-merge-valuasi-realisasi.md. */
+export const ROUTE_ALIAS: Record<string, string> = { wipreal: 'wip' };
+
+/** Terjemahkan id rute lama ke penggantinya. Id yang bukan alias dikembalikan apa adanya. */
+export function resolveRoute(id: string): string {
+  return Object.prototype.hasOwnProperty.call(ROUTE_ALIAS, id) ? ROUTE_ALIAS[id] : id;
+}
+
 /** Rakit hash dari lokasi. Kebalikan `parseHash` (round-trip diuji). */
 export function buildHash(loc: { route: string; sel?: string | null; tab?: string | null }): string {
   const route = encodeURIComponent(loc.route);
@@ -111,9 +130,15 @@ export function initialLocation(
   isKnownRoute: (id: string) => boolean,
 ): { loc: RouteLocation; source: 'hash' | 'storage' | 'default' } {
   const fromHash = parseHash(hash);
-  if (fromHash && isKnownRoute(fromHash.route)) return { loc: fromHash, source: 'hash' };
-  if (lastRoute && isKnownRoute(lastRoute)) {
-    return { loc: { route: lastRoute, sel: null, tab: null }, source: 'storage' };
+  if (fromHash) {
+    /* Alias diterjemahkan SEBELUM uji kenal: bookmark `#/wipreal` harus mendarat
+       di modul penggantinya, bukan diperlakukan sebagai tautan busuk. */
+    const route = resolveRoute(fromHash.route);
+    if (isKnownRoute(route)) return { loc: { ...fromHash, route }, source: 'hash' };
+  }
+  if (lastRoute) {
+    const route = resolveRoute(lastRoute);
+    if (isKnownRoute(route)) return { loc: { route, sel: null, tab: null }, source: 'storage' };
   }
   return { loc: { route: 'home', sel: null, tab: null }, source: 'default' };
 }
