@@ -192,3 +192,147 @@ describe('SC-5 — write-down manual masuk antrean persetujuan', () => {
     }
   });
 });
+
+/* ============================================================
+   Roll-forward & jembatan GL yang DAPAT GAGAL (PRD 2026-08-15).
+
+   Sebelum arc ini keduanya adalah identitas aljabar: `opening` diturunkan agar
+   persamaan selalu menutup, dan `reconciling` menyerap selisih berapa pun lalu
+   dipecah 82/18 dengan label yang terdengar spesifik. Konsekuensinya terukur:
+   mengisi timesheet pada SATU perikatan menggeser "Saldo awal" 3.180 → 1.360 jt
+   dan menaikkan baris "WIP perikatan portofolio LAIN" sebesar 115%.
+
+   Yang dipaku di sini bukan "fungsi mengembalikan angka", melainkan bahwa
+   panelnya BISA MERAH. Uji yang hanya membuktikan keadaan hijau akan mengulang
+   persis kesalahan yang PRD ini perbaiki.
+   ============================================================ */
+type WipRoll = {
+  opening: number; charged: number; liveAdj: number; unpostedAdj: number; postedAsset: number;
+  closingNet: number; rollForwardResidual: number; glResidual: number; reconciles: boolean;
+  unbilledTotal: number; deferredIncome: number; control: number; nonMaterialTotal: number; accrualTotal: number;
+  movement: { k: string; label: string; value: number; alarm?: boolean }[];
+  bridge: { label: string; value: number; alarm?: boolean }[];
+  registerAll: (WipRow & { openingUnbilled: number; chargedInPeriod: number; seedStd: number })[];
+};
+const LIVE_014 = { 'ENG-2025-014': { std: 980_000_000, cost: 700_000_000, actualHrs: 784 } };
+const roll = (live?: unknown, adj?: Record<string, number>) =>
+  FIRMFIN.wip(ctx(), undefined, live, adj) as unknown as WipRoll;
+
+describe('seed sub-buku — invarian komponen', () => {
+  it('openingUnbilled + chargedInPeriod = nilai standar, untuk SETIAP perikatan', () => {
+    /* Inilah yang membuat roll-forward dapat gagal: bila seseorang menggeser `std`
+       tanpa menggeser komponennya, persamaannya tak lagi menutup. */
+    for (const r of roll().registerAll) {
+      expect(r.openingUnbilled + r.chargedInPeriod, r.id).toBe(r.seedStd);
+    }
+  });
+
+  it('komponen jembatan adalah register yang dapat dijumlah, bukan persentase selisih', () => {
+    const W = roll();
+    expect(W.nonMaterialTotal).toBeGreaterThan(0);
+    expect(W.accrualTotal).toBeGreaterThan(0);
+    expect(W.control).toBe(W.postedAsset + W.nonMaterialTotal + W.accrualTotal);
+  });
+});
+
+describe('SC-1/SC-2 — saldo awal adalah fakta, bukan plug', () => {
+  it('saldo awal IDENTIK dengan & tanpa timesheet Time & Budget', () => {
+    /* Cacat yang diperbaiki: dulu 3.180 → 1.360 jt hanya karena timesheet diisi. */
+    expect(roll(LIVE_014).opening).toBe(roll().opening);
+  });
+
+  it('saldo awal tidak bergerak oleh write-down manual', () => {
+    expect(roll(LIVE_014, { 'ENG-2025-063': 200_000_000 }).opening).toBe(roll().opening);
+  });
+
+  it('nilai standar jam ter-charge tidak bergerak oleh input mana pun', () => {
+    const a = roll().charged, b = roll(LIVE_014).charged;
+    const c = roll(LIVE_014, { 'ENG-2025-014': 500_000_000 }).charged;
+    expect([b, c]).toEqual([a, a]);
+  });
+});
+
+describe('SC-4 — menutup pada seed bersih, di SEMUA keadaan', () => {
+  for (const [nama, live, adj] of [
+    ['tanpa timesheet', undefined, undefined],
+    ['dengan timesheet', LIVE_014, undefined],
+    ['timesheet + write-down manual', LIVE_014, { 'ENG-2025-063': 200_000_000 }],
+  ] as [string, unknown, Record<string, number> | undefined][]) {
+    it(`${nama} → residual nol & reconciles`, () => {
+      const W = roll(live, adj);
+      expect(W.rollForwardResidual).toBe(0);
+      expect(W.glResidual).toBe(0);
+      expect(W.reconciles).toBe(true);
+    });
+  }
+
+  it('tak ada baris alarm saat menutup', () => {
+    const W = roll(LIVE_014);
+    expect(W.movement.filter(m => m.alarm)).toEqual([]);
+    expect(W.bridge.filter(b => b.alarm)).toEqual([]);
+  });
+});
+
+describe('SC-5 — HARUS bisa gagal (kalau tidak, ia bukan rekonsiliasi)', () => {
+  /* Merusak seed di memori lalu memulihkannya. Tanpa uji ini, "dapat gagal" hanya klaim. */
+  const seed = () => (AMS as unknown as { WIP_ENG: { id: string; chargedInPeriod: number }[] }).WIP_ENG;
+
+  it('menggeser chargedInPeriod satu perikatan → roll-forward TIDAK menutup & ekspor terkunci', () => {
+    const row = seed().find(r => r.id === 'ENG-2025-014') as { chargedInPeriod: number };
+    const asli = row.chargedInPeriod;
+    try {
+      row.chargedInPeriod = asli - 500_000_000;
+      const W = roll();
+      expect(W.rollForwardResidual).toBe(500_000_000);
+      expect(W.reconciles).toBe(false);
+      const alarm = W.movement.find(m => m.alarm);
+      expect(alarm, 'baris alarm wajib muncul di roll-forward').toBeTruthy();
+      expect((alarm as { label: string }).label).toMatch(/BELUM DIJELASKAN/);
+    } finally {
+      row.chargedInPeriod = asli;
+    }
+  });
+
+  it('mengubah saldo kontrol GL → jembatan TIDAK menutup & selisih disebut "belum dijelaskan"', () => {
+    const coa = (AMS as unknown as { FIRM_COA: { code: string; bal: number }[] }).FIRM_COA;
+    const akun = coa.find(a => a.code === '1-300') as { bal: number };
+    const asli = akun.bal;
+    try {
+      akun.bal = asli + 700_000_000;
+      const W = roll();
+      expect(W.glResidual).toBe(700_000_000);
+      expect(W.reconciles).toBe(false);
+      const alarm = W.bridge.find(b => b.alarm);
+      expect(alarm, 'baris alarm wajib muncul di jembatan').toBeTruthy();
+      expect((alarm as { label: string }).label).toMatch(/BELUM DIJELASKAN/);
+    } finally {
+      akun.bal = asli;
+    }
+  });
+
+  it('sesudah dipulihkan, keduanya menutup lagi (uji tidak meninggalkan jejak)', () => {
+    expect(roll().reconciles).toBe(true);
+  });
+});
+
+describe('SC-6/SC-7 — tak ada lagi angka karangan di jembatan', () => {
+  it('pergerakan yang belum diposting DISEBUT, bukan diserap', () => {
+    const W = roll(LIVE_014);
+    expect(W.unpostedAdj).not.toBe(0);
+    expect(W.bridge.some(b => /BELUM diposting/i.test(b.label))).toBe(true);
+  });
+
+  it('tak ada baris jembatan yang merupakan persentase dari selisih', () => {
+    /* Dulu: `otherPortfolio = reconciling * 0.82`. Baris itu berubah 115% ketika
+       timesheet diisi pada perikatan yang justru ADA di dalam sampel. */
+    const a = roll(), b = roll(LIVE_014);
+    const nonMat = (W: WipRoll) => W.bridge.find(x => /non-material/i.test(x.label));
+    expect(nonMat(a)?.value).toBe(nonMat(b)?.value);
+  });
+
+  it('reklas posisi over-billed tampil eksplisit, bukan terserap saldo awal', () => {
+    const W = roll(LIVE_014);
+    expect(W.movement.some(m => m.k === 'reclass')).toBe(true);
+    expect(W.closingNet + W.deferredIncome).toBe(W.unbilledTotal);
+  });
+});

@@ -298,7 +298,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
           </tbody>
           <tfoot><tr><td colSpan={5}>SUB-BUKU WIP PERIKATAN AKTIF</td><td className="num">{jt(wip.unbilledTotal)}</td></tr></tfoot>
         </table>
-        <div className="tiny muted" style={{ padding: '8px 12px' }}>WIP perikatan aktif Rp {jt(wip.unbilledTotal)} jt + WIP/akrual lain Rp {jt(wip.reconciling)} jt = kontrol GL 1-300 Rp {jt(wip.control)} jt. <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('wip', { from: 'firmfinance' })}>Buka WIP Valuation →</span></div>
+        <div className="tiny muted" style={{ padding: '8px 12px' }}>WIP perikatan aktif Rp {jt(wip.unbilledTotal)} jt{wip.unpostedAdj !== 0 ? ' + pergerakan belum diposting Rp ' + jt(Math.abs(wip.unpostedAdj)) + ' jt' : ''} + WIP non-material &amp; akrual Rp {jt(wip.nonMaterialTotal + wip.accrualTotal)} jt {wip.reconciles ? '=' : '≠'} kontrol GL 1-300 Rp {jt(wip.control)} jt{wip.reconciles ? '' : ' — SELISIH BELUM DIJELASKAN Rp ' + jt(Math.abs(wip.glResidual)) + ' jt'}. <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('wip', { from: 'firmfinance' })}>Buka WIP Valuation →</span></div>
       </Panel>
     </>
   );

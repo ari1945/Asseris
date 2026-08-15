@@ -87,6 +87,10 @@ function WIPModule() {
      "Laporan WIP & Realisasi.xlsx" dari register yang sama). */
   const onExport = async () => {
     if (exporting) return;
+    /* Q-2 (Ari, 2026-08-15): angka yang TIDAK MENUTUP tak boleh keluar sebagai berkas
+       tersegel. Gerbang ditegakkan di handler, bukan hanya pada `disabled` tombol —
+       tombol nonaktif bukan kontrol, ia hanya petunjuk. */
+    if (!W.reconciles) return;
     setExporting(true);
     try {
       const valuasi: (string | number)[][] = W.registerAll.map((r) => [
@@ -140,7 +144,9 @@ function WIPModule() {
           {liveByEng && <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)', cursor: 'pointer' }} title="Nilai standar engagement aktif ditarik dari jam aktual Time & Budget (live)" onClick={() => nav('time', { from: 'wip' })}><I.clock size={11} /> Sinkron T&B</span>}
           <span className="chip tiny" title="Seluruh angka ditarik dari sub-buku WIP_ENG → kontrol GL 1-300"><I.link2 size={11} /> Satu sumber kebenaran</span>
           <Btn sm onClick={() => nav('firmfinance', { from: 'wip' })}><I.table size={13} /> Kontrol GL 1-300</Btn>
-          <Btn sm onClick={onExport} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export WIP'}</Btn>
+          <Btn sm onClick={onExport} disabled={exporting || !W.reconciles}
+            title={W.reconciles ? 'Ekspor sub-buku WIP tersegel' : 'Ekspor dikunci: sub-buku tidak menutup — periksa tab Mutasi & Sumber Kebenaran'}>
+            <I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export WIP'}</Btn>
           <Btn sm variant="primary" onClick={() => nav('billing', { from: 'wip' })}><I.receipt size={14} /> Buat Tagihan</Btn>
         </div>
       } />
@@ -153,6 +159,20 @@ function WIPModule() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={pc(W.avgMargin)} label="Margin Rata-rata" accent={wipMarginColor(W.avgMargin)} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + jt(W.provisionTotal) + ' jt'} label={'Penyisihan WIP · ' + pc(W.provisionPct, 1)} accent="var(--red)" /></div></Panel>
         </div>
+
+        {!W.reconciles && (
+          <div className="panel" style={{ padding: '9px 12px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}>
+            <div className="row jb ac gap8">
+              <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5, color: 'var(--red)' }}>
+                <I.alert size={11} /> Sub-buku WIP TIDAK MENUTUP
+                {W.rollForwardResidual !== 0 && ` — roll-forward selisih Rp ${jt(Math.abs(W.rollForwardResidual))} jt`}
+                {W.glResidual !== 0 && ` — kontrol GL selisih Rp ${jt(Math.abs(W.glResidual))} jt`}
+                . Ekspor tersegel dikunci sampai selisih dijelaskan.
+              </div>
+              <Btn sm onClick={() => setTab('sumber')}><I.search2 size={13} /> Periksa</Btn>
+            </div>
+          </div>
+        )}
 
         {pendingApproval.length > 0 && (
           <div className="panel" style={{ padding: '9px 12px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 12 }}>
