@@ -433,6 +433,27 @@
   ];
 
   /* ---- F: Firm AP — vendor payables ---- */
+  /* Jembatan sub-buku → kontrol GL, DIENUMERASI (PRD AR/AP 2026-08-15).
+
+     Sebelum ini selisih antara sub-buku dan akun kontrol adalah PLUG tunggal
+     (`reconciling = control − open`) yang diberi nama di lapisan VIEW: "termin/retensi"
+     untuk AR (Rp 1.745 jt = 65% sub-buku) dan "akrual" untuk AP (Rp 697 jt = 62%).
+     Tak satu pun baris termin, retensi, atau akrual benar-benar ada di data. Kini
+     keduanya register yang dapat dijumlah; sisa yang tak tercakup disebut "belum
+     dijelaskan" dan MEMERAHKAN baris rekonsiliasi. */
+  const AR_BRIDGE = [
+    { id: 'ARB-TRM-014', kind: 'Termin', ref: 'ENG-2025-014', desc: 'Termin 3 (20%) — pekerjaan selesai, faktur belum terbit', amount: 370_000_000 },
+    { id: 'ARB-TRM-063', kind: 'Termin', ref: 'ENG-2025-063', desc: 'Termin final — menunggu penerbitan opini', amount: 550_000_000 },
+    { id: 'ARB-RET-031', kind: 'Retensi', ref: 'ENG-2025-031', desc: 'Retensi 10% ditahan klien s/d penyerahan laporan', amount: 126_000_000 },
+    { id: 'ARB-RET-040', kind: 'Retensi', ref: 'ENG-2025-040', desc: 'Retensi 10% ditahan klien s/d penyerahan laporan', amount: 207_000_000 },
+    { id: 'ARB-TRM-058', kind: 'Termin', ref: 'ENG-2025-058', desc: 'Termin 2 — disetujui, faktur dalam proses', amount: 492_000_000 },
+  ];
+  const AP_BRIDGE = [
+    { id: 'APB-ACR-PPL', kind: 'Akrual', vendor: 'IAPI · PPL & keanggotaan', desc: 'Akrual iuran & PPL kuartal berjalan', amount: 185_000_000 },
+    { id: 'APB-ACR-EXP', kind: 'Akrual', vendor: 'Pakar eksternal (SA 620)', desc: 'Jasa pakar terpakai, invoice belum diterima', amount: 240_000_000 },
+    { id: 'APB-PRC-IT',  kind: 'Dalam proses', vendor: 'PT Solusi Teknologi Audit', desc: 'Faktur diterima, menunggu persetujuan tiga-arah', amount: 272_000_000 },
+  ];
+
   const FIRM_AP = [
     { id: 'AP-0042', vendor: 'PT Solusi Teknologi Audit', cat: 'Software & Lisensi', issued: '2026-02-20', due: '2026-03-22', amount: 340_000_000, paid: 0, status: 'Outstanding' },
     { id: 'AP-0041', vendor: 'PT Properti Graha Kantor', cat: 'Sewa Kantor', issued: '2026-03-01', due: '2026-03-31', amount: 480_000_000, paid: 0, status: 'Outstanding' },
@@ -640,4 +661,4 @@
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, AR_BRIDGE, AP_BRIDGE, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };
