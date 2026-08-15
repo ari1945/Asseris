@@ -10,6 +10,12 @@ import { KvBox } from './view_analytical';
 import { amsExportPdf } from './export_pdf';
 import { CAP } from './rbac';
 import { FIRMFIN } from './data_firmfin';
+import { usePipelineRegister } from './use_pipeline';
+import {
+  PIPE_STAGES, PIPE_STAGE_COLOR, nextOppId, openOpportunities,
+  stageSummary, weightedValue, winLoss, wonYtd,
+} from './canon_pipeline';
+import type { Opportunity } from './canon_pipeline';
 
 /* Program B lanjutan (K-07) — tarif pembagi estimasi jam anggaran prospek dari
    SSOT FIRMFIN.WIP_BILL (dulu literal 700rb = tarif Senior — duplikat terpecah). */
@@ -20,78 +26,104 @@ const PIPELINE_BUDGET_RATE = (FIRMFIN && FIRMFIN.WIP_BILL && FIRMFIN.WIP_BILL['S
    ============================================================ */
 const { useState: useStateD1, useMemo: useMemoD1 } = React;
 
-/* ---------------- Sales Pipeline ---------------- */
-const PIPE_STAGES = [
-  { id: 'Lead', color: '#8a97a1' },
-  { id: 'Qualified', color: '#0a6b73' },
-  { id: 'Proposal', color: '#005085' },
-  { id: 'Negotiation', color: '#9a6a00' },
-  { id: 'Won', color: '#1f7a4d' },
-];
+/* ---------------- Sales Pipeline ----------------
+   PRD `docs/prd-sales-pipeline-deepening.md` · PR-1.
+   Papan ini dulu memegang daftar peluangnya sendiri (`useAmsPersist('pipeline')`)
+   sementara BI / Kapasitas / antrean Penerimaan membaca literal seed — memindah
+   kartu tak menggerakkan satu pun angka hilir. Kini SATU register lewat
+   `usePipelineRegister()`, dan tahap/warnanya dari `canon_pipeline` (dulu tiga
+   peta warna yang saling berbeda di tiga berkas).                              */
 
 function SalesPipeline() {
   const { fmt } = AMS;
-  const [opps, setOpps] = useAmsPersist('pipeline', () => AMS.PIPELINE);
+  const { register: opps, setRegister: setOpps, canEdit } = usePipelineRegister();
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
   const [dragId, setDragId] = useStateD1(null);
   const [over, setOver] = useStateD1(null);
   const [detail, setDetail] = useStateD1(null);
 
-  const active = opps.filter((o: any) => o.stage !== 'Lost');
-  const weighted = active.filter((o: any) => o.stage !== 'Won').reduce((s: any, o: any) => s + o.value * o.prob / 100, 0);
-  const won = opps.filter((o: any) => o.stage === 'Won').reduce((s: any, o: any) => s + o.value, 0);
-  const openCount = opps.filter((o: any) => !['Won', 'Lost'].includes(o.stage)).length;
-  const winRate = Math.round(opps.filter((o: any) => o.stage === 'Won').length / (opps.filter((o: any) => ['Won', 'Lost'].includes(o.stage)).length || 1) * 100);
+  const openList = openOpportunities(opps);
+  const weighted = weightedValue(openList);
+  const won = wonYtd(opps, AMS.TODAY);
+  const openCount = openList.length;
+  const wl = winLoss(opps);
+  const crossSell = openList.filter((o) => o.origin === 'cross-sell').length;
 
-  const move = (id: any, stage: any) => setOpps((list: any) => list.map((o: any) => o.id === id ? { ...o, stage, prob: stage === 'Won' ? 100 : stage === 'Lost' ? 0 : o.prob } : o));
-  const detailOpp = detail ? opps.find((o: any) => o.id === detail) : null;
+  /* SoD business development (PR-1): register peluang = ENGAGEMENT_MANAGE,
+     sejajar roster klien & prospek. Gate UI ini WAJIB selaras dengan
+     capForWrite('firm','pipeline') — kalau tidak, kartu bergerak di layar lalu
+     tulisannya ditolak SENYAP oleh server. */
+  const move = (id: any, stage: any) => {
+    if (!canEdit) return;
+    const from = opps.find((o) => o.id === id);
+    if (!from || from.stage === stage) return;
+    setOpps((list: Opportunity[]) => list.map((o) => o.id === id ? { ...o, stage, prob: stage === 'Won' ? 100 : stage === 'Lost' ? 0 : o.prob } : o));
+    logActivity && logActivity({
+      who, action: 'OPP_STAGE',
+      detail: `Peluang ${id} · ${from.name} dipindahkan ${from.stage} → ${stage}`,
+    });
+  };
+  const detailOpp = detail ? opps.find((o) => o.id === detail) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addOpp = (o: any) => setOpps((list: any) => [{ id: 'OPP-' + (108 + list.length), stage: 'Lead', ...o }, ...list]);
+  const addOpp = (o: any) => {
+    if (!canEdit) return;
+    const id = nextOppId(opps);
+    setOpps((list: Opportunity[]) => [{ id, stage: 'Lead', origin: 'baru', clientId: null, ...o }, ...list]);
+    logActivity && logActivity({ who, action: 'OPP_CREATE', detail: `Peluang baru ${id}${o.name ? ' · ' + o.name : ''}` });
+  };
 
   return (
     <>
       <SubBar moduleId="pipeline" right={
         <div className="row gap8 ac">
-          <span className="tiny muted">Tarik kartu antar-tahap</span>
-          <Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Peluang Baru</Btn>
+          {canEdit
+            ? <>
+                <span className="tiny muted">Tarik kartu antar-tahap</span>
+                <Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Peluang Baru</Btn>
+              </>
+            : <span className="chip tiny muted" title="Pengelolaan peluang dibatasi peran Partner / Manajer (setara roster klien & prospek)"><I.lock size={11} /> Read-only</span>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openCount} label="Peluang Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 1) + ' M'} label="Pipeline Tertimbang" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(won / 1e9, 1) + ' M'} label="Dimenangkan (YTD)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={winRate + '%'} label="Win Rate" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openCount} label="Peluang Aktif" delta={crossSell ? crossSell + ' cross-sell' : null} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Pipeline Tertimbang" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(won / 1e9, 2) + ' M'} label={'Dimenangkan (YTD ' + String(AMS.TODAY).slice(0, 4) + ')'} accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={wl.winRate + '%'} label="Win Rate" delta={wl.won + ' menang · ' + wl.lost + ' kalah'} /></div></Panel>
         </div>
 
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10, alignItems: 'start' }}>
-          {PIPE_STAGES.map(st => {
-            const col = opps.filter((o: any) => o.stage === st.id);
-            const colVal = col.reduce((s: any, o: any) => s + o.value, 0);
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 10, alignItems: 'start' }}>
+          {stageSummary(opps, PIPE_STAGES).map(st => {
+            const color = PIPE_STAGE_COLOR[st.stage];
             return (
-              <div key={st.id}
-                onDragOver={(e: any) => { e.preventDefault(); if (over !== st.id) setOver(st.id); }}
-                onDragLeave={() => setOver((o: any) => o === st.id ? null : o)}
-                onDrop={(e: any) => { e.preventDefault(); if (dragId) move(dragId, st.id); setDragId(null); setOver(null); }}
-                style={{ borderRadius: 8, padding: 5, minHeight: 120, background: over === st.id ? 'var(--blue-050)' : 'transparent', outline: over === st.id ? '2px dashed var(--blue)' : 'none' }}>
+              <div key={st.stage}
+                onDragOver={(e: any) => { if (!canEdit) return; e.preventDefault(); if (over !== st.stage) setOver(st.stage); }}
+                onDragLeave={() => setOver((o: any) => o === st.stage ? null : o)}
+                onDrop={(e: any) => { e.preventDefault(); if (dragId) move(dragId, st.stage); setDragId(null); setOver(null); }}
+                style={{ borderRadius: 8, padding: 5, minHeight: 120, background: over === st.stage ? 'var(--blue-050)' : 'transparent', outline: over === st.stage ? '2px dashed var(--blue)' : 'none' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.id}</span>
-                  <span className="chip tiny">{col.length}</span>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.stage}</span>
+                  <span className="chip tiny">{st.n}</span>
                 </div>
-                <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(colVal / 1e6, 0)} jt</div>
+                <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(st.gross / 1e6, 0)} jt</div>
                 <div className="grid" style={{ gap: 8 }}>
-                  {col.map((o: any) => (
-                    <div key={o.id} className="panel" draggable
+                  {st.items.map((o) => (
+                    <div key={o.id} className="panel" draggable={canEdit}
                       onDragStart={() => setDragId(o.id)} onDragEnd={() => { setDragId(null); setOver(null); }}
                       onClick={() => setDetail(o.id)}
-                      style={{ padding: 10, cursor: 'grab', borderTop: '3px solid ' + st.color, opacity: dragId === o.id ? .4 : 1 }}>
+                      style={{ padding: 10, cursor: canEdit ? 'grab' : 'pointer', borderTop: '3px solid ' + color, opacity: dragId === o.id ? .4 : 1 }}>
                       <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{o.name.replace('PT ', '')}</div>
                       <div className="tiny muted" style={{ marginBottom: 6 }}>{o.service}</div>
                       <div className="row jb ac">
                         <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Rp {fmt(o.value / 1e6, 0)} jt</span>
                         <span className="badge" style={{ background: 'var(--surface-3)', color: o.prob >= 70 ? 'var(--green)' : o.prob >= 40 ? 'var(--amber)' : 'var(--ink-3)' }}>{o.prob}%</span>
                       </div>
-                      <div className="row ac gap6" style={{ marginTop: 6 }}><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></div>
+                      <div className="row jb ac gap6" style={{ marginTop: 6 }}>
+                        <span className="row ac gap6"><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
+                        {o.origin === 'cross-sell' && <span className="badge b-purple" title="Cross-sell ke klien eksisting">Cross-sell</span>}
+                      </div>
                     </div>
                   ))}
                 </div>

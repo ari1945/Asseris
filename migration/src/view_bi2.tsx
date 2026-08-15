@@ -3,6 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmCoa } from './use_firm_coa';
+import { usePipelineRegister } from './use_pipeline';
+import { PIPE_OPEN_STAGES, PIPE_STAGE_COLOR, byOwner, grossValue, openOpportunities, weightedValue } from './canon_pipeline';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui';
@@ -89,25 +91,22 @@ function BIPendapatan() {
 function BIPipeline() {
   const { fmt } = AMS;
   const nav = useNav();
-  const PIPE: any = AMS.PIPELINE;
+  /* PRD Sales Pipeline PR-1 — register hidup (intake + cross-sell), bukan literal
+     seed. Peta warna tahap juga dari kanon: dulu berkas ini, view_pipeline, dan
+     view_crm2 masing-masing punya peta sendiri yang saling berbeda. */
+  const { register: PIPE } = usePipelineRegister();
   const WL: any = AMS.BI_WINLOSS;
 
-  const open = PIPE.filter((p: any) => !['Won', 'Lost'].includes(p.stage));
-  const gross = open.reduce((s: any, p: any) => s + p.value, 0);
-  const weighted = open.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0);
+  const open = openOpportunities(PIPE);
+  const gross = grossValue(open);
+  const weighted = weightedValue(open);
   const avgDeal = Math.round(gross / (open.length || 1));
-  const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
-  const stColor = { Lead: '#9aa7b2', Qualified: '#5b3fa6', Proposal: '#0a6b73', Negotiation: '#005085' };
-  const funnel = stages.map((st: any) => {
-    const items = open.filter((p: any) => p.stage === st);
-    const g = items.reduce((s: any, p: any) => s + p.value, 0);
-    return { label: st, value: g, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: (stColor as any)[st] };
+  const funnel = PIPE_OPEN_STAGES.map((st) => {
+    const items = open.filter((p) => p.stage === st);
+    const g = grossValue(items);
+    return { label: st, value: g, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: PIPE_STAGE_COLOR[st] };
   });
-  const byPartner = Object.values(open.reduce((m: any, p: any) => {
-    if (!m[p.owner]) m[p.owner] = { owner: p.owner, gross: 0, wt: 0, n: 0 };
-    m[p.owner].gross += p.value; m[p.owner].wt += p.value * p.prob / 100; m[p.owner].n++;
-    return m;
-  }, {} as any)).sort((a: any, b: any) => b.wt - a.wt);
+  const byPartner = byOwner(open).map((r) => ({ owner: r.owner, gross: r.gross, wt: r.weighted, n: r.n }));
   const maxWL = Math.max(...WL.byQuarter.map((q: any) => q.w + q.l), 1);
 
   return (

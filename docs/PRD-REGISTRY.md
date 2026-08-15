@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 7 |
+| In Progress | 8 |
 | Implemented | 35 |
 | Superseded | 1 |
 
@@ -107,6 +107,7 @@
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-sales-pipeline-deepening.md | In Progress — Approved ("sesuai rekomendasi" 2026-08-15; Q-1..Q-5 = rekomendasi, Q-6 = opsi b dgn fallback a). PR-1 SELESAI (register tunggal intake+cross-sell · RBAC ENGAGEMENT_MANAGE · jejak audit · SC-1/2/9/10 tertutup, live-verified). PR-2..PR-6 menyusul |
 | docs/prd-sa620-expert-gate-server.md | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-smm1-smm2-adoption.md | Implemented — SELESAI 2026-08-13. Kedelapan PR merged (#198·#200·#201·#202·#203·#204·#205·#206), master 3c57a39. Q-1..Q-6 terjawab; retensi SMM ¶60 = 5 tahun (kertas kerja perikatan TETAP rezim terpisah) |

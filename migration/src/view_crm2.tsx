@@ -5,15 +5,24 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui';
 import { FGauge, Funnel, HBars } from './view_fpm_parts';
+import { usePipelineRegister } from './use_pipeline';
+import {
+  PIPE_OPEN_STAGES, PIPE_STAGE_COLOR as STAGE_COLOR, grossValue,
+  isClosed, opportunitiesForClient, weightedOne, weightedValue,
+} from './canon_pipeline';
 
 /* ============================================================
    Asseris — Client CRM · extra tabs
    360° Klien · Aktivitas & Interaksi · Peluang (cross-sell) ·
    Segmentasi. (Direktori stays in view_firm.jsx.)
+
+   PRD Sales Pipeline PR-1 — peluang cross-sell dulu hidup HANYA di sini
+   (`CRM_360[*].opps`), terpisah dari pipeline firma, sehingga ESG Assurance
+   480 jt · Audit Kepatuhan OJK 540 jt · SOC 1 620 jt dan seterusnya tak pernah
+   ikut terhitung dalam forecast firma. Kini keduanya satu register; tab ini
+   membacanya lewat `usePipelineRegister()` dan menyaring yang ber-clientId.
    ============================================================ */
 const { useState: useCRM2 } = React;
-
-const STAGE_COLOR = { Lead: '#9aa7b2', Qualified: '#5b3fa6', Proposal: '#0a6b73', Negotiation: '#005085', Won: '#1f7a4d', Lost: '#b3261e' };
 
 /* ---------------- 360° Klien (single-client cockpit) ---------------- */
 function CRM360() {
@@ -27,6 +36,10 @@ function CRM360() {
   const sel = clients.find((c: any) => c.id === selId) || clients[0];
   const h = C360[sel.id] || {};
   const engs = engagementsForClient(sel.id);
+  /* Peluang klien ini dari register firma — bukan `h.opps` (salinan seed yang tak
+     pernah bergerak saat peluangnya berpindah tahap di modul Sales Pipeline). */
+  const { register } = usePipelineRegister();
+  const clientOpps = opportunitiesForClient(register, sel.id);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -84,13 +97,13 @@ function CRM360() {
               </div>
             </Panel>
 
-            <Panel title="Peluang Cross-sell" sub={(h.opps || []).length + ' peluang'}>
+            <Panel title="Peluang Cross-sell" sub={clientOpps.length + ' peluang'}>
               <div style={{ padding: 12, display: 'grid', gap: 8 }}>
-                {(h.opps || []).length === 0 && <div className="muted tiny" style={{ padding: 4 }}>Tidak ada peluang terbuka.</div>}
-                {(h.opps || []).map((o: any) => (
+                {clientOpps.length === 0 && <div className="muted tiny" style={{ padding: 4 }}>Tidak ada peluang terbuka.</div>}
+                {clientOpps.map((o) => (
                   <div key={o.id} className="row ac gap10" style={{ padding: '7px 9px', borderRadius: 7, background: 'var(--surface-2)' }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: (STAGE_COLOR as any)[o.stage], flex: '0 0 8px' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{o.svc}</div><div className="tiny muted">{o.stage} · target {o.close}</div></div>
+                    <div style={{ flex: 1, minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{o.service}</div><div className="tiny muted">{o.stage} · target {o.close}</div></div>
                     <div style={{ textAlign: 'right' }}><div className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(o.value / 1e6, 0)} jt</div><div className="tiny muted">{o.prob}%</div></div>
                   </div>
                 ))}
@@ -204,19 +217,19 @@ function CRMAktivitas() {
 function CRMPeluang() {
   const { fmt } = AMS;
   const nav = useNav();
-  const { clients } = useFirm();
-  const C360 = AMS.CRM_360;
+  const { register } = usePipelineRegister();
 
-  const opps: any[] = [];
-  clients.forEach((c: any) => { ((C360 as any)[c.id]?.opps || []).forEach((o: any) => opps.push({ ...o, client: c.name.replace('PT ', ''), clientId: c.id })); });
-  const openOpps = opps.filter(o => !['Won', 'Lost'].includes(o.stage));
-  const gross = openOpps.reduce((s, o) => s + o.value, 0);
-  const weighted = openOpps.reduce((s, o) => s + o.value * o.prob / 100, 0);
-  const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
-  const funnel = stages.map(st => {
-    const items = openOpps.filter(o => o.stage === st);
-    const g = items.reduce((s, o) => s + o.value, 0);
-    return { label: st, value: g || 1, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: (STAGE_COLOR as any)[st] };
+  /* Tab ini khusus cross-sell (peluang atas klien eksisting) — disaring dari
+     register firma, bukan register kedua. */
+  const opps = register.filter((o) => o.origin === 'cross-sell')
+    .map((o) => ({ ...o, client: o.name.replace('PT ', '') }));
+  const openOpps = opps.filter((o) => !isClosed(o.stage));
+  const gross = grossValue(openOpps);
+  const weighted = weightedValue(openOpps);
+  const funnel = PIPE_OPEN_STAGES.map((st) => {
+    const items = openOpps.filter((o) => o.stage === st);
+    const g = grossValue(items);
+    return { label: st, value: g || 1, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: STAGE_COLOR[st] };
   });
 
   return (
@@ -238,14 +251,14 @@ function CRMPeluang() {
           <table className="dtbl">
             <thead><tr><th>Peluang</th><th>Klien</th><th>Tahap</th><th className="num">Nilai</th><th className="num">Prob.</th><th className="num">Tertimbang</th><th style={{ width: 70 }}>Target</th></tr></thead>
             <tbody>
-              {opps.sort((a, b) => (b.value * b.prob) - (a.value * a.prob)).map(o => (
+              {opps.slice().sort((a, b) => weightedOne(b) - weightedOne(a)).map(o => (
                 <tr key={o.id}>
-                  <td className="truncate" style={{ maxWidth: 180, fontWeight: 600 }}>{o.svc}</td>
+                  <td className="truncate" style={{ maxWidth: 180, fontWeight: 600 }}>{o.service}</td>
                   <td className="tiny muted truncate" style={{ maxWidth: 110 }}>{o.client}</td>
                   <td><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: '50%', background: (STAGE_COLOR as any)[o.stage], flex: '0 0 8px' }} /><span className="tiny">{o.stage}</span></span></td>
                   <td className="num">{fmt(o.value / 1e6, 0)} jt</td>
                   <td className="num muted">{o.prob}%</td>
-                  <td className="num" style={{ fontWeight: 700, color: o.stage === 'Lost' ? 'var(--ink-4)' : 'var(--blue)' }}>{o.stage === 'Lost' ? '—' : fmt(o.value * o.prob / 100 / 1e6, 0) + ' jt'}</td>
+                  <td className="num" style={{ fontWeight: 700, color: isClosed(o.stage) ? 'var(--ink-4)' : 'var(--blue)' }}>{isClosed(o.stage) ? '—' : fmt(weightedOne(o) / 1e6, 0) + ' jt'}</td>
                   <td className="tiny mono muted">{o.close}</td>
                 </tr>
               ))}

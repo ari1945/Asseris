@@ -321,12 +321,12 @@
   },
   "src/view_bi.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 47
+      "count": 37
     }
   },
   "src/view_bi2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 64
+      "count": 48
     }
   },
   "src/view_bo1.tsx": {
@@ -391,7 +391,7 @@
   },
   "src/view_crm2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 56
+      "count": 50
     }
   },
   "src/view_crypto.tsx": {
@@ -781,7 +781,7 @@
   },
   "src/view_pipeline.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 75
+      "count": 57
     }
   },
   "src/view_platform.tsx": {

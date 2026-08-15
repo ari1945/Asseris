@@ -5,6 +5,7 @@ import { useAmsPersist, useAuth } from './contexts';
 import { CAP } from './rbac';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacityPlan, CapacitySeed, GradeSeries } from './canon_capacity';
+import { usePipelineRegister } from './use_pipeline';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -43,11 +44,14 @@ function CapacityPlanning() {
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_MANAGE));
 
   const leaveSet = useMemoCap(() => new Set((AMS.STAFF || []).filter((s) => s.status === 'Cuti').map((s) => (s.name || '').split(',')[0].trim())), []);
+  /* PRD Sales Pipeline PR-1 — kebutuhan sumber daya dari register HIDUP. Dulu
+     literal seed: memenangkan/kehilangan peluang tak pernah menggeser demand. */
+  const { register: pipelineReg } = usePipelineRegister();
   const model = useMemoCap(() => capacityModel(schedule, plan, {
     nowLabel: (AMS.CAPACITY as CapacitySeed).weeks[0],
-    pipeline: AMS.PIPELINE,
+    pipeline: pipelineReg,
     leaveOf: (n: string) => leaveSet.has(n),
-  }), [schedule, plan, leaveSet]);
+  }), [schedule, plan, leaveSet, pipelineReg]);
   const { weeks, grades, staff, pipeline } = model;
   const fwdN = plan.weeks.length;   /* minggu ke-depan yang bisa disunting (index 1.. di weeks) */
   const userName = AMS.USER.name || 'Pengguna';
