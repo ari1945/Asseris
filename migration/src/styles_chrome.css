@@ -407,6 +407,19 @@ body.dense .panel-body { padding: 10px 12px; }
 .b-teal   { background: var(--teal-bg);   color: var(--b-teal-fg); }
 .b-gray   { background: var(--surface-3); color: var(--ink-3); }
 
+/* Badge yang MEMICU aksi wajib <button> asli (CLAUDE.md §3.7) — bukan
+   <span onClick>, yang tak muncul di pohon aksesibilitas, tak fokusable, dan
+   tak bisa dioperasikan keyboard. Kelas ini dipakai BERSAMA `.badge .b-*`
+   sehingga rupa pil tetap satu sumber; di sini hanya menetralkan gaya bawaan
+   agen tombol + memberi affordance hover/fokus. */
+.badge-btn {
+  border: 0; background-clip: padding-box; font-family: inherit;
+  cursor: pointer; appearance: none; -webkit-appearance: none;
+}
+.badge-btn:hover { box-shadow: inset 0 0 0 1px currentColor; }
+.badge-btn:focus-visible { outline: 2px solid var(--blue-400); outline-offset: 2px; }
+.badge-btn[disabled] { cursor: default; opacity: .55; box-shadow: none; }
+
 /* spinner (verifikasi hash) */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin .9s linear infinite; transform-origin: center; }

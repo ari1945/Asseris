@@ -25,6 +25,35 @@ function Badge({ children, kind, dot }: any) {
   return <span className={'badge ' + cls}>{dot && <span className="bdot" style={{ background: 'currentColor' }} />}{children}</span>;
 }
 
+/* Props BERTIPE, bukan `any`: @types/react sengaja absen di repo ini
+   (jsx-intrinsics.d.ts), jadi atribut tombol yang benar-benar dipakai
+   didaftar eksplisit alih-alih meminjam React.ButtonHTMLAttributes. */
+type BadgeBtnProps = {
+  children?: unknown;
+  kind?: string;
+  dot?: boolean;
+  /** Nama aksesibel — WAJIB, dan harus diawali teks pil yang terlihat. */
+  label: string;
+  title?: string;
+  className?: string;
+  disabled?: boolean;
+  onClick?: (...args: unknown[]) => void;
+};
+/* Badge yang MEMICU aksi. Rupa identik `Badge`, tetapi elemennya <button>
+   asli — CLAUDE.md §3.7: kontrol wajib native, bukan <span onClick> yang
+   tak fokusable dan tak muncul di pohon aksesibilitas.
+   `label` menjadi nama aksesibel dan HARUS diawali teks pil yang terlihat
+   (WCAG 2.5.3 Label-in-Name), mis. children "Posted" → label
+   "Posted — jurnal JV-0307, klik untuk batalkan posting". */
+function BadgeBtn({ children, kind, dot, label, className = '', ...rest }: BadgeBtnProps) {
+  const cls = kind ? ('b-' + kind) : ((STATUS_MAP as Record<string, string>)[String(children)] || 'b-gray');
+  return (
+    <button type="button" className={`badge badge-btn ${cls} ${className}`} aria-label={label} {...rest}>
+      {dot && <span className="bdot" aria-hidden="true" style={{ background: 'currentColor' }} />}{children}
+    </button>
+  );
+}
+
 function Btn({ children, variant = '', sm, icon, className = '', ...rest }: any) {
   return (
     <button className={`btn ${variant} ${sm ? 'sm' : ''} ${icon ? 'icon' : ''} ${className}`} {...rest}>
@@ -333,7 +362,7 @@ Object.assign(window, {
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AccessDenied, Avatar, Badge, Btn, Check, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Switch, Tabs };
+export { AccessDenied, Avatar, Badge, BadgeBtn, Btn, Check, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Switch, Tabs };
 /* re-ekspor primitif overlay (implementasi di overlay.tsx) */
 export { Overlay, Z };
 export const amsPrintDoc = window.amsPrintDoc;
