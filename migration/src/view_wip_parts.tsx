@@ -176,16 +176,15 @@ export function wipByPartner(rows: WipRow[]): PartnerAgg[] {
 }
 
 export function WipRealisasiTab(
-  { W, jt, pc, view, setView, onOpenRow, nav }:
+  { W, jt, pc, view, setView, onOpenRow }:
   {
     W: WipModel; jt: Fmt; pc: Fmt; view: string; setView: (v: string) => void;
-    onOpenRow: (id: string) => void; nav: Nav;
+    onOpenRow: (id: string) => void;
   },
 ) {
   const { fmt } = AMS as unknown as { fmt: Fmt };
   /* cast di luar useMemo — hook React untyped di repo ini (tak ada @types/react) */
   const partners = useMemoWipP(() => wipByPartner(W.registerAll), [W.registerAll]) as PartnerAgg[];
-  void nav;
 
   return (
     <div className="grid" style={{ gap: 12 }}>

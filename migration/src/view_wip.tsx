@@ -177,7 +177,7 @@ function WIPModule() {
 
             {tab === 'realisasi' && (
               <WipRealisasiTab W={W} jt={jt} pc={pc} view={view} setView={setView}
-                onOpenRow={openValuationRow} nav={nav} />
+                onOpenRow={openValuationRow} />
             )}
 
             {tab === 'pemulihan' && (
