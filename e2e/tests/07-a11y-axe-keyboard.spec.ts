@@ -173,4 +173,55 @@ test.describe('Tahap 9 — aksesibilitas (axe) & smoke keyboard', () => {
     //    utang app-wide di luar cakupan aturan yang digerbangi).
     await scanAndAssert(page, 'firm general ledger');
   });
+
+  // Dialog "Jurnal Baru" (FirmJVForm) dulu merakit `position:fixed` tangan:
+  // tanpa role=dialog, focus trap, Escape, scroll-lock, maupun penjagaan
+  // perubahan belum tersimpan — pelanggaran CLAUDE.md §5. Karena tak pernah
+  // dapat dipindai, TIGA pelanggaran critical axe bersembunyi di dalamnya
+  // (label Jumlah + nama kedua <select> akun). Uji ini mengunci keduanya.
+  test('dialog Jurnal Baru memenuhi kontrak <Overlay> (aria · Escape · penjaga perubahan)', async ({ page }) => {
+    await login(page, USERS.partner);
+    await gotoModule(page, 'firmgl');
+
+    const trigger = page.getByRole('button', { name: 'Jurnal Baru' });
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+    await expect(dialog).toHaveAccessibleName(/Jurnal Umum Firma/);
+
+    // Tiap kontrol form punya nama aksesibel. <label> di sini BERSAUDARA dengan
+    // kontrolnya, jadi tanpa pasangan htmlFor/id kaitannya cuma visual —
+    // getByLabel tidak akan resolve. Ini repro langsung ketiga critical tadi.
+    await expect(page.getByLabel('Keterangan')).toBeVisible();
+    await expect(page.getByLabel('Akun Debit')).toBeVisible();
+    await expect(page.getByLabel('Akun Kredit')).toBeVisible();
+    await expect(page.getByLabel('Jumlah (Rp)')).toBeVisible();
+
+    // axe DENGAN dialog terbuka — keadaan yang sebelumnya mustahil dipindai.
+    await scanAndAssert(page, 'dialog jurnal baru');
+
+    // Escape pada form BERSIH menutup langsung.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+
+    // Form KOTOR: Escape TIDAK menutup — muncul konfirmasi buang-perubahan.
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await page.getByLabel('Keterangan').fill('Uji penjaga perubahan');
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('Ada perubahan yang belum tersimpan', { exact: false })).toBeVisible();
+
+    // "Kembali menyunting" mengembalikan form dengan isian UTUH.
+    await page.getByRole('button', { name: 'Kembali menyunting' }).click();
+    await expect(page.getByLabel('Keterangan')).toHaveValue('Uji penjaga perubahan');
+
+    // "Buang perubahan" menutup semuanya dan MEMULIHKAN fokus ke pemicu.
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Buang perubahan' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
 });

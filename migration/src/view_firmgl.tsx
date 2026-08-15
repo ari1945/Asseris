@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, BadgeBtn, Btn, Panel, Seg, Stat, Tabs } from './ui';
+import { Badge, BadgeBtn, Btn, Overlay, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 import { CAP } from './rbac';
@@ -305,27 +305,46 @@ function FirmJVForm({ coa, onClose, onPost }: any) {
   const [cr, setCr] = useStateF1('');
   const [amount, setAmount] = useStateF1('');
   const valid = desc.trim() && dr && cr && dr !== cr && +amount > 0;
+  /* CLAUDE.md §5 — dialog dirakit <Overlay>, bukan `position:fixed` tangan.
+     Yang DULU tak ada dan kini disediakan primitif: role="dialog"/aria-modal,
+     focus trap + pemulihan fokus ke pemicu, Escape, scroll-lock ber-counter,
+     dan penolakan tutup saat form belum tersimpan. `isDirty` menjaga jalur
+     dismissal TAK SENGAJA (Escape / klik backdrop); tombol X dan Batal adalah
+     gestur tutup yang DISENGAJA sehingga langsung `onClose`, sejalan seluruh
+     situs Overlay lain di repo. */
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 520, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => desc.trim() !== '' || dr !== '' || cr !== '' || amount !== ''}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Jurnal Umum Firma</div><div className="tiny" style={{ color: '#bcd6e4' }}>Double-entry · GL KAP</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button className="top-btn" aria-label="Tutup" title="Tutup" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Keterangan</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
-          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Akun Debit</label><select className="select" value={dr} onChange={(e: any) => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
-            <div className="field"><label>Akun Kredit</label><select className="select" value={cr} onChange={(e: any) => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
-          </div>
-          <div className="field"><label>Jumlah (Rp)</label><input className="input mono" type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
-        </div>
+      )}
+      footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
           <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onPost({ desc: desc.trim(), dr, cr, amount: +amount })}><I.check size={14} /> Posting Jurnal</Btn>
         </div>
+      )}
+    >
+      {/* `htmlFor`/`id` WAJIB: <label> di sini bersaudara dengan kontrolnya,
+          bukan membungkusnya, jadi tanpa pasangan ini kaitannya cuma VISUAL.
+          Sekali dialog dapat dipindai (dulu tak pernah), axe melaporkannya
+          critical: `label` untuk Jumlah dan `select-name` untuk kedua akun —
+          pembaca layar hanya mendengar "combo box" pada kontrol yang memilih
+          akun debit vs kredit. Pola sama dengan view_login.tsx. */}
+      <div className="field"><label htmlFor="jv-desc">Keterangan</label><input id="jv-desc" className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
+      <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div className="field"><label htmlFor="jv-dr">Akun Debit</label><select id="jv-dr" className="select" value={dr} onChange={(e: any) => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
+        <div className="field"><label htmlFor="jv-cr">Akun Kredit</label><select id="jv-cr" className="select" value={cr} onChange={(e: any) => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
       </div>
-    </div>
+      <div className="field"><label htmlFor="jv-amount">Jumlah (Rp)</label><input id="jv-amount" className="input mono" type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
+    </Overlay>
   );
 }
 
