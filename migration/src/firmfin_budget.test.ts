@@ -72,9 +72,10 @@ describe('SC-4 — nol-delta pada seed bersih', () => {
        Mengunci keduanya identik membuktikan penurunan tidak menggeser demo. */
     const b = budgetOf(derivedCoa(seedGl()));
     expect(b.actRev).toBe(11_300_000_000);
-    expect(b.actCost).toBe(8_500_000_000);
-    expect(b.actProfit).toBe(2_800_000_000);
-    expect(b.budProfit).toBe(3_780_000_000);
+    /* Beban neto turun sebesar laba selisih kurs yang kini diposting (PSAK 10, #248). */
+    expect(b.actCost).toBe(8_500_000_000 - 60_638_000);
+    expect(b.actProfit).toBe(2_800_000_000 + 60_638_000);
+    expect(b.budProfit).toBe(3_780_000_000 + 40_000_000);
   });
 
   it('laba anggaran == laba operasi P&L (kedua sisi menutup)', () => {
@@ -99,7 +100,7 @@ describe('SC-2/SC-3/SC-5 — aktual bergerak bersama buku besar, dua arah', () =
 
   it('membatalkan posting mengembalikan angka (bukan sekali jalan)', () => {
     const kembali = glPosted().map(j => j.id === 'JV-0307' ? { ...j, posted: false } : j);
-    expect(budgetOf(derivedCoa(kembali)).actProfit).toBe(2_800_000_000);
+    expect(budgetOf(derivedCoa(kembali)).actProfit).toBe(2_860_638_000);
   });
 
   it('anggaran & P&L TETAP sepakat setelah posting — tak ada angka laba kedua', () => {
@@ -121,10 +122,10 @@ describe('SC-6 — gerbang cakupan DAPAT MERAH', () => {
   it('akun beban yang diposting tapi TAK dianggarkan memerahkan cakupan', () => {
     /* Uji perusak — inilah yang membedakan gerbang ini dari tie-out tautologis yang
        digantikannya. Tanpa uji ini, badge hijau tak membuktikan apa pun. */
-    const coa = [...derivedCoa(seedGl()), { code: '5-600', name: 'Beban Litigasi', type: 'Beban', bal: 300_000_000 }];
+    const coa = [...derivedCoa(seedGl()), { code: '5-700', name: 'Beban Litigasi', type: 'Beban', bal: 300_000_000 }];
     const b = budgetOf(coa);
     expect(b.covered).toBe(false);
-    expect(b.unbudgeted.map(u => u.code)).toEqual(['5-600']);
+    expect(b.unbudgeted.map(u => u.code)).toEqual(['5-700']);
     expect(b.unbudgeted[0].actual).toBe(300_000_000);
     /* Laba anggaran overstated persis sebesar beban yang tak dianggarkan. */
     expect(b.coverageGap).toBe(-300_000_000);
@@ -150,7 +151,7 @@ describe('SC-6 — gerbang cakupan DAPAT MERAH', () => {
   });
 
   it('`covered` ikut turun ke peta Sumber Kebenaran (provenance)', () => {
-    const coa = [...derivedCoa(seedGl()), { code: '5-600', name: 'Beban Litigasi', type: 'Beban', bal: 300_000_000 }];
+    const coa = [...derivedCoa(seedGl()), { code: '5-700', name: 'Beban Litigasi', type: 'Beban', bal: 300_000_000 }];
     const prov = FIRMFIN.provenance({ coa, engagements: AMS.ENGAGEMENTS, clients: AMS.CLIENTS }) as unknown as Array<{ label: string; tied: boolean }>;
     const row = prov.find(p => p.label === 'Anggaran vs aktual') as { tied: boolean };
     expect(row.tied).toBe(false);

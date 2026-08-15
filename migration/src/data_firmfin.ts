@@ -426,9 +426,14 @@ const FIRMFIN = (function () {
       const open = lines.filter((l) => !l.matched);
       const bookSide = total(open.filter((l) => !isBankSide(l)));
       const bankSide = total(open.filter(isBankSide));
-      /* Sisi buku dibandingkan pada kurs buku — dasar pencatatan buku besar. */
+      /* Dibandingkan pada KURS PENUTUP. Sejak revaluasi PSAK 10 diposting (JV-0319/0320),
+         buku besar menyatakan pos valas pada kurs penutup — jadi sisi bank harus pada
+         kurs yang sama, kalau tidak keduanya berbicara dalam dasar yang berbeda.
+         Konsekuensi yang DIKEHENDAKI: membatalkan posting jurnal revaluasi membuat buku
+         kembali ke kurs perolehan dan rekening valas itu TIDAK menutup — memang begitu
+         seharusnya, sebab bukunya belum dijabarkan ulang. */
       const bookIDR = acct(coa, a.acct).bal as number;
-      const bankIDR = a.balance * (fxBook[a.ccy] || 1);
+      const bankIDR = a.balance * (fx[a.ccy] || 1);
       const adjustedBook = bookIDR + bookSide;
       const adjustedBank = bankIDR + bankSide;
       const residual = adjustedBank - adjustedBook;
@@ -451,19 +456,18 @@ const FIRMFIN = (function () {
     const totalIDR = sum((r) => r.idrMarket);   // Σ saldo bank @ kurs pasar
     const totalBankBook = sum((r) => r.bankIDR); // Σ saldo bank @ kurs buku
     const control = cashControl(coa);
-    /* Komponen BERNAMA yang menjelaskan selisih kontrol ↔ Σ rekening. KEDUANYA
-       DIENUMERASI, tak satu pun diturunkan dari selisih yang hendak dijelaskannya:
-         · `reval`      = Σ saldo × (kurs pasar − kurs buku) — dihitung dari kurs & saldo
-         · `reconItems` = Σ (item sisi-buku − item sisi-bank) — dijumlah dari BARIS register
+    /* Komponen BERNAMA yang menjelaskan selisih kontrol ↔ Σ rekening: hanya ITEM
+       REKONSILIASI, DIJUMLAH DARI BARIS REGISTER — bukan diturunkan dari selisih yang
+       hendak dijelaskannya. Itu yang membuat gerbangnya dapat MERAH; bila `bridgeTotal`
+       didefinisikan sebagai `−(… + (Σbank − kontrol))`, `residual` nol SECARA ALJABAR
+       dan badge hijau selamanya — persis cacat `note` hardcode #240.
 
-       Ini yang membuat gerbangnya dapat MERAH. Bila `bridgeTotal` didefinisikan sebagai
-       `−(reval + (totalBankBook − control))`, `residual` menjadi nol SECARA ALJABAR:
-       badge hijau selamanya, tak peduli apa yang sebenarnya terjadi — persis cacat
-       `note` hardcode #240 dan empat plug #239. Selisih yang tak dicatat siapa pun di
-       register HARUS muncul di sini. */
+       Revaluasi valas TIDAK lagi menjadi komponen jembatan: sejak PSAK 10 diposting
+       (JV-0319/0320) ia sudah ADA DI DALAM saldo buku. `reval` tetap dihitung sebagai
+       informasi untuk tab Revaluasi Valas — bukan sebagai penjelas selisih. */
     const reval = sum((r) => r.reval);
     const reconItems = sum((r) => r.bookSide - r.bankSide);
-    const bridgeTotal = -(reval + reconItems);
+    const bridgeTotal = -reconItems;
     const unreconciled = per.filter((r) => !r.reconciled);
     return {
       rows, per, totalIDR, totalBankBook, control,
@@ -596,7 +600,7 @@ const FIRMFIN = (function () {
     return [
       mk('cash', 'Kas & Bank', '1-101…1-106', 'cashbank', 'Kas, Bank & Rekonsiliasi',
         c.control, c.totalIDR, 'Σ saldo menurut bank (multi-mata uang, ekuiv. IDR)',
-        'Revaluasi valas + item rekonsiliasi per rekening (register BANK_RECONS)',
+        'Item rekonsiliasi per rekening (register BANK_RECONS) — revaluasi valas sudah DIPOSTING (JV-0319/0320), bukan lagi penjelas selisih',
         c.bridgeTotal, c.residual),
       mk('ar', 'Piutang Usaha', '1-200', 'apar', 'AP / AR Firma',
         arr.control, arr.open, 'Faktur terbuka (modul Billing)',

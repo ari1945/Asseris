@@ -276,12 +276,15 @@ function CashBank() {
 
   return (
     <>
-      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><span className="chip tiny muted" title="Read-only — entri transaksi kas/bank dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
+      {/* Chip "Bank feed: 15 mnt lalu" DICABUT (PRD cash-bank-reconciliation-register Q-6):
+          tak ada integrasi bank apa pun, dan ia berdiri persis di atas layar rekonsiliasi
+          yang justru bergantung pada saldo bank sebagai data eksternal yang tepercaya. */}
+      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny muted" title="Read-only — entri transaksi kas/bank dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={accts.length} label="Rekening Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Belum Terealisasi" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Diakui (GL 5-600)" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={unrec} label="Item Belum Direkonsiliasi" accent={unrec ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         </div>
 
@@ -332,7 +335,7 @@ function CashBank() {
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Bank</div>
-                  <RowKv label={'Saldo rekening koran' + (R && R.ccy !== 'IDR' ? ' (ekuiv. kurs buku)' : '')} v={'Rp ' + fmt((R ? R.bankIDR : 0) / 1e6, 1) + ' jt'} />
+                  <RowKv label={'Saldo rekening koran' + (R && R.ccy !== 'IDR' ? ' (ekuiv. kurs penutup)' : '')} v={'Rp ' + fmt((R ? R.bankIDR : 0) / 1e6, 1) + ' jt'} />
                   {accLines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map((l: any) => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 1) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
                   <RowKv label="Saldo bank disesuaikan" v={'Rp ' + fmt(adjustedBank / 1e6, 1) + ' jt'} strong />
@@ -367,7 +370,7 @@ function CashBank() {
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
                 <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">belum terealisasi</div></div>
+                <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">diakui di laba rugi · JV-0319 &amp; JV-0320</div></div>
               </div>
               <table className="dtbl">
                 <thead><tr><th>Rekening</th><th>Mata Uang</th><th className="num">Saldo Valas</th><th className="num">Kurs Perolehan</th><th className="num">Kurs Kini</th><th className="num">Nilai Tercatat</th><th className="num">Nilai Pasar</th><th className="num">Selisih Kurs</th></tr></thead>
@@ -385,10 +388,10 @@ function CashBank() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={7}>TOTAL SELISIH KURS BELUM TEREALISASI</td><td className="num" style={{ color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}{fmt(Math.abs(totReval) / 1e6, 0)} jt</td></tr></tfoot>
+                <tfoot><tr><td colSpan={7}>TOTAL SELISIH KURS DIAKUI (GL 5-600)</td><td className="num" style={{ color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}{fmt(Math.abs(totReval) / 1e6, 0)} jt</td></tr></tfoot>
               </table>
               <div className="panel" style={{ marginTop: 12, padding: '10px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="tiny" style={{ lineHeight: 1.55 }}>Revaluasi pada tanggal pelaporan (PSAK 10) — selisih kurs belum terealisasi diakui di laba rugi. Jurnal penyesuaian: <b>Db/Kr Kas Valas</b> lawan <b>Laba/Rugi Selisih Kurs</b> sebesar Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt.</div>
+                <div className="tiny" style={{ lineHeight: 1.55 }}>Revaluasi pada tanggal pelaporan (PSAK 10). Angka ini <b>sudah dibukukan</b>, bukan sekadar ditampilkan: <b>JV-0319</b> (BCA Valas USD) &amp; <b>JV-0320</b> (DBS SGD) mendebit akun kas valas lawan <b>5-600 Laba (Rugi) Selisih Kurs</b> sebesar Rp {fmt(Math.abs(totReval) / 1e6, 1)} jt. Membatalkan posting keduanya mengembalikan buku ke kurs perolehan — dan rekonsiliasi rekening valas tidak lagi menutup.</div>
               </div>
             </div>
           )}

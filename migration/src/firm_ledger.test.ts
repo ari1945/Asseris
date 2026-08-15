@@ -64,8 +64,9 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
   it('TB tetap seimbang — total debit == total kredit (36.760 M)', () => {
     const tb = trialBalance(coa, seedGl, seedGl);
     expect(tb.balanced).toBe(true);
-    expect(tb.totalDr).toBe(36_760_000_000);
-    expect(tb.totalCr).toBe(36_760_000_000);
+    /* +60,638 jt setelah revaluasi PSAK 10 diposting (JV-0319/0320, #248). */
+    expect(tb.totalDr).toBe(36_820_638_000);
+    expect(tb.totalCr).toBe(36_820_638_000);
     // baris TB memakai saldo turunan (bukan seed)
     expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_425_000_000);
   });
@@ -74,7 +75,7 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     const withNew = [...seedGl, { id: 'JV-0999', date: '2026-03-09', desc: 'tes', dr: '1-101', cr: '4-100', amount: 100_000_000, posted: true }];
     const tb = trialBalance(coa, seedGl, withNew);
     expect(tb.balanced).toBe(true);
-    expect(tb.totalDr).toBe(36_860_000_000);
+    expect(tb.totalDr).toBe(36_920_638_000);
     expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_525_000_000);
     expect(tb.rows.find((r) => r.code === '4-100')?.bal).toBe(-11_400_000_000);
   });
@@ -82,11 +83,12 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
   it('LK turun dari TB: pendapatan 11.300, beban 8.500, laba 2.800, aset seimbang', () => {
     const st = statements(coa, seedGl, seedGl);
     expect(st.revenue).toBe(11_300_000_000);
-    expect(st.expense).toBe(8_500_000_000);
-    expect(st.netProfit).toBe(2_800_000_000);
-    expect(st.totAset).toBe(28_260_000_000);
+    /* Beban NETO: laba selisih kurs (akun 5-600, saldo kredit) kini dibukukan. */
+    expect(st.expense).toBe(8_500_000_000 - 60_638_000);
+    expect(st.netProfit).toBe(2_800_000_000 + 60_638_000);
+    expect(st.totAset).toBe(28_260_000_000 + 60_638_000);
     expect(st.totLiab).toBe(4_020_000_000);
-    expect(st.totEkuitas).toBe(24_240_000_000); // 21.440 + laba 2.800
+    expect(st.totEkuitas).toBe(24_240_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 
@@ -94,7 +96,7 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     const withNew = [...seedGl, { id: 'JV-0998', date: '2026-03-09', desc: 'pendapatan tambahan', dr: '1-200', cr: '4-100', amount: 100_000_000, posted: true }];
     const st = statements(coa, seedGl, withNew);
     expect(st.revenue).toBe(11_400_000_000);
-    expect(st.netProfit).toBe(2_900_000_000);
+    expect(st.netProfit).toBe(2_900_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 

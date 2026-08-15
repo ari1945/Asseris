@@ -134,7 +134,7 @@ function FirmFinance() {
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.revenue) + ' M'} label="Pendapatan KAP (GL 4-100)" delta={budVarPct.toFixed(1) + '% vs anggaran'} deltaDir={budVarPct >= 0 ? 'up' : 'down'} /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.opProfit, 2) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={(k.margin * 100).toFixed(1) + '%'} label="Margin Operasi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.cashControl, 2) + ' M'} label="Posisi Kas (GL 1-100)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.cashControl, 2) + ' M'} label="Posisi Kas (GL 1-101…1-106)" /></div></Panel>
           </div>
 
           <Panel noBody>
