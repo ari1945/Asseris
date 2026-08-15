@@ -7,6 +7,7 @@ import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { buildCockpitStatusReport } from './cockpit_report';
 import { PROGRAMME } from './view_cockpit';
 import { FIRMFIN } from './data_firmfin';
 import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP, engagementGate, EngagementGateSummary, eqrStatusFor } from './wp_signoff';
@@ -61,6 +62,9 @@ const ckpModuleLabel = (id: string): string => {
 const CKP_SERIES = ['var(--navy-700)', 'var(--blue-solid)', 'var(--blue-400)', 'var(--teal-solid)', 'var(--purple-solid)', 'var(--amber-solid)'];
 
 const CKP_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
+
+/** bentuk gerbang kanonik (`engagementGate`) yang dipakai lintas panel & ekspor */
+type GateShape = { criteria: { key: string; label: string; met: boolean; detail: string; view?: string }[]; severity: string; nextPhase: string; allMet: boolean };
 
 const idDate = (s: any) => new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
 const rpM = (n: any) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
@@ -240,18 +244,24 @@ function EngagementCockpit() {
     const tsTotal = phaseRows.reduce((s, r) => s + r.tsAct, 0);
     const untaggedHrs = Math.max(0, Math.round(econ.actualHrs - tsTotal));
 
+    /* gerbang kanonik — satu perhitungan, banyak konsumen */
+    const entryGate = engagementGate(auditCtx, firmCtx, { fromPhase: 'Perencanaan', nextPhase: 'Eksekusi' });
+    const execGate = engagementGate(auditCtx, firmCtx, { fromPhase: 'Eksekusi', nextPhase: 'Finalisasi' });
+    const issueGate = engagementGate(auditCtx, firmCtx, { fromPhase: 'Finalisasi', nextPhase: 'Arsip' });
+    const nextGate = engagementGate(auditCtx, firmCtx, {});
+
     return {
       overall, asserted, econBase, bridge, rolls, wpStatuses, untaggedHrs, tsTotal,
       elapsedPct, elapsedKnown, daysLeft, burnPct,
       /* PR-C-4 · jalur kritis turunan */
       start, span,
+      /* PR-C-7: gerbang dihitung SEKALI di sini lalu dipakai bersama oleh jalur
+         kritis, panel Kesiapan Opini, dan ekspor — kalau layar & berkas tersegel
+         bisa berbeda, itu karena keduanya menghitung sendiri-sendiri. */
+      nextGate, issueGate,
       milestones: engagementMilestones({
         engagement: e, start,
-        gates: {
-          toEksekusi: engagementGate(auditCtx, firmCtx, { fromPhase: 'Perencanaan', nextPhase: 'Eksekusi' }),
-          toFinalisasi: engagementGate(auditCtx, firmCtx, { fromPhase: 'Eksekusi', nextPhase: 'Finalisasi' }),
-          toArsip: engagementGate(auditCtx, firmCtx, { fromPhase: 'Finalisasi', nextPhase: 'Arsip' }),
-        },
+        gates: { toEksekusi: entryGate, toFinalisasi: execGate, toArsip: issueGate },
       }),
       openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
       sigRisks, fraudRisks, excTot, sigAreas, sigCovered, sigCoverage,
@@ -273,44 +283,26 @@ function EngagementCockpit() {
     { id: 'risiko', label: 'Risiko & Kualitas' },
   ];
 
-  /* K-06 lanjutan — wire tombol "Status Report" (dulu mati): ekspor XLSX tersegel
-     status engagement — progres, anggaran, tim & kualitas (dari model D). */
+  /* PR-C-7 · Status Report tersegel. Payload dulu dirakit INLINE di sini,
+     sehingga tak ada uji yang bisa menyentuhnya — satu-satunya cara memeriksa
+     apa yang disegel adalah mengunduh berkasnya. Kini `buildCockpitStatusReport`
+     murni & teruji, dan berkasnya membawa BASIS tiap figur karena pembaca enam
+     bulan lagi tak punya layar untuk dilihat. */
   const [exporting, setExporting] = useStateCkp(false);
   const onExportXlsx = async () => {
     if (exporting) return;
     setExporting(true);
     try {
-      /* PR-C-2: sheet menyebut BASIS tiap kolom — "terbukti" bukan "progres",
-         "model alokasi" bukan "anggaran fase", dan hanya jam ber-tag fase. */
-      const phaseSheet = D.phaseRows.map((p: { phase: string; pct: number; bud: number; wpCount: number; tsAct: number }) =>
-        [p.phase, p.wpCount || '', p.wpCount ? p.pct + '%' : '—', p.bud, p.tsAct || '']);
-      /* PR-C-1: kolom memisahkan tarif CHARGE-OUT dari tarif BIAYA — dulu satu
-         kolom "Rate" berisi tarif biaya sementara nilainya dilabeli WIP. */
-      const teamSheet = D.econ.members.map((m: CockpitMember) => [
-        m.name.split(',')[0], m.grade, m.bill, m.cost, Math.round(m.budget), Math.round(m.actual),
-        m.util, m.wpPrep, m.wpRev, m.procPrep, m.procRev,
-      ]);
-      const riskSheet = D.sigRisks.map((r: { id: string; risk?: string; t?: string; inherent: string; fraud?: boolean; likelihood?: string; impact?: string }) => [r.id, r.risk || r.t, r.inherent, r.fraud ? 'Ya' : 'Tidak', r.likelihood || '', r.impact || '']);
-      await amsExportXlsx({
-        kind: 'cockpit-status', scope: 'engagement', scopeId: e?.id,
-        fileName: `Status Report - ${activeClient?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
-        title: `Status Report Engagement — ${activeClient?.name || ''}`,
-        meta: [`${e?.id || ''} · ${e?.fy || ''} · progres TERBUKTI ${D.overall}%${D.asserted != null ? ` (di-assert manajer ${D.asserted}%, selisih ${(D.bridge.gapPp ?? 0).toFixed(1)} pp)` : ''} · sisa ${D.daysLeft} hari`,
-          D.econ.hasRoster
-            ? `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · WIP @tarif standar Rp ${Math.round((D.econ.wipStd || 0) / 1e6)} jt · biaya waktu Rp ${Math.round((D.econ.timeCost || 0) / 1e6)} jt — jam & Rp jt`
-            : `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · roster jam belum disiapkan — rincian per-anggota tak terukur`],
-        sheets: [
-          { name: 'Fase', heading: 'Kelengkapan TERBUKTI per fase (wpState: bukti · kesimpulan SA 230 · sign-off)',
-            columns: ['Fase', 'WP kanonik', 'Terbukti', 'Jam anggaran (model alokasi)', 'Jam ber-tag fase'],
-            rows: phaseSheet, colWidths: [26, 12, 12, 28, 18] },
-          { name: 'Tim', heading: D.econ.hasRoster ? 'Beban tim (jam & Rp) — roster + timesheet (SSOT Time & Budget)' : 'Beban tim — roster jam belum disiapkan',
-            columns: ['Anggota', 'Grade', 'Tarif charge-out', 'Tarif biaya', 'Jam anggaran', 'Jam aktual', 'Util perikatan %', 'WP prep', 'WP rev', 'Proc prep', 'Proc rev'],
-            rows: teamSheet, colWidths: [22, 10, 16, 14, 13, 12, 16, 10, 10, 10, 10] },
-          { name: 'Risiko Signifikan', heading: 'Risiko signifikan & fraud',
-            columns: ['ID', 'Risiko', 'Inheren', 'Fraud', 'Likelihood', 'Impact'], rows: riskSheet, colWidths: [8, 42, 12, 8, 12, 12] },
-        ],
-      });
+      await amsExportXlsx(buildCockpitStatusReport({
+        engagementId: e?.id || '', fy: e?.fy || '', clientName: activeClient?.name || '',
+        firmName: 'KAP Wijaya Hartono & Rekan', phase: e?.phase || '', verdict: D.verdict.l,
+        daysLeft: D.daysLeft, burnPct: D.burnPct,
+        overall: D.overall, asserted: D.asserted, bridge: D.bridge, econ: D.econ,
+        phaseRows: D.phaseRows, tsTotal: D.tsTotal, untaggedHrs: D.untaggedHrs,
+        start: D.start, milestones: D.milestones, riskCoverage: D.sigCoverage,
+        gateCriteria: D.issueGate.criteria,
+        openNotes: D.openNotes.length, highOpen: D.highOpen.length, excTot: D.excTot,
+      }, D.sigRisks));
     } finally {
       setExporting(false);
     }
@@ -934,15 +926,15 @@ function TabTim({ D, nav }: any) {
    Independensi DIHAPUS dari gerbang: tak ada sumber terukur yang tersambung ke
    sini, dan kriteria yang tak terukur lebih baik hilang daripada berbohong.
    ============================================================ */
-function OpinionReadinessPanel({ nav }: { nav: (id: string, opts?: Record<string, unknown>) => void }) {
-  const audit = useAuditHeavy(['reviewNotes']);
+function OpinionReadinessPanel({ nav, D }: { nav: (id: string, opts?: Record<string, unknown>) => void; D: { nextGate: GateShape; issueGate: GateShape } }) {
   const firm = useFirm();
   const engId: string | undefined = firm && firm.activeEngagementId;
   const phase: string = (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
 
-  /* dua gerbang yang benar-benar dihadapi auditor */
-  const nextGate = engagementGate(audit, firm, {});                                        // → fase berikutnya
-  const issueGate = engagementGate(audit, firm, { fromPhase: 'Finalisasi', nextPhase: 'Arsip' }); // → penerbitan & arsip
+  /* PR-C-7: gerbang datang dari model D — SATU perhitungan yang juga dipakai
+     jalur kritis & ekspor tersegel, bukan dihitung ulang di sini. */
+  const nextGate = D.nextGate;
+  const issueGate = D.issueGate;
   const eqr = eqrStatusFor(engId);
 
   const met = issueGate.criteria.filter((c: { met: boolean }) => c.met).length;
@@ -1042,7 +1034,7 @@ function TabRisiko({ D, e, nav }: any) {
           </div>
         </Panel>
 
-        <OpinionReadinessPanel nav={nav} />
+        <OpinionReadinessPanel nav={nav} D={D} />
       </div>
 
       {/* review notes board */}
