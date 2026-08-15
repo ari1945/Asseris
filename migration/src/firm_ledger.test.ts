@@ -17,14 +17,19 @@ const seedGl = FIRM_GL;   // jurnal demo: postingsnya SUDAH termuat di coa[].bal
 const byCode = (bal: Record<string, number>, code: string) => bal[code];
 
 describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
-  it('saldo awal = seed − Σ jurnal SEED terposting (1-100 Kas: 9.795 M)', () => {
+  it('saldo awal = seed − Σ jurnal SEED terposting', () => {
     const open = openingBalances(coa, seedGl);
-    // JV-0312 dr +925 · JV-0311 cr −1.820 · JV-0308 cr −480 → net −1.375 M
-    expect(byCode(open, '1-100')).toBe(8_420_000_000 + 1_375_000_000);
-    expect(byCode(open, '1-200')).toBe(4_440_000_000 + 370_000_000); // net −370
+    // Kas: JV-0312 dr +925 · JV-0311 cr −1.820 · JV-0308 cr −480 · JV-0316 cr −910 → net −2.285
+    expect(byCode(open, '1-100')).toBe(8_420_000_000 + 2_285_000_000);
+    // Piutang: JV-0312 cr −925 · JV-0309 dr +555 · JV-0314 dr +1.640 → net +1.270
+    expect(byCode(open, '1-200')).toBe(4_440_000_000 - 1_270_000_000);
+    // WIP: JV-0313 dr +2.850 · JV-0314 cr −1.640 → net +1.210
+    expect(byCode(open, '1-300')).toBe(9_300_000_000 - 1_210_000_000);
     expect(byCode(open, '5-200')).toBe(1_570_000_000 - 820_000_000); // net +820
-    expect(byCode(open, '4-100')).toBe(-11_300_000_000 + 555_000_000); // net −555
-    expect(byCode(open, '2-100')).toBe(-1_820_000_000 + 340_000_000); // net −340
+    // Pendapatan: JV-0309 cr −555 · JV-0313 cr −2.850 → net −3.405
+    expect(byCode(open, '4-100')).toBe(-11_300_000_000 + 3_405_000_000);
+    // Utang usaha: JV-0310/0315/0317/0318 cr −1.030 · JV-0316 dr +910 → net −120
+    expect(byCode(open, '2-100')).toBe(-1_820_000_000 + 120_000_000);
   });
 
   it('saldo kini == seed saat app baru dimuat (gl == seedGl)', () => {
@@ -90,25 +95,25 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     expect(st.balanced).toBe(true);
   });
 
-  it('buku besar: saldo awal 9.795 → berjalan → saldo akhir seed 8.420', () => {
+  it('buku besar: saldo awal 10.705 → berjalan → saldo akhir seed 8.420', () => {
     const lg = accountLedger(coa, seedGl, seedGl, '1-100');
-    expect(lg.opening).toBe(9_795_000_000);
+    expect(lg.opening).toBe(10_705_000_000);
     expect(lg.closing).toBe(8_420_000_000);
     expect(lg.totalDr).toBe(925_000_000);  // JV-0312 dr
-    expect(lg.totalCr).toBe(2_300_000_000); // JV-0308 + JV-0311 cr
-    expect(lg.rows).toHaveLength(3);
+    expect(lg.totalCr).toBe(3_210_000_000); // JV-0308 + JV-0311 + JV-0316 cr
+    expect(lg.rows).toHaveLength(4);
     expect(lg.rows[0].id).toBe('JV-0308'); // urut tanggal
-    expect(lg.rows[0].running).toBe(9_795_000_000 - 480_000_000);
-    expect(lg.rows[2].running).toBe(8_420_000_000);
+    expect(lg.rows[0].running).toBe(10_705_000_000 - 480_000_000);
+    expect(lg.rows[3].running).toBe(8_420_000_000);
   });
 
   it('GL kosong → saldo = SALDO AWAL (bukan seed), TB tetap seimbang', () => {
     const tb = trialBalance(coa, seedGl, []);
     expect(tb.balanced).toBe(true);
-    expect(tb.totalDr).toBe(35_865_000_000); // opening: Aset 30.005 + Beban 5.860
-    expect(tb.totalCr).toBe(35_865_000_000);
+    expect(tb.totalDr).toBe(33_235_000_000); // opening: Aset 28.065 + Beban 5.170
+    expect(tb.totalCr).toBe(33_235_000_000);
     const st = statements(coa, seedGl, []);
-    expect(st.netProfit).toBe(4_885_000_000); // revenue opening 10.745 − beban 5.860
+    expect(st.netProfit).toBe(2_725_000_000); // revenue opening 7.895 − beban 5.170
     expect(st.balanced).toBe(true);
   });
 });

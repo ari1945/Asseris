@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAmsPersist } from './contexts';
 import { AMS } from './data';
-import { currentBalances, statements } from './firm_ledger';
+import { currentBalances, mergeSeedJournals, statements } from './firm_ledger';
 import type { CoaAccount, GlJournal } from './firm_ledger';
 
 /* ============================================================
@@ -51,7 +51,13 @@ export function useFirmCoa(): FirmCoaResult {
   const seedGl = AMS.FIRM_GL as unknown as GlJournal[];
   /* Kunci `firmgl` sudah dipakai `view_firmgl`; dibaca di sini agar posting di modul
      itu langsung tercermin di seluruh konsumen FIRMFIN. */
-  const [gl] = useAmsPersist('firmgl', () => seedGl) as [GlJournal[], unknown];
+  const [glStored] = useAmsPersist('firmgl', () => seedGl) as [GlJournal[], unknown];
+  /* Cache localStorage bisa tertinggal di belakang seed — `mergeSeedJournals` menutup
+     celah itu. WAJIB sama dengan yang dipakai `view_firmgl`, kalau tidak kedua layar
+     menghitung dari daftar jurnal yang berbeda. */
+  /* Anotasi eksplisit: `React.useMemo` di repo ini untyped → tanpa ini `gl` jadi `any`
+     dan `.filter` di bawah kehilangan tipe parameternya. */
+  const gl: GlJournal[] = React.useMemo(() => mergeSeedJournals(glStored, seedGl), [glStored, seedGl]);
 
   return React.useMemo(() => {
     const bal = currentBalances(seedCoa, seedGl, gl);
@@ -60,7 +66,7 @@ export function useFirmCoa(): FirmCoaResult {
       coa: seedCoa.map((a) => ({ ...a, bal: bal[a.code] })),
       gl,
       seedGl,
-      pending: (gl || []).filter((j) => !j.posted),
+      pending: gl.filter((j) => !j.posted),
       balanced: st.balanced,
     };
   }, [seedCoa, seedGl, gl]);
