@@ -28,16 +28,20 @@ import { fmt } from './data_base';
     ],
   };
 
-  /* Firm budget vs actual (FY2025, P&L) */
-  /* Firm budget vs actual (FY2025, P&L) — kolom `actual` & `acct` mengikat tiap baris
-     ke akun Buku Besar (FIRM_COA) → Treasury, BI & Firm Finance memakai satu angka. */
+  /* Anggaran firma (FY2025, P&L) — RENCANA saja.
+     PRD budget-actual-ledger-derived 2026-08-15: kolom `actual` DIHAPUS. Aktual bukan
+     data yang disimpan di sini; ia saldo akun `acct` di buku besar (FIRM_COA), dan
+     diturunkan oleh `FIRMFIN.budget()`. Selama `actual` masih ada sebagai literal,
+     ia adalah pembukuan kedua yang menyimpang begitu ada jurnal diposting — persis
+     yang terjadi: BI & Treasury membacanya mentah dan membeku di 2.800 jt sementara
+     buku besar bergerak ke 2.590 jt. JANGAN kembalikan kolom itu. */
   const FIRM_BUDGET = [
-    { line: 'Pendapatan Jasa', budget: 12_000_000_000, actual: 11_300_000_000, type: 'rev', acct: '4-100' },
-    { line: 'Beban Gaji & Tunjangan', budget: 5_200_000_000, actual: 5_420_000_000, type: 'cost', acct: '5-100' },
-    { line: 'Beban Overhead Kantor', budget: 1_500_000_000, actual: 1_570_000_000, type: 'cost', acct: '5-200' },
-    { line: 'Beban Umum & Administrasi', budget: 560_000_000, actual: 540_000_000, type: 'cost', acct: '5-300' },
-    { line: 'Beban Pemasaran & Pengembangan', budget: 420_000_000, actual: 360_000_000, type: 'cost', acct: '5-400' },
-    { line: 'Beban Teknologi & Lisensi', budget: 540_000_000, actual: 610_000_000, type: 'cost', acct: '5-500' },
+    { line: 'Pendapatan Jasa', budget: 12_000_000_000, type: 'rev', acct: '4-100' },
+    { line: 'Beban Gaji & Tunjangan', budget: 5_200_000_000, type: 'cost', acct: '5-100' },
+    { line: 'Beban Overhead Kantor', budget: 1_500_000_000, type: 'cost', acct: '5-200' },
+    { line: 'Beban Umum & Administrasi', budget: 560_000_000, type: 'cost', acct: '5-300' },
+    { line: 'Beban Pemasaran & Pengembangan', budget: 420_000_000, type: 'cost', acct: '5-400' },
+    { line: 'Beban Teknologi & Lisensi', budget: 540_000_000, type: 'cost', acct: '5-500' },
   ];
   /* 6-month rolling cash-flow forecast (Rp jt) */
   const CASH_FORECAST = [

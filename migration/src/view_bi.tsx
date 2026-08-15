@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { FIRMFIN } from './data_firmfin';
+import { useFirmCoa } from './use_firm_coa';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -50,14 +52,17 @@ function FirmBI() {
   const B: any = AMS.BI_DATA;
   const CLIENTS = AMS.CLIENTS;
   const PIPELINE = AMS.PIPELINE;
-  const FIRM_BUDGET: any = AMS.FIRM_BUDGET;
   const EQR: any = AMS.EQR_REVIEWS;
   const [metric, setMetric] = useBI('rev');
 
-  /* P&L roll-up */
-  const actRev = FIRM_BUDGET.filter((b: any) => b.type === 'rev').reduce((s: any, b: any) => s + b.actual, 0);
-  const actCost = FIRM_BUDGET.filter((b: any) => b.type === 'cost').reduce((s: any, b: any) => s + b.actual, 0);
-  const profit = actRev - actCost;
+  /* P&L roll-up — DITURUNKAN dari buku besar (PRD budget-actual-ledger-derived).
+     Dulu modul ini menjumlahkan `FIRM_BUDGET[].actual` sendiri: salinan ketiga dari
+     aritmetika yang sama, membaca literal yang tak bergerak saat jurnal diposting.
+     Akibatnya headline "Laba Operasi" di sini menyatakan 2.800 jt sementara Firm
+     Finance & Firm GL menyatakan 2.590 jt — dua angka laba untuk satu firma. */
+  const { coa } = useFirmCoa();
+  const bud: any = FIRMFIN.budget({ coa });
+  const actRev = bud.actRev, profit = bud.actProfit;
   const marginPct = profit / actRev * 100;
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
