@@ -218,12 +218,24 @@ function App() {
   }, []);
 
   /* Alamat harus benar sejak muat pertama, termasuk saat rute datang dari
-     `ams.route` (sesi terakhir) dan hash masih kosong. */
+     `ams.route` (sesi terakhir) dan hash masih kosong.
+
+     PRD V-9 — efek ini DULU membangun `buildHash({ route })` telanjang, sehingga
+     setiap kali ia menembak, sumbu `tab` & `sel` yang sah dibuang dari URL. Kini
+     ia hanya mengoreksi bagian RUTE dan mempertahankan sisanya. Bila hash memuat
+     alias rute (`#/wipreal`), `loc.route !== route` sehingga alamat ditulis ulang
+     ke id penggantinya — dengan tab & seleksi tetap terbawa. */
   useEffectApp(() => {
     try {
       if (typeof location === 'undefined') return;
-      if (parseHash(location.hash)?.route === route) return;
-      history.replaceState(null, '', location.pathname + location.search + buildHash({ route }));
+      const loc = parseHash(location.hash);
+      if (loc && loc.route === route) return;
+      /* `tab`/`sel` hanya ikut bila hash lama menunjuk MODUL YANG SAMA lewat alias
+         (mis. `#/wipreal` → `wip`). Bila ia menunjuk modul lain, keduanya DIBUANG —
+         membawanya berarti menyeed tab milik modul lain ke modul ini (SC-5). */
+      const sameModule = !!loc && resolveRoute(loc.route) === route;
+      const next = buildHash({ route, sel: sameModule ? loc.sel : null, tab: sameModule ? loc.tab : null });
+      history.replaceState(null, '', location.pathname + location.search + next);
     } catch (e) { /* abaikan */ }
   }, [route]);
   useEffectApp(() => { window.__amsOpenSA = setSaRef; return () => { delete window.__amsOpenSA; }; }, []);

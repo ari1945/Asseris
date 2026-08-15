@@ -33,10 +33,13 @@ const { useState: useStateWip, useMemo: useMemoWip } = React;
 
 type Fmt = (v: number, d?: number) => string;
 
+/* SC-6 (PRD V-9): `?tab=` tak dikenal jatuh ke tab awal, bukan panel kosong. */
+const WIP_TAB_IDS = ['valuasi', 'realisasi', 'pemulihan', 'sumber'];
+
 function WIPModule() {
   const { fmt } = AMS as unknown as { fmt: Fmt };
   const nav = useNav();
-  const [tab, setTab] = useInitialTab('wip', 'valuasi') as [string, (v: string) => void];
+  const [tab, setTab] = useInitialTab('wip', 'valuasi', WIP_TAB_IDS) as [string, (v: string) => void];
   const [sel, setSel] = useStateWip(useInitialSelection('wip')) as [string | null, (v: string | null) => void];
   const [view, setView] = useStateWip('Perikatan');
   const [provFactor, setProvFactor] = useAmsPersist('wip.provFactor', 1) as [number, (v: number) => void];

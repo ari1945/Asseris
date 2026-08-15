@@ -53,6 +53,8 @@ const WTB_TABS = [
   { id: 'review', label: 'Analisis Pergerakan' },
   { id: 'group', label: 'Pemetaan FS' },
 ];
+/* SC-6 (PRD V-9): `?tab=` tak dikenal jatuh ke tab awal, bukan panel kosong. */
+const WTB_TAB_IDS = WTB_TABS.map(t => t.id);
 
 function WTBView() {
   const { fmt, rp } = AMS;
@@ -65,7 +67,7 @@ function WTBView() {
   const nav = useNav();
   /* deep-link tab (PRD 2026-07-18): `nav('wtb', { tab: 'review' })` dari SA 520 membuka
      langsung Telaah Pergerakan; tanpa deep-link perilaku lama (tab 'tb'). */
-  const [tab, setTab] = useInitialTab('wtb', 'tb');
+  const [tab, setTab] = useInitialTab('wtb', 'tb', WTB_TAB_IDS);
   const [showAdj, setShowAdj] = useStateX(true);
   const [q, setQ] = useStateX('');
   const [collapsed, setCollapsed] = useStateX({});
