@@ -10,8 +10,8 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 9 |
-| Implemented | 27 |
+| In Progress | 8 |
+| Implemented | 28 |
 | Superseded | 1 |
 
 ## Daftar
@@ -109,7 +109,7 @@
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-w9-coretax-connector.md | Implemented — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven |
-| docs/prd-wip-merge-valuasi-realisasi.md | In Progress — "Proceed." 2026-08-15 (Q-1=`wip` · Q-2=Operasi Praktik · Q-3=Opsi A). Fase 1-4 kode selesai, verify hijau; SC-9 tinjauan visual hidup TERBUKA |
+| docs/prd-wip-merge-valuasi-realisasi.md | Implemented — SELESAI 2026-08-15. "Proceed." (Q-1=`wip` · Q-2=Operasi Praktik · Q-3=Opsi A). SC-1..SC-9 tertutup; verify hijau + live-verified (propagasi write-down ke 5 surface + Approvals) |
 | docs/prd-wp-procedure-execution.md | Approved — Ari "Full audit-tech" + "Pertahankan terpisah" 2026-06-25 |
 | docs/prd-wp-signoff-integrity.md | Draft — open question TERJAWAB — menunggu "Proceed." |
 | docs/prd-wtb-integrity-falsifiable-gates.md | Approved — Disetujui 2026-08-07 (Q1=a · Q2=blok · Q3=ya) |
