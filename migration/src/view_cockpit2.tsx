@@ -10,6 +10,7 @@ import { amsExportXlsx } from './export_xlsx';
 import { PROGRAMME } from './view_cockpit';
 import { FIRMFIN } from './data_firmfin';
 import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff';
+import { cockpitEconomics, type CockpitWip, type CockpitMember } from './cockpit_model';
 
 /* ============================================================
    Asseris — Engagement Cockpit (DEEP)
@@ -65,19 +66,11 @@ const CKP_MILESTONES = [
   { n: 9, name: 'Arsip Dokumentasi (SMM · 60 hari)', phase: 'Arsip', date: '2026-04-30', owner: 'Anindya Pramesti', status: 'upcoming', sa: 'SA 230' },
 ];
 
-/* per-member effort weighting (aligned to TEAM order) */
-const CKP_TEAM_W = [0.071, 0.196, 0.261, 0.179, 0.152, 0.141];
-/* Program B lanjutan (K-07) — tarif biaya cockpit dari SSOT FIRMFIN.WIP_COST
-   (dulu CKP_RATE lokal 1,5/0,9/0,6/0,35 jt — duplikat terpecah; angka bergeser
-   ke kartu biaya kanonik 1,1/0,62/0,36/0,21 jt = konsolidasi SSOT, bukan regresi). */
-const CKP_RATE: Record<string, number> = Object.fromEntries(
-  Object.entries(FIRMFIN.WIP_COST).map(([k, v]) => [
-    ({ 'Engagement Partner': 'Partner', 'Audit Manager': 'Manager', 'Senior Auditor': 'Senior', 'Junior Auditor': 'Junior' } as Record<string, string>)[k] || k,
-    v as number,
-  ])
-);
-const rateFor = (role: any) => /Partner/.test(role) ? CKP_RATE.Partner : /Manager/.test(role) ? CKP_RATE.Manager : /Senior/.test(role) ? CKP_RATE.Senior : CKP_RATE.Junior;
-const gradeOf = (role: any) => /Partner/.test(role) ? 'Partner' : /Manager/.test(role) ? 'Manager' : /Senior/.test(role) ? 'Senior' : 'Junior';
+/* PR-C-1: jam & ekonomi per anggota TIDAK lagi hidup di sini. Dulu berkas ini
+   memegang `CKP_TEAM_W` (array bobot literal) + `CKP_RATE`/`rateFor` dan membagi
+   ulang total jam perikatan dengan bobot itu — total menutup, tiap barisnya salah,
+   dan layar inert terhadap timesheet. Sekarang: `cockpit_model.cockpitEconomics()`
+   di atas SSOT `FIRMFIN.engagementWip(timeEntries, engId)`. Lihat cockpit_model.ts. */
 
 const CKP_TODAY = new Date(AMS.TODAY); /* K-02: klok dari SSOT AMS.TODAY, bukan literal */
 const CKP_START = new Date('2026-01-06');
@@ -139,7 +132,9 @@ function EngagementCockpit() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement, activeClient } = useFirm();
-  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState } = useAuditHeavy(['reviewNotes']);  // P5 Fase 2: catatan engagement aktif
+  /* PR-C-1: `timeEntries` ikut dilanggan — tanpa ini cockpit membaca `e.actualHrs`
+     statis dari seed dan INERT terhadap timesheet yang dicatat di Time & Budget. */
+  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState, timeEntries } = useAuditHeavy(['reviewNotes', 'timeEntries']);  // P5 Fase 2: catatan engagement aktif
   const e = activeEngagement;
   const [tab, setTab] = useStateCkp('ringkasan');
 
@@ -152,7 +147,6 @@ function EngagementCockpit() {
     const totalDays = Math.max(1, (+dl - +CKP_START) / 86400000);
     const elapsedPct = Math.min(100, Math.max(0, (+CKP_TODAY - +CKP_START) / 86400000 / totalDays * 100));
     const daysLeft = Math.round((+dl - +CKP_TODAY) / 86400000);
-    const burnPct = e.budgetHrs ? e.actualHrs / e.budgetHrs * 100 : 0;
 
     /* review notes (engagement scope) */
     const openNotes = reviewNotesActive.filter((n: any) => n.status === 'open');
@@ -177,6 +171,17 @@ function EngagementCockpit() {
     const sigAreas = PRG.filter((r: any) => r.sig);
     const sigCovered = sigAreas.filter((r: any) => r.procs.some((p: any) => p.status === 'done')).length;
 
+    /* PR-C-1 · EKONOMI PERIKATAN — satu sumber: FIRMFIN.engagementWip (roster +
+       timesheet live), sama dengan Time & Budget dan modul WIP. Perikatan tanpa
+       roster → `hasRoster:false`; rincian per-anggota TIDAK diarang-arang. */
+    const fee = activeClient?.fee || 0;
+    const econ = cockpitEconomics({
+      ew: FIRMFIN.engagementWip(timeEntries, e.id) as CockpitWip | null,
+      fallbackBudgetHrs: e.budgetHrs, fallbackActualHrs: e.actualHrs,
+      fee, firmTeam: team, workpapers, procs,
+    });
+    const burnPct = econ.burnPct;
+
     /* health tones */
     const schedTone = overall >= elapsedPct - 4 ? 'green' : overall >= elapsedPct - 14 ? 'amber' : 'red';
     const budgetTone = burnPct <= overall + 5 ? 'green' : burnPct <= overall + 15 ? 'amber' : 'red';
@@ -192,36 +197,21 @@ function EngagementCockpit() {
     const verdict = worst >= 2 ? { tone: 'red', l: 'Perlu Tindakan' } : worst >= 1 ? { tone: 'amber', l: 'Perlu Perhatian' } : { tone: 'green', l: 'Sehat / On-track' };
 
     /* phase hours model (data-driven from phase progress) */
-    const phaseRows = CKP_PHASES.map((p: any) => ({ phase: p.phase, color: p.color, pct: phasePct(p), bud: Math.round(p.weight * e.budgetHrs), })).concat([{ phase: 'Review & Arsip', color: '#7a7f87', pct: 0, bud: Math.round(CKP_ARCHIVE_W * e.budgetHrs) }]);
+    const phaseRows = CKP_PHASES.map((p: any) => ({ phase: p.phase, color: p.color, pct: phasePct(p), bud: Math.round(p.weight * econ.budgetHrs), })).concat([{ phase: 'Review & Arsip', color: '#7a7f87', pct: 0, bud: Math.round(CKP_ARCHIVE_W * econ.budgetHrs) }]);
     let actRaw = phaseRows.map((r: any) => r.bud * (r.pct / 100));
     const rawSum = actRaw.reduce((s, x) => s + x, 0) || 1;
-    phaseRows.forEach((r: any, i: any) => { r.act = Math.round(actRaw[i] / rawSum * e.actualHrs); });
-
-    /* per-member effort + assignments */
-    const fn = (full: any) => (full || '').split(' ')[0];
-    const members = team.map((m: any, i: any) => {
-      const w = CKP_TEAM_W[i] != null ? CKP_TEAM_W[i] : 1 / team.length;
-      const bud = Math.round(w * e.budgetHrs), act = Math.round(w * e.actualHrs);
-      const grade = gradeOf(m.role), rate = rateFor(m.role);
-      const first = fn(m.name);
-      const wpPrep = workpapers.filter((x: any) => fn(x.preparer) === first).length;
-      const wpRev = workpapers.filter((x: any) => fn(x.reviewer) === first).length;
-      const procPrep = procs.filter((x: any) => fn(x.prep) === first).length;
-      const procRev = procs.filter((x: any) => fn(x.rev) === first).length;
-      return { ...m, grade, rate, bud, act, wpPrep, wpRev, procPrep, procRev, wip: act * rate };
-    });
-    const wipTot = members.reduce((s: any, m: any) => s + m.wip, 0);
-    const stdBudgetCost = members.reduce((s: any, m: any) => s + m.bud * m.rate, 0);
-    const fee = activeClient?.fee || 0;
+    phaseRows.forEach((r: any, i: any) => { r.act = Math.round(actRaw[i] / rawSum * econ.actualHrs); });
 
     return {
       overall, phasePct, elapsedPct, daysLeft, burnPct,
       openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
       sigRisks, fraudRisks, excTot, sigAreas, sigCovered,
       schedTone, budgetTone, qualTone, riskTone, docTone, verdict,
-      phaseRows, members, wipTot, stdBudgetCost, fee,
+      phaseRows, econ, fee,
+      /* jam tingkat-perikatan: SSOT roster bila ada, seed bila tidak */
+      budgetHrs: econ.budgetHrs, actualHrs: econ.actualHrs,
     };
-  }, [e, reviewNotesActive, aje, risks, workpapers, team, activeClient, wpState]);
+  }, [e, reviewNotesActive, aje, risks, workpapers, team, activeClient, wpState, timeEntries]);
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -239,8 +229,11 @@ function EngagementCockpit() {
     setExporting(true);
     try {
       const phaseSheet = D.phaseRows.map((p: { phase: string; pct: number; bud: number }) => [p.phase, p.pct + '%', p.bud]);
-      const teamSheet = D.members.map((m: { name: string; grade: string; rate: number; bud: number; act: number; wpPrep: number; wpRev: number; procPrep: number; procRev: number }) => [
-        m.name.split(',')[0], m.grade, m.rate, Math.round(m.bud), Math.round(m.act), m.wpPrep, m.wpRev, m.procPrep, m.procRev,
+      /* PR-C-1: kolom memisahkan tarif CHARGE-OUT dari tarif BIAYA — dulu satu
+         kolom "Rate" berisi tarif biaya sementara nilainya dilabeli WIP. */
+      const teamSheet = D.econ.members.map((m: CockpitMember) => [
+        m.name.split(',')[0], m.grade, m.bill, m.cost, Math.round(m.budget), Math.round(m.actual),
+        m.util, m.wpPrep, m.wpRev, m.procPrep, m.procRev,
       ]);
       const riskSheet = D.sigRisks.map((r: { id: string; risk?: string; t?: string; inherent: string; fraud?: boolean; likelihood?: string; impact?: string }) => [r.id, r.risk || r.t, r.inherent, r.fraud ? 'Ya' : 'Tidak', r.likelihood || '', r.impact || '']);
       await amsExportXlsx({
@@ -249,13 +242,15 @@ function EngagementCockpit() {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: `Status Report Engagement — ${activeClient?.name || ''}`,
         meta: [`${e?.id || ''} · ${e?.fy || ''} · progres ${D.overall}% · sisa ${D.daysLeft} hari`,
-          `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · WIP tim Rp ${Math.round(D.wipTot / 1e6)} jt — jam & Rp jt`],
+          D.econ.hasRoster
+            ? `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · WIP @tarif standar Rp ${Math.round((D.econ.wipStd || 0) / 1e6)} jt · biaya waktu Rp ${Math.round((D.econ.timeCost || 0) / 1e6)} jt — jam & Rp jt`
+            : `Kesimpulan: ${D.verdict.l} · burn ${Math.round(D.burnPct)}% · roster jam belum disiapkan — rincian per-anggota tak terukur`],
         sheets: [
           { name: 'Fase', heading: 'Progres per fase (%)',
             columns: ['Fase', 'Progres', 'Jam Anggaran'], rows: phaseSheet, colWidths: [26, 10, 14] },
-          { name: 'Tim', heading: 'Beban tim (jam & Rp)',
-            columns: ['Anggota', 'Grade', 'Rate', 'Anggaran', 'Aktual', 'WP prep', 'WP rev', 'Proc prep', 'Proc rev'],
-            rows: teamSheet, colWidths: [22, 10, 10, 12, 12, 10, 10, 10, 10] },
+          { name: 'Tim', heading: D.econ.hasRoster ? 'Beban tim (jam & Rp) — roster + timesheet (SSOT Time & Budget)' : 'Beban tim — roster jam belum disiapkan',
+            columns: ['Anggota', 'Grade', 'Tarif charge-out', 'Tarif biaya', 'Jam anggaran', 'Jam aktual', 'Util perikatan %', 'WP prep', 'WP rev', 'Proc prep', 'Proc rev'],
+            rows: teamSheet, colWidths: [22, 10, 16, 14, 13, 12, 16, 10, 10, 10, 10] },
           { name: 'Risiko Signifikan', heading: 'Risiko signifikan & fraud',
             columns: ['ID', 'Risiko', 'Inheren', 'Fraud', 'Likelihood', 'Impact'], rows: riskSheet, colWidths: [8, 42, 12, 8, 12, 12] },
         ],
@@ -303,7 +298,7 @@ function EngagementCockpit() {
             <div className="ckp-hero-stats">
               {[
                 ['Sisa Hari', D.daysLeft + ' hari', D.daysLeft < 14 ? '#ff9b8a' : '#fff', idDate(e.deadline)],
-                ['Budget Burn', Math.round(D.burnPct) + '%', D.burnPct > 100 ? '#ff9b8a' : '#fff', `${fmt(e.actualHrs)}/${fmt(e.budgetHrs)} jam`],
+                ['Budget Burn', Math.round(D.burnPct) + '%', D.burnPct > 100 ? '#ff9b8a' : '#fff', `${fmt(D.actualHrs)}/${fmt(D.budgetHrs)} jam`],
                 ['Review Notes', D.openNotes.length + ' open', D.openNotes.length ? '#ffd479' : '#7fe0a8', `${D.highOpen.length} prioritas tinggi`],
                 ['Risk Signifikan', `${D.sigCovered}/${D.sigAreas.length}`, D.sigCovered < D.sigAreas.length ? '#ffd479' : '#7fe0a8', `${D.excTot} pengecualian`],
               ].map(([l, v, c, sub]) => (
@@ -538,9 +533,11 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
    ============================================================ */
 function TabAnggaran({ D, e }: any) {
   const { fmt } = AMS;
-  const margin = D.fee ? (1 - D.stdBudgetCost / D.fee) * 100 : 0;
-  const recovery = D.stdBudgetCost ? D.wipTot / (D.stdBudgetCost * (D.overall / 100) || 1) * 100 : 0;
-  const variance = e.actualHrs - Math.round(e.budgetHrs * D.overall / 100);
+  /* PR-C-1: margin & realisasi dari model ekonomi SSOT; `recovery` (dead code
+     yang tak pernah dirender) dihapus. Nilai bisa `null` → perikatan tanpa roster. */
+  const econ = D.econ;
+  const dash = '—';
+  const variance = D.actualHrs - Math.round(D.budgetHrs * D.overall / 100);
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -550,7 +547,7 @@ function TabAnggaran({ D, e }: any) {
           <div className="panel-h"><h3>Earned Value — Waktu · Anggaran · Pekerjaan</h3></div>
           <div style={{ padding: '14px 16px' }}>
             <EVBar label="Waktu berjalan" pct={D.elapsedPct} tone="gray" hint={`${D.daysLeft} hari tersisa`} />
-            <EVBar label="Anggaran jam terpakai" pct={D.burnPct} tone={D.budgetTone} hint={`${fmt(e.actualHrs)}/${fmt(e.budgetHrs)} jam`} />
+            <EVBar label="Anggaran jam terpakai" pct={D.burnPct} tone={D.budgetTone} hint={`${fmt(D.actualHrs)}/${fmt(D.budgetHrs)} jam`} />
             <EVBar label="Pekerjaan selesai" pct={D.overall} tone={D.schedTone} hint={`${CKP_MILESTONES.filter((m: any) => m.status === 'done').length} milestone`} />
             <div className="ckp-info" style={{ marginTop: 4 }}>
               {variance > 0
@@ -562,14 +559,17 @@ function TabAnggaran({ D, e }: any) {
 
         {/* fee recovery */}
         <Panel noBody>
-          <div className="panel-h"><h3>Fee & Realisasi (WIP)</h3></div>
+          <div className="panel-h"><h3>Fee · WIP · Biaya Waktu</h3><span className="sub">{econ.hasRoster ? 'roster + timesheet (SSOT Time & Budget)' : 'roster jam belum disiapkan'}</span></div>
           <div style={{ padding: '12px 16px' }}>
             <div className="ckp-fee-grid">
               {[
                 ['Fee Perikatan', rpM(D.fee), 'var(--ink-1)'],
-                ['Estimasi Biaya Std (budget)', rpM(D.stdBudgetCost), 'var(--ink-1)'],
-                ['Margin Rencana', Math.round(margin) + '%', margin >= 30 ? 'var(--green)' : 'var(--amber)'],
-                ['WIP Terpakai (aktual)', rpM(D.wipTot), 'var(--blue)'],
+                /* PR-C-1: WIP dinilai pada tarif CHARGE-OUT. Dulu kartu ini
+                   memakai tarif BIAYA namun dilabeli "WIP Terpakai" → meleset 2×. */
+                ['WIP @ Tarif Standar', econ.wipStd == null ? dash : rpM(econ.wipStd), 'var(--blue)'],
+                ['Biaya Waktu (aktual)', econ.timeCost == null ? dash : rpM(econ.timeCost), 'var(--ink-1)'],
+                ['Margin Rencana (biaya std)', econ.marginPct == null ? dash : Math.round(econ.marginPct) + '%',
+                  econ.marginPct == null ? 'var(--ink-3)' : econ.marginPct >= 30 ? 'var(--green)' : 'var(--amber)'],
               ].map(([l, v, c]) => (
                 <div key={l} className="ckp-fee">
                   <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: c }}>{v}</div>
@@ -579,18 +579,22 @@ function TabAnggaran({ D, e }: any) {
             </div>
             <div className="divider" />
             <div className="row jb ac" style={{ marginBottom: 5 }}>
-              <span className="tiny muted">WIP vs Fee</span>
-              <span className="mono tiny" style={{ fontWeight: 700 }}>{Math.round(D.wipTot / (D.fee || 1) * 100)}% terbakar</span>
+              <span className="tiny muted">WIP @ tarif standar vs Fee</span>
+              <span className="mono tiny" style={{ fontWeight: 700 }}>{econ.wipVsFeePct == null ? dash : Math.round(econ.wipVsFeePct) + '% terbakar'}</span>
             </div>
-            <Progress value={D.wipTot / (D.fee || 1) * 100} color="var(--blue)" />
-            <div className="ckp-info" style={{ marginTop: 10 }}>Realisasi pada tarif standar; margin akhir bergantung pada selisih jam aktual vs budget hingga penerbitan opini.</div>
+            <Progress value={econ.wipVsFeePct || 0} color="var(--blue)" />
+            <div className="ckp-info" style={{ marginTop: 10 }}>
+              {econ.hasRoster
+                ? <span>WIP dinilai pada tarif charge-out (sama dengan modul WIP & Realisasi); biaya waktu pada tarif biaya. Margin rencana memakai biaya pada jam <b>anggaran</b> — margin akhir bergantung selisih jam aktual vs anggaran hingga penerbitan opini.</span>
+                : <span>Perikatan ini belum punya roster jam, sehingga WIP, biaya waktu, dan margin <b>tak terukur</b> — bukan nol. Siapkan roster di Time &amp; Budget.</span>}
+            </div>
           </div>
         </Panel>
       </div>
 
       {/* hours by phase */}
       <Panel noBody>
-        <div className="panel-h"><h3>Jam per Fase — Budget vs Aktual</h3><span className="sub">total {fmt(e.actualHrs)} / {fmt(e.budgetHrs)} jam</span></div>
+        <div className="panel-h"><h3>Jam per Fase — Budget vs Aktual</h3><span className="sub">total {fmt(D.actualHrs)} / {fmt(D.budgetHrs)} jam</span></div>
         <table className="dtbl">
           <thead><tr>
             <th>Fase</th>
@@ -632,15 +636,25 @@ function TabAnggaran({ D, e }: any) {
    ============================================================ */
 function TabTim({ D, nav }: any) {
   const { fmt } = AMS;
-  const maxAct = Math.max(...D.members.map((m: any) => m.act), 1);
-  const totalAssign = (m: any) => m.wpPrep + m.wpRev + m.procPrep;
+  /* PR-C-1: baris tim = roster SSOT (`engagementWip`), bukan total dibagi bobot.
+     `util` kini utilisasi PERIKATAN (actual/budget roster); utilisasi FIRMA
+     ditampilkan terpisah & berlabel — dulu angka firma dipakai untuk memasang
+     badge OVER-UTILIZED di layar perikatan. */
+  const members: CockpitMember[] = D.econ.members;
+  const maxAct = Math.max(...members.map((m) => m.actual), 1);
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Tim Engagement</h3><span className="sub">{D.members.length} anggota · jam aktual & penugasan</span></div>
+        <div className="panel-h"><h3>Tim Engagement</h3><span className="sub">{D.econ.hasRoster ? `${members.length} anggota · roster + timesheet` : 'roster jam belum disiapkan'}</span></div>
         <div style={{ padding: '6px 6px 10px' }}>
-          {D.members.map((m: any) => {
-            const over = m.act > m.bud;
+          {!D.econ.hasRoster && (
+            <div className="ckp-info" style={{ margin: '6px 6px 2px' }}>
+              <I.alert size={13} />
+              <span>Perikatan ini belum punya roster jam, jadi beban per anggota <b>tak terukur</b>. Total perikatan {fmt(D.actualHrs)}/{fmt(D.budgetHrs)} jam tetap berlaku. Siapkan roster di <b>Time &amp; Budget</b> agar rinciannya muncul di sini.</span>
+            </div>
+          )}
+          {members.map((m) => {
+            const over = m.actual > m.budget;
             return (
               <div key={m.name} className="ckp-member">
                 <Avatar name={m.name} size={36} />
@@ -648,12 +662,14 @@ function TabTim({ D, nav }: any) {
                   <div className="row ac gap8">
                     <span style={{ fontSize: 13, fontWeight: 700 }}>{m.name}</span>
                     <span className="chip tiny" style={{ height: 17 }}>{m.grade}</span>
-                    {m.util >= 92 && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>OVER-UTILIZED</span>}
+                    {over && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>LEWAT ANGGARAN</span>}
                   </div>
-                  <div className="tiny muted" style={{ marginBottom: 5 }}>{m.role} · {fmt(m.act)}/{fmt(m.bud)} jam · {m.wpPrep} WP disusun · {m.wpRev} WP direviu · {m.procPrep} prosedur</div>
+                  <div className="tiny muted" style={{ marginBottom: 5 }}>{m.role} · {fmt(m.actual)}/{fmt(m.budget)} jam · {m.wpPrep} WP disusun · {m.wpRev} WP direviu · {m.procPrep} prosedur</div>
                   <div className="row ac gap8">
-                    <div style={{ flex: 1, height: 6, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: (m.act / maxAct * 100) + '%', height: '100%', background: over ? 'var(--red)' : 'var(--blue)' }} /></div>
-                    <span className="mono tiny muted" style={{ width: 70, textAlign: 'right' }}>Util {m.util}%</span>
+                    <div style={{ flex: 1, height: 6, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: (m.actual / maxAct * 100) + '%', height: '100%', background: over ? 'var(--red)' : 'var(--blue)' }} /></div>
+                    <span className="mono tiny muted" style={{ width: 148, textAlign: 'right' }}>
+                      Util perikatan {m.util}%{m.firmUtil != null && <span> · firma {m.firmUtil}%</span>}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -667,13 +683,14 @@ function TabTim({ D, nav }: any) {
           <div className="panel-h"><h3>Distribusi Beban Jam</h3></div>
           <div style={{ padding: '10px 14px 14px' }} className="row ac gap12">
             <Donut size={104} thickness={15}
-              segments={D.members.map((m: any, i: any) => ({ value: m.act, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
-              center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
+              segments={members.map((m, i) => ({ value: m.actual, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
+              center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{fmt(members.reduce((s, m) => s + m.actual, 0))}</div><div className="tiny muted">jam</div></div>} />
             <div style={{ flex: 1 }}>
-              {D.members.map((m: any, i: any) => (
+              {members.length === 0 && <div className="tiny muted">Tak terukur — roster jam belum disiapkan.</div>}
+              {members.map((m, i) => (
                 <div key={m.name} className="row jb ac" style={{ padding: '3px 0' }}>
                   <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }} />{m.name.split(' ')[0]}</span>
-                  <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(m.act)}j</span>
+                  <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(m.actual)}j</span>
                 </div>
               ))}
             </div>

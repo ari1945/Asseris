@@ -8,7 +8,7 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 55 |
 | Approved | 5 |
 | In Progress | 7 |
 | Implemented | 35 |
@@ -28,6 +28,7 @@
 | PRD - CI Deploy-Smoke (W10.1).md | Draft — menunggu sign-off ("Proceed.") |
 | PRD - Deep-Link Tab Navigasi (Timeline → Modul + Tab).md | Implemented — SELESAI Fase 0–3, gerbang hijau + live-verified |
 | PRD - Deploy-Readiness Single-Tenant.md | Draft |
+| PRD - Engagement Cockpit Terukur (angka yang bergerak ketika auditor bekerja).md | Draft — menunggu sign-off ("Proceed.") |
 | PRD - Engagement-Scoping Review Notes (P5 Fase 2).md | Draft — menunggu sign-off |
 | PRD - Evidence & Sign-off Lintas-WP.md | Draft — menunggu review |
 | PRD - Gerbang Fase Lifecycle Engagement (P5).md | Draft — menunggu sign-off |
@@ -107,6 +108,7 @@
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-sales-pipeline-deepening.md | Draft — menunggu sign-off ("Proceed."). Enam PR: register tunggal + RBAC/audit · penerimaan terfalsifikasi · integritas serah-terima · siklus hidup & disiplin probabilitas · build-up fee→jam · win-loss turunan + a11y/alamat. Q-1..Q-6 terbuka |
 | docs/prd-sa620-expert-gate-server.md | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-smm1-smm2-adoption.md | Implemented — SELESAI 2026-08-13. Kedelapan PR merged (#198·#200·#201·#202·#203·#204·#205·#206), master 3c57a39. Q-1..Q-6 terjawab; retensi SMM ¶60 = 5 tahun (kertas kerja perikatan TETAP rezim terpisah) |
