@@ -335,7 +335,7 @@ function CashBank() {
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Bank</div>
-                  <RowKv label={'Saldo rekening koran' + (R && R.ccy !== 'IDR' ? ' (ekuiv. kurs buku)' : '')} v={'Rp ' + fmt((R ? R.bankIDR : 0) / 1e6, 1) + ' jt'} />
+                  <RowKv label={'Saldo rekening koran' + (R && R.ccy !== 'IDR' ? ' (ekuiv. kurs penutup)' : '')} v={'Rp ' + fmt((R ? R.bankIDR : 0) / 1e6, 1) + ' jt'} />
                   {accLines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map((l: any) => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 1) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
                   <RowKv label="Saldo bank disesuaikan" v={'Rp ' + fmt(adjustedBank / 1e6, 1) + ' jt'} strong />

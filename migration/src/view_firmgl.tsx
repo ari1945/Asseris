@@ -33,7 +33,7 @@ function FirmGL() {
   }, [gl, glStored, setGl]);
   const [tab, setTab] = useStateF1('journal');
   const [form, setForm] = useStateF1(false);
-  const [ledAcct, setLedAcct] = useStateF1('1-100');
+  const [ledAcct, setLedAcct] = useStateF1('1-101');  /* '1-100' sudah tak ada — kas kini per rekening */
   const [stmt, setStmt] = useStateF1('pl');
   /* SoD finansial (Program E): aksi tulis GL = FIRMFIN_EDIT (Partner / Finance
      Firma). Server capForWrite sudah menegakkan — gate UI ini mencegah

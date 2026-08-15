@@ -600,7 +600,7 @@ const FIRMFIN = (function () {
     return [
       mk('cash', 'Kas & Bank', '1-101…1-106', 'cashbank', 'Kas, Bank & Rekonsiliasi',
         c.control, c.totalIDR, 'Σ saldo menurut bank (multi-mata uang, ekuiv. IDR)',
-        'Revaluasi valas + item rekonsiliasi per rekening (register BANK_RECONS)',
+        'Item rekonsiliasi per rekening (register BANK_RECONS) — revaluasi valas sudah DIPOSTING (JV-0319/0320), bukan lagi penjelas selisih',
         c.bridgeTotal, c.residual),
       mk('ar', 'Piutang Usaha', '1-200', 'apar', 'AP / AR Firma',
         arr.control, arr.open, 'Faktur terbuka (modul Billing)',
