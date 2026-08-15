@@ -9,7 +9,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **Draft** — menunggu sign-off |
+| Status | **Implemented** — "Proceed." 2026-08-15; PR-C-1…C-7 selesai di `feat/cockpit-arc`, S1–S11 terpenuhi. Q4 (PR-C-8 aksi tulis) dipisah & belum dikerjakan |
 | Engagement ID terkait | lintas-engagement; bukti demo `ENG-2025-014` (PT Sentosa Makmur Tbk) |
 
 ---
@@ -405,7 +405,17 @@ Plus jejak "berubah sejak kunjungan terakhir" (stempel per-pengguna per-perikata
 Tahap 1–3 adalah inti "tingkat memadai": setelah itu setiap angka di cockpit terukur.
 Tahap 4–6 menutup isolasi & kepatuhan. Tahap 8 opsional dan boleh dipisah ke arc lain.
 
-## 11. Open Questions
+## 11. Open Questions — JAWABAN AKHIR
+
+| # | Jawaban |
+|---|---|
+| **Q1** | **Opsi (b) dengan fallback**, tetapi kenyataannya menggeser desain: `ENGAGEMENTS` **tak membawa** `acceptanceRef`/`engagementLetter` sama sekali, jadi surat perikatan dipakai *ketika ada* dan rantainya `startDate` → `acceptanceRef.date` → akhir tahun buku dari `fy`. Setiap tingkat **menyebutkan dasarnya di layar**. Tanggal karangan TIDAK dimasukkan ke seed. |
+| **Q2** | **Ya — `e.progress` dipertahankan** sebagai asersi manajer, dijembatani ke progres terbukti. |
+| **Q3** | **"Belum terukur"** dipilih. Perikatan tanpa roster tidak menampilkan rincian per-anggota dan tidak meminjam roster perikatan lain. |
+| **Q4** | **Dipisah.** PR-C-8 (aksi tulis ber-RBAC) belum dikerjakan. |
+| **Q5** | **Tidak jadi masalah.** `wpState` demo TIDAK diseed; progres terbukti 0% justru menjadi demonstrasi paling jelas bahwa angkanya kini mengukur sesuatu. |
+
+## 11b. Open Questions (naskah asli)
 
 **Q1 — Tanggal mulai perikatan.** `ENGAGEMENTS` tak punya `startDate`. Pilihan:
 (a) tambah field ke seed + `ams_types.ts` + skema Prisma;

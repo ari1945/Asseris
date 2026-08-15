@@ -8,10 +8,10 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 55 |
+| Draft | 54 |
 | Approved | 5 |
 | In Progress | 7 |
-| Implemented | 35 |
+| Implemented | 36 |
 | Superseded | 1 |
 
 ## Daftar
@@ -28,7 +28,7 @@
 | PRD - CI Deploy-Smoke (W10.1).md | Draft — menunggu sign-off ("Proceed.") |
 | PRD - Deep-Link Tab Navigasi (Timeline → Modul + Tab).md | Implemented — SELESAI Fase 0–3, gerbang hijau + live-verified |
 | PRD - Deploy-Readiness Single-Tenant.md | Draft |
-| PRD - Engagement Cockpit Terukur (angka yang bergerak ketika auditor bekerja).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Engagement Cockpit Terukur (angka yang bergerak ketika auditor bekerja).md | Implemented — "Proceed." 2026-08-15; PR-C-1..C-7 SELESAI di branch feat/cockpit-arc (b8c617b · 2721076 · a7b3e64 · 5ee9812 · d125496 · 3ba0cb5 · ef256b6). S1–S11 terpenuhi, +100 uji, ratchet :any view_cockpit2 106→65. Q1 ditutup (rantai startDate → acceptanceRef.date → akhir tahun buku); Q2 dijawab "pertahankan + jembatan"; Q3 "tak terukur" dipilih; Q5 tak jadi masalah (seed wpState TIDAK diseed). Q4 (PR-C-8 aksi tulis ber-RBAC) DIPISAH — belum dikerjakan |
 | PRD - Engagement-Scoping Review Notes (P5 Fase 2).md | Draft — menunggu sign-off |
 | PRD - Evidence & Sign-off Lintas-WP.md | Draft — menunggu review |
 | PRD - Gerbang Fase Lifecycle Engagement (P5).md | Draft — menunggu sign-off |
