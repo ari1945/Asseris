@@ -12,7 +12,7 @@
    ============================================================ */
 import { describe, it, expect } from 'vitest';
 import { FIRM_COA, FIRM_GL } from './data_part1';
-import { netEffect, openingBalances, currentBalances, mergeSeedJournals, trialBalance, statements } from './firm_ledger';
+import { accountLedger, netEffect, openingBalances, currentBalances, mergeSeedJournals, trialBalance, statements } from './firm_ledger';
 
 const coa = FIRM_COA;
 const gl = FIRM_GL;
@@ -130,6 +130,39 @@ describe('Cache firmgl basi tidak boleh merusak saldo', () => {
 
   it('daftar yang sudah lengkap dikembalikan apa adanya', () => {
     expect(mergeSeedJournals(gl, gl)).toBe(gl);
+  });
+});
+
+describe('Buku Besar: baris membawa lawan akun (repro crash tab)', () => {
+  /* Tab "Buku Besar" Firm GL merender `r.dr2 ? r.cr : r.dr` lalu `.slice()` atas hasil
+     `acctName()`-nya. `LedgerRow` tidak pernah membawa `dr`/`cr`, jadi nilainya
+     `undefined` → `.slice()` melempar → SELURUH modul gagal render. Akun default
+     1-100 punya mutasi, sehingga crash terjadi setiap kali tab dibuka — sejak
+     Program E (#234). Tak satu pun uji melihatnya; hanya peramban. */
+  it('tiap baris membawa kode akun debit & kredit yang ada di COA', () => {
+    const lg = accountLedger(coa, gl, gl, '1-100');
+    expect(lg.rows.length).toBeGreaterThan(0);
+    for (const r of lg.rows) {
+      expect(typeof r.dr, r.id).toBe('string');
+      expect(typeof r.cr, r.id).toBe('string');
+      expect(coa.some(a => a.code === r.dr), `${r.id} dr`).toBe(true);
+      expect(coa.some(a => a.code === r.cr), `${r.id} cr`).toBe(true);
+    }
+  });
+
+  it('lawan akun yang dirender view selalu terpetakan ke nama (bukan undefined)', () => {
+    /* Meniru persis ekspresi view: `r.dr2 ? r.cr : r.dr`. */
+    for (const code of ['1-100', '1-200', '1-300', '2-100']) {
+      for (const r of accountLedger(coa, gl, gl, code).rows) {
+        const lawan = r.dr2 ? r.cr : r.dr;
+        expect(lawan, `${code}/${r.id}`).toBeTruthy();
+        expect(coa.find(a => a.code === lawan)?.name, `${code}/${r.id}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('akun kontrol sub-buku punya baris buku besar yang dapat dibuka', () => {
+    for (const code of CONTROL) expect(accountLedger(coa, gl, gl, code).rows.length, code).toBeGreaterThan(0);
   });
 });
 

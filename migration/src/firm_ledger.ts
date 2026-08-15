@@ -144,6 +144,10 @@ export interface LedgerRow {
   id: string;
   date?: string;
   desc?: string;
+  /** Akun DEBIT jurnal ini (kode COA) — dipakai view untuk menampilkan lawan akun. */
+  dr: string;
+  /** Akun KREDIT jurnal ini (kode COA). */
+  cr: string;
   dr2: number;
   cr2: number;
   running: number;
@@ -171,7 +175,13 @@ export function accountLedger(coa: CoaAccount[], seedGl: GlJournal[], gl: GlJour
     const cr2 = j.cr === acct.code ? j.amount : 0;
     movement += dr2 - cr2;
     run += dr2 - cr2;
-    return { id: j.id, date: j.date, desc: j.desc, dr2, cr2, running: run };
+    /* `dr`/`cr` IKUT DIBAWA. Tanpa keduanya, view menampilkan lawan akun lewat
+       `r.dr2 ? r.cr : r.dr` yang selalu `undefined` → `acctName(undefined)`
+       mengembalikan `undefined` → `.slice()` melempar dan SELURUH modul Firm GL
+       gagal render. Tab "Buku Besar" karena itu mati sejak Program E (#234):
+       akun default 1-100 punya mutasi, jadi crash-nya terjadi setiap kali tab
+       dibuka. Tak satu pun dari 1.812 uji melihatnya — hanya peramban. */
+    return { id: j.id, date: j.date, desc: j.desc, dr: j.dr, cr: j.cr, dr2, cr2, running: run };
   });
   const closing = opening + movement;
   return {

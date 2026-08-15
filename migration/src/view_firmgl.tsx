@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 import { CAP } from './rbac';
 import { accountLedger, currentBalances, mergeSeedJournals, statements, trialBalance } from './firm_ledger';
-import type { GlJournal } from './firm_ledger';
+import type { GlJournal, LedgerRow } from './firm_ledger';
 
 /* ============================================================
    Asseris — Firm General Ledger + AP/AR (Package F)
@@ -172,9 +172,9 @@ function FirmGL() {
                   <thead><tr><th>Tanggal</th><th>No. & Keterangan</th><th>Lawan Akun</th><th className="num">Debit</th><th className="num">Kredit</th><th className="num">Saldo Berjalan</th></tr></thead>
                   <tbody>
                     <tr style={{ background: 'var(--surface-2)' }}><td colSpan={5} style={{ fontWeight: 600, fontStyle: 'italic' }}>Saldo Awal Periode</td><td className="num mono" style={{ fontWeight: 700 }}>{drCr(ledger.opening)}</td></tr>
-                    {ledger.rows.map((r: any) => (
+                    {ledger.rows.map((r: LedgerRow) => (
                       <tr key={r.id}>
-                        <td className="mono tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
+                        <td className="mono tiny muted">{new Date(r.date || 0).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                         <td><div className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</div><div className="tiny truncate" style={{ maxWidth: 220 }}>{r.desc}</div></td>
                         <td className="tiny mono muted">{r.dr2 ? r.cr : r.dr} {acctName(r.dr2 ? r.cr : r.dr).slice(0, 14)}</td>
                         <td className="num">{r.dr2 ? fmt(r.dr2 / 1e6, 0) : '—'}</td>
