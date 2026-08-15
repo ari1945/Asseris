@@ -50,8 +50,8 @@ export interface WipRow {
 export interface WipAgingBucket {
   key: string; bucket: string; baseRate: number; rate: number; value: number; n: number; provision: number;
 }
-export interface WipMovementRow { k: string; label: string; op: string; value: number; strong?: boolean; accent?: string }
-export interface WipBridgeRow { label: string; value: number; strong?: boolean; control?: boolean }
+export interface WipMovementRow { k: string; label: string; op: string; value: number; strong?: boolean; accent?: string; alarm?: boolean }
+export interface WipBridgeRow { label: string; value: number; strong?: boolean; control?: boolean; accent?: string; alarm?: boolean }
 export interface WipModel {
   register: WipRow[]; registerAll: WipRow[];
   unbilledTotal: number; deferredIncome: number; grossWIP: number;
@@ -62,6 +62,13 @@ export interface WipModel {
   aging: WipAgingBucket[]; provisionTotal: number; provisionPct: number;
   netRecoverable: number; atRiskWIP: number;
   movement: WipMovementRow[]; control: number; reconciling: number; bridge: WipBridgeRow[];
+  /* Roll-forward & jembatan yang DAPAT GAGAL (PRD 2026-08-15). `opening`/`charged` adalah
+     fakta seed per-perikatan, bukan turunan saldo akhir — karena itu `rollForwardResidual`
+     & `glResidual` bisa ≠ 0. `reconciles` = keduanya nol; konsumen memakainya untuk
+     memerahkan panel DAN memblokir ekspor tersegel. */
+  opening: number; charged: number; liveAdj: number; unpostedAdj: number; postedAsset: number;
+  closingNet: number; rollForwardResidual: number; glResidual: number; reconciles: boolean;
+  nonMaterialTotal: number; accrualTotal: number;
 }
 
 export function useFirmWip(provFactor?: number) {

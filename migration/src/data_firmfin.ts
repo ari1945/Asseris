@@ -114,7 +114,9 @@ const FIRMFIN = (function () {
         id: w.id, client: c.name || w.id, clientShort: (c.name || w.id).replace('PT ', ''),
         tier: c.tier || '—', risk: c.risk || '—', partner: (e.partner || '—').split(',')[0],
         type: e.type || '—', status: e.status || '—', phase: e.phase || '—', progress: e.progress || 0,
-        std, writeUp, writeDown, seedWriteDown, manualWriteDown, recoverable, billed: w.billed, unbilled, cost,
+        std, seedStd: w.std,
+        openingUnbilled: w.openingUnbilled || 0, chargedInPeriod: w.chargedInPeriod || 0,
+        writeUp, writeDown, seedWriteDown, manualWriteDown, recoverable, billed: w.billed, unbilled, cost,
         realization, margin, age, bucket: b.bucket, bucketKey: b.key, provRate: b.rate * F,
         overBilled: unbilled < 0, atRisk: age > 90, live: !!live,
         hours: live ? Math.round(live.actualHrs) : (STD_RATE ? Math.round(std / STD_RATE) : 0), wipValue: std, // alias kompat
@@ -147,28 +149,81 @@ const FIRMFIN = (function () {
     const provisionPct = unbilledTotal ? provisionTotal / unbilledTotal : 0;
     const atRiskWIP = sumf(register.filter((r: any) => r.atRisk), (r: any) => r.unbilled);
 
-    /* roll-forward sub-buku (opening sbg derivasi-plug agar SELALU menutup) */
-    const additions = 10_400_000_000;
-    const opening = unbilledTotal - additions - totWriteUp + totWriteDown + totBilled;
+    /* ---------- roll-forward sub-buku — DAPAT GAGAL ----------
+       Saldo awal & penambahan kini FAKTA seed per-perikatan (WIP_ENG), bukan turunan.
+       Dulu `additions` literal 10.400 jt dan `opening` adalah plug yang didefinisikan
+       agar persamaannya selalu menutup; konsekuensinya mengisi timesheet menggeser
+       saldo periode LALU. Kini keduanya independen, jadi `residual` bisa ≠ 0 — dan
+       ketika itu terjadi, layar WAJIB mengatakannya (lihat `reconciles`). */
+    const opening = sumf(registerAll, (r: { openingUnbilled: number }) => r.openingUnbilled);
+    const charged = sumf(registerAll, (r: { chargedInPeriod: number }) => r.chargedInPeriod);
+
+    /* Selisih std seed vs std berbasis jam aktual T&B + write-down manual (`wip.adj`):
+       keduanya adalah pergerakan NYATA yang belum menjadi jurnal. Dulu diserap diam-diam
+       oleh plug `opening`; kini menjadi baris bernama, dan sekaligus dipakai jembatan GL
+       di bawah untuk menjelaskan mengapa sub-buku bergerak sementara kontrol tidak. */
+    const liveAdj = sumf(registerAll, (r: { live: boolean; std: number; seedStd: number }) => r.live ? r.std - r.seedStd : 0);
+
+    /* Basis TERPOSTING: sub-buku sebagaimana ia sudah tercermin di GL — yakni memakai
+       `std` seed & write-down seed, TANPA revaluasi jam aktual dan TANPA write-down
+       manual yang jurnalnya belum dibuat. Dihitung langsung (bukan dialjabarkan dari
+       basis kini), karena keduanya berbeda basis: aset menghitung baris positif saja,
+       sehingga perikatan yang berpindah tanda saat direvaluasi akan salah bila
+       selisihnya sekadar dikurangkan. */
+    const postedAsset = sumf(registerAll, (r: { seedStd: number; writeUp: number; seedWriteDown: number; billed: number }) => {
+      const unb = r.seedStd + r.writeUp - r.seedWriteDown - r.billed;
+      return unb > 0 ? unb : 0;
+    });
+    const unpostedAdj = postedAsset - unbilledTotal;   // > 0: sub-buku turun tanpa jurnal
+
+    /* Saldo akhir sub-buku NETO (termasuk posisi over-billed yang bernilai negatif);
+       reklasifikasinya ke liabilitas ditampilkan sebagai baris tersendiri, bukan
+       ikut terserap seperti sebelumnya. */
+    const closingNet = sumf(registerAll, (r: { unbilled: number }) => r.unbilled);
+    const rollForwardResidual = closingNet
+      - (opening + charged + liveAdj + totWriteUp - totWriteDown - totBilled);
+
     const movement = [
-      { k: 'open',  label: 'Saldo awal WIP belum ditagih',                op: '',  value: opening,        strong: true },
-      { k: 'add',   label: 'Nilai standar jam ter-charge (WIP terbentuk)', op: '+', value: additions },
-      { k: 'wu',    label: 'Write-up — premium realisasi',                  op: '+', value: totWriteUp,     accent: 'green' },
-      { k: 'wd',    label: 'Write-down — penghapusan tak terpulihkan',      op: '−', value: -totWriteDown,   accent: 'red' },
-      { k: 'bill',  label: 'Ditransfer ke piutang usaha (difakturkan)',    op: '−', value: -totBilled },
-      { k: 'close', label: 'Saldo akhir WIP belum ditagih (sub-buku)',     op: '=', value: unbilledTotal,  strong: true },
+      { k: 'open',  label: 'Saldo awal WIP belum ditagih',                    op: '',  value: opening, strong: true },
+      { k: 'add',   label: 'Nilai standar jam ter-charge periode berjalan',   op: '+', value: charged },
+      ...(liveAdj !== 0 ? [{ k: 'live', label: 'Penyesuaian nilai standar dari jam aktual (Time & Budget)', op: liveAdj > 0 ? '+' : '−', value: liveAdj, accent: liveAdj > 0 ? 'green' : 'red' }] : []),
+      { k: 'wu',    label: 'Write-up — premium realisasi',                    op: '+', value: totWriteUp, accent: 'green' },
+      { k: 'wd',    label: 'Write-down — penghapusan tak terpulihkan',        op: '−', value: -totWriteDown, accent: 'red' },
+      { k: 'bill',  label: 'Ditransfer ke piutang usaha (difakturkan)',       op: '−', value: -totBilled },
+      ...(rollForwardResidual !== 0 ? [{ k: 'resid', label: 'SELISIH BELUM DIJELASKAN — sub-buku tidak menutup', op: '±', value: rollForwardResidual, accent: 'red', strong: true, alarm: true }] : []),
+      { k: 'closeNet', label: 'Saldo akhir sub-buku (neto, termasuk over-billed)', op: '=', value: closingNet, strong: true },
+      ...(deferredIncome > 0 ? [{ k: 'reclass', label: 'Reklas posisi over-billed → pendapatan diterima di muka', op: '+', value: deferredIncome }] : []),
+      { k: 'close', label: 'Saldo akhir WIP belum ditagih (aset)',            op: '=', value: unbilledTotal, strong: true },
     ];
 
-    /* rekonsiliasi ke kontrol GL 1-300 */
+    /* ---------- jembatan ke kontrol GL 1-300 — DAPAT GAGAL ----------
+       Komponen jembatan kini REGISTER yang dapat dijumlah (WIP_NONMATERIAL, WIP_ACCRUAL),
+       bukan `selisih × 0,82` dan `× 0,18` berlabel spesifik. Pergerakan yang belum
+       menjadi jurnal dibalik lebih dulu, karena kontrol GL memang belum memuatnya —
+       inilah kontrol yang sesungguhnya: "sub-buku bergerak, jurnalnya belum diposting". */
     const control = acct(coaOf(ctx), '1-300').bal;
-    const reconciling = control - unbilledTotal;
-    const otherPortfolio = Math.round(reconciling * 0.82);
+    const nonMaterial = A().WIP_NONMATERIAL || [];
+    const accruals = A().WIP_ACCRUAL || [];
+    const nonMaterialTotal = sumf(nonMaterial, (r: { unbilled: number }) => r.unbilled);
+    const accrualTotal = sumf(accruals, (r: { amount: number }) => r.amount);
+    const glResidual = control - (postedAsset + nonMaterialTotal + accrualTotal);
+
     const bridge = [
       { label: 'Sub-buku WIP perikatan material (' + register.length + ' perikatan)', value: unbilledTotal, strong: true },
-      { label: 'WIP perikatan portofolio lain (di luar sampel material)', value: otherPortfolio },
-      { label: 'Akrual reimbursable & disbursement belum tertagih', value: reconciling - otherPortfolio },
+      ...(unpostedAdj !== 0 ? [{ label: 'Pergerakan yang BELUM diposting ke GL (revaluasi jam aktual & write-down manual)', value: unpostedAdj, accent: 'amber' }] : []),
+      { label: 'WIP perikatan non-material (' + nonMaterial.length + ' perikatan, register terpisah)', value: nonMaterialTotal },
+      { label: 'Akrual reimbursable & disbursement (' + accruals.length + ' item)', value: accrualTotal },
+      ...(glResidual !== 0 ? [{ label: 'SELISIH BELUM DIJELASKAN', value: glResidual, accent: 'red', alarm: true }] : []),
       { label: 'Kontrol GL 1-300 · WIP Belum Ditagih', value: control, strong: true, control: true },
     ];
+
+    /* Satu bendera untuk konsumen: bila salah satu sisi tak menutup, angka ini TIDAK
+       boleh keluar sebagai berkas tersegel (keputusan Ari, Q-2 = badge merah + blokir
+       ekspor). UI menggunakannya untuk memerahkan panel & mematikan tombol ekspor. */
+    const reconciles = rollForwardResidual === 0 && glResidual === 0;
+
+    /* kompat: konsumen lama (`view_firmfinance`) menyebut selisih ke kontrol sbg `reconciling` */
+    const reconciling = control - unbilledTotal;
 
     return {
       register, registerAll, unbilledTotal, deferredIncome, grossWIP,
@@ -177,6 +232,9 @@ const FIRMFIN = (function () {
       avgRealization, avgMargin, aging, provisionMatrix: WIP_PROV_MATRIX,
       provisionTotal, provisionPct, netRecoverable, atRiskWIP,
       movement, control, reconciling, bridge,
+      opening, charged, liveAdj, unpostedAdj, postedAsset, closingNet,
+      rollForwardResidual, glResidual, reconciles,
+      nonMaterial, accruals, nonMaterialTotal, accrualTotal,
     };
   }
 

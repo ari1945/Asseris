@@ -507,22 +507,44 @@ import { objectivesForComponent } from './canon_smm_objectives';
      Sub-buku ini adalah SUMBER KEBENARAN tunggal nilai WIP — FIRMFIN.wip()
      menurunkan recoverable, realisasi, margin, aging & penyisihan darinya, lalu
      menutup ke kontrol GL 1-300 (Firm Finance · Sumber Kebenaran). */
+  /* Sub-buku WIP per perikatan (sampel material).
+
+     `openingUnbilled` + `chargedInPeriod` DITAMBAHKAN 2026-08-15 (PRD roll-forward
+     falsifiable). Sebelumnya roll-forward memakai `additions` literal Rp 10.400 jt dan
+     menurunkan saldo AWAL sebagai PLUG — akibatnya mengisi timesheet pada satu perikatan
+     menggeser saldo awal periode LALU sebesar Rp 1.820 jt, dan persamaannya tak pernah
+     bisa gagal. Kini keduanya adalah FAKTA seed:
+       openingUnbilled  = saldo WIP belum ditagih pada awal periode
+       chargedInPeriod  = nilai standar jam ter-charge SELAMA periode berjalan
+     Invarian yang dijaga uji: `openingUnbilled + chargedInPeriod === std`. Bila seseorang
+     menggeser `std` tanpa menggeser komponennya, roll-forward TIDAK menutup dan panelnya
+     memerah — itulah gunanya dipisah. */
   const WIP_ENG = [
-    { id: 'ENG-2025-014', std: 3_200_000_000, billed: 1_200_000_000, writeUp: 0,           writeDown: 180_000_000, cost: 1_950_000_000, originDays: 48 },
-    { id: 'ENG-2025-040', std: 1_980_000_000, billed: 0,             writeUp: 90_000_000,  writeDown: 0,           cost: 1_180_000_000, originDays: 22 },
-    { id: 'ENG-2025-031', std: 1_420_000_000, billed: 600_000_000,   writeUp: 0,           writeDown: 160_000_000, cost: 850_000_000,   originDays: 75 },
-    { id: 'ENG-2025-063', std: 2_640_000_000, billed: 1_700_000_000, writeUp: 110_000_000, writeDown: 0,           cost: 1_560_000_000, originDays: 95 },
-    { id: 'ENG-2025-022', std: 980_000_000,   billed: 0,             writeUp: 0,           writeDown: 40_000_000,  cost: 620_000_000,   originDays: 38 },
-    { id: 'ENG-2025-047', std: 1_180_000_000, billed: 0,             writeUp: 0,           writeDown: 0,           cost: 760_000_000,   originDays: 18 },
-    { id: 'ENG-2025-058', std: 2_180_000_000, billed: 2_260_000_000, writeUp: 60_000_000,  writeDown: 0,           cost: 1_320_000_000, originDays: 12 },
+    { id: 'ENG-2025-014', std: 3_200_000_000, openingUnbilled: 900_000_000,   chargedInPeriod: 2_300_000_000, billed: 1_200_000_000, writeUp: 0,           writeDown: 180_000_000, cost: 1_950_000_000, originDays: 48 },
+    { id: 'ENG-2025-040', std: 1_980_000_000, openingUnbilled: 100_000_000,   chargedInPeriod: 1_880_000_000, billed: 0,             writeUp: 90_000_000,  writeDown: 0,           cost: 1_180_000_000, originDays: 22 },
+    { id: 'ENG-2025-031', std: 1_420_000_000, openingUnbilled: 780_000_000,   chargedInPeriod: 640_000_000,   billed: 600_000_000,   writeUp: 0,           writeDown: 160_000_000, cost: 850_000_000,   originDays: 75 },
+    { id: 'ENG-2025-063', std: 2_640_000_000, openingUnbilled: 1_100_000_000, chargedInPeriod: 1_540_000_000, billed: 1_700_000_000, writeUp: 110_000_000, writeDown: 0,           cost: 1_560_000_000, originDays: 95 },
+    { id: 'ENG-2025-022', std: 980_000_000,   openingUnbilled: 300_000_000,   chargedInPeriod: 680_000_000,   billed: 0,             writeUp: 0,           writeDown: 40_000_000,  cost: 620_000_000,   originDays: 38 },
+    { id: 'ENG-2025-047', std: 1_180_000_000, openingUnbilled: 0,             chargedInPeriod: 1_180_000_000, billed: 0,             writeUp: 0,           writeDown: 0,           cost: 760_000_000,   originDays: 18 },
+    { id: 'ENG-2025-058', std: 2_180_000_000, openingUnbilled: 0,             chargedInPeriod: 2_180_000_000, billed: 2_260_000_000, writeUp: 60_000_000,  writeDown: 0,           cost: 1_320_000_000, originDays: 12 },
   ];
-  /* WIP aging buckets — DERIVASI dari WIP_ENG (umur belum tertagih). Dipertahankan
-     sebagai cache; FIRMFIN.wip().aging menghitung ulang langsung dari sub-buku. */
-  const WIP_AGING = [
-    { bucket: '0–30 hari', value: 3_250_000_000 },
-    { bucket: '31–60 hari', value: 2_760_000_000 },
-    { bucket: '61–90 hari', value: 660_000_000 },
-    { bucket: '> 90 hari', value: 1_050_000_000 },
+
+  /* Komponen jembatan sub-buku → kontrol GL 1-300, DIENUMERASI.
+
+     Sebelum 2026-08-15 kedua baris ini adalah `selisih × 0,82` dan `selisih × 0,18` —
+     pemecahan karangan atas sebuah plug, lalu diberi label yang terdengar spesifik.
+     Akibatnya baris "WIP perikatan portofolio LAIN" naik 115% ketika timesheet diisi pada
+     perikatan yang justru ADA di dalam sampel. Kini keduanya register nyata yang bisa
+     dijumlah, dan sisanya (bila ada) disebut "belum dijelaskan". */
+  const WIP_NONMATERIAL = [
+    { id: 'ENG-2025-071', client: 'PT Anugerah Karya Mandiri', unbilled: 420_000_000 },
+    { id: 'ENG-2025-074', client: 'CV Berkah Tani Nusantara', unbilled: 310_000_000 },
+    { id: 'ENG-2025-079', client: 'PT Cakra Media Digital',   unbilled: 260_000_000 },
+    { id: 'ENG-2025-083', client: 'PT Damai Sentosa Logistik', unbilled: 190_000_000 },
+  ];
+  const WIP_ACCRUAL = [
+    { id: 'ACR-REIMB-Q1', desc: 'Reimbursable perjalanan & akomodasi belum ditagih', amount: 260_000_000 },
+    { id: 'ACR-DISB-Q1',  desc: 'Disbursement pihak ketiga (jasa pakar) belum ditagih', amount: 140_000_000 },
   ];
 
   /* ---- Capacity Planning: proyeksi 8 minggu ke depan ---- */
@@ -589,4 +611,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, QM_DOC_RETENTION, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, QM_DOC_RETENTION, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_NONMATERIAL, WIP_ACCRUAL, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };

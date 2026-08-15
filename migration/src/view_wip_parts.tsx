@@ -311,44 +311,75 @@ export function WipPemulihanTab(
 
 /* ---------------- Tab 4 · Mutasi & Sumber Kebenaran ---------------- */
 export function WipSumberTab({ W, jt, nav }: { W: WipModel; jt: Fmt; nav: Nav }) {
+  const rfGagal = W.rollForwardResidual !== 0;
+  const glGagal = W.glResidual !== 0;
+  const alarmStyle = { padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 10 };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
-      <Panel title="Mutasi WIP Belum Ditagih (roll-forward)" sub="sub-buku perikatan material">
+      <Panel title="Mutasi WIP Belum Ditagih (roll-forward)" sub="saldo awal & jam ter-charge = seed sub-buku">
         <div>
           {W.movement.map((m) => (
-            <div key={m.k} className="row jb ac" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
-              <span style={{ fontSize: 12, fontWeight: m.strong ? 700 : 500, color: m.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{m.op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 6 }}>{m.op}</span>}{m.label}</span>
+            <div key={m.k} className="row jb ac" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)', background: m.alarm ? 'var(--red-bg)' : 'transparent' }}>
+              <span style={{ fontSize: 12, fontWeight: m.strong ? 700 : 500, color: m.alarm ? 'var(--red)' : m.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{m.op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 6 }}>{m.op}</span>}{m.label}</span>
               <span className="mono" style={{ fontWeight: m.strong ? 800 : 600, fontSize: 13, color: m.accent === 'green' ? 'var(--green)' : m.accent === 'red' ? 'var(--red)' : m.strong ? 'var(--navy)' : 'var(--ink)' }}>{(m.value < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(m.value)) + ' jt' + (m.value < 0 ? ')' : '')}</span>
             </div>
           ))}
         </div>
-        <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>WIP terbentuk dari jam ter-charge pada tarif standar; berkurang saat difakturkan (transfer ke piutang 1-200) atau di-write-down. Saldo akhir = sub-buku valuasi.</div>
+        <div className="row ac gap6" style={{ marginTop: 10 }}>
+          <Badge kind={rfGagal ? 'red' : 'green'}>{rfGagal ? 'TIDAK MENUTUP' : 'Menutup'}</Badge>
+          <span className="tiny muted">
+            {rfGagal
+              ? 'Saldo akhir tidak sama dengan saldo awal + pergerakan.'
+              : 'Saldo awal + jam ter-charge ± penyesuaian − ditagih = saldo akhir.'}
+          </span>
+        </div>
+        {rfGagal && (
+          <div className="panel" style={alarmStyle}>
+            <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>
+              <I.alert size={11} /> Selisih Rp {jt(Math.abs(W.rollForwardResidual))} jt tidak dapat dijelaskan oleh pergerakan mana pun. Periksa `openingUnbilled` &amp; `chargedInPeriod` pada sub-buku — keduanya harus berjumlah nilai standar perikatan.
+            </div>
+          </div>
+        )}
+        <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>
+          Saldo awal dan jam ter-charge adalah <b>fakta seed per-perikatan</b>, bukan turunan dari saldo akhir. Karena itu persamaan ini <b>dapat gagal</b> — dan bila gagal, ia mengatakannya.
+        </div>
       </Panel>
 
       <div className="grid" style={{ gap: 12 }}>
-        <Panel title="Rekonsiliasi ke Kontrol GL 1-300" sub="bukti satu sumber kebenaran">
+        <Panel title="Rekonsiliasi ke Kontrol GL 1-300" sub="komponen jembatan dari register, bukan persentase">
           <div>
             {W.bridge.map((b, i) => (
-              <div key={i} className="row jb ac" style={{ padding: '8px 0', borderBottom: i < W.bridge.length - 1 ? '1px solid var(--line-soft)' : 'none', background: b.control ? 'var(--blue-050)' : 'transparent', margin: b.control ? '4px -6px 0' : 0, paddingLeft: b.control ? 6 : 0, paddingRight: b.control ? 6 : 0, borderRadius: b.control ? 4 : 0 }}>
-                <span style={{ fontSize: 12, fontWeight: b.strong ? 700 : 500, color: b.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{b.control ? '= ' : (b.strong ? '' : '+ ')}{b.label}</span>
-                <span className="mono" style={{ fontWeight: b.strong ? 800 : 600, fontSize: 12, color: b.control ? 'var(--blue)' : 'var(--ink)' }}>Rp {jt(b.value)} jt</span>
+              <div key={i} className="row jb ac" style={{ padding: '8px 0', borderBottom: i < W.bridge.length - 1 ? '1px solid var(--line-soft)' : 'none', background: b.alarm ? 'var(--red-bg)' : b.control ? 'var(--blue-050)' : 'transparent', margin: b.control || b.alarm ? '4px -6px 0' : 0, paddingLeft: b.control || b.alarm ? 6 : 0, paddingRight: b.control || b.alarm ? 6 : 0, borderRadius: b.control || b.alarm ? 4 : 0 }}>
+                <span style={{ fontSize: 12, fontWeight: b.strong || b.alarm ? 700 : 500, color: b.alarm ? 'var(--red)' : b.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{b.control ? '= ' : (b.strong ? '' : '+ ')}{b.label}</span>
+                <span className="mono" style={{ fontWeight: b.strong || b.alarm ? 800 : 600, fontSize: 12, color: b.alarm ? 'var(--red)' : b.control ? 'var(--blue)' : b.accent === 'amber' ? 'var(--amber)' : 'var(--ink)' }}>{(b.value < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(b.value)) + ' jt' + (b.value < 0 ? ')' : '')}</span>
               </div>
             ))}
           </div>
           <div className="row ac gap6" style={{ marginTop: 10 }}>
-            <Badge kind={Math.abs(W.reconciling) < 1e6 ? 'green' : 'blue'}>{Math.abs(W.reconciling) < 1e6 ? 'Cocok persis' : 'Terjembatani'}</Badge>
-            <span className="tiny muted">selisih teridentifikasi Rp {jt(W.reconciling)} jt</span>
+            <Badge kind={glGagal ? 'red' : 'green'}>{glGagal ? 'TIDAK MENUTUP' : 'Menutup'}</Badge>
+            <span className="tiny muted">
+              {glGagal
+                ? 'Sub-buku + register jembatan ≠ kontrol GL.'
+                : 'Setiap komponen jembatan berasal dari register yang dapat dijumlah.'}
+            </span>
           </div>
+          {W.unpostedAdj !== 0 && !glGagal && (
+            <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}>
+              <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>
+                <I.clock size={11} /> Rp {jt(Math.abs(W.unpostedAdj))} jt pergerakan sub-buku (revaluasi jam aktual &amp; write-down manual) <b>belum diposting ke GL 1-300</b>. Kontrol belum memuatnya — inilah sebabnya jembatan membalikkannya lebih dulu.
+              </div>
+            </div>
+          )}
         </Panel>
 
         <Panel title="Provenansi & Keterkaitan" sub="lineage data WIP">
-          <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>Sumber: sub-buku <b className="mono">WIP_ENG</b> × <b>Engagements</b> × <b>Clients</b> (jam × tarif standar). Perubahan di pemilik data mengalir otomatis ke seluruh modul di bawah.</div>
+          <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>Sumber: sub-buku <b className="mono">WIP_ENG</b> × <b>Engagements</b> × <b>Clients</b> (jam × tarif standar); jembatan dari <b className="mono">WIP_NONMATERIAL</b> &amp; <b className="mono">WIP_ACCRUAL</b>.</div>
           <div className="row gap8" style={{ flexWrap: 'wrap' }}>
             {[
               { id: 'time', ic: 'clock', lbl: 'Time & Budget' },
               { id: 'billing', ic: 'receipt', lbl: 'Billing' },
               { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan & WIP' },
-              { id: 'firmfinance', ic: 'coins', lbl: 'Firm Finance' },
+              { id: 'firmgl', ic: 'ledger', lbl: 'General Ledger' },
             ].map(x => {
               const Ic = (I as unknown as Record<string, IconComp>)[x.ic] || I.link2;
               return <button key={x.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--blue)', flex: '1 1 45%' }} onClick={() => nav(x.id, { from: 'wip' })}><span className="lin-ic" style={{ color: 'var(--blue)' }}><Ic size={14} /></span><span className="lin-txt"><span className="lin-lbl">{x.lbl}</span></span><span className="lin-go"><I.arrowRight size={12} /></span></button>;

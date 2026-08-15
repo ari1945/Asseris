@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **Draft** — Q-1·Q-2·Q-3 menunggu jawaban; lalu sign-off ("Proceed.") |
+| Status | **Implemented** — "Proceed." 2026-08-15. Q-1 = WIP saja · Q-2 = badge merah + blokir ekspor · Q-3 = seed disetel menutup. F-1..F-3 SELESAI, `npm run verify` hijau (1769 uji), SC-1..SC-11 tertutup & live-verified DUA keadaan (hijau & merah). |
 | Pemicu | Non-Scope yang ditinggalkan dua kali: PRD merge WIP (#237) & tercatat di `docs/PRD-USULAN-PENGEMBANGAN-E9-KEDALAMAN.md` |
 | PRD terkait | `docs/prd-wip-merge-valuasi-realisasi.md` (Implemented) — arc ini melanjutkan Non-Scope-nya |
 | Prasyarat | Tidak ada. Berdiri sendiri di atas `master` `4437f0c` |
