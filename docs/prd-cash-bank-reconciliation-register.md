@@ -247,3 +247,58 @@ yang tidak ada.
 - **(a) Cabut dalam arc ini** — ia berdiri persis di atas layar yang sedang dibetulkan. ← *rekomendasi*
 - **(b) Beri label "demo".**
 - **(c) Biarkan.**
+
+---
+
+## 12. Hasil
+
+### PR-1 — [#247](https://github.com/ari1945/Asseris/pull/247) · F-1..F-3
+
+`1-100` → `1-101`..`1-106`, Σ = 8.420.000.000 persis. Saldo buku per rekening turunan
+jurnal; saldo bank tetap literal (data eksternal, §1.4). `BANK_RECONS` enam rekening,
+periode Maret 2026. `FX_BOOK` ke SSOT. Hook `useBankRecon` menyalurkan `matched` ke ctx
+FIRMFIN.
+
+**Jebakan yang hampir dibangun:** versi pertama mendefinisikan
+`bridgeTotal = −(reval + (Σbank − kontrol))` — `residual` nol SECARA ALJABAR, badge hijau
+selamanya. Persis **R-1 yang PRD ini tulis sendiri**. Kedua komponen kini dienumerasi;
+memasang kembali versi tautologis menjatuhkan 2 uji SC-6.
+
+**Cacat kedua, ditemukan HIDUP:** `mergeSeedJournals` (#243) menyembuhkan jurnal yang
+*hilang*, bukan yang *berubah*. Cache `firmgl` lama memenangkan `cr: '1-100'` untuk empat
+jurnal kas — akun yang sudah tidak ada — sehingga **nol jurnal menyentuh kas** dan kontrol
+Kas melonjak **8.420 → 10.705 jt**, dengan neraca tetap seimbang. Seed kini otoritatif atas
+ISI, penyimpanan atas `posted`/`matched` (satu-satunya field yang dapat disunting).
+
+### PR-2 — F-4 + Q-6
+
+Akun `5-600 Laba (Rugi) Selisih Kurs — neto` + `JV-0319`/`JV-0320` memposting penjabaran
+ulang pada kurs penutup. Saldo awal 5-600 **nol** — seluruhnya dari jurnal periode ini.
+Rekonsiliasi bergeser ke kurs penutup; membatalkan posting revaluasi membuat rekening valas
+tidak menutup (22,8 jt). Chip "Bank feed" dicabut.
+
+**Konsekuensi yang dikehendaki:** laba operasi **2.800 → 2.860,638 jt** — satu-satunya
+angka firma yang berubah di seluruh arc. PSAK 10 mensyaratkannya; sebelumnya angka itu
+hanya dipajang di satu tab.
+
+**Gerbang cakupan #242 terbukti bekerja di lapangan:** akun P&L baru langsung
+memerahkannya sampai baris anggarannya ditambah. Dibuktikan dengan mencabut baris itu
+sementara — 8 uji jatuh.
+
+### Verifikasi hidup (dua arah)
+
+| | Menutup | Setelah dirusak |
+|---|---|---|
+| Baris Kas | TERJEMBATANI, komponen (97), sisa **0** | BELUM DIJELASKAN |
+| Ekspor Laporan Keuangan | terbuka | terkunci, tombol disabled |
+| Rekonsiliasi per rekening | enam menutup | 1 rekening merah |
+| Menandai 1 item cocok (UI) | — | Kas → +410 jt |
+| Batal posting JV-0319 | — | BCA Valas USD → 22,8 jt; laba 2,86 → 2,84 M |
+| Buku besar 5-600 | awal 0 → JV-0320 38 → JV-0319 23 → **61 K** | — |
+
+**Ditemukan HANYA lewat verifikasi hidup** (lolos typecheck & 1.860 uji): empat label
+basi — "POSISI KAS (GL 1-100)" atas akun yang sudah dihapus, keterangan baris Kas yang
+masih menyebut revaluasi sebagai penjelas selisih, "ekuiv. kurs buku" setelah basis
+berpindah ke kurs penutup, dan akun default tab Buku Besar.
+
+Uji **1829 → 1860**. Ratchet `:any` **8056 → 8021**.
