@@ -6,6 +6,8 @@ import { CAP } from './rbac';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacityPlan, CapacitySeed, GradeSeries } from './canon_capacity';
 import { usePipelineRegister } from './use_pipeline';
+import { FIRMFIN } from './data_firmfin';
+import { demandSplit } from './canon_pipeline_fee';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -47,11 +49,19 @@ function CapacityPlanning() {
   /* PRD Sales Pipeline PR-1 — kebutuhan sumber daya dari register HIDUP. Dulu
      literal seed: memenangkan/kehilangan peluang tak pernah menggeser demand. */
   const { register: pipelineReg } = usePipelineRegister();
+  /* PR-5 — tarif charge-out dari SSOT firma (FIRMFIN.WIP_BILL). Dulu kanon
+     memakai konstanta 800.000 sendiri, berselisih dengan 700.000 di
+     view_pipeline untuk konversi nilai→jam yang SAMA. */
+  const rates = (FIRMFIN && FIRMFIN.WIP_BILL) || {};
   const model = useMemoCap(() => capacityModel(schedule, plan, {
     nowLabel: (AMS.CAPACITY as CapacitySeed).weeks[0],
     pipeline: pipelineReg,
+    rates,
     leaveOf: (n: string) => leaveSet.has(n),
-  }), [schedule, plan, leaveSet, pipelineReg]);
+  }), [schedule, plan, leaveSet, pipelineReg, rates]);
+  /* Kebutuhan pipeline DIPISAH: yang punya build-up jam vs yang masih estimasi.
+     Mencampurnya berarti menyajikan tebakan sebagai angka rencana. */
+  const split = useMemoCap(() => demandSplit(pipelineReg, rates), [pipelineReg, rates]);
   const { weeks, grades, staff, pipeline } = model;
   const fwdN = plan.weeks.length;   /* minggu ke-depan yang bisa disunting (index 1.. di weeks) */
   const userName = AMS.USER.name || 'Pengguna';
@@ -93,7 +103,8 @@ function CapacityPlanning() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(avgUtil, 0) + '%'} label="Utilisasi Proyeksi" accent={utilColor(avgUtil)} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficitWeeks} label="Minggu Defisit Kapasitas" accent={deficitWeeks ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(benchNext4) + 'h'} label="Bench 4 Minggu Depan" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)"
+            delta={split.total ? `${fmt(split.recorded)}h tercatat · ${fmt(split.estimated)}h estimasi` : null} /></div></Panel>
         </div>
 
         <div className="tiny muted" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>

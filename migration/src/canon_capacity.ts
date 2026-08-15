@@ -15,6 +15,10 @@
    QR-02 utilisasi senior).
    ============================================================ */
 
+import { DEFAULT_DURATION_WEEKS, effortPlan } from './canon_pipeline_fee';
+import type { BillRates } from './canon_pipeline_fee';
+import type { Opportunity } from './canon_pipeline';
+
 export const CAP_GRADES = ['Partner', 'Manager', 'Senior', 'Junior'] as const;
 export type CapGrade = typeof CAP_GRADES[number];
 
@@ -28,7 +32,13 @@ export interface CapacityPlan { weeks: string[]; grades: GradeSeries[]; staff: S
 /* Bentuk seed AMS.CAPACITY (8 minggu penuh) — sumber default plan. */
 export interface CapacitySeed { weeks: string[]; grades: GradeSeries[]; staff: StaffSeries[] }
 export interface PipelineRaw { id?: string; name: string; service: string; stage?: string; value?: number; prob: number; close?: string }
-export interface PipelineDemand { name: string; service: string; start: string; hrs: number; prob: number }
+export interface PipelineDemand {
+  name: string; service: string; start: string; hrs: number; prob: number;
+  /** PR-5 — `true` bila jam/durasi berasal dari estimasi, bukan build-up tercatat. */
+  estimated?: boolean;
+  /** Kalimat yang menyebut dari mana angkanya berasal. */
+  basis?: string;
+}
 export interface CapacityModel { weeks: string[]; grades: GradeSeries[]; staff: StaffSeries[]; pipeline: PipelineDemand[] }
 
 const GRADE_LIST: readonly string[] = CAP_GRADES;
@@ -77,24 +87,40 @@ export function seedForwardPlan(cap: CapacitySeed): CapacityPlan {
   };
 }
 
-/* ── Demand pipeline (heuristik) ────────────────────────────────
-   pipeline nyata (view_pipeline) TAK punya jam/tgl-mulai. Estimasi
-   jam/minggu = value / rate-blended / durasi-rerata. KONSTAN tunable;
-   ini asumsi PERENCANAAN kasar (bukan angka aktual). Stage 'Lost'
-   (kalah) & 'Won' (sudah diperoleh → ada di delivery) dikecualikan.    */
-export const CAP_BLENDED_RATE = 800_000;   /* Rp/jam charge-out blended */
-export const CAP_EST_WEEKS = 24;           /* durasi rerata perikatan (minggu) */
-export function pipelineDemand(pipeline: PipelineRaw[]): PipelineDemand[] {
+/* ── Demand pipeline ────────────────────────────────────────────
+   PRD prd-sales-pipeline-deepening · PR-5 (SC-7 · SC-8).
+
+   DULU: `hrs = value / 800_000 / 24`. Tiga konstanta karangan sekaligus —
+   tarif blended, durasi 24 minggu, dan asumsi "mulai pada target close" —
+   karena register peluang tidak menyimpan satu pun fakta jadwal. Lebih buruk,
+   tarif 800.000 di sini berselisih dengan 700.000 yang dipakai view_pipeline
+   untuk konversi yang SAMA.
+
+   KINI: bila peluang punya build-up jam per grade (`canon_pipeline_fee`),
+   jam & durasinya DIBACA, bukan ditebak; hanya peluang tanpa build-up yang
+   jatuh ke estimasi — dan hasilnya ditandai `estimated` supaya perencana tahu
+   mana angka yang punya dasar. Tarif fallback pun bukan lagi konstanta lepas:
+   ia diturunkan dari tarif firma (`FIRMFIN.WIP_BILL`) lewat `blendedRate`.
+
+   Stage 'Lost' & 'Won' (sudah di delivery) tetap dikecualikan.             */
+export const CAP_EST_WEEKS = DEFAULT_DURATION_WEEKS;   /* re-ekspor: satu sumber durasi lazim */
+
+export function pipelineDemand(pipeline: PipelineRaw[], rates?: BillRates): PipelineDemand[] {
   const skip = new Set(['lost', 'won']);
   return pipeline
     .filter((p) => !skip.has((p.stage || '').toLowerCase()) && (p.prob || 0) > 0 && (p.value || 0) > 0)
-    .map((p) => ({
-      name: p.name,
-      service: p.service,
-      start: p.close || '',
-      hrs: Math.max(1, Math.round((p.value || 0) / CAP_BLENDED_RATE / CAP_EST_WEEKS)),
-      prob: p.prob,
-    }));
+    .map((p) => {
+      const plan = effortPlan(p as unknown as Opportunity, rates || {});
+      return {
+        name: p.name,
+        service: p.service,
+        start: plan.start,
+        hrs: plan.hrsPerWeek,
+        prob: p.prob,
+        estimated: plan.estimated,
+        basis: plan.basis,
+      };
+    });
 }
 
 /* ── Model kapasitas komposit (minggu-0 turunan + minggu ke-depan
@@ -103,7 +129,7 @@ export function pipelineDemand(pipeline: PipelineRaw[]): PipelineDemand[] {
 export function capacityModel(
   schedule: SchedMember[],
   plan: CapacityPlan,
-  opts: { nowLabel?: string; pipeline?: PipelineRaw[]; leaveOf?: (bareName: string) => boolean } = {},
+  opts: { nowLabel?: string; pipeline?: PipelineRaw[]; rates?: BillRates; leaveOf?: (bareName: string) => boolean } = {},
 ): CapacityModel {
   const cur = currentWeekFromSchedule(schedule, opts.leaveOf);
   const weeks = [opts.nowLabel || 'Minggu ini', ...plan.weeks];
@@ -142,6 +168,6 @@ export function capacityModel(
     return { name: nm, grade, forecast: [cur0, ...fwd], leave };
   });
 
-  const pipeline = opts.pipeline ? pipelineDemand(opts.pipeline) : [];
+  const pipeline = opts.pipeline ? pipelineDemand(opts.pipeline, opts.rates) : [];
   return { weeks, grades, staff, pipeline };
 }

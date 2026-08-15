@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) SELESAI. PR-5..PR-6 menyusul |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1·2·9·10) · **PR-2** (SC-4·5) · **PR-3** (SC-6) · **PR-4** (SC-11·12·13) · **PR-5** (SC-7·8) SELESAI. PR-6 menyusul. ⚠ Uji backend merah karena sebab PRA-ADA (lihat §16) — belum boleh merge sebelum itu tuntas |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -410,7 +410,56 @@ satu perjalanan bolak-balik. `moveWithHistory` memulihkan angka yang memang terc
 dan bila tahap tujuan belum pernah dikunjungi ia memakai default tahap — bukan mewarisi
 keyakinan tahap lama diam-diam.
 
-## 15. Catatan
+## 15. Hasil PR-5
+
+Nilai peluang kini punya **build-up**: jam per grade × tarif firma, lalu diskon.
+
+| | Dulu | Sekarang |
+|---|---|---|
+| Konversi nilai→jam | **dua** konstanta lepas: `700_000` (view_pipeline) & `800_000` (canon_capacity) untuk konversi yang SAMA | satu SSOT `FIRMFIN.WIP_BILL`; tarif blended DITURUNKAN darinya (ikut bergerak bila tarif firma berubah) |
+| Jam & jadwal peluang | tidak ada — kapasitas mengasumsikan 24 minggu, mulai pada target close | `buildUp` + `durationWeeks` + `startPlanned` DIBACA bila ada |
+| Peluang tanpa dasar | dihitung setara dengan yang lain | ditandai `tanpa-dasar`; kebutuhan sumber dayanya DIPISAH sebagai estimasi (Q-3a) |
+| Diskon terhadap tarif standar | tak terlihat | realisasi % + tarif efektif/jam, di sheet detail |
+
+**Catatan atas Q-3.** Teks PRD punya dua bacaan yang berselisih: Q-3(a) berbunyi
+"dikecualikan dari demand kapasitas", sedangkan uraian PR-5 berbunyi "heuristik hanya
+fallback dan ditandai". Mengecualikan sama sekali akan menihilkan kebutuhan pipeline
+sampai seluruh build-up terisi — understatement yang justru berbahaya untuk perencanaan
+staf. Yang diterapkan: **dipisah, bukan dibuang** — KPI kapasitas menampilkan
+"X h tercatat · Y h estimasi", sehingga angka tanpa dasar tak pernah diam-diam dihitung
+setara, dan juga tak hilang begitu saja.
+
+**Dua kebohongan kecil yang ikut tertutup**, keduanya ditemukan oleh uji yang saya tulis
+untuk hal lain: (1) `demandSplit` membulatkan bagian dan total secara terpisah sehingga
+bagiannya tidak menutup ke totalnya (171 vs 172); total kini = penjumlahan bagian yang
+ditampilkan. (2) `pipelineDemand` tanpa tarif menerbitkan **1 jam/minggu** karena lantai
+`Math.max(1, …)` — angka karangan yang tampak seperti hasil hitungan; kini 0 jam dengan
+alasan "TIDAK DAPAT DIHITUNG — tarif charge-out firma tidak tersedia".
+
+## 16. ⚠ Uji backend merah — sebab PRA-ADA, di luar arc ini
+
+Saat menutup PR-5, `npm run verify` gagal pada langkah **backend tests** (34–36 uji,
+seluruhnya di `server/src/__tests__/state.test.ts` dan kerabatnya, dengan
+`version-mismatch:server=0`).
+
+Bukti bahwa ini BUKAN akibat arc Sales Pipeline:
+- Kegagalan yang sama muncul pada commit `8867587` (tip PR-4) **dengan seluruh perubahan
+  PR-5 di-stash** — 34 gagal.
+- Tak satu pun berkas di `server/` disentuh arc ini (`git status server/` bersih).
+- `verify` PR-1..PR-4 hijau ±1 jam sebelumnya atas kode server yang identik.
+- Klien Prisma cocok dengan `schema.prisma` (hanya beda perapian spasi); `test.db`
+  dibuat ulang segar oleh `globalSetup` tiap jalan.
+- Jumlah kegagalan bervariasi antar-jalan (36 → 34).
+
+Seluruh gerbang frontend hijau satu per satu (lint · typecheck · typecheck:test ·
+ratchet `:any` · vitest · build · budget-bundle).
+
+Worktree ini DIBAGI dengan sesi lain yang aktif menulis (terlihat dari stash cabang
+`feat/timeline-…`, worktree `cockpit`, dan suntingan pada `.claude/launch.json` &
+`docs/PRD-REGISTRY.md` di tengah sesi). Akar masalahnya perlu sesi terfokus dengan
+proses lain diistirahatkan. **Branch ini tidak boleh di-merge sebelum itu tuntas.**
+
+## 17. Catatan
 
 Temuan 1.4 dan 1.5 bukan sekadar utang fitur — keduanya menghasilkan **artefak yang
 menyesatkan atas nama standar profesi**: layar bertajuk SA 220/SMM yang mencentang

@@ -17,6 +17,8 @@ import {
 import type { Opportunity, StageEvent } from './canon_pipeline';
 import { acceptanceReadiness } from './canon_pipeline_acceptance';
 import { applyHandoff, planHandoff } from './canon_pipeline_handoff';
+import { effortPlan, feeBasis } from './canon_pipeline_fee';
+import { FIRMFIN } from './data_firmfin';
 import {
   ageDays, daysInStage, isOverdue, moveWithHistory, probCheck,
   stageFlow, stallInfo, winLossBetween, yearStart,
@@ -363,6 +365,51 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
             <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} accent={isOverdue(o, AMS.TODAY) ? 'var(--red)' : undefined} />
           </div>
+          {/* PR-5 — DASAR NILAI. Nilai peluang yang punya build-up dapat
+              dipertanggungjawabkan (jam × tarif firma); yang tanpa build-up
+              dikatakan apa adanya, bukan diam-diam dianggap setara. */}
+          {(() => {
+            const rates = (FIRMFIN && FIRMFIN.WIP_BILL) || {};
+            const fb = feeBasis(o, rates);
+            const ep = effortPlan(o, rates);
+            if (fb.basis === 'tanpa-dasar') {
+              return (
+                <div className="panel" style={{ padding: '9px 11px', marginBottom: 14, background: 'var(--surface-2)', borderColor: 'transparent' }}>
+                  <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>
+                    Nilai Rp {fmt(o.value / 1e6, 0)} jt <b>tanpa build-up jam</b> — belum dapat ditelusuri ke jam × tarif.
+                  </div>
+                  <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 3 }}>{ep.basis}</div>
+                </div>
+              );
+            }
+            return (
+              <>
+                <div className="row jb ac" style={{ marginBottom: 8 }}>
+                  <span className="tiny muted upper">Dasar Nilai (jam × tarif)</span>
+                  <span className="tiny muted mono">{fmt(fb.hours!)} jam · realisasi {fb.realizationPct}%</span>
+                </div>
+                <table className="dtbl" style={{ marginBottom: 12 }}>
+                  <thead><tr><th>Grade</th><th className="num">Jam</th><th className="num">Tarif</th><th className="num">Nilai</th></tr></thead>
+                  <tbody>
+                    {fb.lines.map((l) => (
+                      <tr key={l.grade}>
+                        <td>{l.grade}</td>
+                        <td className="num">{fmt(l.hours)}</td>
+                        <td className="num muted">{fmt(l.rate / 1000)} rb</td>
+                        <td className="num">{fmt(l.amount / 1e6, 0)} jt</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr><td>Tarif standar</td><td className="num">{fmt(fb.hours!)}</td><td /><td className="num">{fmt(fb.standard! / 1e6, 0)} jt</td></tr>
+                    <tr><td>Ditawarkan</td><td /><td className="num muted">{fmt(fb.effectiveRate! / 1000)} rb/jam</td><td className="num">{fmt(fb.quoted / 1e6, 0)} jt</td></tr>
+                  </tfoot>
+                </table>
+                <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 14 }}>{ep.basis}</div>
+              </>
+            );
+          })()}
+
           {/* PR-4 — disiplin probabilitas. Angka yang menyimpang dari default
               tahap boleh, tetapi harus terlihat dan beralasan: "Pipeline
               Tertimbang" firma dibangun dari angka-angka ini. */}

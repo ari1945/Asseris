@@ -84,6 +84,16 @@ export interface Opportunity extends PipelineOpp {
   /** Terisi untuk cross-sell (klien eksisting); null untuk calon klien baru. */
   clientId: string | null;
   history?: StageEvent[];
+  /**
+   * PR-5 — build-up jam per grade. Nilai peluang yang punya build-up dapat
+   * DIPERTANGGUNGJAWABKAN (jam × tarif firma); yang tanpa build-up ditandai
+   * `tanpa-dasar` dan kebutuhan sumber dayanya dipisahkan sebagai estimasi.
+   */
+  buildUp?: { grade: 'Partner' | 'Manager' | 'Senior' | 'Junior'; hours: number }[];
+  /** Minggu pelaksanaan yang direncanakan (bukan asumsi 24 minggu). */
+  durationWeeks?: number;
+  /** Tanggal mulai rencana (bukan asumsi "mulai pada target close"). */
+  startPlanned?: string;
 }
 
 /* ---------------------------------------------------------------
@@ -158,6 +168,9 @@ export function newClientOpportunities(pipeline: PipelineOpp[]): Opportunity[] {
     /* Seed menyimpan `stage` sebagai string lebar (ia bukan literal union di
        ams_types); penyempitan terjadi di batas ini, satu kali, bukan `any`. */
     history: o.history as StageEvent[] | undefined,
+    buildUp: o.buildUp as Opportunity['buildUp'],
+    durationWeeks: o.durationWeeks,
+    startPlanned: o.startPlanned,
   }));
 }
 

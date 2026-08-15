@@ -300,6 +300,7 @@
      kembali dari Won/Lost. Klok demo = AMS.TODAY (2026-03-09).                */
   const PIPELINE = [
     { id: 'OPP-101', name: 'PT Karya Beton Perkasa', service: 'Audit Laporan Keuangan', stage: 'Proposal', value: 640_000_000, prob: 60, owner: 'Hartono Wijaya', close: '2026-04-30', industry: 'Konstruksi',
+      buildUp: [{ grade: 'Partner', hours: 60 }, { grade: 'Manager', hours: 180 }, { grade: 'Senior', hours: 320 }, { grade: 'Junior', hours: 320 }], durationWeeks: 20, startPlanned: '2026-05-11',
       history: [
         { stage: 'Lead', at: '2025-11-18', by: 'Hartono Wijaya', prob: 20 },
         { stage: 'Qualified', at: '2025-12-08', by: 'Hartono Wijaya', prob: 40 },
@@ -308,6 +309,7 @@
     { id: 'OPP-102', name: 'PT Digital Andalan Teknologi', service: 'Agreed-Upon Procedures', stage: 'Lead', value: 410_000_000, prob: 25, owner: 'Sari Dewanti', close: '2026-06-15', industry: 'Teknologi',
       history: [{ stage: 'Lead', at: '2026-01-22', by: 'Sari Dewanti', prob: 25 }] },
     { id: 'OPP-103', name: 'PT Pelita Energi Nusantara', service: 'Audit + Tax', stage: 'Negotiation', value: 1_280_000_000, prob: 75, owner: 'Rudi Gunawan', close: '2026-04-10', industry: 'Energi',
+      buildUp: [{ grade: 'Partner', hours: 120 }, { grade: 'Manager', hours: 360 }, { grade: 'Senior', hours: 640 }, { grade: 'Junior', hours: 560 }], durationWeeks: 26, startPlanned: '2026-04-20',
       history: [
         { stage: 'Lead', at: '2025-10-06', by: 'Rudi Gunawan', prob: 20 },
         { stage: 'Qualified', at: '2025-11-10', by: 'Rudi Gunawan', prob: 40 },
@@ -315,6 +317,7 @@
         { stage: 'Negotiation', at: '2026-02-18', by: 'Rudi Gunawan', prob: 75 },
       ] },
     { id: 'OPP-104', name: 'PT Sari Boga Internasional', service: 'Audit Laporan Keuangan', stage: 'Qualified', value: 720_000_000, prob: 45, owner: 'Sari Dewanti', close: '2026-05-20', industry: 'F&B',
+      buildUp: [{ grade: 'Partner', hours: 70 }, { grade: 'Manager', hours: 200 }, { grade: 'Senior', hours: 340 }, { grade: 'Junior', hours: 330 }], durationWeeks: 22, startPlanned: '2026-06-01',
       history: [
         { stage: 'Lead', at: '2025-12-02', by: 'Sari Dewanti', prob: 20 },
         { stage: 'Qualified', at: '2026-01-09', by: 'Sari Dewanti', prob: 45 },
