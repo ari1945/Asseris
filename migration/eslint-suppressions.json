@@ -711,7 +711,7 @@
   },
   "src/view_onboarding.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 69
+      "count": 65
     }
   },
   "src/view_onboarding2.tsx": {
@@ -781,7 +781,7 @@
   },
   "src/view_pipeline.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 57
+      "count": 54
     }
   },
   "src/view_platform.tsx": {

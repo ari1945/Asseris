@@ -9,7 +9,6 @@ import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { amsExportPdf } from './export_pdf';
 import { CAP } from './rbac';
-import { FIRMFIN } from './data_firmfin';
 import { usePipelineRegister } from './use_pipeline';
 import {
   PIPE_STAGES, PIPE_STAGE_COLOR, nextOppId, openOpportunities,
@@ -17,8 +16,9 @@ import {
 } from './canon_pipeline';
 import type { Opportunity } from './canon_pipeline';
 import { acceptanceReadiness } from './canon_pipeline_acceptance';
+import { applyHandoff, planHandoff } from './canon_pipeline_handoff';
 import type { IndependenceRow, ProspectLike, ReadinessRow, ReadinessStatus, VerdictState } from './canon_pipeline_acceptance';
-import type { ClientRow } from './ams_types';
+import type { ClientRow, StaffRow } from './ams_types';
 
 /* Warna status kesiapan — merah BUKAN dekorasi: baris `issue` adalah hal yang
    menghalangi penerimaan, bukan sekadar catatan. */
@@ -34,9 +34,10 @@ const VERDICT_BG: Record<VerdictState, string> = {
   'siap-surat': 'var(--green-bg)',
 };
 
-/* Program B lanjutan (K-07) — tarif pembagi estimasi jam anggaran prospek dari
-   SSOT FIRMFIN.WIP_BILL (dulu literal 700rb = tarif Senior — duplikat terpecah). */
-const PIPELINE_BUDGET_RATE = (FIRMFIN && FIRMFIN.WIP_BILL && FIRMFIN.WIP_BILL['Senior Auditor']) || 700_000;
+/* PR-3 — `PIPELINE_BUDGET_RATE` dicabut bersama `budgetHrs` karangan pada
+   serah-terima. Konversi nilai→jam yang sah (satu tarif, satu sumber) adalah
+   pekerjaan PR-5; sampai saat itu anggaran jam prospek DIKOSONGKAN, bukan ditebak
+   dari tarif Senior sementara kapasitas memakai tarif blended yang berbeda. */
 
 /* ============================================================
    Asseris — Sales Pipeline + Billing & Invoicing (Package D)
@@ -227,22 +228,37 @@ function OppDetail({ o, onClose, onMove }: any) {
   /* Register prospek HIDUP (dokumen yang sama dengan modul Onboarding), bukan
      seed — keputusan akseptasi yang baru diambil di sana harus langsung terbaca
      di sini. */
-  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS) as [ProspectLike[], unknown];
+  const [prospects, setProspects] = useAmsPersist('prospects', () => AMS.PROSPECTS) as [ProspectLike[], (u: (p: ProspectLike[]) => ProspectLike[]) => void];
+  const { logActivity } = useAudit();
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  const [handoff, setHandoff] = useStateD1(null);
+
+  /* PR-3 — serah-terima kini MEMUTUSKAN dulu, baru menulis, dan hasilnya selalu
+     terlihat. Yang lama: mengarang materialitas dari fee, menempelkan ", CPA"
+     pada siapa pun, menulis localStorage mentah (melewati server-SSOT),
+     me-`return` senyap bila duplikat — lalu tetap menandai peluang Won dan
+     berpindah halaman. */
+  const plan = planHandoff(o, {
+    prospects, clients: AMS.CLIENTS as ClientRow[], staff: (AMS.STAFF || []) as StaffRow[],
+    factorTemplate: ((AMS.PROSPECTS as unknown as ProspectLike[])[0]?.acceptance?.factors) || [],
+  });
+  /* Menulis `prospects` juga ENGAGEMENT_MANAGE (capForWrite). Tanpa gate ini
+     pengguna non-privileged menekan tombol, melihat pesan sukses, lalu tulisannya
+     ditolak SENYAP server — kelas cacat yang sama dengan register peluang. */
+  const authD = useAuth();
+  const canHandoff = !!(authD && typeof authD.can === 'function' && authD.can(CAP.ENGAGEMENT_MANAGE));
   const toOnboarding = () => {
-    const blank = (AMS as any).PROSPECTS[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
-    (window as any).amsAddProspect({
-      id: 'PROS-' + o.id.replace('OPP-', ''), name: o.name, industry: o.industry, city: 'Indonesia',
-      listed: false, kind: 'Klien Baru', service: o.service, standard: o.service.includes('Review') ? 'SPR 2400' : o.service.includes('Due') ? 'SJAH 3000' : 'SA',
-      partner: o.owner.includes(',') ? o.owner : o.owner + ', CPA', manager: 'Bayu Saputra',
-      fee: o.value, materiality: Math.round(o.value * 2.5), npwp: '—', fyEnd: '31 Desember 2025',
-      deadline: o.close, budgetHrs: Math.max(400, Math.round(o.value / PIPELINE_BUDGET_RATE)), source: o.id,
-      acceptance: { approved: false, decision: '', approver: '', date: '', safeguard: '', factors: blank },
-      pmpj: { verified: false, riskRating: 'Sedang', cddLevel: 'Standar', str: false, purpose: 'Perikatan ' + o.service.toLowerCase() + '.', ubo: [], screening: [] },
-      letter: { version: 0, status: 'draft', scope: 'Perikatan ' + o.service + ' FY2025.', esign: [] },
-    });
-    onMove(o.id, 'Won');
-    onClose();
-    nav('onboarding');
+    if (!canHandoff) return;
+    const next = applyHandoff(plan, prospects);
+    if (next) {
+      setProspects(() => next);
+      logActivity && logActivity({ who, action: 'OPP_HANDOFF', detail: `Peluang ${o.id} · ${o.name} → prospek ${plan.draft!.id}` });
+    }
+    /* Tahap peluang TIDAK digeser. Mengirim calon klien ke penilaian penerimaan
+       bukan berarti perikatannya dimenangkan — Won adalah keputusan komersial
+       tersendiri (Q-1). Dulu tombol ini menandai Won bahkan ketika ia tidak
+       membuat apa pun. */
+    setHandoff(plan.kind === 'buat' ? { ...plan, message: plan.message } : plan);
   };
   /* PR-2 — kesiapan penerimaan DITURUNKAN dari register prospek + register
      independensi. Dulu dua baris dipaku `ok: true` dan dua sisanya dihitung
@@ -259,7 +275,15 @@ function OppDetail({ o, onClose, onMove }: any) {
       bodyStyle={{ padding: 16 }}
       footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Btn variant="primary" onClick={toOnboarding}><I.arrowRight size={14} /> Kirim ke Onboarding Klien</Btn>
+          {/* Tombol menyatakan apa yang AKAN terjadi — dulu satu label untuk tiga
+              nasib berbeda (buat · tak melakukan apa pun · tak berlaku). */}
+          {plan.kind === 'sudah-ada'
+            ? <Btn variant="primary" onClick={() => { onClose(); nav('onboarding'); }}><I.arrowRight size={14} /> Buka Prospek {plan.existing!.id}</Btn>
+            : plan.kind === 'tolak'
+              ? <Btn onClick={() => { onClose(); nav('continuance'); }}><I.arrowRight size={14} /> Nilai Keberlanjutan Klien</Btn>
+              : canHandoff
+                ? <Btn variant="primary" onClick={toOnboarding}><I.arrowRight size={14} /> Buat Prospek {plan.draft!.id} &amp; Mulai Penerimaan</Btn>
+                : <span className="chip tiny muted" style={{ justifyContent: 'center' }} title="Membuat prospek dibatasi peran Partner / Manajer (ENGAGEMENT_MANAGE)"><I.lock size={11} /> Serah-terima dibatasi peran</span>}
           <div className="row gap8">
             <Btn style={{ flex: 1 }} onClick={() => { onMove(o.id, 'Won'); onClose(); }}><I.check size={14} /> Tandai Menang</Btn>
             <Btn onClick={() => { onMove(o.id, 'Lost'); onClose(); }}>Kalah</Btn>
@@ -281,6 +305,25 @@ function OppDetail({ o, onClose, onMove }: any) {
             <KvBox label="Owner" v={o.owner.split(',')[0]} />
             <KvBox label="Target Close" v={new Date(o.close).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
           </div>
+          {/* Hasil serah-terima — pesannya SELALU muncul, termasuk ketika tidak
+              ada yang dibuat. Dulu kegagalan duplikat tak meninggalkan jejak apa
+              pun di layar. */}
+          {handoff && (
+            <div className="panel" style={{ padding: '10px 12px', marginBottom: 14, background: handoff.kind === 'buat' ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+              <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>{handoff.message}</div>
+              {!!(handoff.unset && handoff.unset.length) && (
+                <ul style={{ margin: '7px 0 0', paddingLeft: 16 }}>
+                  {handoff.unset.map((u: { field: string; reason: string }) => (
+                    <li key={u.field} className="tiny" style={{ lineHeight: 1.45, marginBottom: 2 }}><b>{u.field}</b> — {u.reason}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="row gap8" style={{ marginTop: 8 }}>
+                <Btn sm onClick={() => { onClose(); nav('onboarding'); }}><I.arrowRight size={13} /> Buka Onboarding Klien</Btn>
+              </div>
+            </div>
+          )}
+
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="tiny muted upper">Penerimaan Klien (SA 220 / SMM)</span>
             {readiness.prospect

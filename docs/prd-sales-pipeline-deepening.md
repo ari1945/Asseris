@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1 SELESAI** (SC-1 · SC-2 · SC-9 · SC-10) · **PR-2 SELESAI** (SC-4 · SC-5). PR-3..PR-6 menyusul |
+| Status | **In Progress** — Approved 2026-08-15 ("Saya ikut rekomendasi anda"): Q-1=a · Q-2=a · Q-3=a · Q-4=a · Q-5=a · Q-6=b (fallback a). **PR-1** (SC-1 · SC-2 · SC-9 · SC-10) · **PR-2** (SC-4 · SC-5) · **PR-3** (SC-6) SELESAI. PR-4..PR-6 menyusul |
 | Pemicu | Permintaan: "kembangkan lebih dalam fitur pada modul Sales Pipeline sampai tingkat memadai" |
 | Modul | `pipeline` (`migration/src/view_pipeline.tsx`) + konsumen: `view_bi`, `view_bi2`, `view_capacity`, `data_platform` (antrean persetujuan), `view_crm2` (Peluang) |
 | PRD terkait | `docs/prd-budget-actual-ledger-derived.md` · `docs/prd-ar-ap-bridge-falsifiable.md` · `docs/prd-penerimaan-keberlanjutan-detail.md` · `docs/prd-acceptance-to-engagement-flow-sa210.md` |
@@ -362,7 +362,27 @@ klien yang sama (Rp 1.850 jt) — sehingga papan menampilkan keputusan penerimaa
 perikatan lain seolah milik peluang ini. Fallback nama kini intake-saja; cross-sell
 hanya tertaut lewat `source` eksplisit.
 
-## 13. Catatan
+## 13. Hasil PR-3
+
+Empat kekeliruan serah-terima dicabut; `canon_pipeline_handoff.ts` MEMUTUSKAN dulu
+(`planHandoff`) lalu menulis (`applyHandoff`) lewat `useAmsPersist('prospects')`.
+
+| Dulu | Sekarang |
+|---|---|
+| `materiality: value × 2,5` | **Dikosongkan**, dengan alasan tercetak. Bukan inert: nilai itu mengalir ke `addEngagement` → `materialityFor()` → ambang kertas kerja (`wp_canon`) & pembacaan neraca saldo (`view_execution`) |
+| `partner: owner + ', CPA'` | Dari **roster staf**. Yang menghalangi bukan gelar melainkan PERAN: Bayu Saputra memang ber-CPA, tetapi Audit Manager ⇒ partner dikosongkan (SA 220.14) |
+| `budgetHrs: value / 700.000` | Dikosongkan — konversi nilai→jam satu-tarif adalah PR-5 |
+| duplikat → `return` senyap | Tombol berubah jadi **"Buka Prospek PROS-xx"**; 5 dari 14 peluang memang sudah punya prospek |
+| cross-sell membuat prospek "Klien Baru" | Diarahkan ke **Keberlanjutan** — mencegah klien ganda di roster |
+| serah-terima menandai **Won** | Tahap TIDAK digeser: mengirim calon ke penilaian penerimaan ≠ memenangkan perikatan (Q-1) |
+| `window.amsAddProspect` menulis `localStorage` mentah | **Dicabut** (nol pembaca tersisa); tulisan lewat persist/server-SSOT |
+
+Konsekuensi hilir yang ditutup pada PR yang sama (risiko R-7 PRD): konversi prospek →
+perikatan kini punya dua gerbang baru — **materialitas awal ditetapkan (SA 320)** dan
+**partner penanggung jawab ditunjuk (SA 220.14)** — supaya materialitas kosong
+memblokir, bukan diam-diam menerbitkan perikatan berambang nol.
+
+## 14. Catatan
 
 Temuan 1.4 dan 1.5 bukan sekadar utang fitur — keduanya menghasilkan **artefak yang
 menyesatkan atas nama standar profesi**: layar bertajuk SA 220/SMM yang mencentang
