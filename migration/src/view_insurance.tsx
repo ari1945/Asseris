@@ -121,7 +121,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.15fr 1fr', gap: 14, alignItems: 'start' }}>
-        <Panel title="Struktur Pertanggungan" sub="limit & pemakaian · sumber: polis" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('policies')}><I.arrowRight size={11} /></button>}>
+        <Panel title="Struktur Pertanggungan" sub="limit & pemakaian · sumber: polis" actions={<button aria-label="Buka tab Polis" className="btn sm" style={{ height: 22 }} onClick={() => setTab('policies')}><I.arrowRight size={11} /></button>}>
           <div style={{ display: 'grid', gap: 11 }}>
             {pols.map((p: any) => {
               const pct = Math.max(3, p.limit / maxLimit * 100);
@@ -150,7 +150,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
         </Panel>
 
         <div className="grid" style={{ gap: 12 }}>
-          <Panel title="Risiko Teratas" sub="residual · sumber: risk register firma" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('register')}><I.arrowRight size={11} /></button>}>
+          <Panel title="Risiko Teratas" sub="residual · sumber: risk register firma" actions={<button aria-label="Buka tab Risk Register" className="btn sm" style={{ height: 22 }} onClick={() => setTab('register')}><I.arrowRight size={11} /></button>}>
             <div style={{ display: 'grid', gap: 8 }}>
               {reg.slice(0, 4).map((r: any) => (
                 <div key={r.id} className="row ac gap8" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>

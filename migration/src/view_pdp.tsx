@@ -303,7 +303,7 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
             <div style={{ fontWeight: 700, fontSize: 15, marginTop: 2 }}>{r.activity}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>RoPA · Ps. 31 UU PDP</div>
           </div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 18, overflowY: 'auto', flex: 1, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="panel" style={{ padding: 13, background: 'var(--surface-2)', borderColor: 'transparent' }}>

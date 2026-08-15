@@ -117,7 +117,7 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
           {rows.map((r: any, i: any) => (
             <div key={i} className="row jb ac tiny" style={{ background: '#fff', borderRadius: 4, padding: '3px 7px' }}>
               <span className="truncate" style={{ maxWidth: compact ? 180 : 230 }}>{r.label}</span>
-              <span className="row ac gap6"><span className="mono">{fmt((+r.amount || 0) / 1e6, 1)}</span><button onClick={() => remove(i)} style={{ border: 0, background: 'transparent', color: 'var(--red)', cursor: 'pointer', padding: 0 }}><I.x size={11} /></button></span>
+              <span className="row ac gap6"><span className="mono">{fmt((+r.amount || 0) / 1e6, 1)}</span><button aria-label="Hapus baris" onClick={() => remove(i)} style={{ border: 0, background: 'transparent', color: 'var(--red)', cursor: 'pointer', padding: 0 }}><I.x size={11} /></button></span>
             </div>
           ))}
         </div>

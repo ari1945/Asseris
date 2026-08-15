@@ -473,7 +473,7 @@ function T23Detail({ r, onClose, nav, toggle, onExportBukti, exporting }: any) {
             <div style={{ fontWeight: 700, fontSize: 15, marginTop: 2 }}>{r.name}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>Bukti Potong Unifikasi · Coretax DJP · Masa {r.masaLabel}</div>
           </div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 18, overflowY: 'auto', flex: 1, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="panel" style={{ padding: 13, background: r.surcharge ? 'var(--red-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
@@ -554,7 +554,7 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
       <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>

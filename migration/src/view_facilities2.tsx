@@ -135,7 +135,7 @@ function FacLeaseInsurance({ FA, reg, firm, nav }: any) {
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start', marginBottom: 16 }}>
         {/* SEWA */}
-        <Panel title="Sewa Kantor (PSAK 73)" sub="aset hak-guna · sumber: master vendor + Legal" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => nav('legal', { from: 'facilities' })}><I.arrowRight size={11} /></button>}>
+        <Panel title="Sewa Kantor (PSAK 73)" sub="aset hak-guna · sumber: master vendor + Legal" actions={<button aria-label="Buka modul Legal & Kontrak" className="btn sm" style={{ height: 22 }} onClick={() => nav('legal', { from: 'facilities' })}><I.arrowRight size={11} /></button>}>
           {lease.vendor ? (
             <>
               <div className="row ac gap8" style={{ marginBottom: 10 }}>
@@ -156,7 +156,7 @@ function FacLeaseInsurance({ FA, reg, firm, nav }: any) {
         </Panel>
 
         {/* ASURANSI */}
-        <Panel title="Asuransi Aset" sub="Property & Office All-Risk · sumber: polis" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => nav('insurance', { from: 'facilities' })}><I.arrowRight size={11} /></button>}>
+        <Panel title="Asuransi Aset" sub="Property & Office All-Risk · sumber: polis" actions={<button aria-label="Buka modul Asuransi" className="btn sm" style={{ height: 22 }} onClick={() => nav('insurance', { from: 'facilities' })}><I.arrowRight size={11} /></button>}>
           {ins.policy ? (
             <>
               <div className="row ac gap8" style={{ marginBottom: 10 }}>

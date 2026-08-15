@@ -128,7 +128,7 @@ function KnowledgeBase() {
             </div>
             <div className="global-search" style={{ background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.2)', maxWidth: 520, height: 36, marginTop: 14 }}>
               <I.search2 size={15} /><input placeholder="Cari nomor standar, judul, atau topik (mis. ECL, materialitas, KAM)…" value={q} onChange={(e: any) => setQ(e.target.value)} />
-              {q && <button className="p-act" onClick={() => setQ('')} style={{ color: '#fff' }}><I.x size={14} /></button>}
+              {q && <button aria-label="Bersihkan pencarian" className="p-act" onClick={() => setQ('')} style={{ color: '#fff' }}><I.x size={14} /></button>}
             </div>
           </div>
         </Panel>
@@ -343,7 +343,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
             <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.25 }}>{reg.title}</div>
             <div style={{ color: '#bcd6e4', marginTop: 6, fontSize: 13 }}>{reg.phase} · {c.read || 5} mnt baca · {c.level || 'Inti'}</div>
           </div>
-          <button className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={20} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={20} /></button>
         </div>
       )}
       footer={(

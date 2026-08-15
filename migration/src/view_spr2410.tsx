@@ -275,7 +275,7 @@ function Tab2410Overview({ sigRisks, risks, nav }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pemahaman Terbawa dari Audit Tahunan (¶13–14)</h3><div style={{ flex: 1 }} />
           <span className="tiny muted">ditarik dari Risk Assessment</span>
-          <button onClick={() => nav('risk', { from: 'spr2410' })} className="p-act" style={{ marginLeft: 8 }}><I.arrowRight size={15} /></button>
+          <button aria-label="Buka modul Risiko" onClick={() => nav('risk', { from: 'spr2410' })} className="p-act" style={{ marginLeft: 8 }}><I.arrowRight size={15} /></button>
         </div>
         <div style={{ padding: '6px 14px 12px' }}>
           <p className="tiny muted" style={{ margin: '4px 0 10px', lineHeight: 1.5 }}>

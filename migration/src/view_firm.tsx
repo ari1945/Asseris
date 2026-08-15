@@ -166,7 +166,7 @@ function ClientCRM() {
                           <div className="tiny muted">{ct.role}</div>
                           <div className="tiny mono" style={{ color: 'var(--blue)' }}>{ct.email}</div>
                         </div>
-                        <button className="p-act"><I.mail size={15} /></button>
+                        <button aria-label={"Email " + ct.email} className="p-act"><I.mail size={15} /></button>
                       </div>
                     ))}
                     <Btn sm style={{ width: '100%' }}><I.plus size={13} /> Tambah Kontak</Btn>
@@ -241,7 +241,7 @@ function ClientForm({ form, onClose, onSave }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(
@@ -417,7 +417,7 @@ function EngagementDetail({ e, client, onClose }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
-            <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+            <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{client?.name}</div>
           <div className="tiny" style={{ color: '#bcd6e4' }}>{e.type} · {e.fy} · {e.standard}</div>
@@ -499,7 +499,7 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
       header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(

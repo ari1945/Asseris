@@ -121,7 +121,7 @@ function Facilities() {
               </div>
 
               <div className="grid" style={{ gridTemplateColumns: '1.25fr 1fr', gap: 14, alignItems: 'start' }}>
-                <Panel title="Roll-Forward Nilai Buku" sub="12 bulan ke 1 Mar 2026 · sumber: mesin penyusutan" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('register')}><I.arrowRight size={11} /></button>}>
+                <Panel title="Roll-Forward Nilai Buku" sub="12 bulan ke 1 Mar 2026 · sumber: mesin penyusutan" actions={<button aria-label="Buka tab Register Aset" className="btn sm" style={{ height: 22 }} onClick={() => setTab('register')}><I.arrowRight size={11} /></button>}>
                   <div style={{ display: 'grid', gap: 6 }}>
                     {[
                       { k: 'NBV awal periode', v: roll.opening, sub: false },

@@ -100,8 +100,8 @@ function Recruitment() {
                               {c.rating > 0 && <span className="mono tiny" style={{ fontWeight: 700, color: c.rating >= 4.3 ? 'var(--green)' : 'var(--blue)' }}>★ {c.rating.toFixed(1)}</span>}
                             </div>
                             <div className="row gap4">
-                              <button className="btn sm" style={{ height: 20, flex: 1, padding: 0 }} disabled={STAGES.indexOf(c.stage) === 0} onClick={() => advance(c.id, -1)}><I.chevron size={12} style={{ transform: 'rotate(180deg)' }} /></button>
-                              <button className="btn sm" style={{ height: 20, flex: 1, padding: 0, color: STAGES.indexOf(c.stage) === STAGES.length - 1 ? 'var(--ink-4)' : 'var(--blue)' }} disabled={STAGES.indexOf(c.stage) === STAGES.length - 1} onClick={() => advance(c.id, 1)}><I.chevron size={12} /></button>
+                              <button aria-label="Mundurkan tahap" className="btn sm" style={{ height: 20, flex: 1, padding: 0 }} disabled={STAGES.indexOf(c.stage) === 0} onClick={() => advance(c.id, -1)}><I.chevron size={12} style={{ transform: 'rotate(180deg)' }} /></button>
+                              <button aria-label="Majukan tahap" className="btn sm" style={{ height: 20, flex: 1, padding: 0, color: STAGES.indexOf(c.stage) === STAGES.length - 1 ? 'var(--ink-4)' : 'var(--blue)' }} disabled={STAGES.indexOf(c.stage) === STAGES.length - 1} onClick={() => advance(c.id, 1)}><I.chevron size={12} /></button>
                             </div>
                           </div>
                         ))}

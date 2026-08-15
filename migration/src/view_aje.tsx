@@ -602,7 +602,7 @@ function AjeReverseModal({ a, fmt, onClose, onConfirm }: AjeReverseModalProps) {
             <div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>Balik &amp; Ganti {a.id}</div>
             <div className="tiny" style={{ opacity: .82 }}>Jurnal asal tetap utuh · jurnal balik diajukan untuk persetujuan</div>
           </div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
       footer={(

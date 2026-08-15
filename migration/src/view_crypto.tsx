@@ -396,7 +396,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{d.id} · v{d.ver}</span>
-            <button className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+            <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{d.name}</div>
           <div className="row ac gap6" style={{ marginTop: 8 }}>

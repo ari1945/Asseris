@@ -39,7 +39,7 @@ function TaskDetail({ t, mt, nav }: any) {
         <span className="mt-icobox" style={{ width: 24, height: 24, borderRadius: 6 }}><IconC size={13} /></span>
         <h3 style={{ fontSize: 12 }}>{t.src}{t.wpRef ? ' · WP ' + t.wpRef : ''}</h3>
         <div style={{ flex: 1 }} />
-        <button className={'mt-star ' + (t.starred ? 'on' : '')} onClick={() => mt.toggleStar(t.id, t.starred)}><I.star size={16} fill={t.starred} /></button>
+        <button aria-label={t.starred ? 'Hapus tanda bintang' : 'Beri tanda bintang'} className={'mt-star ' + (t.starred ? 'on' : '')} onClick={() => mt.toggleStar(t.id, t.starred)}><I.star size={16} fill={t.starred} /></button>
       </div>
       <div style={{ padding: 14, display: 'grid', gap: 14 }}>
         <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: 'var(--ink)' }}>{t.label}</div>
@@ -84,7 +84,7 @@ function TaskDetail({ t, mt, nav }: any) {
               <div key={s.id} className="mt-sub">
                 <button className={'mt-sub-box ' + (s.done ? 'on' : '')} onClick={() => toggleSub(s.id)}>{s.done && <I.check size={11} />}</button>
                 <span className={'mt-sub-text ' + (s.done ? 'done' : '')}>{s.t}</span>
-                <button className="mt-sub-del" onClick={() => delSub(s.id)}><I.trash size={13} /></button>
+                <button aria-label="Hapus subtugas" className="mt-sub-del" onClick={() => delSub(s.id)}><I.trash size={13} /></button>
               </div>
             ))}
           </div>
@@ -244,7 +244,7 @@ function MyTasks() {
             ]} />
           )}
           <div style={{ flex: 1 }} />
-          <div className="mt-search"><I.search2 size={14} /><input value={q} placeholder="Cari tugas…" onChange={(e: any) => setQ(e.target.value)} />{q && <button className="mt-sub-del" onClick={() => setQ('')}><I.x size={13} /></button>}</div>
+          <div className="mt-search"><I.search2 size={14} /><input value={q} placeholder="Cari tugas…" onChange={(e: any) => setQ(e.target.value)} />{q && <button aria-label="Bersihkan pencarian" className="mt-sub-del" onClick={() => setQ('')}><I.x size={13} /></button>}</div>
           <select className="select" value={source} onChange={(e: any) => setSource(e.target.value)} style={{ flex: '0 0 auto' }}>
             {sources.map(s => <option key={s} value={s}>{s === 'all' ? 'Semua Sumber' : s}</option>)}
           </select>

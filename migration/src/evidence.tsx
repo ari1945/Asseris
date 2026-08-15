@@ -98,7 +98,7 @@ function EvidenceControl({ moduleId }: any) {
                 <div style={{ fontSize: 12, fontWeight: 700 }} className="truncate">Bukti · {meta.label || moduleId}</div>
                 <div className="tiny muted">{list.length} berkas terlampir di modul ini</div>
               </div>
-              <button className="top-btn" style={{ width: 26, height: 26 }} onClick={() => setOpen(false)}><I.x size={15} /></button>
+              <button aria-label="Tutup" className="top-btn" style={{ width: 26, height: 26 }} onClick={() => setOpen(false)}><I.x size={15} /></button>
             </div>
 
             <div className={'ev-drop' + (drag ? ' on' : '')}

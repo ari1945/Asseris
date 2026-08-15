@@ -240,7 +240,7 @@ function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }: a
     <div className="copilot-gov">
       <div className="gov-h">
         <span><I.shield size={15} /> Tata Kelola AI · SMM 1</span>
-        <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
+        <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
       <div className="gov-body">
         <div className="gov-sec">

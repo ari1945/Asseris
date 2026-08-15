@@ -106,7 +106,7 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
             {d.legalHold && <Badge kind="red" dot>Legal Hold</Badge>}
           </div>
         </div>
-        <button className="top-btn" onClick={onClose} style={{ width: 30, height: 30, color: 'var(--ink-3)' }}><I.x size={16} /></button>
+        <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ width: 30, height: 30, color: 'var(--ink-3)' }}><I.x size={16} /></button>
       </div>
 
       <div className="pdrawer-body">

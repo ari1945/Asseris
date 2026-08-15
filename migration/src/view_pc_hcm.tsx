@@ -114,7 +114,7 @@ function Profile360Drawer({ s, onClose }: any) {
               <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{s.cert}</span>
             </div>
           </div>
-          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>

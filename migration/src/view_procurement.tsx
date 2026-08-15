@@ -170,7 +170,7 @@ function Procurement() {
               </div>
 
               <div className="grid" style={{ gridTemplateColumns: '1.25fr 1fr', gap: 14, alignItems: 'start' }}>
-                <Panel title="Belanja per Kategori" sub={'diturunkan dari master · ' + boM(spend.total, 1) + ' total'} actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('spend')}><I.arrowRight size={11} /></button>}>
+                <Panel title="Belanja per Kategori" sub={'diturunkan dari master · ' + boM(spend.total, 1) + ' total'} actions={<button aria-label="Buka tab Spend & Anggaran" className="btn sm" style={{ height: 22 }} onClick={() => setTab('spend')}><I.arrowRight size={11} /></button>}>
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={128} thickness={18}
                       segments={spend.rows.map((r: any) => ({ label: r.cat, value: r.v, color: r.c }))}

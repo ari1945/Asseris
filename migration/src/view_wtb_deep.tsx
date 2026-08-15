@@ -378,7 +378,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
               <div style={{ background: 'var(--surface-2)', padding: '10px 13px', borderBottom: '1px solid var(--line)' }}>
                 <div className="row ac jb">
                   <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Dokumentasi Telaah</span>
-                  <button className="btn sm icon ghost" onClick={() => setSelKey(null)}><I.x size={14} /></button>
+                  <button aria-label="Tutup" className="btn sm icon ghost" onClick={() => setSelKey(null)}><I.x size={14} /></button>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{sel.name}</div>
                 <div className="mono tiny muted">{sel.code} · {sel.group}</div>
