@@ -50,6 +50,10 @@ function FirmFinance() {
   const [exportingLk, setExportingLk] = useStateFF(false);
   const onExportLk = async () => {
     if (exportingLk) return;
+    /* Q-2 (Ari, 2026-08-15): konsisten dengan gerbang ekspor WIP (#239). Laporan Keuangan
+       tak boleh keluar tersegel selama ada akun kontrol yang selisihnya tanpa pemilik.
+       Ditegakkan di handler, bukan hanya `disabled` tombol. */
+    if (D.recon.some((r: { status: string }) => r.status === 'open')) return;
     setExportingLk(true);
     try {
       const plRows = (D.pl || []).map((r: any) => [r.label || r.k, jt(r.amount || r.v), r.note || '']);
@@ -86,7 +90,9 @@ function FirmFinance() {
         <div className="row gap8 ac">
           <span className="chip tiny" title="Seluruh angka ditarik dari Buku Besar firma & sub-ledger pemiliknya"><I.link2 size={11} /> Satu sumber kebenaran</span>
           <Seg options={['FY2025', 'FY2024']} value="FY2025" onChange={() => {}} />
-          <Btn sm onClick={onExportLk} disabled={exportingLk}><I.download size={13} /> {exportingLk ? 'Menyiapkan…' : 'Laporan Keuangan KAP'}</Btn>
+          <Btn sm onClick={onExportLk} disabled={exportingLk || D.recon.some((r: { status: string }) => r.status === 'open')}
+            title={D.recon.some((r: { status: string }) => r.status === 'open') ? 'Ekspor dikunci: ada akun kontrol dengan selisih belum dijelaskan — lihat tab Sumber Kebenaran' : 'Ekspor Laporan Keuangan KAP tersegel'}>
+            <I.download size={13} /> {exportingLk ? 'Menyiapkan…' : 'Laporan Keuangan KAP'}</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -263,7 +269,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
               <span className="row ac" style={{ gap: 12 }}><span className="mono" style={{ fontWeight: 600 }}>Rp {jt(b.v)} jt</span><span className="tiny muted" style={{ width: 36, textAlign: 'right' }}>{(b.pct * 100).toFixed(0)}%</span></span>
             </div>
           ))}
-          <div className="tiny muted" style={{ marginTop: 8 }}>Sub-buku faktur Rp {jt(ar.open)} jt + termin/retensi Rp {jt(ar.reconciling)} jt = kontrol GL 1-200 Rp {jt(ar.control)} jt.</div>
+          <div className="tiny muted" style={{ marginTop: 8 }}>Sub-buku faktur Rp {jt(ar.open)} jt + termin &amp; retensi Rp {jt(ar.bridgeTotal)} jt ({ar.bridge.length} item) {ar.reconciles ? '=' : '≠'} kontrol GL 1-200 Rp {jt(ar.control)} jt{ar.reconciles ? '' : ' — SISA BELUM DIJELASKAN Rp ' + jt(Math.abs(ar.residual)) + ' jt'}.</div>
         </Panel>
 
         <Panel title="Utang Usaha per Kategori" sub={'sumber: FIRM_AP · Rp ' + jt(ap.open) + ' jt terbuka'} actions={<button className="btn sm" style={{ height: 22 }} onClick={() => nav('apar', { from: 'firmfinance' })}><I.coins size={11} /> AP</button>}>
@@ -276,7 +282,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
               </div>
             );
           })}
-          <div className="tiny muted" style={{ marginTop: 8 }}>Vendor terbuka Rp {jt(ap.open)} jt + akrual Rp {jt(ap.reconciling)} jt = kontrol GL 2-100 Rp {jt(ap.control)} jt.</div>
+          <div className="tiny muted" style={{ marginTop: 8 }}>Vendor terbuka Rp {jt(ap.open)} jt + akrual &amp; faktur dalam proses Rp {jt(ap.bridgeTotal)} jt ({ap.bridge.length} item) {ap.reconciles ? '=' : '≠'} kontrol GL 2-100 Rp {jt(ap.control)} jt{ap.reconciles ? '' : ' — SISA BELUM DIJELASKAN Rp ' + jt(Math.abs(ap.residual)) + ' jt'}.</div>
         </Panel>
       </div>
 
@@ -309,8 +315,12 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
   const STAT = {
     tied: { k: 'green', l: 'Tertaut' },
     bridged: { k: 'blue', l: 'Terjembatani' },
-    open: { k: 'amber', l: 'Dalam rekonsiliasi' },
+    /* 'open' = masih ada sisa yang TAK dijelaskan komponen bernama mana pun.
+       Dulu status ini mustahil tercapai (setiap baris punya `note` hardcode), jadi
+       labelnya "Dalam rekonsiliasi" tak pernah tampil dan tak pernah menuntut apa pun. */
+    open: { k: 'red', l: 'BELUM DIJELASKAN' },
   };
+  const adaOpen = D.recon.some((r: { status: string }) => r.status === 'open');
   const cashRecon = D.recon.find((r: any) => r.key === 'cash');
   return (
     <>
@@ -339,7 +349,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
       {/* B. Rekonsiliasi sub-ledger ke akun kontrol GL */}
       <div className="tiny upper muted" style={{ fontWeight: 700, marginBottom: 8 }}>B · Rekonsiliasi Sub-Buku → Akun Kontrol Buku Besar</div>
       <table className="dtbl">
-        <thead><tr><th>Akun Kontrol</th><th className="num">Saldo GL</th><th className="num">Sub-Buku</th><th className="num">Item Rekonsiliasi</th><th>Keterangan</th><th>Status</th></tr></thead>
+        <thead><tr><th>Akun Kontrol</th><th className="num">Saldo GL</th><th className="num">Sub-Buku</th><th className="num">Komponen Bernama</th><th className="num">Sisa</th><th>Keterangan</th><th>Status</th></tr></thead>
         <tbody>
           {D.recon.map((r: any) => {
             const st = (STAT as any)[r.status] || STAT.open;
@@ -348,7 +358,8 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
                 <td><div style={{ fontWeight: 600 }}>{r.label}</div><div className="mono tiny muted">GL {r.glCode} · {r.ownerLabel}</div></td>
                 <td className="num" style={{ fontWeight: 700 }}>{jt(r.control)}</td>
                 <td className="num muted">{jt(r.sub)}<div className="tiny muted" style={{ fontWeight: 400 }}>{r.subLabel}</div></td>
-                <td className="num" style={{ color: Math.abs(r.recon) < 1e6 ? 'var(--green)' : 'var(--ink-3)', fontWeight: 600 }}>{r.recon >= 0 ? '+' : '−'}{jt(Math.abs(r.recon))}</td>
+                <td className="num" style={{ color: r.bridgeTotal ? 'var(--ink)' : 'var(--ink-4)', fontWeight: 600 }}>{r.bridgeTotal ? jt(r.bridgeTotal) : '—'}</td>
+                <td className="num" style={{ color: r.status === 'open' ? 'var(--red)' : 'var(--green)', fontWeight: 700 }}>{Math.abs(r.residual) < 1e6 ? '0' : (r.residual >= 0 ? '+' : '−') + jt(Math.abs(r.residual))}</td>
                 <td className="tiny muted">{r.note}</td>
                 <td><Badge kind={st.k}>{st.l}</Badge></td>
               </tr>
@@ -356,9 +367,16 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
           })}
         </tbody>
       </table>
+      {adaOpen && (
+        <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 10 }}>
+          <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5, color: 'var(--red)' }}>
+            <I.alert size={11} /> {D.recon.filter((r: { status: string }) => r.status === 'open').length} akun kontrol menyisakan selisih yang belum dijelaskan komponen mana pun. Ekspor Laporan Keuangan dikunci sampai selisih itu punya pemilik.
+          </div>
+        </div>
+      )}
       <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>
-        Sub-buku + item rekonsiliasi = saldo akun kontrol GL untuk Kas, Piutang, WIP & Utang.
-        {cashRecon && Math.abs(cashRecon.recon) >= 1e6 && <> Selisih kas Rp {jt(Math.abs(cashRecon.recon))} jt berasal dari valas & item rekonsiliasi bank — lihat <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('reconcile', { from: 'firmfinance' })}>Rekonsiliasi Bank</span>.</>}
+        Status diturunkan dari ANGKA: <b>Tertaut</b> = sub-buku sudah sama dengan kontrol; <b>Terjembatani</b> = komponen bernama menutup sisanya; <b>BELUM DIJELASKAN</b> = masih ada sisa tanpa pemilik.
+        {cashRecon && cashRecon.status === 'open' && <> Selisih kas Rp {jt(Math.abs(cashRecon.residual))} jt belum dijumlahkan di sini — register <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('reconcile', { from: 'firmfinance' })}>Rekonsiliasi Bank</span> hanya mencakup satu rekening & satu periode.</>}
       </div>
 
       {/* C. Anggaran tie-out */}

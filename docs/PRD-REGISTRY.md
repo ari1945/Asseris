@@ -8,10 +8,10 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 52 |
 | Approved | 5 |
 | In Progress | 8 |
-| Implemented | 30 |
+| Implemented | 31 |
 | Superseded | 1 |
 
 ## Daftar
@@ -83,7 +83,7 @@
 | docs/PRD-excel-engagement-pack.md | Implemented — SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh) 2026-07-09 |
 | docs/prd-acceptance-to-engagement-flow-sa210.md | Draft — menunggu sign-off |
 | docs/prd-add-staff-user-cli.md | Implemented — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
-| docs/prd-ar-ap-bridge-falsifiable.md | Draft — Q-1..Q-3 belum dijawab; menunggu sign-off ("Proceed.") |
+| docs/prd-ar-ap-bridge-falsifiable.md | Implemented — SELESAI 2026-08-15. Jembatan AR/AP dari register; status rekonsiliasi dari ANGKA (dulu ditentukan ada-tidaknya `note`); baris WIP disambungkan ke #239. Baris Kas kini jujur BELUM DIJELASKAN — BANK_RECON hanya menjelaskan 3% selisihnya |
 | docs/prd-addressable-tabs.md | Implemented — SELESAI 2026-08-15. F-1+F-2, SC-1..SC-9 tertutup; verify hijau + live-verified (kedua repro PRD ditutup, koreksi alamat tab busuk ditemukan saat verifikasi hidup) |
 | docs/prd-aje-immutability-live-approvals.md | Implemented — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
 | docs/prd-audit-trail-server-chain.md | Implemented — P-1..P-5 selesai 2026-08-14; verify hijau + live-verified (audit.list 200 entri, badge jujur) |

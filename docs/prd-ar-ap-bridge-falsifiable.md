@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **Draft** — Q-1·Q-2·Q-3 menunggu jawaban; lalu sign-off ("Proceed.") |
+| Status | **Implemented** — "sesuai rekomendasi" 2026-08-15 (Q-1=a · Q-2=a · Q-3=a). F-1..F-3 SELESAI, `npm run verify` hijau (1781 uji), SC-1..SC-9 tertutup & live-verified. **Catatan: Q-1(a) & Q-3(a) tak bisa keduanya berlaku untuk baris Kas — lihat §12.** |
 | Pemicu | Q-1 PRD roll-forward WIP (#239) menunda AR/AP ke arc sendiri |
 | PRD terkait | `docs/prd-wip-rollforward-falsifiable.md` (Implemented) — arc ini menerapkan polanya ke dua kontrol sisanya |
 | Prasyarat | Di atas `master` `f0f71ce` |
@@ -178,3 +178,30 @@ tersegel untuk modul WIP.
 **Q-3 · Seed jembatan AR/AP.** Sama seperti Q-3 #239.
 - **(a)** Disetel agar residual = 0 pada seed bersih; gerbang dibuktikan lewat uji perusak. ← *rekomendasi*
 - **(b)** Sengaja menyisakan selisih agar keadaan gagal terlihat di demo.
+
+---
+
+## 12. Hasil & satu konflik jawaban yang perlu keputusan lanjutan
+
+**Terverifikasi hidup** (tab Sumber Kebenaran):
+
+| Akun kontrol | Saldo GL | Sub-buku | Komponen bernama | Sisa | Status |
+|---|---:|---:|---:|---:|---|
+| Kas & Bank (1-100) | 8.420 | 10.475 | — | **−2.055** | **BELUM DIJELASKAN** |
+| Piutang Usaha (1-200) | 4.440 | 2.695 | 1.745 (5 item) | 0 | Terjembatani |
+| WIP Belum Ditagih (1-300) | 9.300 | 7.720 | 1.580 | 0 | Terjembatani |
+| Utang Usaha (2-100) | 1.820 | 1.123 | 697 (3 item) | 0 | Terjembatani |
+
+**Konflik antar-jawaban.** Q-1(a) berkata jangan sentuh jembatan Kas; Q-3(a) berkata
+seed disetel agar demo menutup. Keduanya tak bisa berlaku bersamaan untuk baris Kas —
+begitu statusnya diturunkan dari angka, selisih Rp 2.055 jt yang tak dijumlahkan siapa
+pun akan tampil merah. Saya memilih **jujur**: barisnya merah, dan ekspor Laporan
+Keuangan terkunci karenanya.
+
+**Ini menyingkap temuan lanjutan yang tidak dicari.** `BANK_RECON` — satu-satunya
+register yang diklaim menjelaskan selisih kas — hanya mencakup **satu rekening**
+(BCA-OPS) untuk **satu periode** (Februari 2026), dengan item belum-cocok berjumlah
+**Rp 68 jt**. Itu **3%** dari selisih Rp 2.055 jt. Jadi kalimat lama "Selisih kurs &
+item rekonsiliasi bank berjalan" bukan sekadar tak dijumlahkan — ia **tidak didukung
+data yang ada**. Menutup baris Kas menuntut register rekonsiliasi bank multi-rekening,
+yakni arc tersendiri dengan lingkup datanya sendiri.

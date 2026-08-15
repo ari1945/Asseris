@@ -22,6 +22,9 @@ const FIRMFIN = (function () {
   const BLENDED_RATE = 875_000;             // tarif blended cost/jam (biaya waktu)
   const STD_RATE = 1_250_000;               // tarif standar charge-out/jam (nilai standar WIP)
   /* matriks penyisihan WIP berbasis umur (pola ECL) — satu kebijakan, dipakai semua modul */
+  /* Toleransi pembulatan rekonsiliasi — di bawah ini dianggap menutup. Dipakai bersama
+     oleh jembatan AR/AP dan `reconciliations()` supaya satu ambang, satu jawaban. */
+  const RECON_TOLERANCE = 1_000_000;
   const WIP_PROV_MATRIX = [
     { key: 'b30',  bucket: '0–30 hari',  lo: -1e9, hi: 30,  rate: 0.02 },
     { key: 'b60',  bucket: '31–60 hari', lo: 30,   hi: 60,  rate: 0.08 },
@@ -344,7 +347,14 @@ const FIRMFIN = (function () {
     const overdue = sumf(buckets.filter(b => b.k !== 'current'), (b: any) => b.v);
     const control = acct(coaOf(ctx), '1-200').bal;
     buckets.forEach(b => b.pct = open ? b.v / open : 0);
-    return { buckets, open, overdue, control, reconciling: control - open };
+    /* Jembatan ke kontrol 1-200 dari REGISTER (AR_BRIDGE), bukan `control − open`.
+       Sisa yang tak tercakup register adalah `residual` — dan bila ≠ 0, ia disebut
+       "belum dijelaskan", bukan diberi nama "termin/retensi" seperti dulu. */
+    const bridge = A().AR_BRIDGE || [];
+    const bridgeTotal = sumf(bridge, (b: { amount: number }) => b.amount);
+    const residual = control - (open + bridgeTotal);
+    return { buckets, open, overdue, control, bridge, bridgeTotal, residual,
+      reconciles: Math.abs(residual) < RECON_TOLERANCE, reconciling: control - open };
   }
 
   /* ---------- Utang usaha (sumber: FIRM_AP) → tutup ke kontrol 2-100 ---------- */
@@ -356,7 +366,13 @@ const FIRMFIN = (function () {
     const control = -acct(coaOf(ctx), '2-100').bal;
     const byCat: any = {};
     openItems.forEach((x: any) => { byCat[x.cat] = (byCat[x.cat] || 0) + (x.amount - x.paid); });
-    return { open, overdue, control, reconciling: control - open, count: openItems.length,
+    /* Sama seperti AR: jembatan dari register (AP_BRIDGE), bukan plug berlabel "akrual". */
+    const bridge = A().AP_BRIDGE || [];
+    const bridgeTotal = sumf(bridge, (b: { amount: number }) => b.amount);
+    const residual = control - (open + bridgeTotal);
+    return { open, overdue, control, bridge, bridgeTotal, residual,
+      reconciles: Math.abs(residual) < RECON_TOLERANCE,
+      reconciling: control - open, count: openItems.length,
       byCat: Object.entries(byCat).map(([cat, v]) => ({ cat, v })).sort((a: any, b: any) => b.v - a.v) };
   }
 
@@ -413,24 +429,56 @@ const FIRMFIN = (function () {
   /* ---------- Peta Sumber Kebenaran (lineage + rekonsiliasi kontrol) ---------- */
   function reconciliations(ctx: any) {
     const c = cash(ctx), arr = arAging(ctx), w = wip(ctx), apr = ap(ctx);
-    const mk = (key: any, label: any, glCode: any, owner: any, ownerLabel: any, control: any, sub: any, subLabel: any, note: any) => {
+
+    /* PRD AR/AP 2026-08-15 — status DULU:
+         `|recon| < 1e6 ? 'tied' : (note ? 'bridged' : 'open')`
+       Keempat baris punya `note` yang di-hardcode, sehingga `'open'` TIDAK PERNAH
+       mungkin terjadi: selisih sebesar apa pun selalu mendarat di badge biru
+       "Terjembatani". Yang menentukan sebuah akun kontrol dinyatakan terjembatani
+       bukan apakah ada yang menjembataninya, melainkan apakah seseorang pernah
+       menuliskan sebuah kalimat.
+
+       Kini status diturunkan dari ANGKA:
+         tied    — sub-buku sudah sama dengan kontrol (dalam toleransi)
+         bridged — komponen jembatan BERNAMA menutup sisanya
+         open    — masih ada sisa yang tak dijelaskan siapa pun → merah
+       `bridged` hanya sah bila `bridgeTotal` benar-benar ada; bila komponennya nol
+       sementara selisihnya tidak, statusnya `open`. */
+    const mk = (
+      key: any, label: any, glCode: any, owner: any, ownerLabel: any,
+      control: any, sub: any, subLabel: any, note: any,
+      bridgeTotal: number, residual: number,
+    ) => {
       const recon = control - sub;
+      const status = Math.abs(recon) < RECON_TOLERANCE ? 'tied'
+        : (Math.abs(residual) < RECON_TOLERANCE && bridgeTotal !== 0 ? 'bridged' : 'open');
       return { key, label, glCode, owner, ownerLabel, control, sub, subLabel, recon,
-        note, status: Math.abs(recon) < 1e6 ? 'tied' : (note ? 'bridged' : 'open') };
+        note, bridgeTotal, residual, status };
     };
+
+    /* Kas: register `BANK_RECON` + modul pemilik (`cashbank`) sudah ada, jadi selisihnya
+       memang punya rumah — tetapi belum dijumlahkan di sini (Q-1 = hanya status logic).
+       Konsekuensinya jujur: selama komponennya belum disambungkan, barisnya `open`. */
+    const cashResidual = c.control - c.totalIDR;
     return [
       mk('cash', 'Kas & Bank', '1-100', 'cashbank', 'Kas, Bank & Rekonsiliasi',
         c.control, c.totalIDR, 'Σ saldo rekening (multi-mata uang, ekuiv. IDR)',
-        'Selisih kurs & item rekonsiliasi bank berjalan'),
+        'Selisih kurs & item rekonsiliasi bank berjalan — lihat modul Rekonsiliasi Bank',
+        0, cashResidual),
       mk('ar', 'Piutang Usaha', '1-200', 'apar', 'AP / AR Firma',
         arr.control, arr.open, 'Faktur terbuka (modul Billing)',
-        'Piutang termin & retensi belum difakturkan'),
-      mk('wip', 'WIP Belum Ditagih', '1-300', 'revenue', 'Pendapatan & WIP',
-        w.control, w.unbilledTotal, 'WIP perikatan aktif (jam × tarif blended)',
-        'WIP perikatan lain & akrual di luar sampel aktif'),
+        'Termin & retensi belum difakturkan (register AR_BRIDGE)',
+        arr.bridgeTotal, arr.residual),
+      /* Baris WIP memakai jembatan #239 — sebelumnya ia menghitung ulang dengan logika
+         lama sehingga tab ini BERTENTANGAN dengan modul WIP untuk akun yang sama. */
+      mk('wip', 'WIP Belum Ditagih', '1-300', 'wip', 'WIP · Valuasi & Realisasi',
+        w.control, w.unbilledTotal, 'Sub-buku WIP perikatan material',
+        'Pergerakan belum diposting + WIP non-material + akrual (register)',
+        w.nonMaterialTotal + w.accrualTotal + w.unpostedAdj, w.glResidual),
       mk('ap', 'Utang Usaha', '2-100', 'apar', 'AP / AR Firma',
         apr.control, apr.open, 'Tagihan vendor terbuka (FIRM_AP)',
-        'Akrual & faktur vendor dalam proses'),
+        'Akrual & faktur vendor dalam proses (register AP_BRIDGE)',
+        apr.bridgeTotal, apr.residual),
     ];
   }
 
