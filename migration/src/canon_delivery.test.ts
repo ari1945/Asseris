@@ -59,7 +59,7 @@ describe('withMilestoneStatus — sisip status turunan (INVARIAN klok)', () => {
   const plan: DeliveryEngPlan = {
     id: 'E1',
     phases: [],
-    milestones: [{ label: 'Fieldwork', date: '2026-03-14', done: false }],   // +5 dari TODAY
+    milestones: [{ label: 'Fieldwork', date: '2026-03-14', baselineDate: '2026-03-14', done: false }],   // +5 dari TODAY
   };
   it('status turunan mengikuti today', () => {
     expect(withMilestoneStatus(plan, TODAY).milestones[0].status).toBe('due');           // +5 → due

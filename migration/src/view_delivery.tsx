@@ -1,10 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAuth, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
-import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
-import type { DeliveryEngPlan, DeliveryMilestone, DeliveryPhase, SeedEngPlan } from './canon_delivery';
+import { milestoneSlip, normalizeDeliveryPlan, overdueVsBaseline, planSlipSummary, seedDeliveryPlan, shiftMilestone, shiftRequiresReason, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryEngPlan, DeliveryPhase, MilestoneShift, SeedEngPlan } from './canon_delivery';
+import { Overlay } from './overlay';
 import type { ClientRow, EngagementRow } from './ams_types';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -17,6 +18,16 @@ import { KvBox } from './view_analytical';
    Gantt fase perikatan + pelacakan milestone & deadline.
    ============================================================ */
 const { useState: useStateDlv, useMemo: useMemoDlv } = React;
+
+/* Baris rencana siap-render: fase + milestone yang sudah membawa status & slip turunan. */
+type DeliveryRow = ReturnType<typeof withMilestoneStatus>;
+type RowMilestone = DeliveryRow['milestones'][number];
+
+/* Pergeseran yang menunggu alasan (Q-2c) — dari date-picker ke dialog. */
+interface PendingShift { engId: string; idx: number; from: string; to: string; label: string }
+interface ShiftReasonProps { ask: PendingShift; onConfirm: (reason: string) => void; onCancel: () => void }
+/* Satu baris jejak pergeseran, sudah dilabeli milestone asalnya. */
+type TrailRow = MilestoneShift & { label: string };
 
 const DLV_PHASE_COLOR = { Perencanaan: 'var(--purple)', Eksekusi: 'var(--blue)', Finalisasi: 'var(--teal)' };
 const DLV_MS_COLOR = { done: 'var(--green)', due: 'var(--amber)', upcoming: 'var(--ink-4)' };
@@ -48,6 +59,10 @@ function DeliveryMilestones() {
      alasan yang terlihat, bukan kontrol aktif yang tulisannya dibuang. */
   const auth = useAuth();
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_MANAGE));
+  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  const { logActivity } = useAudit();
+  /* pergeseran mundur yang menunggu alasan (Q-2c) */
+  const [ask, setAsk] = useStateDlv(null);
 
   /* K-06 lanjutan — wire tombol "Ekspor Rencana" (dulu mati): ekspor XLSX tersegel
      linimasa pengiriman per engagement (fase + milestone). */
@@ -55,8 +70,13 @@ function DeliveryMilestones() {
     if (exporting) return;
     setExporting(true);
     try {
-      const planRows = DELIVERY.flatMap((p: DeliveryEngPlan) => p.milestones.map((m: DeliveryMilestone) => [
-        p.id, m.label, m.date, m.done ? 'Selesai' : 'Terbuka',
+      /* PR-2 — ekspor membawa baseline & pergeseran. Rencana yang diekspor tanpa
+         komitmen semula menyembunyikan perlonggaran yang justru ingin ditelusuri. */
+      const planRows = DELIVERY.flatMap((p) => p.milestones.map((m) => [
+        p.id, m.label, m.baselineDate, m.date,
+        m.slip === 0 ? '—' : (m.slip > 0 ? '+' : '') + m.slip,
+        m.done ? 'Selesai' : 'Terbuka',
+        (m.shifts || []).map((s) => `${s.at} ${s.by}: ${s.from}→${s.to}${s.reason ? ' (' + s.reason + ')' : ''}`).join(' · ') || '—',
       ]));
       await amsExportXlsx({
         kind: 'delivery-plan', scope: 'firm', scopeId: undefined,
@@ -64,11 +84,12 @@ function DeliveryMilestones() {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Rencana Pengiriman — Fase & Milestone',
         meta: [`${DELIVERY.length} perikatan · ${planRows.length} milestone`,
-          `Aktif ${active.length} · at-risk ${atRisk} · lewat tempo ${overdueMs}`],
+          `Aktif ${active.length} · at-risk ${atRisk} · lewat tempo ${overdueMs} (vs komitmen semula ${overdueBaseline})`,
+          `Tergeser ${slip.shiftedCount} milestone · total ${slip.totalSlipDays} hari mundur`],
         sheets: [
-          { name: 'Milestone', heading: 'Milestone pengiriman per engagement',
-            columns: ['Engagement', 'Milestone', 'Tanggal', 'Status'],
-            rows: planRows, colWidths: [14, 52, 12, 10] },
+          { name: 'Milestone', heading: 'Milestone pengiriman per engagement (baseline = komitmen semula)',
+            columns: ['Engagement', 'Milestone', 'Komitmen semula', 'Tanggal kini', 'Geser (hari)', 'Status', 'Jejak pergeseran'],
+            rows: planRows, colWidths: [14, 40, 15, 13, 12, 10, 60] },
           { name: 'Fase', heading: 'Fase pengiriman per engagement',
             columns: ['Engagement', 'Fase', 'Mulai', 'Selesai'],
             rows: DELIVERY.flatMap((p: DeliveryEngPlan) => p.phases.map((ph: DeliveryPhase) => [p.id, ph.name, ph.start, ph.end])),
@@ -80,17 +101,42 @@ function DeliveryMilestones() {
     }
   };
 
-  /* rencana + status milestone turunan (done/due/upcoming vs today). */
-  const DELIVERY = useMemoDlv(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
+  /* PR-2 — normalisasi dijalankan pada tiap PEMBACAAN, bukan hanya saat seed:
+     dokumen `deliveryPlan.v1` yang sudah tersimpan di server (ditulis sebelum PR
+     ini) tak punya `baselineDate`. Tanpa ini rencana lama tampak "tak pernah
+     tergeser" selamanya. */
+  /* `useMemoDlv` (React.useMemo) UNTYPED di repo ini — anotasi wajib di LUAR hook,
+     kalau tidak seluruh `.map`/`.flatMap` di bawahnya jadi implicit-any. */
+  const plan: DeliveryEngPlan[] = useMemoDlv(() => normalizeDeliveryPlan(planRaw), [planRaw]);
+  /* rencana + status & slip milestone turunan (done/due/upcoming vs today). */
+  const DELIVERY: DeliveryRow[] = useMemoDlv(() => plan.map((p) => withMilestoneStatus(p, today)), [plan, today]);
+
   /* jalur tulis milestone: tandai selesai/urung + geser tanggal → deliveryPlan.v1 */
   const setMsDone = (engId: string, idx: number, done: boolean) => {
     if (!canEdit) return;
-    setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
+    setPlan(() => plan.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
+  };
+  /* PR-2 — menggeser tanggal MENCATAT (siapa · kapan · dari → ke · alasan) dan tak
+     pernah menyentuh `baselineDate`. Q-2 = opsi (c): pergeseran MUNDUR wajib
+     beralasan; UI meminta alasan lebih dulu lewat <ShiftReason>. */
+  const applyMsDate = (engId: string, idx: number, date: string, reason?: string) => {
+    if (!canEdit || !date) return; // date picker dikosongkan → jangan timpa tanggal valid dgn ''
+    setPlan(() => plan.map((p) => p.id === engId
+      ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? shiftMilestone(m, date, { at: today, by: who, reason }) : m) }
+      : p));
+    const from = plan.find((p) => p.id === engId)?.milestones[idx];
+    logActivity && from && logActivity({
+      who, action: 'DELIVERY_SHIFT',
+      detail: `Milestone "${from.label}" (${engId}) digeser ${from.date} → ${date}`
+        + ` · baseline ${from.baselineDate}` + (reason ? ` · alasan: ${reason}` : ''),
+    });
   };
   const setMsDate = (engId: string, idx: number, date: string) => {
-    if (!canEdit) return;
-    if (!date) return; // date picker yang dikosongkan → jangan timpa tanggal valid dgn '' (→ "Invalid Date"/NaN status)
-    setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, date } : m) } : p));
+    if (!canEdit || !date) return;
+    const m = plan.find((p) => p.id === engId)?.milestones[idx];
+    if (!m || m.date === date) return;
+    if (shiftRequiresReason(m.date, date)) { setAsk({ engId, idx, from: m.date, to: date, label: m.label }); return; }
+    applyMsDate(engId, idx, date);
   };
 
   const engById = (id: any) => ENGAGEMENTS.find((e) => e.id === id) || ({} as EngagementRow);
@@ -115,6 +161,12 @@ function DeliveryMilestones() {
   const dueSoon = allMs.filter((m: any) => m.status !== 'done' && DLV_daysTo(m.date, today) >= 0 && DLV_daysTo(m.date, today) <= 7).length;
   const atRisk = active.filter((p: any) => { const e = engById(p.id); return DLV_daysTo(e.deadline, today) <= 14 && e.progress < 85; }).length;
   const overdueMs = allMs.filter((m: any) => m.status !== 'done' && DLV_daysTo(m.date, today) < 0).length;
+  /* PR-2 — dua angka yang berbeda dengan sengaja:
+       overdueMs        lewat tempo vs tanggal KINI    — dapat dinolkan dgn menggeser
+       overdueBaseline  lewat tempo vs komitmen SEMULA — hanya turun bila dikerjakan
+     Keduanya ditampilkan berdampingan; selisihnya ADALAH perlonggaran komitmen. */
+  const overdueBaseline = overdueVsBaseline(plan, today);
+  const slip = planSlipSummary(plan);
 
   const shown = filter === 'Semua' ? rows : filter === 'Aktif' ? rows.filter((r: any) => r.e.status !== 'Completed') : rows.filter((r: any) => DLV_daysTo(r.e.deadline, today) <= 14 && r.e.progress < 85 && r.e.status !== 'Completed');
 
@@ -133,12 +185,34 @@ function DeliveryMilestones() {
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={active.length} label="Perikatan Aktif" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={dueSoon} label="Milestone ≤ 7 hari" accent="var(--blue)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={atRisk} label="Perikatan At-risk" accent={atRisk ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={overdueMs} label="Milestone Lewat Tempo" accent={overdueMs ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }} title="Kiri: terhadap tanggal yang berlaku kini. Bawah: terhadap komitmen SEMULA — angka ini tidak turun dengan menggeser tanggal.">
+            <Stat value={overdueMs} label="Milestone Lewat Tempo" accent={overdueMs ? 'var(--red)' : 'var(--green)'}
+              delta={`${overdueBaseline} vs komitmen semula`} deltaDir={overdueBaseline > overdueMs ? 'up' : 'flat'} />
+          </div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }} title="Milestone yang tanggalnya bergerak dari komitmen semula; hari = jumlah pergeseran MUNDUR saja.">
+            <Stat value={slip.shiftedCount} label="Milestone Tergeser" accent={slip.totalSlipDays ? 'var(--amber)' : 'var(--ink-3)'}
+              delta={slip.totalSlipDays ? `+${slip.totalSlipDays} hari mundur` : 'komitmen utuh'} deltaDir={slip.totalSlipDays ? 'up' : 'flat'} />
+          </div></Panel>
         </div>
+
+        {/* PR-2 — perlonggaran komitmen dinamai, bukan disembunyikan di selisih KPI. */}
+        {slip.worst && (
+          <Panel noBody style={{ marginBottom: 12 }}>
+            <div className="row ac gap8" style={{ padding: '9px 14px', background: 'var(--amber-bg)' }}>
+              <span style={{ color: 'var(--amber)', display: 'inline-flex' }}><I.alert size={14} /></span>
+              <span className="tiny" style={{ fontWeight: 600 }}>
+                Komitmen pengiriman tergeser: {slip.shiftedCount} milestone, total <b>{slip.totalSlipDays} hari</b> mundur.
+                Terbesar <b>{slip.worst.label}</b> ({slip.worst.eng}) <b>+{slip.worst.slip} hari</b> dari komitmen semula.
+              </span>
+              <span style={{ flex: 1 }} />
+              <span className="tiny muted">{overdueBaseline} milestone lewat komitmen semula &amp; belum selesai</span>
+            </div>
+          </Panel>
+        )}
 
         {/* Gantt */}
         <Panel noBody style={{ marginBottom: 12 }}>
@@ -174,6 +248,19 @@ function DeliveryMilestones() {
                       <div key={pi} title={ph.name + ' · ' + DLV_fmtDate(ph.start) + '–' + DLV_fmtDate(ph.end)}
                         style={{ position: 'absolute', top: 9, height: 12, left: frac(ph.start) + '%', width: Math.max(0.6, frac(ph.end) - frac(ph.start)) + '%', background: (DLV_PHASE_COLOR as any)[ph.name], borderRadius: 3, opacity: r.e.status === 'Completed' ? .42 : .9 }} />
                     ))}
+                    {/* PR-2 — bayangan komitmen SEMULA: belah ketupat berongga di
+                        posisi baseline + garis ke posisi kini. Pergeseran menjadi
+                        terlihat di linimasa, bukan hanya terhitung di KPI. */}
+                    {(r.milestones as RowMilestone[]).filter((m) => m.slip !== 0).map((m, mi) => {
+                      const a = frac(m.baselineDate), b = frac(m.date);
+                      return (
+                        <React.Fragment key={'bl' + mi}>
+                          <span title={'Komitmen semula: ' + DLV_fmtDate(m.baselineDate) + ' · tergeser ' + (m.slip > 0 ? '+' : '') + m.slip + ' hari'}
+                            style={{ position: 'absolute', top: 8, left: 'calc(' + a + '% - 6px)', width: 12, height: 12, transform: 'rotate(45deg)', borderRadius: 2, border: '1.5px dashed var(--ink-4)', opacity: .75 }} />
+                          <span style={{ position: 'absolute', top: 14, left: Math.min(a, b) + '%', width: Math.abs(b - a) + '%', height: 1.5, background: m.slip > 0 ? 'var(--amber)' : 'var(--ink-4)', opacity: .8 }} />
+                        </React.Fragment>
+                      );
+                    })}
                     {/* milestone diamonds */}
                     {r.milestones.map((m: any, mi: any) => (
                       <span key={mi} title={m.label + ' · ' + DLV_fmtDate(m.date)}
@@ -245,7 +332,46 @@ function DeliveryMilestones() {
             onClose={() => setSel(null)} onNav={nav} />}
         </div>
       </div></div>
+
+      {ask && <ShiftReason ask={ask} onCancel={() => setAsk(null)}
+        onConfirm={(reason: string) => { applyMsDate(ask.engId, ask.idx, ask.to, reason); setAsk(null); }} />}
     </>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Q-2 opsi (c) — pergeseran MUNDUR wajib beralasan. Friksi diletakkan tepat pada
+   tindakan yang melonggarkan komitmen; menjadwalkan lebih awal lewat tanpa dialog.
+   ------------------------------------------------------------------ */
+function ShiftReason({ ask, onConfirm, onCancel }: ShiftReasonProps) {
+  const [reason, setReason] = useStateDlv('');
+  const days = DLV_daysTo(ask.to, ask.from);
+  const ok = reason.trim().length >= 4;
+  return (
+    <Overlay open onClose={onCancel} size="sm" title="Geser komitmen pengiriman"
+      footer={
+        <div className="row gap8 je">
+          <Btn sm onClick={onCancel}>Batal</Btn>
+          <Btn sm variant="primary" disabled={!ok} onClick={() => onConfirm(reason.trim())}>Geser &amp; catat</Btn>
+        </div>
+      }>
+      <div style={{ display: 'grid', gap: 10 }}>
+        <div className="tiny">
+          <b>{ask.label}</b> mundur <b>{days} hari</b>: {DLV_fmtDate(ask.from)} → {DLV_fmtDate(ask.to)}.
+        </div>
+        <div className="tiny muted">
+          Komitmen semula tetap tersimpan dan tetap dihitung sebagai lewat tempo — menggeser
+          tanggal tidak menghapus keterlambatan, hanya mencatat perubahan rencananya.
+        </div>
+        <label className="tiny" style={{ display: 'grid', gap: 4 }}>
+          <span style={{ fontWeight: 600 }}>Alasan pergeseran (wajib)</span>
+          <input type="text" value={reason} autoFocus onChange={(e: { target: { value: string } }) => setReason(e.target.value)}
+            placeholder="mis. PBC klien terlambat; stock opname dijadwal ulang"
+            style={{ height: 30, border: '1px solid var(--line)', borderRadius: 5, background: 'var(--surface)', color: 'var(--ink)', padding: '0 8px', fontSize: 12 }} />
+        </label>
+        {!ok && <div className="tiny muted">Minimal 4 karakter.</div>}
+      </div>
+    </Overlay>
   );
 }
 
@@ -296,14 +422,50 @@ function DeliveryDetail({ row, eng, client, today, canEdit, onToggleMs, onDateMs
                   </button>
                   <span className="tiny truncate" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'line-through' : 'none', color: m.status === 'done' ? 'var(--ink-4)' : 'var(--ink)' }}>{m.label}</span>
                 </span>
-                <input type="date" value={m.date} disabled={!canEdit} onChange={(e: { target: { value: string } }) => onDateMs && onDateMs(i, e.target.value)}
-                  aria-label={'Tanggal milestone: ' + m.label}
-                  title={(dl < 0 ? Math.abs(dl) + ' hari lewat' : dl + ' hari lagi') + (canEdit ? '' : ' · baca-saja (perlu peran Partner / Manajer)')}
-                  className="mono tiny" style={{ border: '1px solid var(--line)', borderRadius: 4, background: 'var(--surface)', color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)', height: 24, padding: '0 4px' }} />
+                <span className="row ac gap6">
+                  {/* PR-2 — komitmen SEMULA selalu ikut tampil bila berbeda. Tidak ada
+                      jalur UI yang menyuntingnya; ia hanya dapat dilampaui, tak dihapus. */}
+                  {m.slip !== 0 && (
+                    <span className="tiny mono" title={'Komitmen semula ' + DLV_fmtDate(m.baselineDate) + (m.shifts && m.shifts.length ? ' · ' + m.shifts.length + '× digeser' : '')}
+                      style={{ color: m.slip > 0 ? 'var(--amber)' : 'var(--ink-3)', fontWeight: 700 }}>
+                      {m.slip > 0 ? '+' : ''}{m.slip}h
+                    </span>
+                  )}
+                  <input type="date" value={m.date} disabled={!canEdit} onChange={(e: { target: { value: string } }) => onDateMs && onDateMs(i, e.target.value)}
+                    aria-label={'Tanggal milestone: ' + m.label}
+                    title={(dl < 0 ? Math.abs(dl) + ' hari lewat' : dl + ' hari lagi')
+                      + (m.slip !== 0 ? ' · komitmen semula ' + DLV_fmtDate(m.baselineDate) : '')
+                      + (canEdit ? '' : ' · baca-saja (perlu peran Partner / Manajer)')}
+                    className="mono tiny" style={{ border: '1px solid var(--line)', borderRadius: 4, background: 'var(--surface)', color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)', height: 24, padding: '0 4px' }} />
+                </span>
               </div>
             );
           })}
         </div>
+        {/* PR-2 — jejak pergeseran: siapa · kapan · dari → ke · alasan. Tanpa panel ini
+            komitmen yang bergerak hanyalah angka baru tanpa penanggung jawab. */}
+        {(() => {
+          const trail: TrailRow[] = (row.milestones as RowMilestone[])
+            .flatMap((m) => (m.shifts || []).map((s) => ({ ...s, label: m.label })));
+          if (!trail.length) return null;
+          return (
+            <>
+              <div className="tiny muted upper" style={{ marginBottom: 7 }}>Jejak pergeseran ({trail.length})</div>
+              <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
+                {trail.map((s, i: number) => (
+                  <div key={i} style={{ padding: '6px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                    <div className="row ac jb">
+                      <span className="tiny truncate" style={{ fontWeight: 600 }}>{s.label}</span>
+                      <span className="mono tiny muted">{DLV_fmtDate(s.from)} → {DLV_fmtDate(s.to)}</span>
+                    </div>
+                    <div className="tiny muted">{s.by} · {DLV_fmtDate(s.at)}{s.reason ? ' · ' + s.reason : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
+
         <div className="row gap8">
           <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => onNav('cockpit')}><I.dashboard size={13} /> Buka Cockpit</Btn>
           <Btn sm onClick={() => onNav('scheduler')}><I.users size={13} /> Alokasi</Btn>

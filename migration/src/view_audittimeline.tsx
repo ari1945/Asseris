@@ -2,8 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useFirm, useNav } from './contexts';
-import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
-import type { DeliveryEngPlan } from './canon_delivery';
+import { normalizeDeliveryPlan, seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -83,7 +82,10 @@ function AuditTimeline() {
   /* SSOT: fase & milestone dari deliveryPlan.v1 tersimpan (seed AMS.DELIVERY,
      editable di modul Delivery); status milestone diturunkan vs AMS.TODAY. */
   const [planRaw] = useAmsPersist('deliveryPlan.v1', () => seedDeliveryPlan(A.DELIVERY));
-  const DELIVERY = useMemoATL(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
+  /* PR-2 — normalisasi pada PEMBACAAN: dokumen tersimpan sebelum PR ini tak punya
+     `baselineDate`. Konsumen baca-saja ini memakai peta yang sama dengan modul
+     Delivery agar keduanya tak pernah menyebut komitmen yang berbeda. */
+  const DELIVERY = useMemoATL(() => normalizeDeliveryPlan(planRaw).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
 
   // perikatan yang punya rencana pengiriman
   const planned = DELIVERY.map((d: any) => d.id);
