@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-15 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — "Proceed." 2026-08-15 ("sesuai rekomendasi") ⇒ Q-1=a hapus kolom `actual` · Q-2=a gerbang cakupan · Q-3=a tiga akun kontrol · Q-4=a dua PR · Q-5=a cabut `+ 6`. PR 1 = Bagian C (F-1..F-3, F-5); PR 2 = Bagian B (F-4). |
+| Status | **Implemented** — SELESAI 2026-08-15. "Proceed." ("sesuai rekomendasi") ⇒ Q-1=a hapus kolom `actual` · Q-2=a gerbang cakupan · Q-3=a tiga akun kontrol · Q-4=a dua PR · Q-5=a cabut `+ 6`. Bagian C = [#242](https://github.com/ari1945/Asseris/pull/242) merged `d7f4365`; Bagian B = [#243](https://github.com/ari1945/Asseris/pull/243) merged `b24d1d0`. SC-1..SC-12 tertutup; `npm run verify` hijau (1829 uji); live-verified DUA ARAH termasuk keadaan MERAH-nya. |
 | Pemicu | Sisa #241 yang belum tersapu: tiga surface masih menyimpan angka laba kedua · Q-3 #241 (jurnal akun kontrol) yang ditunda |
 | PRD terkait | `prd-firmfin-ledger-derived.md` (Implemented, #241) · `prd-wip-rollforward-falsifiable.md` · `prd-ar-ap-bridge-falsifiable.md` |
 | Prasyarat | Di atas `master` `5d7515d` |
