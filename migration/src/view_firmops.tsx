@@ -62,7 +62,9 @@ function FirmOps() {
   const register = useMemoFops(() => (LEGAL ? LEGAL.buildRegister(firm) : []), [firm.engagements, firm.clients]);
 
   /* agregat ringkas */
-  const nbv = F.sum(B.FIXED_ASSETS, (a: any) => a.nbv);
+  /* PR-1 — NBV dari register TUNGGAL yang sudah diturunkan (`ASSET_REGISTER`),
+     bukan menjumlah kolom `nbv` literal yang dulu hanya ada di register GA. */
+  const nbv = B.ASSET_REGISTER.totNbv;
   const spendYtd = F.sum(B.SPEND_BY_CAT, (s: any) => s.v);
   const dueSoon = obligations.filter((o: any) => o.days <= 90);
   const overdue = obligations.filter((o: any) => o.days < 0);
@@ -81,7 +83,7 @@ function FirmOps() {
     setExporting(true);
     try {
       const obRows = obligations.map((o: any) => [o.label || o.name, o.type || '', o.due || o.date || '', o.amount != null ? Math.round(o.amount / 1e6) : '—', o.status || '']);
-      const assetRows = (B.FIXED_ASSETS || []).map((a: any) => [a.id, a.name, a.cat, Math.round(a.cost / 1e6), a.nbv != null ? Math.round(a.nbv / 1e6) : '—', a.loc || '']);
+      const assetRows = B.ASSET_REGISTER.rows.map((a: any) => [a.id, a.name, a.cat, a.standar, Math.round(a.cost / 1e6), Math.round(a.nbv / 1e6), a.loc || '']);
       await amsExportXlsx({
         kind: 'firmops-paket', scope: 'firm', scopeId: undefined,
         fileName: 'Paket Operasi KAP.xlsx',
@@ -93,7 +95,7 @@ function FirmOps() {
           { name: 'Kewajiban', heading: 'Kewajiban & kontrak (Rp juta)',
             columns: ['Kewajiban', 'Tipe', 'Jatuh Tempo', 'Nilai', 'Status'], rows: obRows, colWidths: [30, 14, 12, 14, 14] },
           { name: 'Aset Tetap', heading: 'Aset tetap (Rp juta)',
-            columns: ['ID', 'Aset', 'Kategori', 'Cost', 'NBV', 'Lokasi'], rows: assetRows, colWidths: [10, 30, 14, 12, 12, 14] },
+            columns: ['ID', 'Aset', 'Kelas', 'Standar', 'Perolehan', 'NBV', 'Lokasi'], rows: assetRows, colWidths: [10, 30, 26, 10, 12, 12, 14] },
         ],
       });
     } finally {

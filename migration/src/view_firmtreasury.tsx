@@ -1,7 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { BO } from './data_backoffice';
 import { FIRMFIN } from './data_firmfin';
+import { assetsAt, activeAssets, duplicateCandidates, rollForward, type AssetComputed, type AssetRegister, type DisposalRef, type RollForward } from './data_fixedassets';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
 import { useAmsPersist, useAudit, useAuth } from './contexts';
@@ -409,41 +411,60 @@ function FixedAssets() {
   /* K-02/PR-B — anchor perhitungan depresiasi = klok SSOT AMS.TODAY (bukan literal beku). */
   const REF = new Date(AMS.TODAY);
   const [sel, setSel] = useStateTR(null);
-  const rows = (AMS as any).FIXED_ASSETS.map((a: any) => {
-    const start = new Date(a.acq);
-    const monthsElapsed = Math.max(0, Math.min(a.life * 12, (REF.getFullYear() - start.getFullYear()) * 12 + (REF.getMonth() - start.getMonth())));
-    const monthlyDep = a.cost / (a.life * 12);
-    const accDep = Math.round(monthlyDep * monthsElapsed);
-    const nbv = a.cost - accDep;
-    const pct = monthsElapsed / (a.life * 12);
-    return { ...a, accDep, nbv, pct, monthlyDep, annualDep: Math.round(monthlyDep * 12), monthsElapsed, fullyDep: monthsElapsed >= a.life * 12 };
-  });
-  const totCost = rows.reduce((s: any, r: any) => s + r.cost, 0);
-  const totAcc = rows.reduce((s: any, r: any) => s + r.accDep, 0);
-  const totNbv = rows.reduce((s: any, r: any) => s + r.nbv, 0);
-  const totAnnual = rows.reduce((s: any, r: any) => s + (r.fullyDep ? 0 : r.annualDep), 0);
+  /* PRD firm-erp-deepening PR-1 — mesin penyusutan LOKAL di sini dicabut. Modul
+     ini dulu menghitung garis lurus sendiri di atas register `AMS.FIXED_ASSETS`,
+     sementara Operasi Firma menghitung garis lurus SENDIRI di atas register
+     `BO.FIXED_ASSETS` yang berbeda isinya. Satu register, satu mesin. */
+  /* Anotasi DI LUAR `useMemo` — alias hook React di repo ini tak bertipe, jadi
+     hasilnya `any` dan seluruh callback hilir kehilangan tipenya. */
+  const reg: AssetRegister = useMemoTR(
+    () => assetsAt(REF, activeAssets((BO.DISPOSALS || []) as DisposalRef[])),
+    [AMS.TODAY],
+  );
+  const rows: AssetComputed[] = reg.rows;
+  const totCost = reg.totCost;
+  const totAcc = reg.totAccDep;
+  const totNbv = reg.totNbv;
+  const totAnnual = reg.totAnnualDep;
+  const cats = reg.byClass;
+  const dups = useMemoTR(() => duplicateCandidates(), []);
 
-  // category summary
-  const cats = Object.values(rows.reduce((m: any, r: any) => { (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 }); m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n++; return m; }, {} as any)).sort((a: any, b: any) => b.cost - a.cost);
+  /* --- Roll-forward NBV: DIENUMERASI, bukan plug ---
+     Dulu panel ini menulis `NBV awal = totNbv + totAnnual` dengan capex dan
+     pelepasan dipaku Rp 0 — ia menutup SECARA ALJABAR (cacat #239). Mesinnya
+     kini di `data_fixedassets.rollForward`, sama persis dengan yang dipakai
+     lapisan Fasilitas: satu jawaban, dan ia BISA gagal. */
+  const rollFwd: RollForward = useMemoTR(
+    () => rollForward(REF, (BO.DISPOSALS || []) as DisposalRef[]),
+    [AMS.TODAY],
+  );
+
+  /* Kontrol GL `1-400`. PR-1 hanya MENAMPILKAN selisihnya dengan jujur;
+     penutupan (dan blokir ekspor, Q-2) adalah PR-2. */
+  const glAset = (AMS.FIRM_COA as Array<{ code: string; bal: number }>).find((a) => a.code === '1-400');
+  const glNbv = glAset ? glAset.bal : 0;
+  const glGap = glNbv - totNbv;
+  const glTied = Math.abs(glGap) < 1_000_000;
 
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
   const { rp } = AMS;
   const onExportAssets = async () => {
     const assetRows: (string | number)[][] = [];
-    for (const r of rows) assetRows.push([r.id, r.name, r.cat, new Date(r.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), r.life + 'th', rp(r.cost), rp(r.accDep), rp(r.nbv), (r.pct * 100).toFixed(0) + '%']);
-    assetRows.push(['TOTAL', '', '', '', '', rp(totCost), rp(totAcc), rp(totNbv), '']);
+    for (const r of rows) assetRows.push([r.id, r.name, r.cat, r.standar, r.src === 'finance' ? 'Keuangan' : 'GA/Fasilitas', new Date(r.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), r.life + 'th', rp(r.cost), rp(r.accDep), rp(r.nbv), (r.pct * 100).toFixed(0) + '%']);
+    assetRows.push(['TOTAL', '', '', '', '', '', '', rp(totCost), rp(totAcc), rp(totNbv), '']);
     const catRows: (string | number)[][] = [];
-    for (const c of cats as Array<{ cat: string; n: number; cost: number; nbv: number }>) catRows.push([c.cat, c.n, rp(c.cost), rp(c.nbv)]);
+    for (const c of cats) catRows.push([c.cat, c.standar, c.n, rp(c.cost), rp(c.nbv)]);
     await amsExportXlsx({
       kind: 'firm-fixed-assets', scope: 'firm',
       fileName: 'Register Aset Tetap Kantor.xlsx',
       firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Register Aset Tetap Kantor',
-      meta: [`per 1 Mar 2026 · NBV Rp ${fmt(totNbv / 1e9, 2)} M · penyusutan Rp ${fmt(totAnnual / 1e6, 0)} jt/th · metode garis lurus`],
+      meta: [`per ${REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · ${rows.length} aset · NBV Rp ${fmt(totNbv / 1e9, 2)} M · penyusutan Rp ${fmt(totAnnual / 1e6, 0)} jt/th · metode garis lurus`,
+             glTied ? `Menutup ke kontrol GL 1-400.` : `TIDAK menutup ke kontrol GL 1-400 — selisih Rp ${fmt(glGap / 1e6, 0)} jt belum dijelaskan.`],
       sheets: [
-        { name: 'Register Aset', columns: ['Kode', 'Aset', 'Kategori', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'Nilai Buku', 'Terpakai'], rows: assetRows, colWidths: [10, 30, 16, 12, 8, 20, 20, 20, 10] },
-        { name: 'Ringkasan Kategori', columns: ['Kategori', 'Jumlah', 'Harga Perolehan', 'Nilai Buku'], rows: catRows, colWidths: [22, 10, 20, 20] },
+        { name: 'Register Aset', columns: ['Kode', 'Aset', 'Kelas', 'Standar', 'Register Asal', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'Nilai Buku', 'Terpakai'], rows: assetRows, colWidths: [10, 30, 26, 10, 14, 12, 8, 20, 20, 20, 10] },
+        { name: 'Ringkasan Kelas', columns: ['Kelas Aset', 'Standar', 'Jumlah', 'Harga Perolehan', 'Nilai Buku'], rows: catRows, colWidths: [26, 10, 10, 20, 20] },
       ],
     });
   };
@@ -459,18 +480,49 @@ function FixedAssets() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totAnnual / 1e6, 0) + ' jt'} label="Beban Penyusutan / Tahun" /></div></Panel>
         </div>
 
+        {/* PR-1 — sub-buku vs akun kontrol, dinyatakan terus-terang. Modul ini dulu
+            tak pernah menyebut `1-400` sama sekali, sehingga selisih 55% dari saldo
+            kontrol tak terlihat di mana pun. */}
+        <Panel title="Register ↔ Kontrol Buku Besar" sub="sub-buku PSAK 16/19 vs akun 1-400 Aset Tetap — neto">
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: glTied ? 0 : 10 }}>
+            <RowKv label="Σ NBV register (13 aset)" v={'Rp ' + fmt(totNbv / 1e6, 0) + ' jt'} />
+            <RowKv label="Kontrol GL 1-400" v={'Rp ' + fmt(glNbv / 1e6, 0) + ' jt'} />
+            <RowKv label="Selisih belum dijelaskan" v={(glGap >= 0 ? '' : '(') + 'Rp ' + fmt(Math.abs(glGap) / 1e6, 0) + ' jt' + (glGap >= 0 ? '' : ')')} strong />
+          </div>
+          {glTied ? (
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>Sub-buku menutup ke akun kontrol dalam toleransi Rp 1 jt.</div>
+          ) : (
+            <div className="tiny" style={{ padding: '8px 11px', background: 'var(--red-bg)', borderRadius: 4, color: 'var(--red)', fontWeight: 600, lineHeight: 1.55 }}>
+              <I.alert size={12} /> Sub-buku TIDAK menutup ke kontrol — selisih Rp {fmt(Math.abs(glGap) / 1e6, 0)} jt ({(Math.abs(glGap) / Math.abs(glNbv || 1) * 100).toFixed(0)}% dari saldo kontrol).
+              Saldo <b>1-400</b> tidak pernah diturunkan dari register mana pun; ia literal. Penutupannya — pemisahan akun bruto/akumulasi
+              dan pembukuan beban penyusutan — adalah PR-2 arc ini. Sampai itu selesai, angka neraca aset tetap firma <b>tidak didukung register</b>.
+            </div>
+          )}
+        </Panel>
+
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12, alignItems: 'start' }}>
-          <Panel title="Roll-Forward Nilai Buku" sub="12 bulan ke 1 Mar 2026 · Rp jt">
+          <Panel title="Roll-Forward Nilai Buku" sub={'12 bulan ke ' + REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' · Rp jt'}>
             <div style={{ display: 'grid', gap: 7 }}>
-              <RowKv label="NBV awal periode" v={'Rp ' + fmt((totNbv + totAnnual) / 1e6, 0) + ' jt'} />
-              <RowKv label="+ Penambahan (capex)" v={'Rp 0 jt'} />
-              <RowKv label="− Beban penyusutan" v={'(Rp ' + fmt(totAnnual / 1e6, 0) + ' jt)'} />
-              <RowKv label="− Pelepasan / write-off" v={'Rp 0 jt'} />
+              <RowKv label="NBV awal periode" v={'Rp ' + fmt(rollFwd.opening / 1e6, 0) + ' jt'} />
+              <RowKv label="+ Penambahan (capex)" v={'Rp ' + fmt(rollFwd.capex / 1e6, 0) + ' jt'} />
+              <RowKv label="− Beban penyusutan" v={'(Rp ' + fmt(rollFwd.depreciation / 1e6, 0) + ' jt)'} />
+              <RowKv label="− Pelepasan / write-off" v={'(Rp ' + fmt(rollFwd.disposalNbv / 1e6, 0) + ' jt)'} />
               <div className="divider" />
-              <RowKv label="NBV akhir periode" v={'Rp ' + fmt(totNbv / 1e6, 0) + ' jt'} strong />
+              <RowKv label="NBV akhir menurut komponen" v={'Rp ' + fmt(rollFwd.computed / 1e6, 0) + ' jt'} strong />
+              <RowKv label="NBV akhir menurut register" v={'Rp ' + fmt(totNbv / 1e6, 0) + ' jt'} strong />
+              {!rollFwd.ties && (
+                <div className="tiny" style={{ marginTop: 4, padding: '7px 10px', background: 'var(--red-bg)', borderRadius: 4, color: 'var(--red)', fontWeight: 600, lineHeight: 1.5 }}>
+                  <I.alert size={12} /> Roll-forward TIDAK menutup — selisih Rp {fmt(rollFwd.residual / 1e6, 0)} jt. Komponennya dienumerasi dari register (perolehan, penyusutan periode, pelepasan), bukan diturunkan dari saldo akhir; karena itu ia dapat gagal, dan kali ini gagal.
+                </div>
+              )}
+              {rollFwd.ties && (
+                <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.5 }}>
+                  Tiap komponen berasal dari register (perolehan · penyusutan periode · pelepasan <b>DISPOSALS</b>), bukan dari saldo akhir. Saldo akhir dihitung dari komponen lalu dibandingkan dengan register.
+                </div>
+              )}
             </div>
           </Panel>
-          <Panel title="Ringkasan per Kategori">
+          <Panel title="Ringkasan per Kelas Aset">
             {cats.map((c: any) => (
               <div key={c.cat} style={{ marginBottom: 10 }}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span style={{ fontWeight: 600 }}>{c.cat}</span><span className="muted">· {c.n}</span></span><span className="mono" style={{ fontWeight: 700 }}>NBV {fmt(c.nbv / 1e6, 0)} jt</span></div>
@@ -484,8 +536,36 @@ function FixedAssets() {
           </Panel>
         </div>
 
+        {dups.length > 0 && (
+          <Panel title="Kandidat Pencatatan Ganda" sub={`${dups.length} pasangan lintas-register — perlu keputusan firma`}>
+            <div className="tiny" style={{ marginBottom: 9, lineHeight: 1.55 }}>
+              Register ini adalah penggabungan dua daftar yang tak pernah didamaikan (Keuangan &amp; GA/Fasilitas).
+              Pasangan berikut sekelas dan diperoleh berdekatan, sehingga mungkin aset FISIK yang sama tercatat dua kali.
+              Sistem <b>tidak</b> menghapusnya sendiri — menebak pasangan mana yang duplikat berarti mengarang.
+            </div>
+            <table className="dtbl">
+              <thead><tr><th>Kelas</th><th>Aset — register Keuangan</th><th>Aset — register GA</th><th className="num">Selisih hari</th><th className="num">Nilai gabungan</th></tr></thead>
+              <tbody>
+                {dups.map((d: { a: { id: string; name: string; src: string }; b: { id: string; name: string; src: string }; cat: string; daysApart: number; combinedCost: number }) => {
+                  const fin = d.a.src === 'finance' ? d.a : d.b;
+                  const ga = d.a.src === 'finance' ? d.b : d.a;
+                  return (
+                    <tr key={fin.id + '|' + ga.id}>
+                      <td className="tiny">{d.cat}</td>
+                      <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{fin.id}</span> <span style={{ fontWeight: 600 }}>{fin.name}</span></td>
+                      <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{ga.id}</span> <span style={{ fontWeight: 600 }}>{ga.name}</span></td>
+                      <td className="num mono">{d.daysApart}</td>
+                      <td className="num" style={{ fontWeight: 600 }}>{fmt(d.combinedCost / 1e6, 0)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Panel>
+        )}
+
         <Panel noBody>
-          <div className="panel-h"><h3>Register Aset Tetap Kantor</h3><div style={{ flex: 1 }} /><span className="tiny muted">per 1 Mar 2026 · klik baris untuk skedul penyusutan · Rp jt</span></div>
+          <div className="panel-h"><h3>Register Aset Tetap Kantor</h3><div style={{ flex: 1 }} /><span className="tiny muted">per {REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · klik baris untuk skedul penyusutan · Rp jt</span></div>
           <div className="grid" style={{ gridTemplateColumns: selRow ? '1fr 330px' : '1fr', gap: 0, alignItems: 'stretch' }}>
             <div style={{ minWidth: 0, borderRight: selRow ? '1px solid var(--line)' : 'none' }}>
               <table className="dtbl">
