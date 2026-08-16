@@ -7,6 +7,11 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Switch, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
+import {
+  TER_TABLE, annualReconciliation, payrollGlRows, payrollJournal, payrollJournalIds,
+  payrollPostCheck, terRate,
+} from './canon_pph21';
+import type { GlJournalRow } from './canon_pph21';
 
 /* ============================================================
    Asseris — HCM: Payroll (Penggajian)
@@ -17,7 +22,11 @@ const { useState: usePR } = React;
 
 type PSent = Record<string, { at: string; by: string }>;
 
-/* compute one employee's payslip */
+/* Slip gaji satu pegawai.
+   PRD sdm-kepatuhan PR-5 — tarif TER DITURUNKAN dari (PTKP, bruto) lewat
+   `canon_pph21.terRate`, bukan dibaca dari field `ter` per-baris. Field lama
+   masih diterima sebagai override eksplisit agar data terpersist lama tak
+   mendadak berubah tanpa jejak; `terSource` mengatakan mana yang dipakai. */
 function calcPayslip(p: any, R: any) {
   const base = p.gross + p.allowance;                     // penghasilan bruto
   const kesBase = Math.min(p.gross, R.kesCap);
@@ -26,7 +35,13 @@ function calcPayslip(p: any, R: any) {
   const dKes = Math.round(kesBase * R.kesEmp);
   const dJht = Math.round(p.gross * R.jhtEmp);
   const dJp = Math.round(jpBase * R.jpEmp);
-  const pph = Math.round(base * p.ter);                   // TER monthly
+  const look = terRate(p.ptkp, base);
+  /* `ter` tersimpan hanya dipakai bila tabel belum dapat menjawab. Tanpa ini,
+     59 baris payroll yang ditambahkan PR-4 (tanpa `ter`) menghasilkan NaN. */
+  const ter = look.rate != null ? look.rate : (typeof p.ter === 'number' ? p.ter : null);
+  const terSource: 'tabel' | 'tersimpan' | 'tak-tentu' =
+    look.rate != null ? 'tabel' : (typeof p.ter === 'number' ? 'tersimpan' : 'tak-tentu');
+  const pph = ter != null ? Math.round(base * ter) : 0;   // TER bulanan
   const totalDed = dKes + dJht + dJp + pph;
   const net = base - totalDed;
   // employer contributions
@@ -36,7 +51,8 @@ function calcPayslip(p: any, R: any) {
   const eJkk = Math.round(p.gross * R.jkkEr);
   const eJkm = Math.round(p.gross * R.jkmEr);
   const employerCost = base + eKes + eJht + eJp + eJkk + eJkm;
-  return { base, dKes, dJht, dJp, pph, totalDed, net, eKes, eJht, eJp, eJkk, eJkm, employerCost };
+  return { base, dKes, dJht, dJp, pph, totalDed, net, eKes, eJht, eJp, eJkk, eJkm, employerCost,
+    ter, terSource, terCategory: look.category, terVerified: look.verified, terNote: look.note };
 }
 
 function Payroll() {
@@ -74,7 +90,7 @@ function Payroll() {
   const person = sel ? rows.find((r: any) => r.id === sel) : null;
   // 2026-07-06 — Jurnal Penggajian = jurnal GL agregat firma (bukan data personal); hanya untuk
   // HR/Partner (isFull). Karyawan biasa lihat slip & bukti potong MILIKNYA saja.
-  const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, ...(isFull ? [{ id: 'jurnal', label: 'Jurnal Penggajian' }] : []), { id: 'buktipotong', label: 'Bukti Potong 1721' }];
+  const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, ...(isFull ? [{ id: 'jurnal', label: 'Jurnal Penggajian' }] : []), { id: 'buktipotong', label: 'Bukti Potong 1721' }, { id: 'rekon', label: 'Rekonsiliasi Desember' }];
   /* employer + employee BPJS aggregates */
   const bpjs: any = rows.reduce((a: any, r: any) => ({
     eKes: a.eKes + r.slip.eKes, eJht: a.eJht + r.slip.eJht, eJp: a.eJp + r.slip.eJp, eJkk: a.eJkk + r.slip.eJkk, eJkm: a.eJkm + r.slip.eJkm,
@@ -82,14 +98,25 @@ function Payroll() {
   }), { eKes: 0, eJht: 0, eJp: 0, eJkk: 0, eJkm: 0, dKes: 0, dJht: 0, dJp: 0 });
   const bpjsTotal = (Object.values(bpjs) as number[]).reduce((a, b) => a + b, 0);
   /* payroll journal */
-  const journal = [
-    { ac: '5-100 Beban Gaji & Tunjangan', dr: tot.gross, cr: 0 },
-    { ac: '5-100 Beban BPJS (pemberi kerja)', dr: bpjs.eKes + bpjs.eJht + bpjs.eJp + bpjs.eJkk + bpjs.eJkm, cr: 0 },
-    { ac: '2-200 Utang PPh 21', dr: 0, cr: tot.pph },
-    { ac: '2-200 Utang BPJS (kary. + pemberi kerja)', dr: 0, cr: bpjsTotal },
-    { ac: '1-100 Kas & Bank (take-home)', dr: 0, cr: tot.net },
-  ];
-  const jDr = journal.reduce((a, j) => a + j.dr, 0), jCr = journal.reduce((a, j) => a + j.cr, 0);
+  /* PRD sdm-kepatuhan PR-5 — jurnal dari kanon, dan ia benar-benar DIPOSTING. */
+  const jv = payrollJournal({
+    gross: tot.gross, pph: tot.pph, bpjsEmployee: bpjs.dKes + bpjs.dJht + bpjs.dJp,
+    bpjsEmployer: bpjs.eKes + bpjs.eJht + bpjs.eJp + bpjs.eJkk + bpjs.eJkm, net: tot.net,
+  });
+  const journal = jv.lines.map((l) => ({ ac: l.ac + ' ' + l.label, dr: l.dr, cr: l.cr }));
+  const jDr = jv.totalDr, jCr = jv.totalCr;
+  const [gl, setGl] = useAmsPersist('firmgl', () => AMS.FIRM_GL);
+  const glRows = (Array.isArray(gl) ? gl : []) as GlJournalRow[];
+  const canPostGl = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
+  const postChk = payrollPostCheck({ gl: glRows, period: R.period, runStatus: run, canPost: canPostGl, balanced: jv.balanced });
+  const postToGl = () => {
+    if (!postChk.ok) return;
+    const rows = payrollGlRows(jv, R.period, sendToday);
+    setGl((cur: unknown) => [...(Array.isArray(cur) ? cur : []), ...rows]);
+  };
+  const posted = payrollJournalIds(R.period);
+  const alreadyPosted = glRows.some((j) => j.id === posted.salary);
+  const unverifiedTer = !TER_TABLE.verified;
 
   return (
     <>
@@ -108,6 +135,16 @@ function Payroll() {
         {!isFull && (
           <div className="tiny" style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--ink-2)' }}>
             Menampilkan slip gaji <b>Anda sendiri saja</b> — figur "Total" di bawah adalah milik Anda, bukan agregat firma. Admin & HR Firma dan Partner melihat seluruh staf.
+          </div>
+        )}
+        {unverifiedTer && (
+          <div className="panel" style={{ padding: '9px 12px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+            <div className="tiny" style={{ lineHeight: 1.5 }}>
+              <b>Tarif TER belum diverifikasi.</b> Lapisan tarif pada <code>canon_pph21.TER_TABLE</code> direkonstruksi
+              agar mereproduksi tarif yang selama ini dipakai aplikasi — <b>bukan disalin dari Lampiran {TER_TABLE.basis}</b>.
+              Mekanismenya (PTKP → kategori → lapisan → tarif) sudah benar dan terpusat; angka lapisannya harus diganti
+              dengan Lampiran resmi sebelum dipakai menghitung pajak sesungguhnya.
+            </div>
           </div>
         )}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
@@ -175,26 +212,66 @@ function Payroll() {
                 </tbody>
                 <tfoot><tr><td>TOTAL {jDr === jCr && <span style={{ color: 'var(--green)', fontWeight: 700 }}>· Balance ✓</span>}</td><td className="num mono">Rp {fmt(jDr, 0)}</td><td className="num mono">Rp {fmt(jCr, 0)}</td></tr></tfoot>
               </table>
-              <div className="row gap8" style={{ marginTop: 12 }}><Btn sm variant="primary" disabled={run === 'draft'} style={{ opacity: run === 'draft' ? .5 : 1 }} onClick={() => nav('firmgl')}><I.ledger size={13} /> Posting ke General Ledger</Btn>{run === 'draft' && <span className="tiny muted" style={{ alignSelf: 'center' }}>Setujui payroll terlebih dahulu untuk posting.</span>}</div>
+              <div className="row gap8 ac" style={{ marginTop: 12 }}>
+                <Btn sm variant="primary" disabled={!postChk.ok} style={{ opacity: postChk.ok ? 1 : .5 }} title={postChk.ok ? 'Menulis jurnal penggajian ke buku besar firma' : postChk.reason} onClick={postToGl}><I.ledger size={13} /> Posting ke General Ledger</Btn>
+                {alreadyPosted && <Btn sm onClick={() => nav('firmgl')}><I.ledger size={13} /> Lihat di Buku Besar</Btn>}
+                {!postChk.ok && <span className="tiny" style={{ alignSelf: 'center', color: 'var(--amber)' }}>{postChk.reason}</span>}
+                {postChk.ok && <span className="tiny muted" style={{ alignSelf: 'center' }}>Akan menulis {payrollGlRows(jv, R.period, sendToday).length} jurnal ke akun 5-100 / 2-200 / 1-102.</span>}
+              </div>
             </div>
           )}
 
           {tab === 'buktipotong' && (
             <table className="dtbl">
-              <thead><tr><th>Karyawan</th><th>NPWP / PTKP</th><th className="num">PPh 21 (bln)</th><th className="num">Estimasi Tahunan</th><th>Form</th><th>Status</th></tr></thead>
+              <thead><tr><th>Karyawan</th><th>NPWP / PTKP</th><th className="num">PPh 21 (bln)</th><th className="num">Kewajiban Tahunan (Ps. 17)</th><th>Form</th><th>Status</th></tr></thead>
               <tbody>
                 {rows.map((r: any) => (
                   <tr key={r.id}>
                     <td><div className="row ac gap8"><Avatar name={r.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{r.name}</span></div></td>
                     <td><span className="chip tiny">{r.p.ptkp}</span></td>
                     <td className="num mono" style={{ color: 'var(--amber)' }}>{fmt(r.slip.pph / 1e6, 1)} jt</td>
-                    <td className="num mono">{fmt(r.slip.pph * 12 / 1e6, 1)} jt</td>
+                    <td className="num mono" title="Kewajiban setahun menurut Pasal 17 (bukan PPh bulanan × 12)">{fmt(annualReconciliation({ ptkp: r.p.ptkp, brutoMonthly: r.slip.base, iuranPensiunMonthly: r.slip.dJht + r.slip.dJp }).annualTax / 1e6, 1)} jt</td>
                     <td className="tiny mono">1721-A1</td>
                     <td><Badge kind={run === 'paid' ? 'green' : 'gray'}>{run === 'paid' ? 'Siap terbit' : 'Menunggu'}</Badge></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {tab === 'rekon' && (
+            <div style={{ padding: 14 }}>
+              <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>
+                Footer modul ini sudah lama menjanjikan rekonsiliasi tahunan tarif progresif Pasal 17 pada masa Desember;
+                sampai PR ini tak ada satu baris pun yang melakukannya, dan tab Bukti Potong menampilkan
+                <b> PPh bulanan × 12</b> — angka yang bukan kewajiban siapa pun. Di bawah, kewajiban setahun dihitung
+                dari penghasilan neto (bruto − biaya jabatan − iuran pensiun) dikurangi PTKP, lalu dikenakan lapisan Pasal 17.
+              </div>
+              <table className="dtbl">
+                <thead><tr><th>Karyawan</th><th>PTKP</th><th className="num">Bruto Setahun</th><th className="num">PKP</th><th className="num">PPh Setahun (Ps. 17)</th><th className="num">Terpotong Jan–Nov (TER)</th><th className="num">Masa Desember</th></tr></thead>
+                <tbody>
+                  {rows.map((r: any) => {
+                    const rec = annualReconciliation({ ptkp: r.p.ptkp, brutoMonthly: r.slip.base, iuranPensiunMonthly: r.slip.dJht + r.slip.dJp });
+                    return (
+                      <tr key={r.id}>
+                        <td><div className="row ac gap8"><Avatar name={r.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{r.name}</span></div></td>
+                        <td><span className="chip tiny">{r.p.ptkp}</span></td>
+                        <td className="num mono">{fmt(rec.brutoAnnual / 1e6, 1)} jt</td>
+                        <td className="num mono">{fmt(rec.pkp / 1e6, 1)} jt</td>
+                        <td className="num mono" style={{ fontWeight: 700 }}>{fmt(rec.annualTax / 1e6, 1)} jt</td>
+                        <td className="num mono muted">{fmt(rec.withheldToDate / 1e6, 1)} jt</td>
+                        <td className="num mono" style={{ fontWeight: 700, color: rec.decemberWithholding < 0 ? 'var(--num-neg)' : 'var(--amber)' }}>
+                          {rec.decemberWithholding < 0 ? '(' + fmt(Math.abs(rec.decemberWithholding) / 1e6, 1) + ')' : fmt(rec.decemberWithholding / 1e6, 1)} jt
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
+                Angka dalam kurung = <b>lebih potong</b> sepanjang tahun, dikembalikan pada masa Desember.
+                Biaya jabatan 5% dari bruto dengan batas Rp 6.000.000/tahun; iuran JHT &amp; JP pekerja menjadi pengurang neto.
+              </div>
+            </div>
           )}
         </Panel>
 
@@ -226,7 +303,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
-          <div className="row jb ac" style={{ marginBottom: 14 }}><span className="tiny muted upper">Slip Gaji · {R.period}</span><span className="badge b-blue tiny">TER {(r.p.ter * 100).toFixed(2)}% · Kat. {r.p.terCat}</span></div>
+          <div className="row jb ac" style={{ marginBottom: 14 }}><span className="tiny muted upper">Slip Gaji · {R.period}</span><span className="badge b-blue tiny" title={s.terNote}>TER {s.ter == null ? '—' : (s.ter * 100).toFixed(2) + '%'} · Kat. {s.terCategory || '—'}{s.terVerified ? '' : ' ⚠'}</span></div>
 
           <div className="tiny muted upper" style={{ marginBottom: 4 }}>Penghasilan</div>
           <Line label="Gaji Pokok" v={r.p.gross} />
@@ -238,7 +315,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
           <Line label="BPJS Kesehatan (1%)" v={s.dKes} sub neg />
           <Line label="BPJS JHT (2%)" v={s.dJht} sub neg />
           <Line label="BPJS Jaminan Pensiun (1%)" v={s.dJp} sub neg />
-          <Line label={'PPh 21 (TER ' + (r.p.ter * 100).toFixed(2) + '%)'} v={s.pph} sub neg />
+          <Line label={'PPh 21 (TER ' + (s.ter == null ? '—' : (s.ter * 100).toFixed(2) + '%') + ')'} v={s.pph} sub neg />
           <Line label="Total Potongan" v={s.totalDed} bold neg />
 
           <div style={{ background: 'var(--green-bg)', borderRadius: 8, padding: '12px 14px', marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -266,7 +343,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
               firm: AMS.FIRM.name || 'KAP',
               title: 'Slip Gaji · ' + R.period,
               refNo: r.id,
-              meta: [r.name + ' · ' + r.role, 'PTKP ' + r.p.ptkp + ' · TER ' + (r.p.ter * 100).toFixed(2) + '% (Kat. ' + r.p.terCat + ')', 'Periode: ' + R.period],
+              meta: [r.name + ' · ' + r.role, 'PTKP ' + r.p.ptkp + ' · TER ' + (ss.ter == null ? '—' : (ss.ter * 100).toFixed(2) + '%') + ' (Kat. ' + (ss.terCategory || '—') + ')', 'Periode: ' + R.period],
               blocks: [
                 { type: 'heading', text: 'Penghasilan' },
                 { type: 'kv', rows: [
@@ -280,7 +357,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
                   ['BPJS Kesehatan (1%)', '− Rp ' + fmt(ss.dKes, 0)],
                   ['BPJS JHT (2%)', '− Rp ' + fmt(ss.dJht, 0)],
                   ['BPJS Jaminan Pensiun (1%)', '− Rp ' + fmt(ss.dJp, 0)],
-                  ['PPh 21 (TER ' + (r.p.ter * 100).toFixed(2) + '%)', '− Rp ' + fmt(ss.pph, 0)],
+                  ['PPh 21 (TER ' + (ss.ter == null ? '—' : (ss.ter * 100).toFixed(2) + '%') + ')', '− Rp ' + fmt(ss.pph, 0)],
                   ['Total Potongan', '− Rp ' + fmt(ss.totalDed, 0)],
                 ] },
                 { type: 'heading', text: 'Take-Home Pay' },
