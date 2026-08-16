@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-16 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9); PR-3 berikutnya |
+| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9) · **PR-3 SELESAI** (SC-10·11). **CHECKPOINT Q-6** — PR-4..PR-7 menunggu keputusan |
 | Pemicu | Permintaan: "Kembangkan lebih dalam fitur pada modul-modul pada grup menu *SDM & Kepatuhan* sampai tingkat memadai" |
 | Modul | 12 modul grup `SDM & Kepatuhan` (`icons.tsx:116–129`): `hcm` · `orgchart` · `recruitment` · `learning` · `succession` · `payroll` · `leave` · `performance` · `cpe` · `ethics` · `independence` · `hrcase` |
 | Berkas | `view_people.tsx` · `view_pc_hcm.tsx` · `view_pc_org.tsx` · `view_pc_talent.tsx` · `view_pc_conduct.tsx` · `view_payroll.tsx` · `view_hrops.tsx` · `view_independence.tsx` · `data_people.ts` · `data_part1.ts` · `data_part2.ts` |
@@ -131,14 +131,24 @@ menjumlahkan mentah:
 const total = recs.reduce((a, r) => a + r.skp, 0);   // tanpa cap
 ```
 
-EMP-007 punya 18 SKP terstruktur + **14** tidak terstruktur:
+EMP-007 punya 18 SKP terstruktur + **14** tidak terstruktur. Tracker menjumlahkannya
+mentah menjadi **32**; menurut Ps. 37 hanya **28** yang dapat diperhitungkan (4 SKP
+hangus).
 
-| Modul | Total ditampilkan |
-|---|---|
-| CPE / PPL Tracker | **32** / 40 |
-| Kesiapan P2PK (`view_pppk`) | **28** / 40 — 4 SKP hangus |
+> **KOREKSI (2026-08-16, saat mengerjakan PR-3).** Rumusan awal butir ini keliru.
+> Ia menyatakan `view_pppk` menampilkan 28 untuk orang yang sama sehingga
+> perbedaannya kasat mata. **Tidak.** `view_pppk` tidak membaca `CPE_LOG` sama
+> sekali — ia membaca `PPPK_PPL` (`data_part4.ts:392`), register terpisah yang
+> berkunci NAMA dan berisi agregat `structured`/`unstructured` sendiri. Untuk
+> Anindya register itu berbunyi 22/10 → 32 terhitung. Jadi **sebelum PR-3 kedua
+> modul sama-sama menampilkan 32** — Tracker lewat penjumlahan mentah 18+14, P2PK
+> lewat perhitungan benar 22+min(10,10). Keduanya cocok **secara kebetulan**, dan
+> itulah sebabnya tak ada yang pernah menyadarinya.
+>
+> Cacat sesungguhnya karenanya lebih besar dari yang tertulis: bukan hanya dua
+> MESIN, tetapi juga dua REGISTER. Lihat §1.4a.
 
-Satu orang, satu tahun, dua angka, dalam satu aplikasi. Dan Tracker tak pernah
+Dan Tracker tak pernah
 menguji materi wajib (4 SKP pembinaan, 16 SKP akuntansi/asurans) — `CPE_LOG` tak
 punya field topik sama sekali, sehingga kepatuhan Pasal 37 tak dapat diklaim namun
 badge hijau "Memenuhi" tetap diterbitkan.
@@ -146,6 +156,32 @@ badge hijau "Memenuhi" tetap diterbitkan.
 Ini pola yang persis diperingatkan arc WTB PR-3/4/5: **perbaikan SSOT yang hanya
 menyentuh sebagian konsumen lebih buruk daripada tak menyentuh** — sekarang ada dua
 jawaban resmi dan tak ada cara tahu mana yang dibaca orang.
+
+### 1.4a Dua register SKP untuk satu firma (temuan baru — PR-3)
+
+| Register | Bentuk | Kunci | Dibaca oleh |
+|---|---|---|---|
+| `CPE_LOG` (`data_part1.ts:476`) | per-kegiatan (`t`, `type`, `skp`, `date`) | `empId` | CPE/PPL Tracker · `pplOf` · Lisensi AP |
+| `PPPK_PPL` (`data_part4.ts:392`) | agregat `structured` / `unstructured` | **nama** | Kesiapan P2PK |
+
+Keempat orang yang ada di kedua register punya angka berbeda — bukan selisih
+pembulatan, melainkan realisasi yang berlainan:
+
+| | `CPE_LOG` terhitung | `PPPK_PPL` terhitung | selisih |
+|---|---|---|---|
+| Hartono Wijaya | 24 | 32 | +8 |
+| Rudi Gunawan | 18 | 30 | +12 |
+| Sari Dewanti | 31 | 28 | −3 |
+| Anindya Pramesti | 28 | 32 | +4 |
+| Bayu Saputra | (tak ada) | 24 | — |
+
+Register yang dilaporkan ke PPPK bukan register yang dipantau firma sehari-hari,
+dan `PPPK_PPL` berkunci nama sehingga tak dapat disambungkan tanpa keputusan
+pemetaan. PR-3 **tidak** menyatukannya — itu di luar SC-10/SC-11 — tetapi
+`ppl_single_engine.test.ts` MEMAKU perbedaannya agar tidak terlupakan.
+
+**Konsekuensi yang harus dinyatakan:** setelah PR-3, Tracker menampilkan 28 untuk
+Anindya sementara P2PK tetap 32. Perbedaan itu **baru terlihat**, bukan baru ada.
 
 ### 1.5 Payroll: tarif TER adalah input, bukan perhitungan; jurnal tak pernah diposting
 
@@ -292,6 +328,7 @@ punya uji di `migration/src/*.test.ts`.
 | SC-21 | Kasus disiplin berat yang aktif berkategori independensi/kerahasiaan **memblokir** staffing & sign-off orang itu, dengan alasan yang dapat dibaca. Uji: EMP-022 dengan HC-2026-03 terbuka tidak dapat di-sign-off. |
 | SC-22 | Penetapan sanksi memisahkan pelapor · penyelidik · pemutus; kenaikan anak tangga sanksi tidak lagi otomatis satu klik. |
 | SC-23 | `INDEPENDENCE.tenure` diturunkan dari riwayat penandatanganan; cooling-off dievaluasi; pelanggaran rotasi **memblokir** penugasan AP pada klien itu. |
+| SC-24a | **(baru, PR-3)**  &  disatukan menjadi satu register SKP berkunci ; laporan PPPK dan pemantauan harian membaca angka yang sama. Sampai itu terjadi, perbedaannya dipaku uji. |
 | SC-24 | Gerbang cakupan: tak ada literal baru di `data_people.ts`/`data_part2.ts` yang menduplikasi fakta yang sudah dapat diturunkan (pola gerbang cakupan #242/#254, dengan pembuangan komentar). |
 
 ---
@@ -387,7 +424,7 @@ Tujuh PR, masing-masing mandiri dan `verify` hijau. Urutan dipilih agar cacat
 |---|---|---|---|
 | **PR-1** ✅ | Cuti: persetujuan yang benar-benar mengurangi saldo | SC-4·5·6 | `canon_leave.ts` (baru) · `leave_register.test.ts` (baru, 60 uji) · `view_hrops.tsx` · `view_pc_hcm.tsx` · `view_personal.tsx` · `data_part2.ts` |
 | **PR-2** ✅ | Kinerja: skor dari sasarannya, dan empat peran yang berbeda | SC-7·8·9 | `canon_perf.ts` (baru) · `perf_cycle.test.ts` (baru, 48 uji) · `view_hrops.tsx` · `view_pc_hcm.tsx` · `view_personal.tsx` · `data_part2.ts` |
-| **PR-3** | PPL: satu mesin, bukan dua | SC-10·11 | `canon_ppl.ts` (adopsi) · `view_people.tsx` · `data_licensing.ts` |
+| **PR-3** ✅ | PPL: satu mesin, bukan dua | SC-10·11 | `canon_ppl.ts` (diperluas: topik) · `ppl_single_engine.test.ts` (baru, 28 uji) · `view_people.tsx` · `data_licensing.ts` · `cpe_training.ts` · `data_part1.ts` · `data_people.ts` |
 | **PR-4** | Human Capital: roster sebagai SSOT | SC-1·2·3·24 | `canon_hcm.ts` (baru) · `view_pc_hcm.tsx` · `data_people.ts` · `data_part1.ts` |
 | **PR-5** | Payroll: TER yang dihitung, jurnal yang diposting | SC-12·13·14 | `canon_pph21.ts` (baru) · `view_payroll.tsx` · `firmgl` |
 | **PR-6** | Rekrutmen & Pelatihan: penghitung yang punya nama | SC-15·16·17 | `canon_talent.ts` (baru) · `view_pc_talent.tsx` · `cpe_training.ts` |

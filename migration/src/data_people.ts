@@ -175,12 +175,12 @@ import { AMS } from './data';
     'EMP-032': { 'CO-01': 2, 'CO-02': 2, 'CO-03': 4, 'CO-04': 1, 'CO-05': 1, 'CO-06': 2, 'CO-07': 3 },
   };
   const TRAINING_CATALOG = [
-    { id: 'TR-01', title: 'Update SA Terkini & ISA Alignment', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 8, hours: 16, date: '2026-04-10', seats: 30, enrolled: 22, comp: 'CO-01' },
-    { id: 'TR-02', title: 'PSAK 71/72/73 Deep Dive', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Daring', skp: 8, hours: 16, date: '2026-04-24', seats: 40, enrolled: 18, comp: 'CO-02' },
-    { id: 'TR-03', title: 'Audit Data Analytics (Caseware IDEA)', provider: 'Internal', mode: 'Terstruktur', fmt: 'Daring', skp: 6, hours: 12, date: '2026-05-08', seats: 25, enrolled: 25, comp: 'CO-03' },
-    { id: 'TR-04', title: 'Pajak Coretax & PPh Badan 2026', provider: 'DJP / IKPI', mode: 'Terstruktur', fmt: 'Daring', skp: 4, hours: 8, date: '2026-03-28', seats: 50, enrolled: 31, comp: 'CO-04' },
-    { id: 'TR-05', title: 'SMM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, enrolled: 9, comp: 'CO-05' },
-    { id: 'TR-06', title: 'Coaching & Review Skills untuk Senior', provider: 'Internal', mode: 'Tidak Terstruktur', fmt: 'Luring', skp: 4, hours: 8, date: '2026-06-05', seats: 15, enrolled: 7, comp: 'CO-06' },
+    { id: 'TR-01', title: 'Update SA Terkini & ISA Alignment', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 8, hours: 16, date: '2026-04-10', seats: 30, enrolled: 22, comp: 'CO-01', topic: 'akuntansi' },
+    { id: 'TR-02', title: 'PSAK 71/72/73 Deep Dive', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Daring', skp: 8, hours: 16, date: '2026-04-24', seats: 40, enrolled: 18, comp: 'CO-02', topic: 'akuntansi' },
+    { id: 'TR-03', title: 'Audit Data Analytics (Caseware IDEA)', provider: 'Internal', mode: 'Terstruktur', fmt: 'Daring', skp: 6, hours: 12, date: '2026-05-08', seats: 25, enrolled: 25, comp: 'CO-03', topic: 'akuntansi' },
+    { id: 'TR-04', title: 'Pajak Coretax & PPh Badan 2026', provider: 'DJP / IKPI', mode: 'Terstruktur', fmt: 'Daring', skp: 4, hours: 8, date: '2026-03-28', seats: 50, enrolled: 31, comp: 'CO-04', topic: 'lain' },
+    { id: 'TR-05', title: 'SMM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, enrolled: 9, comp: 'CO-05', topic: 'pembinaan' },
+    { id: 'TR-06', title: 'Coaching & Review Skills untuk Senior', provider: 'Internal', mode: 'Tidak Terstruktur', fmt: 'Luring', skp: 4, hours: 8, date: '2026-06-05', seats: 15, enrolled: 7, comp: 'CO-06', topic: 'pembinaan' },
   ];
 
   /* ========================================================
