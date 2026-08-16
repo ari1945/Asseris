@@ -6,6 +6,7 @@ import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { leaveLedgerOf } from './canon_leave';
+import { perfPersonOf } from './canon_perf';
 import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
 
 const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as LeaveRequestInput[] : []);
@@ -53,6 +54,7 @@ function Profile360Drawer({ s, onClose }: any) {
   const [lvReqs] = useAmsPersist('leaveReqs', () => A.LEAVE_REQUESTS);
   const [cpeAll] = useAmsPersist('cpeLog', () => A.CPE_LOG);
   const [perfAll] = useAmsPersist('perfPeople', () => (A.PERF_CYCLE.people || {}));
+  const [perfGoalsAll] = useAmsPersist('perfGoals', () => (A.PERF_CYCLE.goals || {}));
   const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
   const [ethAll] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const p = profileOf(s, profiles);
@@ -66,7 +68,10 @@ function Profile360Drawer({ s, onClose }: any) {
   const lvTotal = lvLedger.quota;
   const lvLeft = lvLedger.remaining;
   const cpe = ((cpeAll || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
-  const perf = (perfAll || {})[s.id];
+  /* PRD sdm-kepatuhan PR-2 — skor & penempatan 9-box DITURUNKAN (canon_perf),
+     bukan literal `perf`/`box` yang dapat bertentangan dgn KPI-nya sendiri. */
+  const perfRec = (perfAll || {})[s.id];
+  const perf = perfRec ? perfPersonOf(s.id, perfRec, (perfGoalsAll || {})[s.id]) : null;
   const indep = (indepAll || []).find((d: any) => d.id === s.id);
   const ethics = (ethAll || {})[s.id];
   const GC = A.GRADE_COLOR_PC;
@@ -160,8 +165,8 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Kinerja & Karier" action={<button className="btn sm" style={{ height: 22 }} onClick={() => { onClose(); nav('performance'); }}><I.arrowRight size={11} /> Kinerja</button>}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Kv l="Skor Kinerja" v={perf ? perf.perf.toFixed(1) + ' / 5' : s.rating.toFixed(1) + ' / 5'} accent="var(--blue)" />
-              <Kv l="Potensi (9-box)" v={perf ? perf.box : '—'} />
+              <Kv l="Skor Kinerja" v={perf && perf.score.score !== null ? perf.score.score.toFixed(2) + ' / 5' : perf ? 'Belum dapat dinilai' : s.rating.toFixed(1) + ' / 5'} accent="var(--blue)" />
+              <Kv l="Potensi (9-box)" v={perf && perf.placement.placeable ? perf.placement.label : '—'} />
               <Kv l="Engagement Aktif" v={s.engagements} />
               <Kv l="Rekomendasi" v={perf && perf.promote !== '—' ? perf.promote : 'Pertahankan'} accent={perf && perf.promote !== '—' ? 'var(--purple)' : undefined} />
             </div>

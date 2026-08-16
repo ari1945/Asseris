@@ -254,25 +254,78 @@ import { fmt } from './data_base';
     { id: 'LV-0050', emp: 'EMP-008', name: 'Bayu Saputra', type: 'Cuti Tahunan', from: '2026-04-01', to: '2026-04-04', days: 4, reason: 'Mudik Lebaran', status: 'Menunggu', approver: 'Rudi Gunawan' },
     { id: 'LV-0051', emp: 'EMP-022', name: 'Sinta Wulandari', type: 'Cuti Menikah', from: '2026-04-20', to: '2026-04-22', days: 3, reason: 'Pernikahan', status: 'Menunggu', approver: 'Sari Dewanti' },
   ];
-  /* Performance cycle FY2025→2026: rating (1-5) × potential (1-5); status of review */
+  /* ---- Siklus Kinerja FY2025 (PRD sdm-kepatuhan PR-2) ----
+     `perf` dan `box` DICABUT dari sini.
+
+     `perf` adalah skor tersimpan yang dapat berbeda dari KPI-nya sendiri, dan
+     untuk EMP-021 memang berbeda: sasarannya tertimbang **4,355**, headline-nya
+     4,5. `box` adalah string tersimpan sementara grid di layar yang sama
+     menghitung selnya sendiri — untuk TIGA dari tujuh orang keduanya bertentangan
+     (EMP-008 "Kinerja Tinggi" vs sel Inti; EMP-031 & EMP-032 "Inti" vs sel Pekerja
+     Efektif). Kini keduanya DITURUNKAN di `canon_perf.ts`.
+
+     Enam orang dulu memikul skor tanpa satu pun KPI di belakangnya — hanya
+     EMP-021 yang punya sasaran. Sasaran mereka kini ada, memakai kerangka KPI
+     firma yang sama (bobot 30/30/15/25, mengikuti kerangka EMP-021 yang sudah
+     ada), dan skor tertimbangnya menutup PERSIS ke `perf` lama masing-masing —
+     nol-delta, diuji satu per satu. EMP-021 sendiri BERGERAK 4,5 → 4,36; itu
+     koreksi terhadap angka yang tak pernah cocok dengan dasarnya.
+
+     Catatan `actual`: KPI di sini periode FY2025, sedangkan `CPE_LOG` adalah
+     2026 YTD — dua periode berbeda, jadi angka SKP di bawah SENGAJA tidak
+     ditautkan ke sana. `score` adalah penilaian penelaah yang diinformasikan
+     ukurannya, bukan fungsi mekanis darinya.
+
+     `steps` menggantikan boolean `goalsSet/selfDone/mgrDone/calibrated`, yang
+     menyatakan "selesai" tanpa pernah dapat menjawab siapa yang menyelesaikannya.
+     Penanda `seeded` mengikuti pola `member_independence`: baris demo tetap ada,
+     tetapi ia tidak menyamar sebagai pernyataan seseorang. Penilai diambil dari
+     garis pelaporan `AMS.ORG` (data_people). */
+  const PG = (jam: [string, number], kk: number, skp: [number, number], sup: [string, number]) => ([
+    { kpi: 'Realisasi jam terhadap anggaran', target: '≤ 100%', actual: jam[0], score: jam[1], weight: 30 },
+    { kpi: 'Kualitas kertas kerja (skor reviu)', target: '≥ 4,3', actual: String(kk).replace('.', ','), score: kk, weight: 30 },
+    { kpi: 'Pemenuhan PPL (SKP)', target: '40 SKP', actual: skp[0] + ' SKP', score: skp[1], weight: 15 },
+    { kpi: sup[0], target: '≥ 4,0', actual: String(sup[1]).replace('.', ','), score: sup[1], weight: 25 },
+  ]);
+  const SUPERVISI = 'Supervisi & coaching junior';
+  const KEANDALAN = 'Kontribusi tim & keandalan';
+  const seedStep = (by: string, byName: string, at: string) => ({ by, byName, at, seeded: true });
   const PERF_CYCLE = {
     cycle: 'Siklus FY2025', phase: 'Year-End Review',
     people: {
-      'EMP-007': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.7, pot: 4.5, box: '9-box: Bintang', promote: 'Kandidat Partner (2027)' },
-      'EMP-008': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.2, pot: 3.6, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-012': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: false, perf: 4.3, pot: 4.0, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-021': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.5, pot: 4.4, box: '9-box: Bintang', promote: 'Promosi ke Manager (2026)' },
-      'EMP-022': { goalsSet: true, selfDone: true, mgrDone: false, calibrated: false, perf: 4.4, pot: 3.8, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-031': { goalsSet: true, selfDone: true, mgrDone: false, calibrated: false, perf: 4.0, pot: 3.5, box: 'Inti', promote: '—' },
-      'EMP-032': { goalsSet: true, selfDone: false, mgrDone: false, calibrated: false, perf: 3.9, pot: 3.4, box: 'Inti', promote: 'Perlu rencana pengembangan' },
+      'EMP-007': { pot: 4.5, promote: 'Kandidat Partner (2027)', steps: {
+        goals: seedStep('EMP-001', 'Hartono Wijaya', '2025-01-14'), self: seedStep('EMP-007', 'Anindya Pramesti', '2025-12-08'),
+        manager: seedStep('EMP-001', 'Hartono Wijaya', '2025-12-18'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-008': { pot: 3.6, promote: '—', steps: {
+        goals: seedStep('EMP-002', 'Rudi Gunawan', '2025-01-14'), self: seedStep('EMP-008', 'Bayu Saputra', '2025-12-09'),
+        manager: seedStep('EMP-002', 'Rudi Gunawan', '2025-12-19'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-012': { pot: 4.0, promote: '—', steps: {
+        goals: seedStep('EMP-003', 'Sari Dewanti', '2025-01-15'), self: seedStep('EMP-012', 'Citra Halim', '2025-12-10'),
+        manager: seedStep('EMP-003', 'Sari Dewanti', '2025-12-22') } },
+      'EMP-021': { pot: 4.4, promote: 'Promosi ke Manager (2026)', steps: {
+        goals: seedStep('EMP-007', 'Anindya Pramesti', '2025-01-16'), self: seedStep('EMP-021', 'Dimas Raharjo', '2025-12-08'),
+        manager: seedStep('EMP-007', 'Anindya Pramesti', '2025-12-18'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-022': { pot: 3.8, promote: '—', steps: {
+        goals: seedStep('EMP-008', 'Bayu Saputra', '2025-01-16'), self: seedStep('EMP-022', 'Sinta Wulandari', '2025-12-11') } },
+      'EMP-031': { pot: 3.5, promote: '—', steps: {
+        goals: seedStep('EMP-021', 'Dimas Raharjo', '2025-01-20'), self: seedStep('EMP-031', 'Fajar Nugroho', '2025-12-12') } },
+      'EMP-032': { pot: 3.4, promote: 'Perlu rencana pengembangan', steps: {
+        goals: seedStep('EMP-022', 'Sinta Wulandari', '2025-01-20') } },
     },
+    /* Skor tertimbang tiap baris menutup persis ke `perf` lama (lihat perf_cycle.test.ts). */
     goals: {
+      'EMP-007': PG(['94%', 4.8], 4.8, [31, 4.3], [SUPERVISI, 4.7]),         // → 4,70
+      'EMP-008': PG(['99%', 4.3], 4.3, [19, 3.8], [SUPERVISI, 4.2]),         // → 4,20
+      'EMP-012': PG(['98%', 4.4], 4.4, [22, 3.9], [SUPERVISI, 4.3]),         // → 4,30
       'EMP-021': [
         { kpi: 'Realisasi jam terhadap anggaran', target: '≤ 100%', actual: '96%', score: 4.6, weight: 30 },
         { kpi: 'Kualitas kertas kerja (skor reviu)', target: '≥ 4,3', actual: '4,5', score: 4.5, weight: 30 },
         { kpi: 'Pemenuhan PPL (SKP)', target: '40 SKP', actual: '12 SKP', score: 3.5, weight: 15 },
-        { kpi: 'Supervisi & coaching junior', target: '≥ 4,0', actual: '4,4', score: 4.4, weight: 25 },
-      ],
+        { kpi: SUPERVISI, target: '≥ 4,0', actual: '4,4', score: 4.4, weight: 25 },
+      ],                                                                      // → 4,36 (BUKAN 4,5)
+      'EMP-022': PG(['97%', 4.5], 4.5, [12, 3.5], [SUPERVISI, 4.7]),         // → 4,40
+      'EMP-031': PG(['101%', 4.1], 4.1, [14, 3.6], [KEANDALAN, 4.0]),        // → 4,00
+      'EMP-032': PG(['102%', 4.0], 4.0, [0, 3.0], [KEANDALAN, 4.2]),         // → 3,90
     },
   };
 

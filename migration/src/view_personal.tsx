@@ -1,6 +1,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { evaluateLeaveRow, leaveLedgerOf } from './canon_leave';
+import { perfPersonOf } from './canon_perf';
 import type { HolidayCalendar } from './canon_leave';
 import { useAmsPersist, useAuth } from './contexts';
 import { resolveEmpId } from './ethics_compliance';
@@ -31,7 +32,7 @@ type SkpRec = { t: string; type: string; skp: number; date: string };
 type IndepRec = { id?: string; declared: boolean; conflicts: number; rotationClient: string; tenure: number; rotationLimit: number; finInterest?: string; sektor?: string; basis?: string; cooloff?: number };
 type EthicsRec = { signed: boolean; date: string; exceptions: number; items?: number[] };
 type CaseRec = { id: string; date: string; cat: string; severity: string; status: string; sanction: string; desc?: string; channel?: string };
-type PerfRec = { perf: number; pot: number; box: string; promote: string };
+type PerfRec = { pot?: number; promote?: string };
 type GoalRec = { kpi: string; target: string; actual: string; score: number; weight: number };
 type StaffRow = { id: string; name: string; role: string; grade: string; cert?: string; joined?: number };
 
@@ -137,7 +138,9 @@ function DataPersonalSaya() {
   const myIndep = indepData.find((d) => d.id === empId);
   const myEthics = ethData[empId];
   const myCases = caseAll.filter((c) => c.staff === empId);
-  const myPerf = perfAll[empId];
+  /* PRD sdm-kepatuhan PR-2 — skor & 9-box DITURUNKAN (canon_perf). */
+  const myPerfRec = perfAll[empId];
+  const myPerf = myPerfRec ? perfPersonOf(empId, myPerfRec, goalsAll[empId]) : null;
   const myGoals = goalsAll[empId] || [];
   const myProf = profAll[empId];
   /* PRD sdm-kepatuhan PR-1 — saldo cuti DITURUNKAN dari register permintaan
@@ -260,9 +263,9 @@ function DataPersonalSaya() {
       case 'perf': {
         if (!myPerf) return <div className="tiny muted">Data kinerja Anda belum tersedia.</div>;
         return (<>
-          <DRow l="Skor Kinerja" v={myPerf.perf.toFixed(1) + ' / 5'} bold accent={myPerf.perf >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
-          <DRow l="Potensi" v={myPerf.pot.toFixed(1) + ' / 5'} />
-          <DRow l="Penempatan 9-Box" v={myPerf.box} />
+          <DRow l="Skor Kinerja" v={myPerf.score.score === null ? 'Belum dapat dinilai' : myPerf.score.score.toFixed(2) + ' / 5'} bold accent={myPerf.score.score === null ? 'var(--ink-3)' : myPerf.score.score >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
+          <DRow l="Potensi" v={myPerf.pot === null ? '—' : myPerf.pot.toFixed(1) + ' / 5'} />
+          <DRow l="Penempatan 9-Box" v={myPerf.placement.placeable ? myPerf.placement.label : myPerf.placement.note || '—'} />
           <DRow l="Rekomendasi" v={myPerf.promote === '—' ? 'Pertahankan' : myPerf.promote} accent={myPerf.promote !== '—' ? 'var(--purple)' : undefined} />
           <div className="tiny muted upper" style={{ marginTop: 8 }}>Sasaran & KPI</div>
           {myGoals.length ? myGoals.map((g, i) => (
@@ -454,9 +457,9 @@ function DataPersonalSaya() {
           <Section title="Kinerja" icon="chart" onDetail={() => open('perf')}>
             {myPerf ? (
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <Kv label="Skor Kinerja" v={myPerf.perf.toFixed(1) + ' / 5'} accent={myPerf.perf >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
-                <Kv label="Potensi" v={myPerf.pot.toFixed(1) + ' / 5'} />
-                <Kv label="Penempatan 9-Box" v={myPerf.box} />
+                <Kv label="Skor Kinerja" v={myPerf.score.score === null ? 'Belum dinilai' : myPerf.score.score.toFixed(2) + ' / 5'} accent={myPerf.score.score === null ? 'var(--ink-3)' : myPerf.score.score >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
+                <Kv label="Potensi" v={myPerf.pot === null ? '—' : myPerf.pot.toFixed(1) + ' / 5'} />
+                <Kv label="Penempatan 9-Box" v={myPerf.placement.placeable ? myPerf.placement.label : '—'} />
                 <Kv label="Rekomendasi" v={myPerf.promote === '—' ? 'Pertahankan' : myPerf.promote} />
               </div>
             ) : <div className="tiny muted">Data kinerja Anda belum tersedia.</div>}

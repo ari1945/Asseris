@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-16 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6); PR-2·PR-3 berikutnya |
+| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9); PR-3 berikutnya |
 | Pemicu | Permintaan: "Kembangkan lebih dalam fitur pada modul-modul pada grup menu *SDM & Kepatuhan* sampai tingkat memadai" |
 | Modul | 12 modul grup `SDM & Kepatuhan` (`icons.tsx:116–129`): `hcm` · `orgchart` · `recruitment` · `learning` · `succession` · `payroll` · `leave` · `performance` · `cpe` · `ethics` · `independence` · `hrcase` |
 | Berkas | `view_people.tsx` · `view_pc_hcm.tsx` · `view_pc_org.tsx` · `view_pc_talent.tsx` · `view_pc_conduct.tsx` · `view_payroll.tsx` · `view_hrops.tsx` · `view_independence.tsx` · `data_people.ts` · `data_part1.ts` · `data_part2.ts` |
@@ -386,7 +386,7 @@ Tujuh PR, masing-masing mandiri dan `verify` hijau. Urutan dipilih agar cacat
 | PR | Judul | SC | Berkas utama |
 |---|---|---|---|
 | **PR-1** ✅ | Cuti: persetujuan yang benar-benar mengurangi saldo | SC-4·5·6 | `canon_leave.ts` (baru) · `leave_register.test.ts` (baru, 60 uji) · `view_hrops.tsx` · `view_pc_hcm.tsx` · `view_personal.tsx` · `data_part2.ts` |
-| **PR-2** | Kinerja: skor dari sasarannya, dan empat peran yang berbeda | SC-7·8·9 | `canon_perf.ts` (baru) · `view_hrops.tsx` · `rbac.ts` ×2 |
+| **PR-2** ✅ | Kinerja: skor dari sasarannya, dan empat peran yang berbeda | SC-7·8·9 | `canon_perf.ts` (baru) · `perf_cycle.test.ts` (baru, 48 uji) · `view_hrops.tsx` · `view_pc_hcm.tsx` · `view_personal.tsx` · `data_part2.ts` |
 | **PR-3** | PPL: satu mesin, bukan dua | SC-10·11 | `canon_ppl.ts` (adopsi) · `view_people.tsx` · `data_licensing.ts` |
 | **PR-4** | Human Capital: roster sebagai SSOT | SC-1·2·3·24 | `canon_hcm.ts` (baru) · `view_pc_hcm.tsx` · `data_people.ts` · `data_part1.ts` |
 | **PR-5** | Payroll: TER yang dihitung, jurnal yang diposting | SC-12·13·14 | `canon_pph21.ts` (baru) · `view_payroll.tsx` · `firmgl` |

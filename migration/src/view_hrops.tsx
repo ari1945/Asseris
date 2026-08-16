@@ -7,6 +7,11 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { resolveEmpId } from './ethics_compliance';
+import { CAP } from './rbac';
+import {
+  NINE_BOX, PERF_STAGES, perfAdvanceCheck, perfCycle, perfCycleSummary, perfStamp,
+} from './canon_perf';
+import type { PerfActor, PerfGoal, PerfPersonInput, PerfStageState } from './canon_perf';
 import {
   LEAVE_POLICY, approvalCheck, evaluateLeaveRow, holidayCoverage, leaveFirmSummary,
   leaveLedger, leaveStateOn, onLeaveOn,
@@ -211,45 +216,83 @@ function LeaveAttendance() {
 /* ============================================================
    Siklus Kinerja (Performance Cycle) — 9-box calibration
    ============================================================ */
-const PERF_PHASES = ['Goal Setting', 'Self-Review', 'Manager Review', 'Kalibrasi'];
+type PerfStaffRow = { id: string; name: string; role?: string };
 
 function Performance() {
-  const { fmt } = AMS;
-  const staff: any = AMS.STAFF;
-  const C: any = AMS.PERF_CYCLE;
+  const staff = (AMS as unknown as { STAFF?: PerfStaffRow[] }).STAFF || [];
+  const auth = useAuth();
+  const C = AMS.PERF_CYCLE as unknown as { cycle: string; phase: string; people: Record<string, PerfPersonInput>; goals: Record<string, PerfGoal[]> };
+  const ORG = (AMS as unknown as { ORG?: Record<string, { reports?: string | null }> }).ORG;
   const [sel, setSel] = useHR('EMP-021');
   const [pdata, setPdata] = useAmsPersist('perfPeople', () => C.people);
   // 2026-07-05 — sasaran/KPI (perfGoals) ter-filter server (personal.get) sejalan perfPeople.
   const [goalsAll] = useAmsPersist('perfGoals', () => C.goals);
-  const advance = (id: any) => setPdata((m: any) => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });
 
-  const people = staff.filter((s: any) => pdata[s.id]).map((s: any) => ({ ...s, ...pdata[s.id] }));
+  const recs = (pdata || {}) as Record<string, PerfPersonInput>;
+  const goalMap = (goalsAll || {}) as Record<string, PerfGoal[]>;
+  const roster = staff.filter((s) => !!recs[s.id]);
+  const cycle = perfCycle(roster, recs, goalMap);
+
+  /* Aktor sesi — identitas nyata, bukan "siapa pun yang menekan tombol". */
+  const actor: PerfActor = {
+    emp: resolveEmpId(auth && auth.user),
+    canHrManage: !!(auth && typeof auth.can === 'function' && auth.can(CAP.HR_MANAGE)),
+  };
+  const today = String(AMS.TODAY || '');
+
+  const advance = (id: string) => {
+    const p = cycle[id];
+    if (!p) return;
+    const chk = perfAdvanceCheck(p, actor, ORG);
+    /* Gerbang ditegakkan DI SINI juga, bukan hanya dengan menyembunyikan tombol —
+       tombol yang disembunyikan bukan kontrol. Server tetap otoritatif. */
+    if (!chk.ok || !chk.stage) return;
+    const stage = chk.stage;
+    const stamp = perfStamp(actor, (auth && auth.user && auth.user.name) || undefined, today);
+    setPdata((m: unknown) => {
+      const map = (m || {}) as Record<string, PerfPersonInput>;
+      const prev = map[id] || {};
+      return { ...map, [id]: { ...prev, steps: { ...(prev.steps || {}), [stage]: stamp } } };
+    });
+  };
+
   // Guard: data ter-filter bisa kosong (mis. peran self-only yang EMP-nya tak ada di siklus kinerja).
-  if (!people.length) return (<><SubBar moduleId="performance" /><div className="view-scroll"><div className="view-pad"><Panel><div style={{ padding: 28, textAlign: 'center' }} className="tiny muted">Tidak ada data kinerja yang dapat Anda lihat. Data kinerja staf lain hanya untuk Rekan Pemimpin / HR (lihat data personal Anda di modul <b>Data Personal Saya</b>).</div></Panel></div></div></>);
-  const phaseIdx = (p: any) => p.calibrated ? 4 : p.mgrDone ? 3 : p.selfDone ? 2 : p.goalsSet ? 1 : 0;
-  const calibrated = people.filter((p: any) => p.calibrated).length;
-  const pendingMgr = people.filter((p: any) => p.selfDone && !p.mgrDone).length;
-  const avgPerf = (people.reduce((s: any, p: any) => s + p.perf, 0) / people.length);
-  const person = people.find((p: any) => p.id === sel) || people[0];
-  const goals = (goalsAll || {})[person.id];
+  if (!roster.length) return (<><SubBar moduleId="performance" /><div className="view-scroll"><div className="view-pad"><Panel><div style={{ padding: 28, textAlign: 'center' }} className="tiny muted">Tidak ada data kinerja yang dapat Anda lihat. Data kinerja staf lain hanya untuk Rekan Pemimpin / HR (lihat data personal Anda di modul <b>Data Personal Saya</b>).</div></Panel></div></div></>);
 
-  /* 9-box: x = perf (1-5 → low/mid/high), y = potential */
-  const band = (v: any) => v >= 4.3 ? 2 : v >= 3.6 ? 1 : 0;
-  const boxColor = (px: any, py: any) => {
+  const summary = perfCycleSummary(cycle);
+  const selId = cycle[sel] ? sel : roster[0].id;
+  const person = cycle[selId];
+  const personRow = roster.find((s) => s.id === selId) as PerfStaffRow;
+  const check = perfAdvanceCheck(person, actor, ORG);
+  const nextStage = person.complete ? null : PERF_STAGES[person.stageIndex];
+
+  const boxColor = (px: number, py: number) => {
     const sum = px + py;
     return sum >= 3 ? 'var(--green-bg)' : sum >= 2 ? 'var(--blue-050)' : sum >= 1 ? 'var(--amber-bg)' : 'var(--red-bg)';
   };
+  const scoreText = (v: number | null) => (v === null ? '—' : v.toFixed(2));
+  const stampText = (st: PerfStageState) => (st.done
+    ? (st.stamp && st.stamp.byName ? st.stamp.byName + (st.stamp.at ? ' · ' + st.stamp.at : '') + (st.stamp.seeded ? ' (contoh demo)' : '') : 'selesai — tanpa identitas pembubuh')
+    : 'belum');
 
   const onExport = async () => {
     const rows: (string | number)[][] = [];
-    for (const p of people) rows.push([p.id, p.name, p.role, p.calibrated ? 'Selesai' : (PERF_PHASES[phaseIdx(p)] || 'Mulai'), p.perf.toFixed(1), p.pot.toFixed(1), p.box, p.promote === '—' ? 'Pertahankan' : p.promote]);
+    for (const s of roster) {
+      const p = cycle[s.id];
+      rows.push([s.id, s.name, s.role || '', p.complete ? 'Selesai' : PERF_STAGES[p.stageIndex].label,
+        scoreText(p.score.score), p.pot === null ? '—' : p.pot.toFixed(1),
+        p.placement.placeable ? p.placement.label : 'Belum dapat ditempatkan',
+        p.promote === '—' ? 'Pertahankan' : p.promote,
+        p.unattributed.length ? 'Ada tahap tanpa identitas pembubuh' : '—']);
+    }
     await amsExportXlsx({
       kind: 'firm-performance', scope: 'firm',
       fileName: 'Laporan Kalibrasi Kinerja.xlsx',
       firm: 'KAP Wijaya Hartono & Rekan',
       title: `Kalibrasi Kinerja — ${C.cycle}`,
-      meta: [`${calibrated}/${people.length} terkalibrasi · rata-rata skor ${avgPerf.toFixed(2)} · ${pendingMgr} menunggu reviu manajer`],
-      sheets: [{ name: 'Kalibrasi', columns: ['ID', 'Karyawan', 'Jabatan', 'Tahapan', 'Skor Kinerja', 'Potensi', '9-Box', 'Rekomendasi'], rows, colWidths: [10, 24, 22, 18, 12, 10, 22, 18] }],
+      meta: [`${summary.calibrated}/${summary.people} terkalibrasi · rata-rata skor ${scoreText(summary.avgScore)} dari ${summary.scored} orang yang dapat dinilai · ${summary.pendingManager} menunggu reviu manajer`,
+        'Skor kinerja = Σ(skor KPI × bobot) ÷ Σ(bobot); penempatan 9-box diturunkan dari (skor × potensi).'],
+      sheets: [{ name: 'Kalibrasi', columns: ['ID', 'Karyawan', 'Jabatan', 'Tahapan', 'Skor Kinerja', 'Potensi', '9-Box', 'Rekomendasi', 'Catatan Integritas'], rows, colWidths: [10, 24, 22, 18, 12, 10, 22, 18, 28] }],
     });
   };
 
@@ -258,11 +301,18 @@ function Performance() {
       <SubBar moduleId="performance" right={<div className="row gap8 ac"><Badge kind="blue">{C.cycle} · {C.phase}</Badge><Btn sm onClick={onExport}><I.download size={13} /> Laporan Kalibrasi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={calibrated + ' / ' + people.length} label="Terkalibrasi" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pendingMgr} label="Menunggu Reviu Manajer" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgPerf.toFixed(2)} label="Rata-rata Skor Kinerja" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={people.filter((p: any) => p.promote && p.promote !== '—').length} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={summary.calibrated + ' / ' + summary.people} label="Terkalibrasi" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={summary.pendingManager} label="Menunggu Reviu Manajer" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={scoreText(summary.avgScore)} label={summary.unscored ? `Rata-rata Skor (${summary.scored} dari ${summary.people} dapat dinilai)` : 'Rata-rata Skor Kinerja'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={summary.promotionCandidates} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
         </div>
+
+        {(summary.unscored > 0 || summary.unattributed > 0) && (
+          <div className="panel" style={{ padding: '9px 12px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+            {summary.unscored > 0 && <div className="tiny" style={{ lineHeight: 1.5 }}><b>{summary.unscored} orang</b> belum punya sasaran/KPI — skor kinerjanya tak dapat dihitung dan tidak ikut rata-rata.</div>}
+            {summary.unattributed > 0 && <div className="tiny" style={{ lineHeight: 1.5, marginTop: summary.unscored ? 4 : 0 }}><b>{summary.unattributed} orang</b> punya tahapan bertanda selesai yang tak dapat ditanyakan siapa pembubuhnya (warisan data lama atau contoh demo).</div>}
+          </div>
+        )}
 
         <div className="grid" style={{ gridTemplateColumns: '1.35fr 1fr', gap: 12, alignItems: 'start' }}>
           {/* roster + progress */}
@@ -271,19 +321,19 @@ function Performance() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th style={{ width: 180 }}>Tahapan</th><th className="num">Skor</th><th>Penempatan</th></tr></thead>
               <tbody>
-                {people.map((p: any) => {
-                  const pi = phaseIdx(p);
+                {roster.map((s) => {
+                  const p = cycle[s.id];
                   return (
-                    <tr key={p.id} className={p.id === sel ? 'sel' : ''} onClick={() => setSel(p.id)} style={{ cursor: 'pointer' }}>
-                      <td><div className="row ac gap8"><Avatar name={p.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{p.name}</span></div></td>
+                    <tr key={s.id} className={s.id === selId ? 'sel' : ''} onClick={() => setSel(s.id)} style={{ cursor: 'pointer' }}>
+                      <td><div className="row ac gap8"><Avatar name={s.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{s.name}</span></div></td>
                       <td>
                         <div className="row gap4 ac">
-                          {PERF_PHASES.map((ph, i) => <span key={i} title={ph} style={{ flex: 1, height: 5, borderRadius: 3, background: i < pi ? 'var(--green)' : i === pi ? 'var(--amber)' : 'var(--surface-3)' }} />)}
+                          {p.stages.map((st, i) => <span key={st.key} title={`${st.label} — ${st.done ? stampText(st) : st.meta.rule}`} style={{ flex: 1, height: 5, borderRadius: 3, background: st.done ? (st.attributed ? 'var(--green)' : 'var(--amber)') : i === p.stageIndex ? 'var(--blue-050)' : 'var(--surface-3)' }} />)}
                         </div>
-                        <div className="tiny muted" style={{ marginTop: 3 }}>{p.calibrated ? 'Selesai' : PERF_PHASES[pi] || 'Mulai'}</div>
+                        <div className="tiny muted" style={{ marginTop: 3 }}>{p.complete ? 'Selesai' : PERF_STAGES[p.stageIndex].label}</div>
                       </td>
-                      <td className="num mono" style={{ fontWeight: 700 }}>{p.perf.toFixed(1)}</td>
-                      <td><span className="tiny" style={{ fontWeight: 600, color: p.box.includes('Bintang') ? 'var(--green)' : p.box.includes('Tinggi') ? 'var(--blue)' : 'var(--ink-2)' }}>{p.box}</span></td>
+                      <td className="num mono" style={{ fontWeight: 700 }} title={p.score.note || `Σ(skor × bobot) ÷ ${p.score.weightSum}`}>{scoreText(p.score.score)}</td>
+                      <td><span className="tiny" style={{ fontWeight: 600, color: !p.placement.placeable ? 'var(--ink-4)' : p.placement.py === 2 && p.placement.px === 2 ? 'var(--green)' : p.placement.px === 2 ? 'var(--blue)' : 'var(--ink-2)' }} title={p.placement.action || p.placement.note}>{p.placement.placeable ? p.placement.label : '—'}</span></td>
                     </tr>
                   );
                 })}
@@ -298,10 +348,11 @@ function Performance() {
                 <div style={{ flex: 1 }}>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,52px)', gap: 4 }}>
                     {[2, 1, 0].map(py => [0, 1, 2].map(px => {
-                      const here = people.filter((p: any) => band(p.perf) === px && band(p.pot) === py);
+                      const cell = NINE_BOX[py][px];
+                      const here = roster.filter((s) => cycle[s.id].placement.px === px && cycle[s.id].placement.py === py);
                       return (
-                        <div key={py + '-' + px} style={{ background: boxColor(px, py), borderRadius: 6, padding: 4, display: 'flex', flexWrap: 'wrap', gap: 3, alignContent: 'flex-start', border: '1px solid var(--line-soft)' }}>
-                          {here.map((p: any) => <span key={p.id} onClick={() => setSel(p.id)} title={p.name} style={{ cursor: 'pointer', outline: p.id === sel ? '2px solid var(--navy)' : 'none', borderRadius: '50%' }}><Avatar name={p.name} size={22} /></span>)}
+                        <div key={py + '-' + px} title={`${cell.label} — ${cell.action}`} style={{ background: boxColor(px, py), borderRadius: 6, padding: 4, display: 'flex', flexWrap: 'wrap', gap: 3, alignContent: 'flex-start', border: '1px solid var(--line-soft)' }}>
+                          {here.map((s) => <span key={s.id} onClick={() => setSel(s.id)} title={s.name} style={{ cursor: 'pointer', outline: s.id === selId ? '2px solid var(--navy)' : 'none', borderRadius: '50%' }}><Avatar name={s.name} size={22} /></span>)}
                         </div>
                       );
                     }))}
@@ -309,29 +360,44 @@ function Performance() {
                   <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--ink-4)', fontWeight: 600, letterSpacing: '.05em', marginTop: 4 }}>KINERJA →</div>
                 </div>
               </div>
+              {summary.unscored > 0 && <div className="tiny muted" style={{ marginTop: 8 }}>{summary.unscored} orang tidak muncul di matriks karena skor atau potensinya belum dapat ditentukan.</div>}
             </div>
           </Panel>
 
           {/* detail */}
           <Panel noBody>
             <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <Avatar name={person.name} size={42} />
-              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
-              {person.calibrated ? <Badge kind="green">Terkalibrasi</Badge> : <Badge kind="amber">{PERF_PHASES[phaseIdx(person)]}</Badge>}
+              <Avatar name={personRow.name} size={42} />
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{personRow.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{personRow.role}</div></div>
+              {person.complete ? <Badge kind="green">Terkalibrasi</Badge> : <Badge kind="amber">{PERF_STAGES[person.stageIndex].label}</Badge>}
             </div>
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-                <RowKvBox label="Skor Kinerja" v={person.perf.toFixed(1) + ' / 5'} accent={person.perf >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
-                <RowKvBox label="Potensi" v={person.pot.toFixed(1) + ' / 5'} accent="var(--purple)" />
-                <RowKvBox label="Penempatan 9-Box" v={person.box} />
+                <RowKvBox label="Skor Kinerja" v={person.score.score === null ? 'Belum dapat dinilai' : person.score.score.toFixed(2) + ' / 5'} accent={person.score.score === null ? 'var(--ink-3)' : person.score.score >= 4.3 ? 'var(--green)' : 'var(--blue)'} />
+                <RowKvBox label="Potensi" v={person.pot === null ? '—' : person.pot.toFixed(1) + ' / 5'} accent="var(--purple)" />
+                <RowKvBox label="Penempatan 9-Box" v={person.placement.placeable ? person.placement.label : person.placement.note || '—'} />
                 <RowKvBox label="Rekomendasi" v={person.promote === '—' ? 'Pertahankan' : person.promote} accent={person.promote !== '—' ? 'var(--purple)' : undefined} />
               </div>
 
-              {goals ? (
+              {/* rantai tahapan ber-identitas */}
+              <div className="tiny muted upper" style={{ marginBottom: 8 }}>Tahapan &amp; Penanggung Jawab</div>
+              <div style={{ display: 'grid', gap: 6, marginBottom: 14 }}>
+                {person.stages.map((st) => (
+                  <div key={st.key} className="row jb ac" style={{ padding: '6px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+                    <span className="tiny" style={{ fontWeight: 600 }} title={st.meta.rule}>{st.label}</span>
+                    <span className="tiny" style={{ color: st.done ? (st.attributed ? 'var(--green)' : 'var(--amber)') : 'var(--ink-4)' }}>{stampText(st)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {person.goals.length ? (
                 <>
-                  <div className="tiny muted upper" style={{ marginBottom: 8 }}>Sasaran & KPI ({C.cycle})</div>
+                  <div className="row jb ac" style={{ marginBottom: 8 }}>
+                    <span className="tiny muted upper">Sasaran &amp; KPI ({C.cycle})</span>
+                    <span className="tiny muted">Σ bobot {person.score.weightSum}%</span>
+                  </div>
                   <div style={{ display: 'grid', gap: 9, marginBottom: 14 }}>
-                    {goals.map((g: any, i: any) => (
+                    {person.goals.map((g, i) => (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{g.kpi}</span><span className="chip tiny">{g.weight}%</span></div>
                         <div className="row jb ac">
@@ -342,15 +408,19 @@ function Performance() {
                       </div>
                     ))}
                   </div>
+                  <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>Skor kinerja <b>{scoreText(person.score.score)}</b> = Σ(skor × bobot) ÷ {person.score.weightSum}. Tak ada angka headline yang disimpan terpisah dari daftar ini.</div>
                 </>
               ) : (
                 <div className="panel" style={{ padding: 14, textAlign: 'center', boxShadow: 'none', marginBottom: 14 }}>
-                  <div className="tiny muted" style={{ lineHeight: 1.5 }}>Rincian KPI tersedia setelah self-review & manager-review dilengkapi.</div>
+                  <div className="tiny muted" style={{ lineHeight: 1.5 }}>Belum ada sasaran/KPI untuk orang ini, sehingga skor kinerjanya <b>tak dapat dihitung</b> — bukan nol.</div>
                 </div>
               )}
 
-              {!person.calibrated && (
-                <Btn variant="primary" style={{ width: '100%' }} onClick={() => advance(person.id)}><I.check size={14} /> {!person.selfDone ? 'Tandai Self-Review Selesai' : person.mgrDone ? 'Tandai Terkalibrasi' : 'Selesaikan Reviu Manajer'}</Btn>
+              {!person.complete && nextStage && (
+                <>
+                  <Btn variant="primary" style={{ width: '100%', opacity: check.ok ? 1 : .55 }} disabled={!check.ok} title={check.ok ? nextStage.rule : check.reason} onClick={() => advance(selId)}><I.check size={14} /> Bubuhkan {nextStage.label}</Btn>
+                  <div className="tiny" style={{ marginTop: 6, lineHeight: 1.5, color: check.ok ? 'var(--ink-3)' : 'var(--amber)' }}>{check.ok ? nextStage.rule : check.reason}</div>
+                </>
               )}
             </div>
           </Panel>
