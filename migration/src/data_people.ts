@@ -5,6 +5,9 @@
    Learning · Ethics/AML · HR Cases). Loaded AFTER data.js.
    ============================================================ */
 import { AMS } from './data';
+import { ORG_EXT } from './data_roster';
+import { hcmAttrition, hcmAttritionByGrade, hcmDemographics, hcmHeadcountTrend, hcmTimeToFill } from './canon_hcm';
+import type { HcmExit, HcmMember, HcmRequisition } from './canon_hcm';
 (function () {
   const A = AMS;
 
@@ -20,6 +23,7 @@ import { AMS } from './data';
     'EMP-022': { reports: 'EMP-008', dept: 'Audit & Asurans' },
     'EMP-031': { reports: 'EMP-021', dept: 'Audit & Asurans' },
     'EMP-032': { reports: 'EMP-022', dept: 'Audit & Asurans' },
+    ...ORG_EXT,   // PR-4 — garis pelaporan 59 personel tambahan
   };
   const DEPT_HEAD = {
     'Audit & Asurans': 'EMP-002',
@@ -47,28 +51,42 @@ import { AMS } from './data';
       timeline: [['2024', 'Bergabung sebagai Junior'], ['2025', 'Rotasi tim manufaktur']] },
   };
 
-  /* ---- HCM analytics: headcount, attrition, demographics ---- */
+  /* ---- HCM analytics — DITURUNKAN (PRD sdm-kepatuhan PR-4) ----
+     Seluruh blok ini dulu literal. Ia mengklaim 69 orang sementara roster berisi
+     10, memberi warna kondisional pada `annualAttrition` (amber bila > 15)
+     sehingga sebuah konstanta tampak seperti hasil pemantauan, dan menaruh
+     `annualAttrition: 16` bersebelahan dengan `regrettable: 62` — pasangan yang
+     MUSTAHIL benar bersamaan untuk firma seukuran ini (hanya ada solusi bulat
+     pada headcount 79–83, sementara `gradeMix` di objek yang sama berbunyi 69).
+
+     Kini semuanya dihitung `canon_hcm` dari roster (69 orang, `data_roster.ts`)
+     dan register keluar (`AMS.EXITS`). Distribusi lamanya direproduksi PERSIS —
+     ia menjadi spesifikasi roster, lalu dihapus. Yang BERGERAK, dan sengaja:
+
+       regrettable  62% → 64%  (7 dari 11; 62% tak dapat dicapai pecahan bulat
+                                mana pun pada 11 kepergian)
+       timeToFill   38 → diturunkan dari tanggal requisition dibuka→terisi
+       headcountTrend           dihitung mundur dari roster + register keluar,
+                                jadi ia SELALU menutup ke jumlah yang nyata. */
+  const hcmRoster = () => (A as unknown as { STAFF?: HcmMember[] }).STAFF || [];
+  const hcmExits = () => (A as unknown as { EXITS?: HcmExit[] }).EXITS || [];
+  const hcmAsOf = () => String((A as unknown as { TODAY?: string }).TODAY || '');
   const HCM_ANALYTICS = {
-    headcountTrend: [ // last 8 quarters
-      { q: "Q4'24", total: 58, hires: 4, exits: 2 },
-      { q: "Q1'25", total: 60, hires: 5, exits: 3 },
-      { q: "Q2'25", total: 61, hires: 3, exits: 2 },
-      { q: "Q3'25", total: 63, hires: 6, exits: 4 },
-      { q: "Q4'25", total: 64, hires: 4, exits: 3 },
-      { q: "Q1'26", total: 66, hires: 7, exits: 5 },
-      { q: "Q2'26", total: 68, hires: 5, exits: 3 },
-      { q: "Q3'26", total: 69, hires: 3, exits: 2 },
-    ],
-    gradeMix: [ { g: 'Partner', n: 6 }, { g: 'Manager', n: 11 }, { g: 'Senior', n: 22 }, { g: 'Junior', n: 30 } ],
-    genderMix: [ { k: 'Laki-laki', n: 38 }, { k: 'Perempuan', n: 31 } ],
-    tenureMix: [ { k: '< 2 th', n: 28 }, { k: '2–5 th', n: 24 }, { k: '5–10 th', n: 12 }, { k: '> 10 th', n: 5 } ],
-    ageMix: [ { k: '20–25', n: 22 }, { k: '26–30', n: 20 }, { k: '31–40', n: 18 }, { k: '> 40', n: 9 } ],
-    attritionByGrade: [ { g: 'Junior', rate: 24 }, { g: 'Senior', rate: 14 }, { g: 'Manager', rate: 7 }, { g: 'Partner', rate: 0 } ],
-    annualAttrition: 16, // %
-    avgTenure: 3.8, // years
-    regrettable: 62, // % of exits that were regrettable
-    timeToFill: 38, // days avg
-    certMix: [ { k: 'CPA', n: 17 }, { k: 'CA', n: 24 }, { k: 'Kandidat CPA', n: 9 }, { k: 'S.Ak', n: 19 } ],
+    get headcountTrend() { return hcmHeadcountTrend(hcmRoster(), hcmExits(), hcmAsOf()); },
+    get gradeMix() { return hcmDemographics(hcmRoster(), hcmAsOf()).gradeMix.map((b) => ({ g: b.k, n: b.n })); },
+    get genderMix() { return hcmDemographics(hcmRoster(), hcmAsOf()).genderMix; },
+    get tenureMix() { return hcmDemographics(hcmRoster(), hcmAsOf()).tenureMix; },
+    get ageMix() { return hcmDemographics(hcmRoster(), hcmAsOf()).ageMix; },
+    get certMix() { return hcmDemographics(hcmRoster(), hcmAsOf()).certMix; },
+    get avgTenure() { return hcmDemographics(hcmRoster(), hcmAsOf()).avgTenure; },
+    get attritionByGrade() {
+      return hcmAttritionByGrade(hcmRoster(), hcmExits(), hcmAsOf()).map((r) => ({ g: r.g, rate: r.ratePct ?? 0 }));
+    },
+    get annualAttrition() { return hcmAttrition(hcmRoster(), hcmExits(), hcmAsOf()).ratePct; },
+    get regrettable() { return hcmAttrition(hcmRoster(), hcmExits(), hcmAsOf()).regrettablePct; },
+    get timeToFill() { return hcmTimeToFill((A as unknown as { REQUISITIONS?: HcmRequisition[] }).REQUISITIONS).days; },
+    get attritionBasis() { return hcmAttrition(hcmRoster(), hcmExits(), hcmAsOf()).basis; },
+    get timeToFillBasis() { return hcmTimeToFill((A as unknown as { REQUISITIONS?: HcmRequisition[] }).REQUISITIONS).basis; },
   };
 
   /* ========================================================
@@ -124,7 +142,7 @@ import { AMS } from './data';
     { id: 'REQ-2026-07', title: 'Senior Auditor (PIE)', grade: 'Senior', dept: 'Audit & Asurans', count: 2, filled: 0, status: 'Dibuka', priority: 'Tinggi', hiringMgr: 'EMP-007', opened: '2026-02-12', target: '2026-05-01', applicants: 34, reason: 'Kapasitas musim audit (QR-02)' },
     { id: 'REQ-2026-06', title: 'Junior Auditor', grade: 'Junior', dept: 'Audit & Asurans', count: 4, filled: 2, status: 'Dibuka', priority: 'Sedang', hiringMgr: 'EMP-008', opened: '2026-01-20', target: '2026-04-15', applicants: 96, reason: 'Pertumbuhan portofolio' },
     { id: 'REQ-2026-05', title: 'Manager — Jasa Non-Audit', grade: 'Manager', dept: 'Mutu, Etika & Non-Audit', count: 1, filled: 0, status: 'Persetujuan', priority: 'Sedang', hiringMgr: 'EMP-003', opened: '2026-03-01', target: '2026-06-01', applicants: 11, reason: 'Ekspansi lini asurans SPA' },
-    { id: 'REQ-2026-04', title: 'Spesialis Pajak', grade: 'Senior', dept: 'Audit & Asurans', count: 1, filled: 1, status: 'Terisi', priority: 'Tinggi', hiringMgr: 'EMP-002', opened: '2025-12-05', target: '2026-02-28', applicants: 22, reason: 'Dukungan PSAK & pajak korporasi' },
+    { id: 'REQ-2026-04', title: 'Spesialis Pajak', grade: 'Senior', dept: 'Audit & Asurans', count: 1, filled: 1, status: 'Terisi', priority: 'Tinggi', hiringMgr: 'EMP-002', opened: '2025-12-05', filledDate: '2026-01-12', target: '2026-02-28', applicants: 22, reason: 'Dukungan PSAK & pajak korporasi' },
   ];
   const CAND_STAGES = ['Pelamar', 'Penyaringan', 'Wawancara', 'Penawaran', 'Diterima'];
   const CANDIDATES = [

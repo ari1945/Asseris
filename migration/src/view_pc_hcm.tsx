@@ -256,14 +256,21 @@ function HCMAnalytics() {
     <div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalHC} label="Headcount Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.annualAttrition + '%'} label="Attrition Tahunan" accent={D.annualAttrition > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }} title={D.attritionBasis}><Stat value={D.annualAttrition == null ? '—' : D.annualAttrition + '%'} label="Attrition Tahunan" accent={(D.annualAttrition ?? 0) > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable == null ? 'belum ada kepergian tercatat' : D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.avgTenure == null ? '—' : D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }} title={D.timeToFillBasis}><Stat value={D.timeToFill == null ? 'belum dapat dihitung' : D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
+      </div>
+
+      {/* PRD sdm-kepatuhan PR-4 — angka di atas DITURUNKAN; dasarnya disebutkan
+          agar dapat dibantah, bukan sekadar dipercaya. */}
+      <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>
+        Seluruh angka pada halaman ini diturunkan dari roster {totalHC} personel dan register kepergian —
+        bukan konstanta. Attrition: {D.attritionBasis}. Time-to-fill: {D.timeToFillBasis}.
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, marginBottom: 12, alignItems: 'stretch' }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Tren Headcount & Pergerakan</h3><div style={{ flex: 1 }} /><span className="tiny muted">8 kuartal · hire vs exit</span></div>
+          <div className="panel-h"><h3>Tren Headcount & Pergerakan</h3><div style={{ flex: 1 }} /><span className="tiny muted">5 tahun · masuk vs keluar (presisi tahunan — roster menyimpan tahun bergabung)</span></div>
           <div style={{ padding: 16 }}>
             <div className="row" style={{ gap: 10, alignItems: 'flex-end', height: 160 }}>
               {D.headcountTrend.map((t: any, i: any) => (

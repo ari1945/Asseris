@@ -163,11 +163,15 @@ export function isStructuredSkp(e: SkpEntry): boolean {
 /**
  * Ringkas realisasi, termasuk limb materi wajib.
  *
- * Materi wajib hanya dapat diklaim bila SELURUH entri terstruktur terklasifikasi.
+ * Materi wajib hanya dapat diuji bila SELURUH entri terstruktur terklasifikasi.
  * Klasifikasi sebagian akan mengecilkan limb materi tanpa ketahuan, lalu
  * `topicsTracked` berbohong bahwa ia dapat diuji — maka bar-nya seluruhnya.
  * Entri tidak terstruktur tak perlu topik: Pasal 37 menaruh materi wajib
  * DI DALAM yang terstruktur.
+ *
+ * Nol entri terstruktur = terlacak SECARA HAMPA: kedua limb materi pasti 0, dan
+ * itu dapat dinyatakan dengan pasti. Memperlakukannya "tak terlacak" akan
+ * menyembunyikan kegagalan yang justru paling terang.
  */
 export function pplFromEntries(entries: readonly SkpEntry[] | null | undefined): PplRealisasi {
   let structured = 0, unstructured = 0;
@@ -184,7 +188,7 @@ export function pplFromEntries(entries: readonly SkpEntry[] | null | undefined):
     if (e.topic === 'pembinaan') pembinaan += n;
     else if (e.topic === 'akuntansi') akuntansi += n;
   }
-  const tracked = structuredCount > 0 && classified === structuredCount;
+  const tracked = classified === structuredCount;
   return {
     structured, unstructured,
     topicPembinaan: tracked ? pembinaan : undefined,

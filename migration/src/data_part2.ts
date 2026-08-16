@@ -2,6 +2,7 @@
    Asseris — data part2 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { fmt } from './data_base';
+import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
 
   const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
   /* Kurs BUKU — kurs saat transaksi dibukukan; buku besar mencatat valas pada kurs ini.
@@ -167,6 +168,7 @@ import { fmt } from './data_base';
     // sendiri agar dashboard "Data Personal Saya" mereka terisi. Tak muncul di roster audit (view HCM/payroll iterasi AMS.STAFF).
     'EMP-501': { gross: 22_000_000, allowance: 2_500_000, ptkp: 'K/1', terCat: 'A', ter: 0.09 },
     'EMP-601': { gross: 24_000_000, allowance: 2_500_000, ptkp: 'K/2', terCat: 'B', ter: 0.10 },
+    ...PAYROLL_EXT,   // PR-4 — 59 personel tambahan roster
   };
   /* BPJS & statutory rates */
   const PAYROLL_RATES = {
@@ -230,6 +232,7 @@ import { fmt } from './data_base';
     'EMP-021': { carry: 0 }, 'EMP-022': { carry: 0 },
     'EMP-031': { carry: 0 }, 'EMP-032': { carry: 0 },
     'EMP-501': { carry: 1 }, 'EMP-601': { carry: 0 }, // firm-ops (FIRM_STAFF)
+    ...LEAVE_CARRY_EXT,   // PR-4 — 59 personel tambahan roster
   };
   /* Register peristiwa cuti = SSOT saldo terpakai.
      Baris LV-0021..LV-0031 adalah cuti Jan–Feb 2026 yang SEBELUMNYA hanya ada
