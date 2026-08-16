@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-16 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9) · **PR-3 SELESAI** (SC-10·11) · **PR-4 SELESAI** (SC-1·2·3·24·25) · **PR-5 SELESAI** (SC-12·13·14). **PR-6–PR-7** — PR-4..PR-7 menunggu keputusan |
+| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9) · **PR-3 SELESAI** (SC-10·11) · **PR-4 SELESAI** (SC-1·2·3·24·25) · **PR-5 SELESAI** (SC-12·13·14) · **PR-6 SELESAI** (SC-15·16·17). **PR-7** — PR-4..PR-7 menunggu keputusan |
 | Pemicu | Permintaan: "Kembangkan lebih dalam fitur pada modul-modul pada grup menu *SDM & Kepatuhan* sampai tingkat memadai" |
 | Modul | 12 modul grup `SDM & Kepatuhan` (`icons.tsx:116–129`): `hcm` · `orgchart` · `recruitment` · `learning` · `succession` · `payroll` · `leave` · `performance` · `cpe` · `ethics` · `independence` · `hrcase` |
 | Berkas | `view_people.tsx` · `view_pc_hcm.tsx` · `view_pc_org.tsx` · `view_pc_talent.tsx` · `view_pc_conduct.tsx` · `view_payroll.tsx` · `view_hrops.tsx` · `view_independence.tsx` · `data_people.ts` · `data_part1.ts` · `data_part2.ts` |
@@ -427,7 +427,7 @@ Tujuh PR, masing-masing mandiri dan `verify` hijau. Urutan dipilih agar cacat
 | **PR-3** ✅ | PPL: satu mesin, bukan dua | SC-10·11 | `canon_ppl.ts` (diperluas: topik) · `ppl_single_engine.test.ts` (baru, 28 uji) · `view_people.tsx` · `data_licensing.ts` · `cpe_training.ts` · `data_part1.ts` · `data_people.ts` |
 | **PR-4** ✅ | Human Capital: roster sebagai SSOT (69 orang) | SC-1·2·3·24·25 | `canon_hcm.ts` (baru) · `view_pc_hcm.tsx` · `data_people.ts` · `data_part1.ts` |
 | **PR-5** ✅ | Payroll: TER yang dihitung, jurnal yang diposting | SC-12·13·14 | `canon_pph21.ts` (baru) · `view_payroll.tsx` · `firmgl` |
-| **PR-6** | Rekrutmen & Pelatihan: penghitung yang punya nama | SC-15·16·17 | `canon_talent.ts` (baru) · `view_pc_talent.tsx` · `cpe_training.ts` |
+| **PR-6** ✅ | Rekrutmen & Pelatihan: penghitung yang punya nama | SC-15·16·17 | `canon_talent.ts` (baru) · `view_pc_talent.tsx` · `cpe_training.ts` |
 | **PR-7** | Suksesi, Konduk & Rotasi: gerbang yang bisa berkata tidak | SC-18·19·20·21·22·23 | `canon_succession.ts` · `canon_conduct.ts` (baru) · `view_pc_org.tsx` · `view_pc_conduct.tsx` · `view_independence.tsx` · `member_independence.ts` |
 
 Perkiraan: PR-1..PR-3 kecil–sedang; PR-4·PR-5 sedang; PR-6·PR-7 besar. PR-7 dapat

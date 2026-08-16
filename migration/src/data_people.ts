@@ -138,11 +138,17 @@ import type { HcmExit, HcmMember, HcmRequisition } from './canon_hcm';
   /* ========================================================
      2) RECRUITMENT & ONBOARDING
      ======================================================== */
+  /* `applicants` → `applicantsDeclared` (PRD sdm-kepatuhan PR-6).
+     Ia jumlah lamaran MASUK menurut portal/ATS di luar aplikasi — memang tak
+     dapat diturunkan di sini. Dulu ia berdiri bersebelahan dengan `filled`
+     seolah keduanya sejenis, sehingga "34 pelamar" tampak seperti 34 orang di
+     register padahal registernya berisi empat. `filled` kini DITURUNKAN dari
+     kandidat tahap "Diterima" ∪ onboarding yang menunjuk requisition ini. */
   const REQUISITIONS = [
-    { id: 'REQ-2026-07', title: 'Senior Auditor (PIE)', grade: 'Senior', dept: 'Audit & Asurans', count: 2, filled: 0, status: 'Dibuka', priority: 'Tinggi', hiringMgr: 'EMP-007', opened: '2026-02-12', target: '2026-05-01', applicants: 34, reason: 'Kapasitas musim audit (QR-02)' },
-    { id: 'REQ-2026-06', title: 'Junior Auditor', grade: 'Junior', dept: 'Audit & Asurans', count: 4, filled: 2, status: 'Dibuka', priority: 'Sedang', hiringMgr: 'EMP-008', opened: '2026-01-20', target: '2026-04-15', applicants: 96, reason: 'Pertumbuhan portofolio' },
-    { id: 'REQ-2026-05', title: 'Manager — Jasa Non-Audit', grade: 'Manager', dept: 'Mutu, Etika & Non-Audit', count: 1, filled: 0, status: 'Persetujuan', priority: 'Sedang', hiringMgr: 'EMP-003', opened: '2026-03-01', target: '2026-06-01', applicants: 11, reason: 'Ekspansi lini asurans SPA' },
-    { id: 'REQ-2026-04', title: 'Spesialis Pajak', grade: 'Senior', dept: 'Audit & Asurans', count: 1, filled: 1, status: 'Terisi', priority: 'Tinggi', hiringMgr: 'EMP-002', opened: '2025-12-05', filledDate: '2026-01-12', target: '2026-02-28', applicants: 22, reason: 'Dukungan PSAK & pajak korporasi' },
+    { id: 'REQ-2026-07', title: 'Senior Auditor (PIE)', grade: 'Senior', dept: 'Audit & Asurans', count: 2, status: 'Dibuka', priority: 'Tinggi', hiringMgr: 'EMP-007', opened: '2026-02-12', target: '2026-05-01', applicantsDeclared: 34, reason: 'Kapasitas musim audit (QR-02)' },
+    { id: 'REQ-2026-06', title: 'Junior Auditor', grade: 'Junior', dept: 'Audit & Asurans', count: 4, status: 'Dibuka', priority: 'Sedang', hiringMgr: 'EMP-008', opened: '2026-01-20', target: '2026-04-15', applicantsDeclared: 96, reason: 'Pertumbuhan portofolio' },
+    { id: 'REQ-2026-05', title: 'Manager — Jasa Non-Audit', grade: 'Manager', dept: 'Mutu, Etika & Non-Audit', count: 1, status: 'Persetujuan', priority: 'Sedang', hiringMgr: 'EMP-003', opened: '2026-03-01', target: '2026-06-01', applicantsDeclared: 11, reason: 'Ekspansi lini asurans SPA' },
+    { id: 'REQ-2026-04', title: 'Spesialis Pajak', grade: 'Senior', dept: 'Audit & Asurans', count: 1, status: 'Terisi', priority: 'Tinggi', hiringMgr: 'EMP-002', opened: '2025-12-05', filledDate: '2026-01-12', target: '2026-02-28', applicantsDeclared: 22, reason: 'Dukungan PSAK & pajak korporasi' },
   ];
   const CAND_STAGES = ['Pelamar', 'Penyaringan', 'Wawancara', 'Penawaran', 'Diterima'];
   const CANDIDATES = [
@@ -155,12 +161,15 @@ import type { HcmExit, HcmMember, HcmRequisition } from './canon_hcm';
     { id: 'C-107', name: 'Bagas Nugroho', req: 'REQ-2026-06', stage: 'Penyaringan', source: 'Job Portal', rating: 3.6, exp: 'Fresh', cert: 'S.Ak', current: 'Fresh grad', expected: 'Rp 9 jt', note: '' },
     { id: 'C-108', name: 'Sherly Anjani', req: 'REQ-2026-05', stage: 'Wawancara', source: 'Headhunter', rating: 4.5, exp: '7 th', cert: 'CPA, CA', current: 'KAP Big-4', expected: 'Rp 42 jt', note: 'Spesialis asurans keberlanjutan (SPA 3000).' },
     { id: 'C-109', name: 'Doni Kurnia', req: 'REQ-2026-07', stage: 'Pelamar', source: 'LinkedIn', rating: 0, exp: '4 th', cert: 'CA', current: 'KAP Tier-2', expected: 'Rp 25 jt', note: '' },
+    { id: 'C-111', name: 'Arya Baskara', req: 'REQ-2026-06', stage: 'Diterima', source: 'Kampus (UGM)', rating: 4.0, exp: 'Fresh', cert: 'S.Ak', current: 'Mulai 1 Apr', expected: 'Rp 9,8 jt', note: 'Onboarding dijadwalkan.' },
     { id: 'C-110', name: 'Vina Maharani', req: 'REQ-2026-06', stage: 'Diterima', source: 'Kampus (UI)', rating: 4.2, exp: 'Fresh', cert: 'S.Ak', current: 'Mulai 1 Apr', expected: 'Rp 10 jt', note: 'Onboarding dijadwalkan.' },
   ];
+  /* `req` & `cand` ditambahkan (PR-6): tanpa tautan itu onboarding tak dapat
+     dihubungkan ke lowongan yang diisinya, sehingga `filled` tak punya dasar. */
   const ONBOARDING_HIRES = [
-    { id: 'NH-01', name: 'Vina Maharani', role: 'Junior Auditor', start: '2026-04-01', buddy: 'EMP-021', progress: 35,
+    { id: 'NH-01', name: 'Vina Maharani', req: 'REQ-2026-06', cand: 'C-110', role: 'Junior Auditor', start: '2026-04-01', buddy: 'EMP-021', progress: 35,
       tasks: [ { t: 'Kontrak & dokumen kepegawaian', done: true, owner: 'HR' }, { t: 'Pembuatan akun & akses sistem', done: true, owner: 'IT' }, { t: 'Deklarasi independensi & kode etik', done: true, owner: 'Etika' }, { t: 'Pelatihan metodologi audit (onboarding)', done: false, owner: 'L&D' }, { t: 'Pendaftaran PPL IAPI', done: false, owner: 'L&D' }, { t: 'Penugasan perikatan pertama', done: false, owner: 'Manager' } ] },
-    { id: 'NH-02', name: 'Spesialis Pajak (terisi)', role: 'Senior — Pajak', start: '2026-03-03', buddy: 'EMP-008', progress: 83,
+    { id: 'NH-02', name: 'Galuh Wicaksono', req: 'REQ-2026-04', role: 'Senior — Pajak', start: '2026-03-03', buddy: 'EMP-008', progress: 83,
       tasks: [ { t: 'Kontrak & dokumen kepegawaian', done: true, owner: 'HR' }, { t: 'Pembuatan akun & akses sistem', done: true, owner: 'IT' }, { t: 'Deklarasi independensi & kode etik', done: true, owner: 'Etika' }, { t: 'Screening PMPJ internal', done: true, owner: 'Etika' }, { t: 'Pelatihan sistem & metodologi', done: true, owner: 'L&D' }, { t: 'Penugasan perikatan pertama', done: false, owner: 'Manager' } ] },
   ];
 
@@ -192,14 +201,31 @@ import type { HcmExit, HcmMember, HcmRequisition } from './canon_hcm';
     'EMP-031': { 'CO-01': 3, 'CO-02': 2, 'CO-03': 3, 'CO-04': 2, 'CO-05': 1, 'CO-06': 2, 'CO-07': 3 },
     'EMP-032': { 'CO-01': 2, 'CO-02': 2, 'CO-03': 4, 'CO-04': 1, 'CO-05': 1, 'CO-06': 2, 'CO-07': 3 },
   };
+  /* `enrolled: <angka>` DICABUT (PR-6). `doEnroll` dulu menaikkan bilangan bulat
+     tanpa satu pun `empId`, sementara `cpeFromTraining` membaca kehadiran yang
+     BERKUNCI empId — dua dunia terpisah: 25 orang dapat "terdaftar" dengan nol
+     kehadiran, dan kehadiran dapat dikonfirmasi untuk orang yang tak pernah
+     mendaftar. Pendaftaran kini daftar NAMA (`TRAINING_ENROLMENT`), dan jumlahnya
+     menutup persis ke angka literal lama. */
   const TRAINING_CATALOG = [
-    { id: 'TR-01', title: 'Update SA Terkini & ISA Alignment', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 8, hours: 16, date: '2026-04-10', seats: 30, enrolled: 22, comp: 'CO-01', topic: 'akuntansi' },
-    { id: 'TR-02', title: 'PSAK 71/72/73 Deep Dive', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Daring', skp: 8, hours: 16, date: '2026-04-24', seats: 40, enrolled: 18, comp: 'CO-02', topic: 'akuntansi' },
-    { id: 'TR-03', title: 'Audit Data Analytics (Caseware IDEA)', provider: 'Internal', mode: 'Terstruktur', fmt: 'Daring', skp: 6, hours: 12, date: '2026-05-08', seats: 25, enrolled: 25, comp: 'CO-03', topic: 'akuntansi' },
-    { id: 'TR-04', title: 'Pajak Coretax & PPh Badan 2026', provider: 'DJP / IKPI', mode: 'Terstruktur', fmt: 'Daring', skp: 4, hours: 8, date: '2026-03-28', seats: 50, enrolled: 31, comp: 'CO-04', topic: 'lain' },
-    { id: 'TR-05', title: 'SMM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, enrolled: 9, comp: 'CO-05', topic: 'pembinaan' },
-    { id: 'TR-06', title: 'Coaching & Review Skills untuk Senior', provider: 'Internal', mode: 'Tidak Terstruktur', fmt: 'Luring', skp: 4, hours: 8, date: '2026-06-05', seats: 15, enrolled: 7, comp: 'CO-06', topic: 'pembinaan' },
+    { id: 'TR-01', title: 'Update SA Terkini & ISA Alignment', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 8, hours: 16, date: '2026-04-10', seats: 30, comp: 'CO-01', topic: 'akuntansi' },
+    { id: 'TR-02', title: 'PSAK 71/72/73 Deep Dive', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Daring', skp: 8, hours: 16, date: '2026-04-24', seats: 40, comp: 'CO-02', topic: 'akuntansi' },
+    { id: 'TR-03', title: 'Audit Data Analytics (Caseware IDEA)', provider: 'Internal', mode: 'Terstruktur', fmt: 'Daring', skp: 6, hours: 12, date: '2026-05-08', seats: 25, comp: 'CO-03', topic: 'akuntansi' },
+    { id: 'TR-04', title: 'Pajak Coretax & PPh Badan 2026', provider: 'DJP / IKPI', mode: 'Terstruktur', fmt: 'Daring', skp: 4, hours: 8, date: '2026-03-28', seats: 50, comp: 'CO-04', topic: 'lain' },
+    { id: 'TR-05', title: 'SMM 1 Implementation Workshop', provider: 'IAPI', mode: 'Terstruktur', fmt: 'Luring', skp: 6, hours: 12, date: '2026-05-20', seats: 20, comp: 'CO-05', topic: 'pembinaan' },
+    { id: 'TR-06', title: 'Coaching & Review Skills untuk Senior', provider: 'Internal', mode: 'Tidak Terstruktur', fmt: 'Luring', skp: 4, hours: 8, date: '2026-06-05', seats: 15, comp: 'CO-06', topic: 'pembinaan' },
   ];
+
+  /* Pendaftaran pelatihan — berkunci empId. Jumlah tiap baris SAMA PERSIS dengan
+     `enrolled` literal yang digantikannya (22 · 18 · 25 · 31 · 9 · 7). */
+  const TRAINING_ENROLMENT = {
+    "TR-01": ['EMP-001', 'EMP-007', 'EMP-021', 'EMP-032', 'EMP-103', 'EMP-203', 'EMP-206', 'EMP-301', 'EMP-304', 'EMP-307', 'EMP-310', 'EMP-313', 'EMP-316', 'EMP-319', 'EMP-402', 'EMP-405', 'EMP-408', 'EMP-411', 'EMP-414', 'EMP-417', 'EMP-420', 'EMP-423'],
+    "TR-02": ['EMP-022', 'EMP-101', 'EMP-201', 'EMP-204', 'EMP-207', 'EMP-302', 'EMP-305', 'EMP-308', 'EMP-311', 'EMP-314', 'EMP-317', 'EMP-320', 'EMP-403', 'EMP-406', 'EMP-409', 'EMP-412', 'EMP-415', 'EMP-418'],
+    "TR-03": ['EMP-202', 'EMP-205', 'EMP-208', 'EMP-303', 'EMP-306', 'EMP-309', 'EMP-312', 'EMP-315', 'EMP-318', 'EMP-401', 'EMP-404', 'EMP-407', 'EMP-410', 'EMP-413', 'EMP-416', 'EMP-419', 'EMP-422', 'EMP-425', 'EMP-428', 'EMP-003', 'EMP-012', 'EMP-031', 'EMP-102', 'EMP-302', 'EMP-304'],
+    "TR-04": ['EMP-301', 'EMP-304', 'EMP-307', 'EMP-310', 'EMP-313', 'EMP-316', 'EMP-319', 'EMP-402', 'EMP-405', 'EMP-408', 'EMP-411', 'EMP-414', 'EMP-417', 'EMP-420', 'EMP-423', 'EMP-426', 'EMP-001', 'EMP-007', 'EMP-021', 'EMP-032', 'EMP-103', 'EMP-203', 'EMP-206', 'EMP-314', 'EMP-315', 'EMP-317', 'EMP-318', 'EMP-320', 'EMP-401', 'EMP-403', 'EMP-404'],
+    "TR-05": ['EMP-308', 'EMP-311', 'EMP-314', 'EMP-317', 'EMP-320', 'EMP-403', 'EMP-406', 'EMP-409', 'EMP-412'],
+    "TR-06": ['EMP-315', 'EMP-318', 'EMP-401', 'EMP-404', 'EMP-407', 'EMP-410', 'EMP-413'],
+  };
 
   /* ========================================================
      4) ETHICS · ANNUAL DECLARATION · AML/PMPJ (staff)
@@ -263,7 +289,7 @@ import type { HcmExit, HcmMember, HcmRequisition } from './canon_hcm';
     ORG, DEPT_HEAD, STAFF_PROFILE, HCM_ANALYTICS,
     SUCCESSION_ROLES, CAREER_LADDER, IDP,
     REQUISITIONS, CAND_STAGES, CANDIDATES, ONBOARDING_HIRES,
-    COMPETENCIES, COMPETENCY_REQ, COMPETENCY_ACTUAL, TRAINING_CATALOG,
+    COMPETENCIES, COMPETENCY_REQ, COMPETENCY_ACTUAL, TRAINING_CATALOG, TRAINING_ENROLMENT,
     ETHICS_ITEMS, ETHICS_DECL, GIFTS_REGISTER, AML_SCREENING,
     HR_CASES, SANCTION_LADDER,
   });

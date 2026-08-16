@@ -6,6 +6,11 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { AccessDenied, Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
+import {
+  attendCheck, competencyCoverage, competencyLevel, enrolCheck, enrolmentState,
+  recruitmentSummary, requisitionState,
+} from './canon_talent';
+import type { TalentRequisition } from './canon_talent';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -25,9 +30,13 @@ function Recruitment() {
   const [hires, setHires] = useAmsPersist('pc.onboard', () => A.ONBOARDING_HIRES);
   const STAGES = A.CAND_STAGES;
 
-  const openReqs = A.REQUISITIONS.filter((r: any) => r.status === 'Dibuka').length;
-  const totalApp = A.REQUISITIONS.reduce((s: any, r: any) => s + r.applicants, 0);
-  const offers = cands.filter((c: any) => c.stage === 'Penawaran').length;
+  /* PRD sdm-kepatuhan PR-6 — `filled` & jumlah pipeline DITURUNKAN dari register
+     kandidat/onboarding; hanya lamaran masuk yang tetap angka DINYATAKAN, karena
+     ia memang berasal dari portal di luar aplikasi. */
+  const sum = recruitmentSummary(A.REQUISITIONS, cands, hires);
+  const stateOf = (r: TalentRequisition) => requisitionState(r, cands, hires, STAGES);
+  const openReqs = sum.openRequisitions;
+  const offers = sum.offersOutstanding;
   const avgFill = A.HCM_ANALYTICS.timeToFill;
 
   const advance = (id: any, dir: any) => setCands((list: any) => list.map((c: any) => {
@@ -49,9 +58,9 @@ function Recruitment() {
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openReqs} label="Requisisi Terbuka" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalApp} label="Total Pelamar" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }} title="Kandidat yang benar-benar ada di register pipeline"><Stat value={sum.inPipeline} label="Kandidat di Pipeline" accent="var(--blue)" delta={sum.applicantsDeclared == null ? undefined : sum.applicantsDeclared + ' lamaran masuk (portal)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={offers} label="Penawaran Berjalan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgFill + ' hari'} label="Rata-rata Time-to-Fill" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgFill == null ? 'belum dapat dihitung' : avgFill + ' hari'} label="Rata-rata Time-to-Fill" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -59,15 +68,16 @@ function Recruitment() {
 
           {tab === 'reqs' && (
             <table className="dtbl">
-              <thead><tr><th>ID / Posisi</th><th>Divisi</th><th>Hiring Mgr</th><th className="num">Kuota</th><th className="num">Pelamar</th><th>Prioritas</th><th>Target</th><th>Status</th></tr></thead>
+              <thead><tr><th>ID / Posisi</th><th>Divisi</th><th>Hiring Mgr</th><th className="num">Terisi</th><th className="num">Pipeline</th><th className="num">Lamaran</th><th>Prioritas</th><th>Target</th><th>Status</th></tr></thead>
               <tbody>
                 {A.REQUISITIONS.map((r: any) => (
                   <tr key={r.id}>
                     <td><div style={{ fontWeight: 600 }}>{r.title}</div><div className="tiny muted mono">{r.id} · {r.reason}</div></td>
                     <td className="tiny">{r.dept}</td>
                     <td><div className="row ac gap6"><Avatar name={A.byId(r.hiringMgr).name} size={22} /><span className="tiny truncate" style={{ maxWidth: 80 }}>{A.byId(r.hiringMgr).name.split(' ')[0]}</span></div></td>
-                    <td className="num mono">{r.filled}/{r.count}</td>
-                    <td className="num mono" style={{ fontWeight: 700 }}>{r.applicants}</td>
+                    <td className="num mono" style={{ fontWeight: 700, color: stateOf(r).overfilled ? 'var(--red)' : undefined }} title={stateOf(r).filledBy.join(' · ') || 'belum ada yang diterima'}>{stateOf(r).filled}/{stateOf(r).count}</td>
+                    <td className="num mono">{stateOf(r).inPipeline}</td>
+                    <td className="num mono muted" title="Lamaran masuk menurut portal/ATS — di luar register aplikasi">{stateOf(r).applicantsDeclared ?? '—'}</td>
                     <td><span className="row ac gap4 tiny" style={{ color: (PRIO_C as any)[r.priority], fontWeight: 600 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor' }} />{r.priority}</span></td>
                     <td className="tiny muted">{new Date(r.target).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                     <td><Badge kind={(REQ_STAT as any)[r.status]}>{r.status}</Badge></td>
@@ -155,7 +165,12 @@ function Learning() {
   const A: any = AMS;
   const auth = useAuth();
   const [tab, setTab] = usePCtal('matrix');
-  const [enroll, setEnroll] = useAmsPersist('pc.enroll', () => A.TRAINING_CATALOG.map((t: any) => ({ id: t.id, enrolled: t.enrolled })));
+  /* PR-6 — pendaftaran berkunci empId. Bentuk lama (`[{id, enrolled: n}]`) masih
+     DIBACA lewat `normaliseEnrolment`; jumlahnya dihormati sebagai `anonymousCount`
+     tetapi ia tidak menjadi nama. */
+  const [enroll, setEnroll] = useAmsPersist('pc.enroll.v2', () => A.TRAINING_ENROLMENT);
+  const [pickEmp, setPickEmp] = usePCtal('');
+  const uidL = React.useId();
   const staff = A.STAFF, COMP = A.COMPETENCIES, REQ = A.COMPETENCY_REQ, ACT = A.COMPETENCY_ACTUAL;
   /* #1/#2 — konfirmasi kehadiran pelatihan (admin/HR) → kredit SKP otomatis ke CPE Tracker.
      Store firm-scope: tulis butuh ENGAGEMENT_MANAGE (Partner/Manager), ditegakkan server. */
@@ -164,21 +179,49 @@ function Learning() {
   const me = (auth && auth.user && auth.user.name) || 'Admin';
   const attToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
   const isConfirmed = (trId: string, empId: string) => !!(attendance as any)[trId]?.[empId]?.confirmed;
+  const attendOk = (trId: string, empId: string) => {
+    const t = A.TRAINING_CATALOG.find((x: any) => x.id === trId);
+    return t ? attendCheck(enrolOf(t), empId) : { ok: false, reason: 'Pelatihan tidak dikenal.' };
+  };
   const toggleAttend = (trId: string, empId: string) => setAttendance((a: any) => {
+    /* Gerbang ditegakkan di sini JUGA: kehadiran tanpa pendaftaran memunculkan
+       kredit SKP tanpa jejak siapa yang pernah mendaftar. */
+    if (!(a[trId] || {})[empId]?.confirmed && !attendOk(trId, empId).ok) return a;
     const cur = { ...(a[trId] || {}) };
     if (cur[empId]?.confirmed) delete cur[empId];
     else cur[empId] = { confirmed: true, by: me, at: attToday };
     return { ...a, [trId]: cur };
   });
 
-  const actualOf = (s: any, cid: any) => (ACT[s.id] || {})[cid] ?? Math.max(1, (REQ[s.grade][cid] || 2) - 1);
-  const gapCount = staff.reduce((n: any, s: any) => n + COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length, 0);
-  const totalCells = staff.length * COMP.length;
-  const coverage = Math.round((totalCells - gapCount) / totalCells * 100);
+  /* PR-6 — level efektif = penilaian dasar + pelatihan yang kehadirannya
+     DIKONFIRMASI. Tanpa ini matriks kompetensi adalah cuplikan beku dan gap-nya
+     tak pernah dapat menutup, apa pun pelatihan yang diikuti. */
+  const lvlOf = (s: any, cid: any) => competencyLevel({
+    empId: s.id, compId: cid, base: (ACT[s.id] || {})[cid], required: REQ[s.grade][cid],
+    catalog: A.TRAINING_CATALOG, attendance: attendance as never,
+  });
+  const actualOf = (s: any, cid: any) => lvlOf(s, cid).level;
+  const cov = competencyCoverage({
+    roster: staff, competencies: COMP, required: REQ, actual: ACT,
+    catalog: A.TRAINING_CATALOG, attendance: attendance as never,
+  });
+  const gapCount = cov.gaps;
+  const coverage = cov.coveragePct;
   const upcoming = A.TRAINING_CATALOG.filter((t: any) => new Date(t.date) >= new Date(AMS.TODAY)).length;
-  const seatsLeft = A.TRAINING_CATALOG.reduce((s: any, t: any) => s + (t.seats - (enroll.find((e: any) => e.id === t.id) || {}).enrolled), 0);
+  const enrolOf = (t: { id: string; seats: number }) => enrolmentState(t.id, t.seats, enroll);
+  const seatsLeft = A.TRAINING_CATALOG.reduce((n: number, t: any) => n + enrolOf(t).seatsLeft, 0);
+  const onRoster = (id: string) => staff.some((s: any) => s.id === id);
 
-  const doEnroll = (id: any) => setEnroll((list: any) => list.map((e: any) => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find((t: any) => t.id === id).seats, e.enrolled + 1) } : e));
+  const doEnroll = (trId: string) => {
+    const t = A.TRAINING_CATALOG.find((x: any) => x.id === trId);
+    if (!t) return;
+    const chk = enrolCheck(enrolOf(t), pickEmp, onRoster(pickEmp));
+    if (!chk.ok) return;
+    setEnroll((cur: unknown) => {
+      const map = (cur && typeof cur === 'object' && !Array.isArray(cur) ? cur : {}) as Record<string, string[]>;
+      return { ...map, [trId]: [...(map[trId] || []), pickEmp] };
+    });
+  };
   const confirmedTotal = A.TRAINING_CATALOG.reduce((n: any, t: any) => n + Object.values((attendance as any)[t.id] || {}).filter((r: any) => r?.confirmed).length, 0);
   const tabs = [{ id: 'matrix', label: 'Matriks Kompetensi' }, { id: 'catalog', label: 'Katalog Pelatihan', count: A.TRAINING_CATALOG.length }, { id: 'attend', label: 'Kehadiran & SKP', count: confirmedTotal || null }];
 
@@ -223,18 +266,29 @@ function Learning() {
                 <span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--green-bg)' }} /> Memenuhi</span>
                 <span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--amber-bg)' }} /> Mendekati (−1)</span>
                 <span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--red-bg)' }} /> Gap signifikan</span>
-                <span>· angka = level aktual / level disyaratkan menurut jenjang (skala 1–5)</span>
+                <span>· angka = level efektif / level disyaratkan menurut jenjang (skala 1–5)</span>
+                {cov.closedByTraining > 0 && <span style={{ color: 'var(--green)' }}>· {cov.closedByTraining} gap tertutup oleh pelatihan terkonfirmasi</span>}
               </div>
             </div>
           )}
 
-          {tab === 'catalog' && (
+          {tab === 'catalog' && (<>
+            <div className="row ac gap8" style={{ padding: '10px 14px', borderBottom: '1px solid var(--line)' }}>
+              <label htmlFor={uidL + '-enrol-emp'} className="tiny muted">Daftarkan peserta:</label>
+              <select id={uidL + '-enrol-emp'} className="select" style={{ maxWidth: 260 }} value={pickEmp} onChange={(e: { target: { value: string } }) => setPickEmp(e.target.value)}>
+                <option value="">— pilih personel —</option>
+                {staff.map((x: any) => <option key={x.id} value={x.id}>{x.name} · {x.grade}</option>)}
+              </select>
+              <span className="tiny muted">Pendaftaran dicatat atas NAMA; kehadiran hanya dapat dikonfirmasi untuk peserta terdaftar.</span>
+            </div>
             <table className="dtbl">
               <thead><tr><th>Program</th><th>Penyelenggara</th><th>Jenis</th><th className="num">SKP</th><th>Jadwal</th><th style={{ width: 130 }}>Kuota</th><th></th></tr></thead>
               <tbody>
                 {A.TRAINING_CATALOG.map((t: any) => {
-                  const en = (enroll.find((e: any) => e.id === t.id) || {}).enrolled;
-                  const full = en >= t.seats;
+                  const est = enrolOf(t);
+                  const en = est.enrolled.length + est.anonymousCount;
+                  const full = est.full;
+                  const chk = enrolCheck(est, pickEmp, onRoster(pickEmp));
                   const comp = COMP.find((c: any) => c.id === t.comp);
                   return (
                     <tr key={t.id}>
@@ -243,14 +297,14 @@ function Learning() {
                       <td><Badge kind={t.mode === 'Terstruktur' ? 'blue' : 'gray'}>{t.mode}</Badge></td>
                       <td className="num mono" style={{ fontWeight: 700 }}>{t.skp}</td>
                       <td className="tiny muted">{new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
-                      <td><div className="row ac gap8"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (en / t.seats * 100) + '%', height: '100%', borderRadius: 3, background: full ? 'var(--amber)' : 'var(--blue)' }} /></div><span className="tiny mono">{en}/{t.seats}</span></div></td>
-                      <td><Btn sm variant={full ? '' : 'primary'} disabled={full} style={{ opacity: full ? .5 : 1 }} onClick={() => doEnroll(t.id)}>{full ? 'Penuh' : 'Daftar'}</Btn></td>
+                      <td><div className="row ac gap8"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (en / t.seats * 100) + '%', height: '100%', borderRadius: 3, background: full ? 'var(--amber)' : 'var(--blue)' }} /></div><span className="tiny mono" title={est.enrolled.map((id: string) => (staff.find((x: any) => x.id === id) || {}).name || id).join(' · ') || 'belum ada peserta terdaftar'}>{en}/{t.seats}</span></div></td>
+                      <td><Btn sm variant={chk.ok ? 'primary' : ''} disabled={!chk.ok} style={{ opacity: chk.ok ? 1 : .5 }} title={chk.ok ? 'Daftarkan peserta terpilih' : chk.reason} onClick={() => doEnroll(t.id)}>{full ? 'Penuh' : 'Daftar'}</Btn></td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          )}
+          </>)}
 
           {tab === 'attend' && (
             <div style={{ padding: 14, overflowX: 'auto' }}>
@@ -273,12 +327,14 @@ function Learning() {
                         <td style={{ position: 'sticky', left: 0, background: 'var(--surface)' }}><div className="row ac gap8"><Avatar name={s.name} size={22} /><span className="truncate tiny" style={{ fontWeight: 600 }}>{s.name}</span></div></td>
                         {A.TRAINING_CATALOG.map((t: any) => {
                           const on = isConfirmed(t.id, s.id);
+                          const ach = attendOk(t.id, s.id);
+                          const allowed = on || (canConfirm && ach.ok);
                           return (
                             <td key={t.id} className="num" style={{ textAlign: 'center' }}>
-                              <button className="btn sm" disabled={!canConfirm} onClick={() => toggleAttend(t.id, s.id)}
-                                title={on ? ((attendance as any)[t.id][s.id].by + ' · ' + (attendance as any)[t.id][s.id].at) : (canConfirm ? 'Konfirmasi hadir' : 'Hanya Admin/HR')}
-                                style={{ width: 26, height: 22, padding: 0, background: on ? 'var(--green-bg)' : 'transparent', color: on ? 'var(--green)' : 'var(--ink-4)', borderColor: on ? 'var(--green)' : 'var(--line)' }}>
-                                {on ? <I.check size={12} /> : '○'}
+                              <button className="btn sm" aria-label={(on ? 'Batalkan kehadiran ' : 'Konfirmasi kehadiran ') + s.name + ' pada ' + t.title} disabled={!allowed} onClick={() => toggleAttend(t.id, s.id)}
+                                title={on ? ((attendance as any)[t.id][s.id].by + ' · ' + (attendance as any)[t.id][s.id].at) : (!canConfirm ? 'Hanya Admin/HR' : ach.ok ? 'Konfirmasi hadir' : ach.reason)}
+                                style={{ width: 26, height: 22, padding: 0, background: on ? 'var(--green-bg)' : 'transparent', color: on ? 'var(--green)' : 'var(--ink-4)', borderColor: on ? 'var(--green)' : 'var(--line)', opacity: allowed ? 1 : .45 }}>
+                                {on ? <I.check size={12} /> : ach.ok ? '○' : '·'}
                               </button>
                             </td>
                           );

@@ -766,7 +766,7 @@
   },
   "src/view_pc_talent.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 66
+      "count": 58
     }
   },
   "src/view_pdp.tsx": {
