@@ -581,7 +581,7 @@
   },
   "src/view_hrops.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 46
+      "count": 1
     }
   },
   "src/view_icfr.tsx": {
@@ -746,12 +746,12 @@
   },
   "src/view_payroll.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 25
+      "count": 26
     }
   },
   "src/view_pc_conduct.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 40
+      "count": 41
     }
   },
   "src/view_pc_hcm.tsx": {
@@ -761,12 +761,12 @@
   },
   "src/view_pc_org.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 41
     }
   },
   "src/view_pc_talent.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 66
+      "count": 58
     }
   },
   "src/view_pdp.tsx": {
@@ -776,7 +776,7 @@
   },
   "src/view_people.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 64
+      "count": 60
     }
   },
   "src/view_pipeline.tsx": {

@@ -120,13 +120,17 @@ describe('pplFromEntries — ringkas dari catatan SKP', () => {
       { t: 'SMM 1', type: 'Terstruktur', skp: 6 },
       { t: 'Jurnal', type: 'Tidak Terstruktur', skp: 10 },
     ] satisfies SkpEntry[]);
-    expect(r).toEqual({ structured: 14, unstructured: 10 });
+    /* PR-3 menambah limb materi wajib. Entri tanpa `topic` ⇒ tak terlacak. */
+    expect(r).toMatchObject({ structured: 14, unstructured: 10 });
+    expect(r.topicPembinaan).toBeUndefined();
   });
 
   it('catatan kosong/rusak diabaikan', () => {
-    expect(pplFromEntries(null)).toEqual({ structured: 0, unstructured: 0 });
+    /* PR-3: nol entri terstruktur = terlacak SECARA HAMPA — kedua limb materi
+       pasti 0 dan itu dapat dinyatakan dengan pasti, bukan "tak diketahui". */
+    expect(pplFromEntries(null)).toEqual({ structured: 0, unstructured: 0, topicPembinaan: 0, topicAkuntansi: 0 });
     expect(pplFromEntries([null, undefined] as unknown as SkpEntry[]))
-      .toEqual({ structured: 0, unstructured: 0 });
+      .toEqual({ structured: 0, unstructured: 0, topicPembinaan: 0, topicAkuntansi: 0 });
   });
 
   it('ledger Hartono (EMP-001) nyata: 14 terstruktur, jauh di bawah 30', () => {
@@ -134,7 +138,9 @@ describe('pplFromEntries — ringkas dari catatan SKP', () => {
       { type: 'Terstruktur', skp: 8 }, { type: 'Terstruktur', skp: 6 }, { type: 'Tidak Terstruktur', skp: 10 },
     ]);
     const s = pplStatus(r);
-    expect(r).toEqual({ structured: 14, unstructured: 10 });
+    /* PR-3 menambah limb materi wajib. Entri tanpa `topic` ⇒ tak terlacak. */
+    expect(r).toMatchObject({ structured: 14, unstructured: 10 });
+    expect(r.topicPembinaan).toBeUndefined();
     expect(s.countedTotal).toBe(24);
     expect(s.compliant).toBe(false);
   });

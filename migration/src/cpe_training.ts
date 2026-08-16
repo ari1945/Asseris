@@ -13,21 +13,31 @@
    penanda sumber `src:'training'` agar UI bisa melabeli asal kredit.
    ============================================================ */
 
+import type { SkpEntry } from './canon_ppl';
+
 export interface TrainingCourse {
   id: string;
   title: string;
   mode: string;   // 'Terstruktur' | 'Tidak Terstruktur'
   skp: number;
   date: string;
+  /** Materi wajib PMK 186 Ps. 37 (canon_ppl.SkpTopic). Tanpa ini kredit dari
+   *  pelatihan akan MEMBATALKAN keterlacakan materi seluruh pegawai — lihat
+   *  `pplFromEntries`, yang menuntut SELURUH entri terstruktur terklasifikasi. */
+  topic?: string;
 }
 /* { [trainingId]: { [empId]: { confirmed, by, at } } } */
 export type TrainingAttendance = Record<string, Record<string, { confirmed?: boolean; by?: string; at?: string } | undefined>>;
 
-export interface CpeEntry {
+/* Entri ini DIKONSUMSI `canon_ppl.pplFromEntries` bersama CPE_LOG, jadi ia
+   memang sebuah `SkpEntry` — dinyatakan lewat `extends` agar kompilator yang
+   menjaganya, bukan kebetulan bentuk. */
+export interface CpeEntry extends SkpEntry {
   t: string;
   type: string;
   skp: number;
   date: string;
+  topic?: string;
   src?: string;        // 'training' untuk kredit otomatis dari Pelatihan
   trainingId?: string;
 }
@@ -46,7 +56,7 @@ export function cpeFromTraining(
       const rec = conf[empId];
       if (!rec || !rec.confirmed) continue;
       if (!out[empId]) out[empId] = [];
-      out[empId].push({ t: tr.title, type: tr.mode, skp: tr.skp, date: tr.date, src: 'training', trainingId: tr.id });
+      out[empId].push({ t: tr.title, type: tr.mode, skp: tr.skp, date: tr.date, topic: tr.topic, src: 'training', trainingId: tr.id });
     }
   }
   return out;

@@ -2,6 +2,7 @@
    Asseris — data part2 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { fmt } from './data_base';
+import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
 
   const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
   /* Kurs BUKU — kurs saat transaksi dibukukan; buku besar mencatat valas pada kurs ini.
@@ -167,6 +168,7 @@ import { fmt } from './data_base';
     // sendiri agar dashboard "Data Personal Saya" mereka terisi. Tak muncul di roster audit (view HCM/payroll iterasi AMS.STAFF).
     'EMP-501': { gross: 22_000_000, allowance: 2_500_000, ptkp: 'K/1', terCat: 'A', ter: 0.09 },
     'EMP-601': { gross: 24_000_000, allowance: 2_500_000, ptkp: 'K/2', terCat: 'B', ter: 0.10 },
+    ...PAYROLL_EXT,   // PR-4 — 59 personel tambahan roster
   };
   /* BPJS & statutory rates */
   const PAYROLL_RATES = {
@@ -176,41 +178,157 @@ import { fmt } from './data_base';
     jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
     jkkEr: 0.0024, jkmEr: 0.003,
   };
-  /* Annual leave: 12 days entitlement; used so far in 2026 */
-  const LEAVE_BALANCE = {
-    'EMP-001': { ent: 12, used: 3, carry: 2 }, 'EMP-002': { ent: 12, used: 5, carry: 0 },
-    'EMP-003': { ent: 12, used: 2, carry: 1 }, 'EMP-007': { ent: 12, used: 4, carry: 3 },
-    'EMP-008': { ent: 12, used: 6, carry: 0 }, 'EMP-012': { ent: 12, used: 8, carry: 2 },
-    'EMP-021': { ent: 12, used: 1, carry: 0 }, 'EMP-022': { ent: 12, used: 3, carry: 0 },
-    'EMP-031': { ent: 12, used: 0, carry: 0 }, 'EMP-032': { ent: 12, used: 2, carry: 0 },
-    'EMP-501': { ent: 12, used: 2, carry: 1 }, 'EMP-601': { ent: 12, used: 4, carry: 0 }, // firm-ops (FIRM_STAFF)
+  /* ---- Kalender hari libur nasional (PRD sdm-kepatuhan PR-1) ----
+     Hari kerja sebuah permintaan cuti = rentang tanggal − akhir pekan − hari libur.
+     Tanpa daftar ini setiap perhitungan hari kerja MELEBIH-hitung, dan kelebihannya
+     tak terlihat oleh siapa pun.
+
+     `penetapan` membedakan yang tanggalnya tetap dari yang mengikuti kalender
+     Hijriah/Imlek/Saka — yang terakhir FINAL hanya lewat SKB 3 Menteri tiap tahun.
+     `confirmedThroughYear` menyatakan sampai tahun berapa isi ini sudah dicocokkan;
+     `holidayCoverage()` (canon_leave) menolak berpura-pura untuk tahun di atasnya.
+
+     Cuti bersama SENGAJA dikosongkan: ia diumumkan tahunan dan tak dapat diturunkan.
+     Mengarangnya akan membuat hari kerja kurang-hitung tanpa dasar. */
+  const LEAVE_HOLIDAYS = {
+    basis: 'SKB 3 Menteri tentang Hari Libur Nasional & Cuti Bersama',
+    confirmedThroughYear: 2026,
+    entries: [
+      { date: '2026-01-01', name: 'Tahun Baru Masehi', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-20', name: 'Idulfitri 1447 H (1 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-03-21', name: 'Idulfitri 1447 H (2 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-04-03', name: 'Wafat Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-01', name: 'Hari Buruh Internasional', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-05-14', name: 'Kenaikan Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-27', name: 'Iduladha 1447 H', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-06-01', name: 'Hari Lahir Pancasila', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-06-16', name: 'Tahun Baru Islam 1448 H', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-08-17', name: 'Hari Kemerdekaan RI', kind: 'nasional', penetapan: 'tetap' },
+      { date: '2026-08-25', name: 'Maulid Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+      { date: '2026-12-25', name: 'Hari Raya Natal', kind: 'nasional', penetapan: 'tetap' },
+    ],
   };
+
+  /* ---- Saldo cuti BAWAAN tahun lalu ----
+     PRD sdm-kepatuhan PR-1: `ent` dan `used` DICABUT dari sini.
+
+     `used` dulu adalah literal, dan `LEAVE_REQUESTS` daftar terpisah yang tak
+     pernah menyentuhnya: menyetujui LV-0048 mengubah status barisnya dan
+     membiarkan saldo Dimas tetap 1. Kolom "Sisa", KPI "Pemanfaatan Kuota", dan
+     peringatan `sisa ≤ 2` semuanya berdiri di atas angka yang tak pernah disentuh
+     persetujuan apa pun. Kini `used` DITURUNKAN dari permintaan yang disetujui
+     (`canon_leave.leaveLedger`) dan `ent` dari tahun bergabung (UU 13/2003 Ps. 79).
+
+     `carry` bertahan karena ia satu-satunya fakta di sini yang memang TIDAK dapat
+     diturunkan dari peristiwa tahun berjalan. */
+  const LEAVE_BALANCE = {
+    'EMP-001': { carry: 2 }, 'EMP-002': { carry: 0 },
+    'EMP-003': { carry: 1 }, 'EMP-007': { carry: 3 },
+    'EMP-008': { carry: 0 }, 'EMP-012': { carry: 2 },
+    'EMP-021': { carry: 0 }, 'EMP-022': { carry: 0 },
+    'EMP-031': { carry: 0 }, 'EMP-032': { carry: 0 },
+    'EMP-501': { carry: 1 }, 'EMP-601': { carry: 0 }, // firm-ops (FIRM_STAFF)
+    ...LEAVE_CARRY_EXT,   // PR-4 — 59 personel tambahan roster
+  };
+  /* Register peristiwa cuti = SSOT saldo terpakai.
+     Baris LV-0021..LV-0031 adalah cuti Jan–Feb 2026 yang SEBELUMNYA hanya ada
+     sebagai angka `used` tanpa peristiwa apa pun di belakangnya. Hari kerja tiap
+     rentang dihitung ulang dan menutup PERSIS ke `used` lama — pencabutan literal
+     ini nol-delta, dan diuji satu per satu di `leave_register.test.ts`. */
   const LEAVE_REQUESTS = [
+    { id: 'LV-0021', emp: 'EMP-001', name: 'Hartono Wijaya', type: 'Cuti Tahunan', from: '2026-01-05', to: '2026-01-07', days: 3, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Rudi Gunawan' },
+    { id: 'LV-0022', emp: 'EMP-501', name: 'Yuni Marlina', type: 'Cuti Tahunan', from: '2026-01-08', to: '2026-01-09', days: 2, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0023', emp: 'EMP-008', name: 'Bayu Saputra', type: 'Cuti Tahunan', from: '2026-01-12', to: '2026-01-20', days: 6, reason: 'Cuti panjang pasca musim audit', status: 'Disetujui', approver: 'Rudi Gunawan' },
+    { id: 'LV-0024', emp: 'EMP-003', name: 'Sari Dewanti', type: 'Cuti Tahunan', from: '2026-01-22', to: '2026-01-23', days: 2, reason: 'Urusan pribadi', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0025', emp: 'EMP-022', name: 'Sinta Wulandari', type: 'Cuti Tahunan', from: '2026-01-28', to: '2026-01-30', days: 3, reason: 'Liburan', status: 'Disetujui', approver: 'Sari Dewanti' },
+    { id: 'LV-0026', emp: 'EMP-002', name: 'Rudi Gunawan', type: 'Cuti Tahunan', from: '2026-02-02', to: '2026-02-06', days: 5, reason: 'Liburan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0027', emp: 'EMP-007', name: 'Anindya Pramesti', type: 'Cuti Tahunan', from: '2026-02-09', to: '2026-02-12', days: 4, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0028', emp: 'EMP-032', name: 'Rina Kusuma', type: 'Cuti Tahunan', from: '2026-02-12', to: '2026-02-13', days: 2, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Bayu Saputra' },
+    { id: 'LV-0029', emp: 'EMP-601', name: 'Teguh Prasetyo', type: 'Cuti Tahunan', from: '2026-02-16', to: '2026-02-20', days: 4, reason: 'Libur Imlek keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
+    { id: 'LV-0030', emp: 'EMP-021', name: 'Dimas Raharjo', type: 'Cuti Tahunan', from: '2026-02-20', to: '2026-02-20', days: 1, reason: 'Keperluan pribadi', status: 'Disetujui', approver: 'Anindya Pramesti' },
+    { id: 'LV-0031', emp: 'EMP-012', name: 'Citra Halim', type: 'Cuti Tahunan', from: '2026-02-24', to: '2026-02-26', days: 3, reason: 'Urusan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
     { id: 'LV-0042', emp: 'EMP-012', name: 'Citra Halim', type: 'Cuti Tahunan', from: '2026-03-09', to: '2026-03-13', days: 5, reason: 'Liburan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },
     { id: 'LV-0048', emp: 'EMP-021', name: 'Dimas Raharjo', type: 'Cuti Tahunan', from: '2026-03-24', to: '2026-03-25', days: 2, reason: 'Urusan pribadi', status: 'Menunggu', approver: 'Anindya Pramesti' },
     { id: 'LV-0049', emp: 'EMP-032', name: 'Rina Kusuma', type: 'Sakit', from: '2026-03-06', to: '2026-03-07', days: 2, reason: 'Surat dokter terlampir', status: 'Menunggu', approver: 'Bayu Saputra' },
     { id: 'LV-0050', emp: 'EMP-008', name: 'Bayu Saputra', type: 'Cuti Tahunan', from: '2026-04-01', to: '2026-04-04', days: 4, reason: 'Mudik Lebaran', status: 'Menunggu', approver: 'Rudi Gunawan' },
     { id: 'LV-0051', emp: 'EMP-022', name: 'Sinta Wulandari', type: 'Cuti Menikah', from: '2026-04-20', to: '2026-04-22', days: 3, reason: 'Pernikahan', status: 'Menunggu', approver: 'Sari Dewanti' },
   ];
-  /* Performance cycle FY2025→2026: rating (1-5) × potential (1-5); status of review */
+  /* ---- Siklus Kinerja FY2025 (PRD sdm-kepatuhan PR-2) ----
+     `perf` dan `box` DICABUT dari sini.
+
+     `perf` adalah skor tersimpan yang dapat berbeda dari KPI-nya sendiri, dan
+     untuk EMP-021 memang berbeda: sasarannya tertimbang **4,355**, headline-nya
+     4,5. `box` adalah string tersimpan sementara grid di layar yang sama
+     menghitung selnya sendiri — untuk TIGA dari tujuh orang keduanya bertentangan
+     (EMP-008 "Kinerja Tinggi" vs sel Inti; EMP-031 & EMP-032 "Inti" vs sel Pekerja
+     Efektif). Kini keduanya DITURUNKAN di `canon_perf.ts`.
+
+     Enam orang dulu memikul skor tanpa satu pun KPI di belakangnya — hanya
+     EMP-021 yang punya sasaran. Sasaran mereka kini ada, memakai kerangka KPI
+     firma yang sama (bobot 30/30/15/25, mengikuti kerangka EMP-021 yang sudah
+     ada), dan skor tertimbangnya menutup PERSIS ke `perf` lama masing-masing —
+     nol-delta, diuji satu per satu. EMP-021 sendiri BERGERAK 4,5 → 4,36; itu
+     koreksi terhadap angka yang tak pernah cocok dengan dasarnya.
+
+     Catatan `actual`: KPI di sini periode FY2025, sedangkan `CPE_LOG` adalah
+     2026 YTD — dua periode berbeda, jadi angka SKP di bawah SENGAJA tidak
+     ditautkan ke sana. `score` adalah penilaian penelaah yang diinformasikan
+     ukurannya, bukan fungsi mekanis darinya.
+
+     `steps` menggantikan boolean `goalsSet/selfDone/mgrDone/calibrated`, yang
+     menyatakan "selesai" tanpa pernah dapat menjawab siapa yang menyelesaikannya.
+     Penanda `seeded` mengikuti pola `member_independence`: baris demo tetap ada,
+     tetapi ia tidak menyamar sebagai pernyataan seseorang. Penilai diambil dari
+     garis pelaporan `AMS.ORG` (data_people). */
+  const PG = (jam: [string, number], kk: number, skp: [number, number], sup: [string, number]) => ([
+    { kpi: 'Realisasi jam terhadap anggaran', target: '≤ 100%', actual: jam[0], score: jam[1], weight: 30 },
+    { kpi: 'Kualitas kertas kerja (skor reviu)', target: '≥ 4,3', actual: String(kk).replace('.', ','), score: kk, weight: 30 },
+    { kpi: 'Pemenuhan PPL (SKP)', target: '40 SKP', actual: skp[0] + ' SKP', score: skp[1], weight: 15 },
+    { kpi: sup[0], target: '≥ 4,0', actual: String(sup[1]).replace('.', ','), score: sup[1], weight: 25 },
+  ]);
+  const SUPERVISI = 'Supervisi & coaching junior';
+  const KEANDALAN = 'Kontribusi tim & keandalan';
+  const seedStep = (by: string, byName: string, at: string) => ({ by, byName, at, seeded: true });
   const PERF_CYCLE = {
     cycle: 'Siklus FY2025', phase: 'Year-End Review',
     people: {
-      'EMP-007': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.7, pot: 4.5, box: '9-box: Bintang', promote: 'Kandidat Partner (2027)' },
-      'EMP-008': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.2, pot: 3.6, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-012': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: false, perf: 4.3, pot: 4.0, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-021': { goalsSet: true, selfDone: true, mgrDone: true, calibrated: true, perf: 4.5, pot: 4.4, box: '9-box: Bintang', promote: 'Promosi ke Manager (2026)' },
-      'EMP-022': { goalsSet: true, selfDone: true, mgrDone: false, calibrated: false, perf: 4.4, pot: 3.8, box: 'Kinerja Tinggi', promote: '—' },
-      'EMP-031': { goalsSet: true, selfDone: true, mgrDone: false, calibrated: false, perf: 4.0, pot: 3.5, box: 'Inti', promote: '—' },
-      'EMP-032': { goalsSet: true, selfDone: false, mgrDone: false, calibrated: false, perf: 3.9, pot: 3.4, box: 'Inti', promote: 'Perlu rencana pengembangan' },
+      'EMP-007': { pot: 4.5, promote: 'Kandidat Partner (2027)', steps: {
+        goals: seedStep('EMP-001', 'Hartono Wijaya', '2025-01-14'), self: seedStep('EMP-007', 'Anindya Pramesti', '2025-12-08'),
+        manager: seedStep('EMP-001', 'Hartono Wijaya', '2025-12-18'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-008': { pot: 3.6, promote: '—', steps: {
+        goals: seedStep('EMP-002', 'Rudi Gunawan', '2025-01-14'), self: seedStep('EMP-008', 'Bayu Saputra', '2025-12-09'),
+        manager: seedStep('EMP-002', 'Rudi Gunawan', '2025-12-19'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-012': { pot: 4.0, promote: '—', steps: {
+        goals: seedStep('EMP-003', 'Sari Dewanti', '2025-01-15'), self: seedStep('EMP-012', 'Citra Halim', '2025-12-10'),
+        manager: seedStep('EMP-003', 'Sari Dewanti', '2025-12-22') } },
+      'EMP-021': { pot: 4.4, promote: 'Promosi ke Manager (2026)', steps: {
+        goals: seedStep('EMP-007', 'Anindya Pramesti', '2025-01-16'), self: seedStep('EMP-021', 'Dimas Raharjo', '2025-12-08'),
+        manager: seedStep('EMP-007', 'Anindya Pramesti', '2025-12-18'), calibration: seedStep('EMP-501', 'Yuni Marlina', '2026-01-20') } },
+      'EMP-022': { pot: 3.8, promote: '—', steps: {
+        goals: seedStep('EMP-008', 'Bayu Saputra', '2025-01-16'), self: seedStep('EMP-022', 'Sinta Wulandari', '2025-12-11') } },
+      'EMP-031': { pot: 3.5, promote: '—', steps: {
+        goals: seedStep('EMP-021', 'Dimas Raharjo', '2025-01-20'), self: seedStep('EMP-031', 'Fajar Nugroho', '2025-12-12') } },
+      'EMP-032': { pot: 3.4, promote: 'Perlu rencana pengembangan', steps: {
+        goals: seedStep('EMP-022', 'Sinta Wulandari', '2025-01-20') } },
     },
+    /* Skor tertimbang tiap baris menutup persis ke `perf` lama (lihat perf_cycle.test.ts). */
     goals: {
+      'EMP-007': PG(['94%', 4.8], 4.8, [31, 4.3], [SUPERVISI, 4.7]),         // → 4,70
+      'EMP-008': PG(['99%', 4.3], 4.3, [19, 3.8], [SUPERVISI, 4.2]),         // → 4,20
+      'EMP-012': PG(['98%', 4.4], 4.4, [22, 3.9], [SUPERVISI, 4.3]),         // → 4,30
       'EMP-021': [
         { kpi: 'Realisasi jam terhadap anggaran', target: '≤ 100%', actual: '96%', score: 4.6, weight: 30 },
         { kpi: 'Kualitas kertas kerja (skor reviu)', target: '≥ 4,3', actual: '4,5', score: 4.5, weight: 30 },
         { kpi: 'Pemenuhan PPL (SKP)', target: '40 SKP', actual: '12 SKP', score: 3.5, weight: 15 },
-        { kpi: 'Supervisi & coaching junior', target: '≥ 4,0', actual: '4,4', score: 4.4, weight: 25 },
-      ],
+        { kpi: SUPERVISI, target: '≥ 4,0', actual: '4,4', score: 4.4, weight: 25 },
+      ],                                                                      // → 4,36 (BUKAN 4,5)
+      'EMP-022': PG(['97%', 4.5], 4.5, [12, 3.5], [SUPERVISI, 4.7]),         // → 4,40
+      'EMP-031': PG(['101%', 4.1], 4.1, [14, 3.6], [KEANDALAN, 4.0]),        // → 4,00
+      'EMP-032': PG(['102%', 4.0], 4.0, [0, 3.0], [KEANDALAN, 4.2]),         // → 3,90
     },
   };
 
@@ -604,4 +722,4 @@ import { fmt } from './data_base';
      exec: peta { [no]: bool } status pelaksanaan (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
 
-export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
+export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };

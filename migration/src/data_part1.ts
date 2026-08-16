@@ -1,11 +1,26 @@
 /* ============================================================
    Asseris — data part1 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
+import { CPE_EXT, STAFF_EXT } from './data_roster';
+import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './canon_rotation';
+
   const FIRM = {
     name: 'KAP Wijaya Hartono & Rekan',
     short: 'WHR',
     license: 'Izin KAP No. 1142/KM.1/2019',
-    partners: 6, managers: 11, staff: 58,
+    /* PRD sdm-kepatuhan PR-4 — `partners: 6, managers: 11, staff: 58` DICABUT
+       sebagai literal. Jumlahnya 75, sementara `HCM_ANALYTICS.gradeMix` di
+       berkas sebelah berbunyi 69 dan roster nyata berisi 10: TIGA jumlah
+       karyawan untuk satu firma, dan dua di antaranya tak sepakat satu sama
+       lain. Kini ketiganya DITURUNKAN dari roster yang sama.
+
+       Getter (bukan nilai) karena `STAFF` dideklarasikan setelah blok ini;
+       pembacaannya selalu terjadi setelah modul selesai dimuat. */
+    get partners() { return STAFF.filter((s) => s.grade === 'Partner').length; },
+    get managers() { return STAFF.filter((s) => s.grade === 'Manager').length; },
+    /* `staff` = personel di luar Partner & Manager. Angka lama 58 tak menutup
+       ke apa pun: 6+11+58 = 75 ≠ 69 ≠ 10. */
+    get staff() { return STAFF.filter((s) => s.grade !== 'Partner' && s.grade !== 'Manager').length; },
   };
 
   const USER = {
@@ -438,18 +453,48 @@
   /* `unit` = rumah tangga/portofolio partner (PRD Isolasi Data Personal, cakupan .viewUnit).
      UNITS memetakan unit → partner pemimpin (lead). Dipakai server unitSubtree() (eksplisit →
      fallback ORG). 3 unit demo: Komersial (Rudi), Jasa Keuangan (Sari), Kepemimpinan (Hartono). */
-  const STAFF = [
-    { id: 'EMP-001', name: 'Hartono Wijaya', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, CA, AP', joined: 2009, util: 71, status: 'Aktif', email: 'hartono.w@whr-cpa.id', engagements: 3, rating: 4.6, unit: 'U-LEAD' },
-    { id: 'EMP-002', name: 'Rudi Gunawan', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2011, util: 68, status: 'Aktif', email: 'rudi.g@whr-cpa.id', engagements: 2, rating: 4.5, unit: 'U-KOM' },
-    { id: 'EMP-003', name: 'Sari Dewanti', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2013, util: 74, status: 'Aktif', email: 'sari.d@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-JK' },
-    { id: 'EMP-007', name: 'Anindya Pramesti', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2016, util: 88, status: 'Aktif', email: 'anindya.p@whr-cpa.id', engagements: 2, rating: 4.7, unit: 'U-LEAD' },
-    { id: 'EMP-008', name: 'Bayu Saputra', role: 'Audit Manager', grade: 'Manager', cert: 'CPA', joined: 2017, util: 81, status: 'Aktif', email: 'bayu.s@whr-cpa.id', engagements: 2, rating: 4.2, unit: 'U-KOM' },
-    { id: 'EMP-012', name: 'Citra Halim', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2017, util: 79, status: 'Cuti', email: 'citra.h@whr-cpa.id', engagements: 1, rating: 4.3, unit: 'U-JK' },
-    { id: 'EMP-021', name: 'Dimas Raharjo', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 94, status: 'Aktif', email: 'dimas.r@whr-cpa.id', engagements: 1, rating: 4.5, unit: 'U-LEAD' },
-    { id: 'EMP-022', name: 'Sinta Wulandari', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 90, status: 'Aktif', email: 'sinta.w@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-KOM' },
-    { id: 'EMP-031', name: 'Fajar Nugroho', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2023, util: 82, status: 'Aktif', email: 'fajar.n@whr-cpa.id', engagements: 1, rating: 4.0, unit: 'U-LEAD' },
-    { id: 'EMP-032', name: 'Rina Kusuma', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2024, util: 79, status: 'Aktif', email: 'rina.k@whr-cpa.id', engagements: 2, rating: 3.9, unit: 'U-KOM' },
+  const STAFF_CORE = [
+    { id: 'EMP-001', name: 'Hartono Wijaya', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, CA, AP', joined: 2009, born: 1981, gender: 'L', util: 71, status: 'Aktif', email: 'hartono.w@whr-cpa.id', engagements: 3, rating: 4.6, unit: 'U-LEAD' },
+    { id: 'EMP-002', name: 'Rudi Gunawan', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2011, born: 1979, gender: 'L', util: 68, status: 'Aktif', email: 'rudi.g@whr-cpa.id', engagements: 2, rating: 4.5, unit: 'U-KOM' },
+    { id: 'EMP-003', name: 'Sari Dewanti', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2013, born: 1982, gender: 'P', util: 74, status: 'Aktif', email: 'sari.d@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-JK' },
+    { id: 'EMP-007', name: 'Anindya Pramesti', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2016, born: 1988, gender: 'P', util: 88, status: 'Aktif', email: 'anindya.p@whr-cpa.id', engagements: 2, rating: 4.7, unit: 'U-LEAD' },
+    { id: 'EMP-008', name: 'Bayu Saputra', role: 'Audit Manager', grade: 'Manager', cert: 'CPA', joined: 2017, born: 1987, gender: 'L', util: 81, status: 'Aktif', email: 'bayu.s@whr-cpa.id', engagements: 2, rating: 4.2, unit: 'U-KOM' },
+    { id: 'EMP-012', name: 'Citra Halim', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2017, born: 1989, gender: 'P', util: 79, status: 'Cuti', email: 'citra.h@whr-cpa.id', engagements: 1, rating: 4.3, unit: 'U-JK' },
+    { id: 'EMP-021', name: 'Dimas Raharjo', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, born: 1995, gender: 'L', util: 94, status: 'Aktif', email: 'dimas.r@whr-cpa.id', engagements: 1, rating: 4.5, unit: 'U-LEAD' },
+    { id: 'EMP-022', name: 'Sinta Wulandari', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, born: 1996, gender: 'P', util: 90, status: 'Aktif', email: 'sinta.w@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-KOM' },
+    { id: 'EMP-031', name: 'Fajar Nugroho', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2023, born: 2000, gender: 'L', util: 82, status: 'Aktif', email: 'fajar.n@whr-cpa.id', engagements: 1, rating: 4.0, unit: 'U-LEAD' },
+    { id: 'EMP-032', name: 'Rina Kusuma', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2024, born: 2001, gender: 'P', util: 79, status: 'Aktif', email: 'rina.k@whr-cpa.id', engagements: 2, rating: 3.9, unit: 'U-KOM' },  ];
+  /* PRD sdm-kepatuhan PR-4 (Q-1 opsi b) — roster firma yang SEBENARNYA.
+     Sepuluh baris di atas adalah personel inti yang punya catatan payroll/CPE/
+     kinerja/independensi dan dirujuk NAMANYA lintas modul; 59 baris tambahan di
+     `data_roster.ts` melengkapinya menjadi 69 orang, tepat seperti yang selama
+     ini diklaim `HCM_ANALYTICS.gradeMix` tanpa satu pun orang di belakangnya. */
+  const STAFF = [...STAFF_CORE, ...STAFF_EXT];
+
+  /* ---- Register keluar (PRD sdm-kepatuhan PR-4) ----
+     `annualAttrition: 16` dan `regrettable: 62` dulu konstanta di
+     `HCM_ANALYTICS`, dan keduanya MUSTAHIL benar bersamaan untuk firma seukuran
+     ini: pasangan bulat yang memenuhi keduanya hanya ada pada headcount 79–83
+     (13 keluar, 8 regrettable) — sementara `gradeMix` di objek yang sama
+     berbunyi 69. Sekarang attrition punya peristiwa di belakangnya.
+
+     11 kepergian dalam 12 bulan terakhir ÷ 69 aktif = 16% — angka headline
+     lama direproduksi. `regrettable` menjadi 64% (7 dari 11), BUKAN 62%:
+     62% tak dapat dicapai oleh pecahan bulat mana pun pada 11 kepergian. */
+  const EXITS = [
+    { id: 'EX-2025-04', emp: 'EMP-914', name: 'Reza Alfarizi', grade: 'Senior', date: '2025-04-18', reason: 'Pindah ke korporasi (klien)', regrettable: true },
+    { id: 'EX-2025-05', emp: 'EMP-915', name: 'Dinda Prameswari', grade: 'Junior', date: '2025-05-30', reason: 'Lanjut studi S2', regrettable: false },
+    { id: 'EX-2025-06', emp: 'EMP-916', name: 'Yoga Pranata', grade: 'Junior', date: '2025-06-27', reason: 'Pindah KAP lain', regrettable: true },
+    { id: 'EX-2025-07', emp: 'EMP-917', name: 'Mega Lestari', grade: 'Senior', date: '2025-07-31', reason: 'Pindah KAP Big-4', regrettable: true },
+    { id: 'EX-2025-08', emp: 'EMP-918', name: 'Fikri Ananda', grade: 'Junior', date: '2025-08-29', reason: 'Tidak lulus masa percobaan', regrettable: false },
+    { id: 'EX-2025-09', emp: 'EMP-919', name: 'Larasati Wibisono', grade: 'Manager', date: '2025-09-30', reason: 'Pindah ke industri', regrettable: true },
+    { id: 'EX-2025-11', emp: 'EMP-920', name: 'Bagus Setiaji', grade: 'Junior', date: '2025-11-28', reason: 'Alasan keluarga', regrettable: false },
+    { id: 'EX-2026-01', emp: 'EMP-921', name: 'Nadia Salsabila', grade: 'Senior', date: '2026-01-16', reason: 'Pindah KAP lain', regrettable: true },
+    { id: 'EX-2026-01b', emp: 'EMP-922', name: 'Rizal Kurnia', grade: 'Junior', date: '2026-01-30', reason: 'Kinerja di bawah standar', regrettable: false },
+    { id: 'EX-2026-02', emp: 'EMP-923', name: 'Putri Handayani', grade: 'Junior', date: '2026-02-27', reason: 'Pindah ke konsultan pajak', regrettable: true },
+    { id: 'EX-2026-03', emp: 'EMP-924', name: 'Aditya Nurrahman', grade: 'Senior', date: '2026-03-06', reason: 'Pindah ke korporasi', regrettable: true },
   ];
+
   const UNITS = {
     'U-KOM': { name: 'Audit Komersial', lead: 'EMP-002' },
     'U-JK': { name: 'Audit Jasa Keuangan', lead: 'EMP-003' },
@@ -474,27 +519,93 @@
   const CPE_REQ = { annual: 40, structured: 30, unstructuredCap: 10, year: 2026 };
   /* per staff: structured + unstructured hours logged this year */
   const CPE_LOG = {
-    'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],
-    'EMP-002': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'Etika Profesi & Independensi', type: 'Terstruktur', skp: 4, date: '2026-01-18' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
-    'EMP-003': [{ t: 'PSAK 117 (Kontrak Asuransi)', type: 'Terstruktur', skp: 8, date: '2026-02-12' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Audit Berbasis Risiko', type: 'Terstruktur', skp: 8, date: '2026-02-26' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 9, date: '2026-03-05' }],
-    'EMP-007': [{ t: 'PSAK 71 Deep Dive', type: 'Terstruktur', skp: 8, date: '2026-02-15' }, { t: 'Audit Data Analytics', type: 'Terstruktur', skp: 6, date: '2026-01-30' }, { t: 'Webinar Pajak Coretax', type: 'Terstruktur', skp: 4, date: '2026-03-04' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 14, date: '2026-03-06' }],
-    'EMP-021': [{ t: 'Audit Sampling MUS', type: 'Terstruktur', skp: 6, date: '2026-02-20' }, { t: 'Self-study', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
-    'EMP-031': [{ t: 'Onboarding Audit Methodology', type: 'Terstruktur', skp: 12, date: '2026-01-15' }],
+    'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10', topic: 'akuntansi' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22', topic: 'pembinaan' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],
+    'EMP-002': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10', topic: 'akuntansi' }, { t: 'Etika Profesi & Independensi', type: 'Terstruktur', skp: 4, date: '2026-01-18', topic: 'pembinaan' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
+    'EMP-003': [{ t: 'PSAK 117 (Kontrak Asuransi)', type: 'Terstruktur', skp: 8, date: '2026-02-12', topic: 'akuntansi' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22', topic: 'pembinaan' }, { t: 'Audit Berbasis Risiko', type: 'Terstruktur', skp: 8, date: '2026-02-26', topic: 'akuntansi' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 9, date: '2026-03-05' }],
+    'EMP-007': [{ t: 'PSAK 71 Deep Dive', type: 'Terstruktur', skp: 8, date: '2026-02-15', topic: 'akuntansi' }, { t: 'Audit Data Analytics', type: 'Terstruktur', skp: 6, date: '2026-01-30', topic: 'akuntansi' }, { t: 'Webinar Pajak Coretax', type: 'Terstruktur', skp: 4, date: '2026-03-04', topic: 'lain' }, { t: 'Self-study standar', type: 'Tidak Terstruktur', skp: 14, date: '2026-03-06' }],
+    'EMP-021': [{ t: 'Audit Sampling MUS', type: 'Terstruktur', skp: 6, date: '2026-02-20', topic: 'akuntansi' }, { t: 'Self-study', type: 'Tidak Terstruktur', skp: 6, date: '2026-03-02' }],
+    'EMP-031': [{ t: 'Onboarding Audit Methodology', type: 'Terstruktur', skp: 12, date: '2026-01-15', topic: 'akuntansi' }],
+    ...CPE_EXT,   // PR-4 — SKP personel tambahan roster
   };
+
+
+  /* ---- Register penandatanganan AP (PRD sdm-kepatuhan PR-7 · SC-23) ----
+     `tenure` di `INDEPENDENCE` dulu DIKETIK (`tenure: 7`). Aplikasi punya riwayat
+     perikatan tetapi tak pernah menghitung tahun berturut dari sana, dan
+     `cooloff: 2` adalah data yang tak dievaluasi apa pun.
+
+     Register ini adalah peristiwanya: satu baris per (AP × klien × tahun buku).
+     `canon_rotation.consecutiveYears()` menurunkan masa tugas darinya, sehingga
+     angka masa tugas berhenti dapat diketik dan masa jeda dapat diperiksa.
+
+     Tahun disusun agar masa tugas turunan menutup ke angka lama — KECUALI
+     Lestari Handayani: `tenure: 2.5` tak dapat dinyatakan oleh register
+     bertahun-buku. Dibulatkan KE ATAS (3) karena untuk gerbang kepatuhan,
+     mengecilkan masa tugas berarti mengecilkan risiko rotasi. */
+  const ROTATION_YEAR = 2026;
+  const AP_SIGNING_HISTORY = [
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2022 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2023 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2024 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2025 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2026 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2020 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2021 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2022 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2023 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2024 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2025 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2026 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2024 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2025 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2026 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2024 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2025 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2026 },
+    /* Rotasi lampau — dipakai menguji masa jeda: Hartono keluar dari Bumi Hijau
+       setelah 2023 dan belum boleh kembali sebelum tahun buku 2026. */
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2021 },
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2022 },
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2023 },
+  ];
 
   /* ---- E: Independence declarations & partner rotation ----
      Ambang rotasi AP terdiferensiasi per rezim (SSOT):
        · PIE umum            → 5 th berturut  (PP 20/2015 Ps. 11)
        · Sektor jasa keuangan → 3 th berturut  (POJK 13/POJK.03/2017)
      cooling-off 2 tahun. Non-PIE: tidak ada batas statutori AP. */
-  const INDEPENDENCE = [
-    { id: 'EMP-001', name: 'Hartono Wijaya', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Sentosa Makmur Tbk', tenure: 5, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
-    { id: 'EMP-002', name: 'Rudi Gunawan', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Graha Properti Investama', tenure: 7, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
-    { id: 'EMP-003', name: 'Sari Dewanti', declared: true, conflicts: 1, finInterest: 'Saudara bekerja di calon klien (di-mitigasi)', rotationClient: 'PT Cahaya Logistik Nusantara', tenure: 3, rotationLimit: 5, sektorJK: false, sektor: 'Non-PIE', basis: 'Kebijakan firma (tanpa batas statutori)', cooloff: 0, listed: false },
-    { id: 'EMP-004', name: 'Lestari Handayani', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Bank Arta Nusantara Tbk', tenure: 2.5, rotationLimit: 3, sektorJK: true, sektor: 'Jasa keuangan (bank)', basis: 'POJK 13/POJK.03/2017', cooloff: 2, listed: true },
-    { id: 'EMP-007', name: 'Anindya Pramesti', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
-    { id: 'EMP-008', name: 'Bayu Saputra', declared: false, conflicts: 0, finInterest: 'Belum dideklarasikan', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
+  const INDEPENDENCE_BASE = [
+    { id: 'EMP-001', name: 'Hartono Wijaya', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Sentosa Makmur Tbk', rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', listed: true },
+    { id: 'EMP-002', name: 'Rudi Gunawan', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Graha Properti Investama', rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', listed: true },
+    { id: 'EMP-003', name: 'Sari Dewanti', declared: true, conflicts: 1, finInterest: 'Saudara bekerja di calon klien (di-mitigasi)', rotationClient: 'PT Cahaya Logistik Nusantara', rotationLimit: 5, sektorJK: false, sektor: 'Non-PIE', basis: 'Kebijakan firma (tanpa batas statutori)', listed: false },
+    { id: 'EMP-004', name: 'Lestari Handayani', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Bank Arta Nusantara Tbk', rotationLimit: 3, sektorJK: true, sektor: 'Jasa keuangan (bank)', basis: 'POJK 13/POJK.03/2017', listed: true },
+    { id: 'EMP-007', name: 'Anindya Pramesti', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: '—', rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', listed: false },
+    { id: 'EMP-008', name: 'Bayu Saputra', declared: false, conflicts: 0, finInterest: 'Belum dideklarasikan', rotationClient: '—', rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', listed: false },
   ];
+
+  /* Masa tugas & masa jeda DITURUNKAN dari `AP_SIGNING_HISTORY` (canon_rotation),
+     bukan diketik. Konsumen lama (`view_people`, `data_licensing`, `view_pppk`)
+     tetap membaca `d.tenure`/`d.cooloff` seperti sebelumnya — yang berubah
+     adalah dari mana angkanya berasal. */
+  const INDEPENDENCE = INDEPENDENCE_BASE.map((d) => {
+    const regime = rotationRegimeOf({ sektorJK: !!d.sektorJK, listed: !!d.listed });
+    const st = rotationState({
+      ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY,
+      asOfYear: ROTATION_YEAR, sektorJK: !!d.sektorJK, listed: !!d.listed,
+    });
+    const cool = coolOffState({ ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY, asOfYear: ROTATION_YEAR, regime });
+    return {
+      ...d,
+      tenure: st.tenure,
+      rotationLimit: regime.limit > 0 ? regime.limit : d.rotationLimit,
+      cooloff: regime.cooloff,
+      rotationTier: st.tier,
+      rotationBreached: st.breached,
+      rotationBasis: regime.basis,
+      coolOffSatisfied: cool.satisfied,
+      coolOffEligibleFrom: cool.eligibleFrom,
+    };
+  });
 
   /* ---- F: Firm GL — chart of accounts ---- */
   const FIRM_COA = [
@@ -808,4 +919,4 @@
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, AR_BRIDGE, AP_BRIDGE, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, EXITS, AP_SIGNING_HISTORY, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, AR_BRIDGE, AP_BRIDGE, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };

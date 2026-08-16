@@ -2,6 +2,7 @@
 import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 import { cpeFromTraining } from './cpe_training';
+import { pplStatusFromEntries } from './canon_ppl';
 
 /* ---------- Ambang rotasi AP — SUMBER KEBENARAN TUNGGAL ----------
    Empat tingkat, dipakai lintas view (BO Lisensi · Firm Dashboard ·
@@ -53,7 +54,13 @@ export function rotTier(tenure: number, limit: number): RotTier {
   }
 
   /* ---------- PPL/SKP per pegawai — SUMBER: CPE_LOG (+ entri user terpersist) ----------
-     IDENTIK dengan perhitungan CPETracker (view_people): base CPE_LOG + cpeExtra. */
+     PRD sdm-kepatuhan PR-3: SATU mesin PPL.
+
+     Sebelumnya fungsi ini menjumlahkan SKP MENTAH — tanpa cap SKP tidak
+     terstruktur PMK 186 Ps. 37 — sementara `canon_ppl.pplStatus()` yang benar
+     sudah ada di repo ini dan dipakai modul Kesiapan P2PK. Akibatnya EMP-007
+     berdiri di 32/40 SKP di sini dan 28/40 di modul sebelah: satu orang, satu
+     tahun, dua angka resmi, tanpa cara tahu mana yang dibaca orang. */
   function pplOf(empId: any) {
     const base = (A().CPE_LOG && A().CPE_LOG[empId]) || [];
     const extra = (LS('cpeExtra', {})[empId]) || [];
@@ -61,9 +68,11 @@ export function rotTier(tenure: number, limit: number): RotTier {
        cacheKey berlingkup 'ams.v1.firm.<FIRM_SCOPE_ID>.trainingAttendance.v1'. */
     const training = (cpeFromTraining(A().TRAINING_CATALOG, LS('firm.FIRM-WHR.trainingAttendance.v1', {}))[empId]) || [];
     const recs = [...extra, ...training, ...base];
-    const total = recs.reduce((a, r) => a + (r.skp || 0), 0);
-    const structured = recs.filter(r => r.type === 'Terstruktur').reduce((a, r) => a + (r.skp || 0), 0);
-    return { total, structured, recs };
+    const st = pplStatusFromEntries(recs);
+    return {
+      /* `total` = SKP yang DAPAT DIPERHITUNGKAN (setelah cap), bukan jumlah mentah. */
+      total: st.countedTotal, structured: st.structured, recs, status: st,
+    };
   }
 
   /* ---------- Izin Akuntan Publik diperkaya (HCM + CPE + Independence) ---------- */
