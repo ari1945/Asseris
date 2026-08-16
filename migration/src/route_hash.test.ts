@@ -7,7 +7,7 @@
    rusak yang bisa datang dari tautan tempelan pengguna.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { parseHash, buildHash, sameLocation, initialLocation, resolveRoute, ROUTE_ALIAS } from './route_hash';
+import { parseHash, buildHash, sameLocation, initialLocation, oneShotSeeds, resolveRoute, ROUTE_ALIAS } from './route_hash';
 
 const KNOWN = ['home', 'wtb', 'workpapers', 'psak46', 'sa530', 'continuance', 'wip'];
 const isKnown = (id: string): boolean => KNOWN.includes(id);
@@ -202,5 +202,41 @@ describe('initialLocation — bookmark ber-id lama tetap mendarat benar', () => 
     const r = initialLocation('', 'wipreal', isKnown);
     expect(r.source).toBe('storage');
     expect(r.loc.route).toBe('wip');
+  });
+});
+
+/* ============================================================
+   PR-6 (PRD prd-sales-pipeline-deepening · SC-15) — seed satu-tembak.
+   Sebelum ini, `#/pipeline/OPP-103` mendarat di modul yang benar dengan rekaman
+   TIDAK terbuka: sumbu `sel` ditulis ke alamat tapi tak pernah dibaca kembali.
+   ============================================================ */
+describe('oneShotSeeds — alamat membuka rekamannya', () => {
+  it('seleksi pada alamat menjadi kunci yang dibaca useInitialSelection', () => {
+    expect(oneShotSeeds({ route: 'pipeline', sel: 'OPP-103', tab: null }))
+      .toEqual([{ key: 'ams.navsel.pipeline', value: 'OPP-103' }]);
+  });
+
+  it('tab & seleksi sekaligus', () => {
+    expect(oneShotSeeds({ route: 'wip', sel: 'ENG-2025-014', tab: 'Realisasi' })).toEqual([
+      { key: 'ams.navtab.wip', value: 'Realisasi' },
+      { key: 'ams.navsel.wip', value: 'ENG-2025-014' },
+    ]);
+  });
+
+  it('alias rute diterjemahkan — bookmark lama menyeed modul penggantinya', () => {
+    const seeds = oneShotSeeds({ route: 'wipreal', sel: 'X', tab: null });
+    expect(seeds[0].key).toBe('ams.navsel.' + resolveRoute('wipreal'));
+  });
+
+  it('tanpa sel/tab tidak menulis apa pun', () => {
+    expect(oneShotSeeds({ route: 'pipeline', sel: null, tab: null })).toEqual([]);
+    expect(oneShotSeeds({ route: 'pipeline', sel: '', tab: '' })).toEqual([]);
+    expect(oneShotSeeds(null)).toEqual([]);
+  });
+
+  it('bulak-balik: alamat yang dibangun buildHash menyeed kembali nilai yang sama', () => {
+    const loc = { route: 'pipeline', sel: 'OPP-103', tab: null };
+    const parsed = parseHash(buildHash(loc));
+    expect(oneShotSeeds(parsed)).toEqual([{ key: 'ams.navsel.pipeline', value: 'OPP-103' }]);
   });
 });

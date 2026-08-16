@@ -8,9 +8,9 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 54 |
+| Draft | 53 |
 | Approved | 5 |
-| In Progress | 7 |
+| In Progress | 8 |
 | Implemented | 36 |
 | Superseded | 1 |
 
@@ -108,7 +108,7 @@
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
-| docs/prd-sales-pipeline-deepening.md | Draft — menunggu sign-off ("Proceed."). Enam PR: register tunggal + RBAC/audit · penerimaan terfalsifikasi · integritas serah-terima · siklus hidup & disiplin probabilitas · build-up fee→jam · win-loss turunan + a11y/alamat. Q-1..Q-6 terbuka |
+| docs/prd-sales-pipeline-deepening.md | In Progress — Approved ("sesuai rekomendasi" 2026-08-15; Q-1..Q-5 = rekomendasi, Q-6 = opsi b dgn fallback a). PR-1 SELESAI (register tunggal intake+cross-sell · RBAC ENGAGEMENT_MANAGE · jejak audit · SC-1/2/9/10). PR-2 SELESAI (kesiapan penerimaan dari register prospek + independensi; 8 dari 14 peluang ternyata punya hal terbuka yang dulu hijau semua · SC-4/5). PR-3 SELESAI (serah-terima berhenti mengarang materialitas/gelar/jam; duplikat ditolak dengan pesan; `window.amsAddProspect` dicabut; konversi kini digerbangi materialitas SA 320 + partner SA 220.14 · SC-6). PR-4 SELESAI (riwayat tahap jadi data: umur, macet, konversi antar-tahap, win rate PER PERIODE, disiplin probabilitas; prob 100% tak lagi terbawa keluar dari Won · SC-11/12/13). PR-5 SELESAI (build-up jam×tarif; dua konstanta tarif lepas 700rb/800rb dicabut ke SSOT FIRMFIN.WIP_BILL; demand kapasitas dipisah tercatat vs estimasi · SC-7/8). PR-6 SELESAI (BI_WINLOSS literal dicabut → win/loss & alasan kalah diturunkan; kartu jadi button native + pindah-tahap tanpa tetikus; sheet beralamat — sekaligus menambal lubang kontrak V-9: sumbu sel/tab tak pernah DIBACA saat masuk dari luar · SC-3/14/15). **ARC TUNTAS** SC-1..SC-16; verify hijau penuh |
 | docs/prd-sa620-expert-gate-server.md | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-smm1-smm2-adoption.md | Implemented — SELESAI 2026-08-13. Kedelapan PR merged (#198·#200·#201·#202·#203·#204·#205·#206), master 3c57a39. Q-1..Q-6 terjawab; retensi SMM ¶60 = 5 tahun (kertas kerja perikatan TETAP rezim terpisah) |

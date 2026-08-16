@@ -153,6 +153,14 @@ export function capForWrite(scope: any, key: any) {
     // otoritatif firma. Tanpa cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → edit Manajer
     // gagal senyap. Keputusan keberlanjutan otoritatif tetap di key 'continuanceDecisions' (FIRM_ADMIN).
     if (key === 'priorYear') return ENGAGEMENT_MANAGE;
+    // 2026-08-15 (PRD Sales Pipeline PR-1) — register peluang firma. Business
+    // development adalah tugas Partner/Manajer, SEJAJAR dengan 'prospects' (intake
+    // penerimaan): peluang yang matang menjadi prospek lewat tombol yang sama.
+    // Tanpa cabang ini kunci jatuh ke FIRM_ADMIN (Partner-only) → seorang Manajer
+    // menyeret kartu, melihatnya berpindah tahap di layar, lalu tulisannya ditolak
+    // SENYAP oleh server dan kembali saat reload. Kelas cacat yang sama persis
+    // dengan priorYear / capacityPlan.v1 / invoices di atas & di bawah.
+    if (key === 'pipeline') return ENGAGEMENT_MANAGE;
     // 2026-07-01 — dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP
     // manual, deklarasi independensi/etik, hadiah&gratifikasi). Sebelumnya diam-diam jatuh ke
     // FIRM_ADMIN (Partner-only) karena tak ada cabang eksplisit — kini HR_MANAGE eksplisit

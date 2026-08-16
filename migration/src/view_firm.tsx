@@ -166,7 +166,11 @@ function ClientCRM() {
                           <div className="tiny muted">{ct.role}</div>
                           <div className="tiny mono" style={{ color: 'var(--blue)' }}>{ct.email}</div>
                         </div>
-                        <button aria-label={"Email " + ct.email} className="p-act"><I.mail size={15} /></button>
+                        {/* Tombol amplop DICABUT (2026-08-15): tak pernah punya onClick —
+                            affordance palsu. #250 sempat memberinya aria-label demi
+                            gerbang, yang justru memperburuk: pembaca layar jadi lebih
+                            mudah menemukannya, lalu tak terjadi apa-apa. Alamat surel
+                            tetap tampil di atas dan dapat disalin. */}
                       </div>
                     ))}
                     <Btn sm style={{ width: '100%' }}><I.plus size={13} /> Tambah Kontak</Btn>

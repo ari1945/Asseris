@@ -295,15 +295,108 @@
     { id: 'TE-07', member: 'Rina Kusuma', date: '2026-03-06', phase: 'Eksekusi', task: 'Observasi stock opname', hours: 6 },
   ];
 
-  /* ---- D: Sales pipeline (opportunities) ---- */
+  /* ---- D: Sales pipeline (opportunities) ----
+     `history` (PRD prd-sales-pipeline-deepening PR-4) = jejak perpindahan tahap.
+     Tanpa satu pun stempel waktu, umur peluang, waktu-di-tahap, deteksi macet,
+     conversion rate antar-tahap, dan win rate PER PERIODE semuanya mustahil.
+     Nilai di bawah adalah DATA DEMO yang di-backfill (Q-4 opsi a) agar turunan
+     punya isi; `prob` pada tiap peristiwa merekam keyakinan yang berlaku saat
+     berada di tahap itu, sehingga angka lama dapat dipulihkan bila peluang
+     kembali dari Won/Lost. Klok demo = AMS.TODAY (2026-03-09).                */
   const PIPELINE = [
-    { id: 'OPP-101', name: 'PT Karya Beton Perkasa', service: 'Audit Laporan Keuangan', stage: 'Proposal', value: 640_000_000, prob: 60, owner: 'Hartono Wijaya', close: '2026-04-30', industry: 'Konstruksi' },
-    { id: 'OPP-102', name: 'PT Digital Andalan Teknologi', service: 'Agreed-Upon Procedures', stage: 'Lead', value: 410_000_000, prob: 25, owner: 'Sari Dewanti', close: '2026-06-15', industry: 'Teknologi' },
-    { id: 'OPP-103', name: 'PT Pelita Energi Nusantara', service: 'Audit + Tax', stage: 'Negotiation', value: 1_280_000_000, prob: 75, owner: 'Rudi Gunawan', close: '2026-04-10', industry: 'Energi' },
-    { id: 'OPP-104', name: 'PT Sari Boga Internasional', service: 'Audit Laporan Keuangan', stage: 'Qualified', value: 720_000_000, prob: 45, owner: 'Sari Dewanti', close: '2026-05-20', industry: 'F&B' },
-    { id: 'OPP-105', name: 'PT Mega Properti Sentosa', service: 'Due Diligence', stage: 'Won', value: 950_000_000, prob: 100, owner: 'Rudi Gunawan', close: '2026-03-01', industry: 'Properti' },
-    { id: 'OPP-106', name: 'PT Cahaya Tekstil Mandiri', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 540_000_000, prob: 0, owner: 'Hartono Wijaya', close: '2026-02-15', industry: 'Manufaktur' },
-    { id: 'OPP-107', name: 'PT Bahari Logistik Prima', service: 'Review (SPR 2400)', stage: 'Qualified', value: 380_000_000, prob: 50, owner: 'Bayu Saputra', close: '2026-05-31', industry: 'Logistik' },
+    /* Peluang yang SUDAH diputuskan pada periode lalu (PR-6). Tanpa ini, win rate
+       per kuartal & analitik alasan kalah tak punya populasi: register hanya
+       memuat satu Won dan dua Lost, seluruhnya di Q1 2026. `BI_WINLOSS` literal
+       dulu mengaku 6 menang · 2 kalah lintas empat kuartal — angka yang tak
+       pernah ada dasarnya. Baris di bawah adalah DATA DEMO yang di-backfill
+       (Q-5 opsi a) supaya turunannya punya isi yang dapat diperiksa. */
+    { id: 'OPP-081', name: 'PT Anugerah Sawit Lestari', service: 'Audit Laporan Keuangan', stage: 'Won', value: 880_000_000, prob: 100, owner: 'Hartono Wijaya', close: '2025-06-20', industry: 'Agribisnis',
+      history: [
+        { stage: 'Lead', at: '2025-02-10', by: 'Hartono Wijaya', prob: 20 },
+        { stage: 'Qualified', at: '2025-03-14', by: 'Hartono Wijaya', prob: 40 },
+        { stage: 'Proposal', at: '2025-04-18', by: 'Hartono Wijaya', prob: 60 },
+        { stage: 'Negotiation', at: '2025-05-22', by: 'Hartono Wijaya', prob: 80 },
+        { stage: 'Won', at: '2025-06-20', by: 'Hartono Wijaya', prob: 100 },
+      ] },
+    { id: 'OPP-082', name: 'PT Sinar Kimia Industri', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 620_000_000, prob: 0, owner: 'Sari Dewanti', close: '2025-08-11', industry: 'Kimia',
+      history: [
+        { stage: 'Lead', at: '2025-04-02', by: 'Sari Dewanti', prob: 20 },
+        { stage: 'Qualified', at: '2025-05-19', by: 'Sari Dewanti', prob: 40 },
+        { stage: 'Proposal', at: '2025-06-30', by: 'Sari Dewanti', prob: 60 },
+        { stage: 'Lost', at: '2025-08-11', by: 'Sari Dewanti', prob: 0, reason: 'Imbalan pesaing 18% lebih rendah; lingkup setara.' },
+      ] },
+    { id: 'OPP-083', name: 'PT Bahtera Niaga Samudra', service: 'Audit + Tax', stage: 'Won', value: 1_150_000_000, prob: 100, owner: 'Rudi Gunawan', close: '2025-09-30', industry: 'Perdagangan',
+      history: [
+        { stage: 'Lead', at: '2025-05-06', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-06-17', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-07-25', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Negotiation', at: '2025-08-28', by: 'Rudi Gunawan', prob: 75 },
+        { stage: 'Won', at: '2025-09-30', by: 'Rudi Gunawan', prob: 100 },
+      ] },
+    { id: 'OPP-084', name: 'PT Cipta Rasa Boga', service: 'Review (SPR 2400)', stage: 'Lost', value: 340_000_000, prob: 0, owner: 'Bayu Saputra', close: '2025-11-14', industry: 'F&B',
+      history: [
+        { stage: 'Lead', at: '2025-08-19', by: 'Bayu Saputra', prob: 20 },
+        { stage: 'Qualified', at: '2025-09-23', by: 'Bayu Saputra', prob: 40 },
+        { stage: 'Lost', at: '2025-11-14', by: 'Bayu Saputra', prob: 0, reason: 'Klien menunda perikatan; rencana IPO digeser ke 2027.' },
+      ] },
+    { id: 'OPP-085', name: 'PT Wahana Medika Utama', service: 'Audit Laporan Keuangan', stage: 'Won', value: 760_000_000, prob: 100, owner: 'Sari Dewanti', close: '2025-12-12', industry: 'Kesehatan',
+      history: [
+        { stage: 'Lead', at: '2025-07-14', by: 'Sari Dewanti', prob: 20 },
+        { stage: 'Qualified', at: '2025-09-01', by: 'Sari Dewanti', prob: 40 },
+        { stage: 'Proposal', at: '2025-10-13', by: 'Sari Dewanti', prob: 60 },
+        { stage: 'Negotiation', at: '2025-11-10', by: 'Sari Dewanti', prob: 75 },
+        { stage: 'Won', at: '2025-12-12', by: 'Sari Dewanti', prob: 100 },
+      ] },
+    { id: 'OPP-086', name: 'PT Galuh Semen Nusantara', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 1_020_000_000, prob: 0, owner: 'Rudi Gunawan', close: '2026-01-23', industry: 'Semen',
+      history: [
+        { stage: 'Lead', at: '2025-09-08', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-10-20', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-11-28', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Lost', at: '2026-01-23', by: 'Rudi Gunawan', prob: 0, reason: 'Rotasi wajib: KAP kami sudah 5 tahun berturut-turut (PP 20/2015).' },
+      ] },
+    { id: 'OPP-101', name: 'PT Karya Beton Perkasa', service: 'Audit Laporan Keuangan', stage: 'Proposal', value: 640_000_000, prob: 60, owner: 'Hartono Wijaya', close: '2026-04-30', industry: 'Konstruksi',
+      buildUp: [{ grade: 'Partner', hours: 60 }, { grade: 'Manager', hours: 180 }, { grade: 'Senior', hours: 320 }, { grade: 'Junior', hours: 320 }], durationWeeks: 20, startPlanned: '2026-05-11',
+      history: [
+        { stage: 'Lead', at: '2025-11-18', by: 'Hartono Wijaya', prob: 20 },
+        { stage: 'Qualified', at: '2025-12-08', by: 'Hartono Wijaya', prob: 40 },
+        { stage: 'Proposal', at: '2026-01-14', by: 'Hartono Wijaya', prob: 60 },
+      ] },
+    { id: 'OPP-102', name: 'PT Digital Andalan Teknologi', service: 'Agreed-Upon Procedures', stage: 'Lead', value: 410_000_000, prob: 25, owner: 'Sari Dewanti', close: '2026-06-15', industry: 'Teknologi',
+      history: [{ stage: 'Lead', at: '2026-01-22', by: 'Sari Dewanti', prob: 25 }] },
+    { id: 'OPP-103', name: 'PT Pelita Energi Nusantara', service: 'Audit + Tax', stage: 'Negotiation', value: 1_280_000_000, prob: 75, owner: 'Rudi Gunawan', close: '2026-04-10', industry: 'Energi',
+      buildUp: [{ grade: 'Partner', hours: 120 }, { grade: 'Manager', hours: 360 }, { grade: 'Senior', hours: 640 }, { grade: 'Junior', hours: 560 }], durationWeeks: 26, startPlanned: '2026-04-20',
+      history: [
+        { stage: 'Lead', at: '2025-10-06', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-11-10', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-12-19', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Negotiation', at: '2026-02-18', by: 'Rudi Gunawan', prob: 75 },
+      ] },
+    { id: 'OPP-104', name: 'PT Sari Boga Internasional', service: 'Audit Laporan Keuangan', stage: 'Qualified', value: 720_000_000, prob: 45, owner: 'Sari Dewanti', close: '2026-05-20', industry: 'F&B',
+      buildUp: [{ grade: 'Partner', hours: 70 }, { grade: 'Manager', hours: 200 }, { grade: 'Senior', hours: 340 }, { grade: 'Junior', hours: 330 }], durationWeeks: 22, startPlanned: '2026-06-01',
+      history: [
+        { stage: 'Lead', at: '2025-12-02', by: 'Sari Dewanti', prob: 20 },
+        { stage: 'Qualified', at: '2026-01-09', by: 'Sari Dewanti', prob: 45 },
+      ] },
+    { id: 'OPP-105', name: 'PT Mega Properti Sentosa', service: 'Due Diligence', stage: 'Won', value: 950_000_000, prob: 100, owner: 'Rudi Gunawan', close: '2026-03-01', industry: 'Properti',
+      history: [
+        { stage: 'Lead', at: '2025-09-15', by: 'Rudi Gunawan', prob: 20 },
+        { stage: 'Qualified', at: '2025-10-20', by: 'Rudi Gunawan', prob: 40 },
+        { stage: 'Proposal', at: '2025-11-27', by: 'Rudi Gunawan', prob: 60 },
+        { stage: 'Negotiation', at: '2026-01-16', by: 'Rudi Gunawan', prob: 80 },
+        { stage: 'Won', at: '2026-03-01', by: 'Rudi Gunawan', prob: 100 },
+      ] },
+    { id: 'OPP-106', name: 'PT Cahaya Tekstil Mandiri', service: 'Audit Laporan Keuangan', stage: 'Lost', value: 540_000_000, prob: 0, owner: 'Hartono Wijaya', close: '2026-02-15', industry: 'Manufaktur',
+      history: [
+        { stage: 'Lead', at: '2025-10-28', by: 'Hartono Wijaya', prob: 20 },
+        { stage: 'Qualified', at: '2025-12-01', by: 'Hartono Wijaya', prob: 40 },
+        { stage: 'Proposal', at: '2026-01-07', by: 'Hartono Wijaya', prob: 55 },
+        { stage: 'Lost', at: '2026-02-15', by: 'Hartono Wijaya', prob: 0, reason: 'Imbalan pesaing 22% lebih rendah; lingkup setara.' },
+      ] },
+    { id: 'OPP-107', name: 'PT Bahari Logistik Prima', service: 'Review (SPR 2400)', stage: 'Qualified', value: 380_000_000, prob: 50, owner: 'Bayu Saputra', close: '2026-05-31', industry: 'Logistik',
+      history: [
+        { stage: 'Lead', at: '2025-12-15', by: 'Bayu Saputra', prob: 20 },
+        { stage: 'Qualified', at: '2026-01-05', by: 'Bayu Saputra', prob: 50 },
+      ] },
   ];
 
   /* ---- D: Invoices ---- */

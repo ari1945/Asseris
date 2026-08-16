@@ -4,11 +4,11 @@ import {
   capacityModel,
   seedForwardPlan,
   pipelineDemand,
-  CAP_BLENDED_RATE,
   CAP_EST_WEEKS,
   type SchedMember,
   type CapacitySeed,
 } from './canon_capacity';
+import { blendedRate } from './canon_pipeline_fee';
 
 /* Fixtur ringkas meniru bentuk AMS.SCHEDULE (data_part1.ts). */
 const SCHEDULE: SchedMember[] = [
@@ -114,8 +114,21 @@ describe('pipelineDemand — heuristik jam dari value (Q2-a)', () => {
     expect(out.map((p) => p.name)).toEqual(['PT Alfa']);
   });
 
-  it('hrs = value / rate / durasi (dibulatkan, minimal 1)', () => {
-    expect(out[0].hrs).toBe(Math.round(1_280_000_000 / CAP_BLENDED_RATE / CAP_EST_WEEKS));
-    expect(out[0].start).toBe('2026-04-13');   // start = close
+  /* PR-5 (prd-sales-pipeline-deepening) — `CAP_BLENDED_RATE` DICABUT. Tarif kini
+     dari SSOT firma (FIRMFIN.WIP_BILL) dan peluang ber-build-up membaca jamnya
+     sendiri. Uji lama memaku konstanta yang justru menjadi masalahnya. */
+  it('tanpa build-up: jam diestimasi dari tarif firma & durasi lazim', () => {
+    const rates = { 'Engagement Partner': 2_500_000, 'Audit Manager': 1_200_000, 'Senior Auditor': 700_000, 'Junior Auditor': 400_000 };
+    const est = pipelineDemand(raw, rates)[0];
+    const blended = blendedRate(rates);
+    expect(est.hrs).toBe(Math.max(1, Math.round(Math.max(1, Math.round(1_280_000_000 / blended)) / CAP_EST_WEEKS)));
+    expect(est.estimated).toBe(true);
+    expect(est.start).toBe('2026-04-13');   // start = close (belum ada startPlanned)
+  });
+
+  it('TANPA tarif: mengaku tidak dapat dihitung — bukan menerbitkan 1 jam karangan', () => {
+    expect(out[0].hrs).toBe(0);
+    expect(out[0].estimated).toBe(true);
+    expect(String(out[0].basis)).toMatch(/TIDAK DAPAT DIHITUNG/);
   });
 });

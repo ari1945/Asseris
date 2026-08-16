@@ -5,6 +5,9 @@ import { useAmsPersist, useAuth } from './contexts';
 import { CAP } from './rbac';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacityPlan, CapacitySeed, GradeSeries } from './canon_capacity';
+import { usePipelineRegister } from './use_pipeline';
+import { FIRMFIN } from './data_firmfin';
+import { demandSplit } from './canon_pipeline_fee';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -43,11 +46,22 @@ function CapacityPlanning() {
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_MANAGE));
 
   const leaveSet = useMemoCap(() => new Set((AMS.STAFF || []).filter((s) => s.status === 'Cuti').map((s) => (s.name || '').split(',')[0].trim())), []);
+  /* PRD Sales Pipeline PR-1 — kebutuhan sumber daya dari register HIDUP. Dulu
+     literal seed: memenangkan/kehilangan peluang tak pernah menggeser demand. */
+  const { register: pipelineReg } = usePipelineRegister();
+  /* PR-5 — tarif charge-out dari SSOT firma (FIRMFIN.WIP_BILL). Dulu kanon
+     memakai konstanta 800.000 sendiri, berselisih dengan 700.000 di
+     view_pipeline untuk konversi nilai→jam yang SAMA. */
+  const rates = (FIRMFIN && FIRMFIN.WIP_BILL) || {};
   const model = useMemoCap(() => capacityModel(schedule, plan, {
     nowLabel: (AMS.CAPACITY as CapacitySeed).weeks[0],
-    pipeline: AMS.PIPELINE,
+    pipeline: pipelineReg,
+    rates,
     leaveOf: (n: string) => leaveSet.has(n),
-  }), [schedule, plan, leaveSet]);
+  }), [schedule, plan, leaveSet, pipelineReg, rates]);
+  /* Kebutuhan pipeline DIPISAH: yang punya build-up jam vs yang masih estimasi.
+     Mencampurnya berarti menyajikan tebakan sebagai angka rencana. */
+  const split = useMemoCap(() => demandSplit(pipelineReg, rates), [pipelineReg, rates]);
   const { weeks, grades, staff, pipeline } = model;
   const fwdN = plan.weeks.length;   /* minggu ke-depan yang bisa disunting (index 1.. di weeks) */
   const userName = AMS.USER.name || 'Pengguna';
@@ -71,7 +85,11 @@ function CapacityPlanning() {
   const avgUtil = totSup ? totDem / totSup * 100 : 0;
   const deficitWeeks = weeks.filter((_: any, i: any) => series.demand[i] > series.supply[i]).length;
   const benchNext4 = weeks.slice(0, 4).reduce((s: any, _: any, i: any) => s + Math.max(0, series.supply[i] - series.demand[i]), 0);
-  const pipeProb = pipeline.reduce((s: any, p: any) => s + p.hrs * p.prob / 100, 0);
+  /* PR-5 — headline = penjumlahan BAGIAN yang ditampilkan. Menghitungnya sendiri
+     dari `pipeline` menghasilkan pembulatan yang berbeda dari `demandSplit`
+     (terlihat hidup: 171h headline di atas "95h tercatat · 77h estimasi" = 172).
+     Satu angka, satu penghasil. */
+  const pipeProb = split.total;
 
   const staffShown = grade === 'Semua' ? staff : staff.filter((s: any) => s.grade === grade);
   const utilColor = (v: any) => v > 100 ? 'var(--red)' : v >= 75 ? 'var(--green)' : 'var(--amber)';
@@ -89,7 +107,8 @@ function CapacityPlanning() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(avgUtil, 0) + '%'} label="Utilisasi Proyeksi" accent={utilColor(avgUtil)} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficitWeeks} label="Minggu Defisit Kapasitas" accent={deficitWeeks ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(benchNext4) + 'h'} label="Bench 4 Minggu Depan" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)"
+            delta={split.total ? `${fmt(split.recorded)}h tercatat · ${fmt(split.estimated)}h estimasi` : null} /></div></Panel>
         </div>
 
         <div className="tiny muted" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>

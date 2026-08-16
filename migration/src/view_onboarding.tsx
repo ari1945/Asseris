@@ -56,15 +56,15 @@ function obStage(p: any) {
 }
 const OB_GATE_COLOR = { done: 'var(--green)', progress: 'var(--amber)', reject: 'var(--red)', todo: 'var(--line-strong)' };
 
-/* append a prospect to persisted onboarding list (used by Pipeline handoff) */
-(window as any).amsAddProspect = function (p: any) {
-  try {
-    const k = 'ams.v1.prospects';
-    const cur = JSON.parse(localStorage.getItem(k) || 'null') || AMS.PROSPECTS;
-    if (cur.some((x: any) => x.id === p.id || x.name === p.name)) return;
-    localStorage.setItem(k, JSON.stringify([p, ...cur]));
-  } catch (e) {}
-};
+/* PR-3 (PRD prd-sales-pipeline-deepening) — `window.amsAddProspect` DICABUT.
+   Ia menulis `localStorage['ams.v1.prospects']` MENTAH: melewati useAmsPersist,
+   melewati server-SSOT, melewati gerbang kapabilitas — dan bila prospeknya sudah
+   ada ia `return` tanpa pesan sementara pemanggil tetap menandai peluang Won
+   lalu berpindah halaman. Satu-satunya pemanggilnya (serah-terima Sales Pipeline)
+   kini memakai `planHandoff`/`applyHandoff` + `useAmsPersist('prospects')`.
+   Tak ada pembaca `window.amsAddProspect` yang tersisa (diaudit lintas
+   migration/src, e2e/, server/ sebelum pencabutan; ia juga tidak terdaftar pada
+   daftar dual-publish yang dipertahankan di CLAUDE.md §3.1). */
 
 /* small key/value box (self-contained) */
 function OKv({ label, v, accent }: any) {
@@ -422,6 +422,14 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
     { id: 'acceptance', t: 'Akseptasi/keberlanjutan disetujui partner', ok: g.acceptance === 'done', detail: p.acceptance.approved ? p.acceptance.decision + ' · ' + p.acceptance.approver : 'Belum disetujui' },
     { id: 'pmpj', t: 'PMPJ / APU-PPT terverifikasi', ok: g.pmpj === 'done', detail: p.pmpj.verified ? 'CDD ' + p.pmpj.cddLevel + ' · risiko ' + p.pmpj.riskRating : 'Belum diverifikasi' },
     { id: 'letter', t: 'Engagement letter ditandatangani (SA 210)', ok: g.letter === 'done', detail: p.letter.status === 'signed' ? 'v' + p.letter.version + ' · ' + (p.letter.signedDate || '') : 'Belum ditandatangani' },
+    /* PR-3 — serah-terima dari Sales Pipeline TIDAK LAGI mengarang materialitas
+       dari fee (`value × 2,5`), jadi field ini bisa sah-sah saja kosong di sini.
+       Ia bukan hiasan: `materiality` mengalir ke addEngagement → materialityFor()
+       → ambang kertas kerja (wp_canon) & pembacaan neraca saldo. Mengonversi
+       dengan materialitas kosong akan menerbitkan perikatan yang ambangnya nol,
+       diam-diam. Gerbang ini membuat kekosongan itu MENGHALANGI, bukan senyap. */
+    { id: 'materiality', t: 'Materialitas awal ditetapkan (SA 320)', ok: +p.materiality > 0, detail: +p.materiality > 0 ? 'Rp ' + fmt(p.materiality / 1e6, 0) + ' jt' : 'Belum ditetapkan — tetapkan dari benchmark entitas, bukan dari fee' },
+    { id: 'partner', t: 'Partner penanggung jawab ditunjuk (SA 220.14)', ok: !!(p.partner && String(p.partner).trim()), detail: p.partner || 'Belum ditunjuk — pemilik peluang belum tentu Partner' },
   ];
   const ready = checks.every(c => c.ok);
 
@@ -479,8 +487,10 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <OKv label="Klien" v={p.name.replace('PT ', '')} />
           <OKv label="Jenis & Standar" v={p.service + ' · ' + p.standard} />
-          <OKv label="Partner / Manajer" v={p.partner.split(',')[0] + ' / ' + p.manager.split(' ')[0]} />
-          <OKv label="Materialitas" v={'Rp ' + fmt(p.materiality / 1e6, 0) + ' jt'} />
+          <OKv label="Partner / Manajer" v={(p.partner ? String(p.partner).split(',')[0] : '— belum ditunjuk') + ' / ' + (p.manager ? String(p.manager).split(' ')[0] : '—')} accent={p.partner ? undefined : 'var(--amber)'} />
+          {/* Kosong ditampilkan sebagai KOSONG. `fmt(null / 1e6)` merender "NaN jt"
+              — angka palsu yang terlihat seperti angka. */}
+          <OKv label="Materialitas" v={+p.materiality > 0 ? 'Rp ' + fmt(p.materiality / 1e6, 0) + ' jt' : '— belum ditetapkan'} accent={+p.materiality > 0 ? undefined : 'var(--amber)'} />
           <OKv label="Anggaran" v={fmt(p.budgetHrs) + ' jam'} />
           <OKv label="Tenggat" v={new Date(p.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
         </div>
@@ -565,4 +575,3 @@ function ProspectForm({ onClose, onAdd }: any) {
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { ClientOnboarding, OB_STAGES, OKv, OnboardingDrawer, ProspectForm, ScorePick, StepAcceptance, StepConvert, obAccScore, obAccVerdict, obGates, obStage };
-export const amsAddProspect = (window as any).amsAddProspect;

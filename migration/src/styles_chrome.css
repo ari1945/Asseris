@@ -597,3 +597,10 @@ body.dense .panel-body { padding: 10px 12px; }
 /* heatmap cells */
 .hcell { display: grid; place-items: center; height: 46px; border-radius: 4px; font-family: var(--mono); font-weight: 700; font-size: 13px; color: #fff; }
 
+
+/* PR-6 (prd-sales-pipeline-deepening · SC-14) — kartu peluang kini <button>
+   native supaya dapat difokus & dioperasikan keyboard. Reset tampilan tombol
+   agar tetap terbaca sebagai kartu, TANPA menghilangkan cincin fokus: fokus yang
+   tak terlihat sama saja dengan tak dapat dioperasikan keyboard. */
+.opp-card { display: block; border: 1px solid var(--line); background: var(--surface); }
+.opp-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }

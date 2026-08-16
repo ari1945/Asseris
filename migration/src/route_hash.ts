@@ -142,3 +142,26 @@ export function initialLocation(
   }
   return { loc: { route: 'home', sel: null, tab: null }, source: 'default' };
 }
+
+/* ---------------------------------------------------------------
+   PR-6 (PRD prd-sales-pipeline-deepening · SC-15) — SEED SATU-TEMBAK.
+
+   Sumbu `tab`/`sel` pada alamat sudah DITULIS sejak V-9, tetapi tak pernah
+   DIBACA saat masuk dari luar: `useInitialTab`/`useInitialSelection` hanya
+   membaca kunci sessionStorage yang diisi `navigate()`. Akibatnya tautan yang
+   dibagikan (`#/pipeline/OPP-103`) mendarat di modul yang benar dengan rekaman
+   TIDAK terbuka — alamatnya setengah bekerja, dan itu tak pernah terlihat dari
+   dalam aplikasi karena navigasi internal selalu lewat `navigate()`.
+
+   Fungsi ini MURNI: ia hanya menghitung pasangan kunci/nilai yang harus ditulis;
+   app.tsx yang menyentuh sessionStorage. Dengan begitu perilakunya dapat diuji
+   tanpa mem-boot aplikasi.
+   --------------------------------------------------------------- */
+export function oneShotSeeds(loc: RouteLocation | null | undefined): { key: string; value: string }[] {
+  if (!loc || !loc.route) return [];
+  const id = resolveRoute(loc.route);
+  const out: { key: string; value: string }[] = [];
+  if (loc.tab != null && loc.tab !== '') out.push({ key: 'ams.navtab.' + id, value: String(loc.tab) });
+  if (loc.sel != null && loc.sel !== '') out.push({ key: 'ams.navsel.' + id, value: String(loc.sel) });
+  return out;
+}

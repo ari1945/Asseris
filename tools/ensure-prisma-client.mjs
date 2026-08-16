@@ -38,14 +38,47 @@ function datasourceProvider(file) {
   return provider ? provider[1] : null;
 }
 
+/* 2026-08-15 — PROVIDER SAJA TIDAK CUKUP. Client Prisma memanggang DIREKTORI SKEMA
+   asal generasinya ke dalam berkas JS-nya, dan seluruh path SQLite relatif
+   (`file:./test.db`, `file:./dev.db`) diselesaikan RELATIF terhadap direktori itu —
+   bukan terhadap cwd proses.
+
+   Terjadi nyata: sesi lain menjalankan `prisma generate` di dalam sebuah git
+   worktree, dan karena `server/node_modules` dibagi antar-worktree, client di pohon
+   UTAMA ikut memanggang `.claude/worktrees/<nama>/server/prisma`. Akibatnya seluruh
+   uji backend membaca-menulis `test.db` MILIK WORKTREE ITU — berkas yang tak pernah
+   direset `globalSetup` — sehingga menumpuk StateDoc & riwayat lama dan 34 uji gagal
+   dengan `version-mismatch:server=0`, pesan yang sama sekali tak menunjuk sebabnya.
+   Providernya cocok sepanjang waktu, jadi gerbang ini mencetak "OK" di atasnya.
+
+   Karena itu direktori skema yang terpanggang ikut diperiksa. */
+function bakedSchemaDir() {
+  const js = join(server, 'node_modules', '.prisma', 'client', 'index.js');
+  if (!existsSync(js)) return null;
+  const src = readFileSync(js, 'utf8');
+  /* Prisma menyimpannya sebagai `"sourceFilePath":"<abs>/schema.prisma"` (atau
+     dirname-nya pada versi lain); ambil yang pertama cocok. */
+  const m = /"sourceFilePath"\s*:\s*"([^"]+)"/.exec(src) || /"schemaDir"\s*:\s*"([^"]+)"/.exec(src);
+  if (!m) return null;
+  return m[1].replace(/\\\\/g, '\\');
+}
+
 const want = datasourceProvider(sourceSchema);
 const have = datasourceProvider(generatedSchema);
+const baked = bakedSchemaDir();
+/* Path terpanggang harus BERAWAL di pohon ini. Substring TIDAK cukup: path worktree
+   (`…/.claude/worktrees/<nama>/server/prisma`) juga MENGANDUNG "server/prisma", jadi
+   pemeriksaan longgar meloloskannya — persis kekeliruan yang tertangkap saat gerbang
+   ini diuji-gagalkan sebelum dipakai. Bandingkan prefiks absolut, dengan pemisah
+   dinormalkan dan huruf besar-kecil diabaikan (Windows). */
+const norm = (p) => p.replace(/\\/g, '/').toLowerCase();
+const bakedForeign = !!baked && !norm(baked).startsWith(norm(join(server, 'prisma')) + '/');
 
 if (!want) {
   console.error(`ensure-prisma-client: tidak dapat membaca provider dari ${sourceSchema}`);
   process.exit(1);
 }
-if (have === want) {
+if (have === want && !bakedForeign) {
   console.log(`ensure-prisma-client: OK — client tergenerasi cocok dengan skema (provider "${want}").`);
   process.exit(0);
 }
@@ -53,8 +86,11 @@ if (have === want) {
 console.log(
   have === null
     ? 'ensure-prisma-client: client belum pernah digenerasi — menjalankan prisma generate…'
-    : `ensure-prisma-client: client tergenerasi memakai provider "${have}" tetapi skema meminta "${want}" ` +
-      '(sisa dari e2e Postgres) — regenerasi…',
+    : bakedForeign
+      ? `ensure-prisma-client: client digenerasi dari POHON LAIN (${baked}) — seluruh path SQLite ` +
+        'relatif akan menunjuk ke sana (uji backend memakai test.db pohon itu) — regenerasi…'
+      : `ensure-prisma-client: client tergenerasi memakai provider "${have}" tetapi skema meminta "${want}" ` +
+        '(sisa dari e2e Postgres) — regenerasi…',
 );
 
 const result = spawnSync(process.execPath, [prismaBin, 'generate', '--schema', sourceSchema], {
