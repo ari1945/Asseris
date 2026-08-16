@@ -14,6 +14,7 @@
    Logika murni + resolver di ethics_compliance.ts (dapat diuji tanpa React).
    ============================================================ */
 import { AMS } from './data';
+import type { ConductOverride, HrCase } from './canon_conduct';
 import { useAmsPersist, useAuth } from './contexts';
 import { CAP } from './rbac';
 import {
@@ -32,7 +33,14 @@ export function useEthicsGate(): EthicsCompliance & { name: string } {
   const user = (auth && auth.user) as EthicsUser | undefined;
   const empId = resolveEmpId(user);
   const aml = (AMS as unknown as { AML_SCREENING?: AmlRec[] }).AML_SCREENING || [];
-  const c = ethicsComplianceOf(decl as Record<string, EthicsDeclRec>, aml, overrides as Record<string, OverrideRec>, empId, ethicsPeriod());
+  /* PR-7 — gerbang kini juga memeriksa masa berlaku skrining AML (SC-20) dan
+     kasus disiplin aktif dengan override ber-atestasi (SC-21). */
+  const cases = (AMS as unknown as { HR_CASES?: HrCase[] }).HR_CASES || [];
+  const [caseOv] = useAmsPersist('conductOverride.v1', () => ({}));
+  const c = ethicsComplianceOf(
+    decl as Record<string, EthicsDeclRec>, aml, overrides as Record<string, OverrideRec>, empId, ethicsPeriod(),
+    { asOf: String((AMS as unknown as { TODAY?: string }).TODAY || ''), cases, caseOverrides: caseOv as Record<string, ConductOverride | undefined> },
+  );
   return { ...c, name: (user && user.name) || 'Auditor' };
 }
 

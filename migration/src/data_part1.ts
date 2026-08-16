@@ -2,6 +2,7 @@
    Asseris — data part1 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { CPE_EXT, STAFF_EXT } from './data_roster';
+import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './canon_rotation';
 
   const FIRM = {
     name: 'KAP Wijaya Hartono & Rekan',
@@ -527,19 +528,84 @@ import { CPE_EXT, STAFF_EXT } from './data_roster';
     ...CPE_EXT,   // PR-4 — SKP personel tambahan roster
   };
 
+
+  /* ---- Register penandatanganan AP (PRD sdm-kepatuhan PR-7 · SC-23) ----
+     `tenure` di `INDEPENDENCE` dulu DIKETIK (`tenure: 7`). Aplikasi punya riwayat
+     perikatan tetapi tak pernah menghitung tahun berturut dari sana, dan
+     `cooloff: 2` adalah data yang tak dievaluasi apa pun.
+
+     Register ini adalah peristiwanya: satu baris per (AP × klien × tahun buku).
+     `canon_rotation.consecutiveYears()` menurunkan masa tugas darinya, sehingga
+     angka masa tugas berhenti dapat diketik dan masa jeda dapat diperiksa.
+
+     Tahun disusun agar masa tugas turunan menutup ke angka lama — KECUALI
+     Lestari Handayani: `tenure: 2.5` tak dapat dinyatakan oleh register
+     bertahun-buku. Dibulatkan KE ATAS (3) karena untuk gerbang kepatuhan,
+     mengecilkan masa tugas berarti mengecilkan risiko rotasi. */
+  const ROTATION_YEAR = 2026;
+  const AP_SIGNING_HISTORY = [
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2022 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2023 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2024 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2025 },
+    { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2026 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2020 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2021 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2022 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2023 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2024 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2025 },
+    { ap: 'EMP-002', client: 'PT Graha Properti Investama', year: 2026 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2024 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2025 },
+    { ap: 'EMP-003', client: 'PT Cahaya Logistik Nusantara', year: 2026 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2024 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2025 },
+    { ap: 'EMP-004', client: 'PT Bank Arta Nusantara Tbk', year: 2026 },
+    /* Rotasi lampau — dipakai menguji masa jeda: Hartono keluar dari Bumi Hijau
+       setelah 2023 dan belum boleh kembali sebelum tahun buku 2026. */
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2021 },
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2022 },
+    { ap: 'EMP-001', client: 'PT Bumi Hijau Agrindo', year: 2023 },
+  ];
+
   /* ---- E: Independence declarations & partner rotation ----
      Ambang rotasi AP terdiferensiasi per rezim (SSOT):
        · PIE umum            → 5 th berturut  (PP 20/2015 Ps. 11)
        · Sektor jasa keuangan → 3 th berturut  (POJK 13/POJK.03/2017)
      cooling-off 2 tahun. Non-PIE: tidak ada batas statutori AP. */
-  const INDEPENDENCE = [
-    { id: 'EMP-001', name: 'Hartono Wijaya', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Sentosa Makmur Tbk', tenure: 5, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
-    { id: 'EMP-002', name: 'Rudi Gunawan', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Graha Properti Investama', tenure: 7, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
-    { id: 'EMP-003', name: 'Sari Dewanti', declared: true, conflicts: 1, finInterest: 'Saudara bekerja di calon klien (di-mitigasi)', rotationClient: 'PT Cahaya Logistik Nusantara', tenure: 3, rotationLimit: 5, sektorJK: false, sektor: 'Non-PIE', basis: 'Kebijakan firma (tanpa batas statutori)', cooloff: 0, listed: false },
-    { id: 'EMP-004', name: 'Lestari Handayani', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Bank Arta Nusantara Tbk', tenure: 2.5, rotationLimit: 3, sektorJK: true, sektor: 'Jasa keuangan (bank)', basis: 'POJK 13/POJK.03/2017', cooloff: 2, listed: true },
-    { id: 'EMP-007', name: 'Anindya Pramesti', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
-    { id: 'EMP-008', name: 'Bayu Saputra', declared: false, conflicts: 0, finInterest: 'Belum dideklarasikan', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
+  const INDEPENDENCE_BASE = [
+    { id: 'EMP-001', name: 'Hartono Wijaya', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Sentosa Makmur Tbk', rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', listed: true },
+    { id: 'EMP-002', name: 'Rudi Gunawan', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Graha Properti Investama', rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', listed: true },
+    { id: 'EMP-003', name: 'Sari Dewanti', declared: true, conflicts: 1, finInterest: 'Saudara bekerja di calon klien (di-mitigasi)', rotationClient: 'PT Cahaya Logistik Nusantara', rotationLimit: 5, sektorJK: false, sektor: 'Non-PIE', basis: 'Kebijakan firma (tanpa batas statutori)', listed: false },
+    { id: 'EMP-004', name: 'Lestari Handayani', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Bank Arta Nusantara Tbk', rotationLimit: 3, sektorJK: true, sektor: 'Jasa keuangan (bank)', basis: 'POJK 13/POJK.03/2017', listed: true },
+    { id: 'EMP-007', name: 'Anindya Pramesti', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: '—', rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', listed: false },
+    { id: 'EMP-008', name: 'Bayu Saputra', declared: false, conflicts: 0, finInterest: 'Belum dideklarasikan', rotationClient: '—', rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', listed: false },
   ];
+
+  /* Masa tugas & masa jeda DITURUNKAN dari `AP_SIGNING_HISTORY` (canon_rotation),
+     bukan diketik. Konsumen lama (`view_people`, `data_licensing`, `view_pppk`)
+     tetap membaca `d.tenure`/`d.cooloff` seperti sebelumnya — yang berubah
+     adalah dari mana angkanya berasal. */
+  const INDEPENDENCE = INDEPENDENCE_BASE.map((d) => {
+    const regime = rotationRegimeOf({ sektorJK: !!d.sektorJK, listed: !!d.listed });
+    const st = rotationState({
+      ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY,
+      asOfYear: ROTATION_YEAR, sektorJK: !!d.sektorJK, listed: !!d.listed,
+    });
+    const cool = coolOffState({ ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY, asOfYear: ROTATION_YEAR, regime });
+    return {
+      ...d,
+      tenure: st.tenure,
+      rotationLimit: regime.limit > 0 ? regime.limit : d.rotationLimit,
+      cooloff: regime.cooloff,
+      rotationTier: st.tier,
+      rotationBreached: st.breached,
+      rotationBasis: regime.basis,
+      coolOffSatisfied: cool.satisfied,
+      coolOffEligibleFrom: cool.eligibleFrom,
+    };
+  });
 
   /* ---- F: Firm GL — chart of accounts ---- */
   const FIRM_COA = [
@@ -853,4 +919,4 @@ import { CPE_EXT, STAFF_EXT } from './data_roster';
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, EXITS, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, AR_BRIDGE, AP_BRIDGE, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, EXITS, AP_SIGNING_HISTORY, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, AR_BRIDGE, AP_BRIDGE, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };

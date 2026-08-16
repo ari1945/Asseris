@@ -6,15 +6,21 @@
    penerbitan opini. Lihat ethics_gate.tsx untuk lapisan hook/persist.
    ============================================================ */
 import { AMS } from './data';
+import { amlState, conductGate } from './canon_conduct';
+import type { ConductOverride, HrCase } from './canon_conduct';
 
 export interface EthicsUser { name?: string; email?: string; employeeId?: string }
 export interface EthicsDeclRec { signed?: boolean; date?: string; exceptions?: number }
-export interface AmlRec { id: string; result?: string }
+export interface AmlRec { id: string; result?: string; screened?: string }
 export interface OverrideRec { by?: string; at?: string; reason?: string; period?: string }
 export interface EthicsCompliance {
   empId: string | null;
   signed: boolean;
   amlOk: boolean;
+  /** Skrining bersih TETAPI sudah kedaluwarsa (PR-7 · SC-20). */
+  amlExpired: boolean;
+  /** Kasus disiplin aktif yang memblokir (PR-7 · SC-21). */
+  caseBlocked: boolean;
   overridden: boolean;
   ok: boolean;
   blocked: boolean;
@@ -59,25 +65,39 @@ export function ethicsComplianceOf(
   overrides: Record<string, OverrideRec> | undefined,
   empId: string | null,
   period: string,
+  /** PR-7 — argumen opsional agar pemanggil lama tetap berjalan. */
+  extra?: { asOf?: string; cases?: HrCase[]; caseOverrides?: Record<string, ConductOverride | undefined> },
 ): EthicsCompliance {
+  const asOf = extra?.asOf;
+  const cases = extra?.cases;
+  const caseOverrides = extra?.caseOverrides;
   if (!empId) {
     return {
-      empId: null, signed: false, amlOk: false, overridden: false, ok: false, blocked: true,
+      empId: null, signed: false, amlOk: false, amlExpired: false, caseBlocked: false, overridden: false, ok: false, blocked: true,
       reason: 'Identitas pengguna tidak terpetakan ke personel firma — kepatuhan Kode Etik & AML/PMPJ tak dapat dinilai',
     };
   }
   const d = (decl || {})[empId];
   const signed = !!(d && d.signed);
   const a = (aml || []).find(x => x.id === empId);
-  const amlOk = !!(a && a.result === 'Bersih');
+  /* PR-7 · SC-20 — skrining kedaluwarsa DIPERLAKUKAN SAMA dengan belum bersih.
+     Sebelumnya `AML_SCREENING` punya tanggal tanpa masa berlaku, sehingga
+     skrining 2026-01-08 berstatus "Bersih" selamanya. */
+  const amlSt = amlState(a, asOf || '');
+  const amlOk = amlSt.valid;
+  const amlExpired = amlSt.clean && amlSt.expired;
+  /* PR-7 · SC-21 — kasus disiplin berat/aktif berkategori independensi atau
+     kerahasiaan memblokir, dengan override ber-atestasi (keputusan Q-4 b). */
+  const cg = conductGate({ emp: empId, cases, overrides: caseOverrides });
   const ov = (overrides || {})[empId];
   const overridden = !!(ov && ov.period === period);
-  const ok = overridden || (signed && amlOk);
-  let reason = '';
-  if (!ok) {
-    if (!signed && !amlOk) reason = 'Deklarasi Kode Etik tahunan belum ditandatangani & skrining AML/PMPJ belum bersih';
-    else if (!signed) reason = 'Deklarasi Kode Etik tahunan belum ditandatangani';
-    else reason = 'Skrining AML/PMPJ belum bersih (tertunda)';
-  }
-  return { empId, signed, amlOk, overridden, ok, blocked: !ok, reason };
+  const ok = overridden || (signed && amlOk && !cg.blocking);
+  const why: string[] = [];
+  if (!signed) why.push('Deklarasi Kode Etik tahunan belum ditandatangani');
+  if (!amlOk) why.push(amlSt.reason || 'Skrining AML/PMPJ belum bersih (tertunda)');
+  if (cg.blocking) why.push(cg.reason);
+  return {
+    empId, signed, amlOk, amlExpired, caseBlocked: cg.blocking, overridden,
+    ok, blocked: !ok, reason: ok ? '' : why.join(' · '),
+  };
 }
