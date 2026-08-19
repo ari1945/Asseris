@@ -26,6 +26,8 @@
    Fungsi MURNI: tanpa React, tanpa state, tanpa klok tersembunyi —
    `asOf` selalu argumen.
    ============================================================ */
+import { regrefFor } from './canon_regref';
+import type { RegRefSet } from './canon_regref';
 
 const DAY_MS = 86_400_000;
 /* Batas iterasi rentang (≈3 tahun) — jaring pengaman terhadap data rusak. */
@@ -47,11 +49,32 @@ export interface HolidayEntry {
 }
 
 export interface HolidayCalendar {
-  entries: HolidayEntry[];
   basis: string;
-  /** Tahun terakhir yang isinya SUDAH dicocokkan dengan SKB 3 Menteri.
-   *  Tahun di atas ini boleh dipakai, tetapi harus dilabeli belum terkonfirmasi. */
-  confirmedThroughYear: number;
+  /** SATU set per tahun SKB (PRD regulatory-reference-annual PR-1).
+   *
+   *  Sebelumnya: satu daftar `entries` datar + satu skalar
+   *  `confirmedThroughYear` untuk seluruh kalender. Bentuk itu tak dapat
+   *  menyatakan "2026 sudah dicocokkan, 2027 sudah diisi tetapi belum" —
+   *  padahal itu persis keadaan yang terjadi tiap Desember. `verified`
+   *  kini melekat pada TAHUNNYA, bukan pada kalendernya.
+   *
+   *  Tahun tanpa set = belum diisi, dan `holidayCoverage()` mengatakannya.
+   *  Perhitungan hari kerja TIDAK diblokir karenanya (`enforcement: 'warn'`):
+   *  ia bukan uang, dan menolak menghitung cuti akan lebih merugikan
+   *  daripada menghitungnya dengan penanda. */
+  sets: RegRefSet<HolidayEntry[]>[];
+}
+
+/** Seluruh entri libur di semua tahun yang terisi (gabungan set). */
+export function holidayEntries(cal: HolidayCalendar | undefined): HolidayEntry[] {
+  const out: HolidayEntry[] = [];
+  for (const s of cal?.sets || []) for (const h of s?.value || []) out.push(h);
+  return out;
+}
+
+/** Seluruh tanggal libur di semua tahun yang terisi. */
+export function holidayDates(cal: HolidayCalendar | undefined): Set<string> {
+  return new Set(holidayEntries(cal).map((h) => h.date));
 }
 
 export interface HolidayCoverage {
@@ -69,9 +92,12 @@ export interface HolidayCoverage {
  *  Ini bukan hiasan: kalender yang kosong membuat setiap perhitungan hari kerja
  *  melebih-hitung, dan tanpa penanda ini kelebihannya tak terlihat oleh siapa pun. */
 export function holidayCoverage(cal: HolidayCalendar | undefined, year: number): HolidayCoverage {
-  const entries = (cal?.entries || []).filter((h) => h.date.startsWith(String(year) + '-'));
+  const look = regrefFor(cal?.sets, String(year) + '-01-01', {
+    label: 'Kalender hari libur', enforcement: 'warn',
+  });
+  const entries = (look.value || []).filter((h) => h.date.startsWith(String(year) + '-'));
   const usable = entries.length > 0;
-  const confirmed = usable && year <= (cal?.confirmedThroughYear ?? 0);
+  const confirmed = usable && look.status === 'ok';
   let note = '';
   if (!usable) {
     note = `Kalender hari libur ${year} belum diisi — hari kerja dihitung hanya dengan mengecualikan akhir pekan, sehingga cenderung LEBIH BANYAK dari yang sebenarnya.`;
@@ -125,7 +151,7 @@ export function workingDaySpan(from: string, to: string, cal?: HolidayCalendar):
   if (calendarDays > MAX_SPAN_DAYS) {
     return { ...INVALID_SPAN, calendarDays, reason: `Rentang ${calendarDays} hari melampaui batas wajar ${MAX_SPAN_DAYS} hari.` };
   }
-  const holidays = new Set((cal?.entries || []).map((h) => h.date));
+  const holidays = holidayDates(cal);
   let weekendDays = 0, holidayDays = 0, workingDays = 0;
   for (let t = a; t <= b; t += DAY_MS) {
     const dow = new Date(t).getUTCDay();

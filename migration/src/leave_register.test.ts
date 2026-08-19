@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { AMS } from './data';
 import {
   LEAVE_POLICY, LEAVE_TYPES, approvalCheck, entitlementOf, evaluateLeaveRow,
-  holidayCoverage, leaveFirmSummary, leaveLedger, leaveLedgerOf, leaveStateOn,
+  holidayCoverage, holidayEntries, leaveFirmSummary, leaveLedger, leaveLedgerOf, leaveStateOn,
   leaveTypeOf, onLeaveOn, workingDaySpan,
 } from './canon_leave';
 import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
@@ -303,15 +303,18 @@ describe('kalender hari libur menyatakan batas pengetahuannya', () => {
     expect(c.note).toMatch(/LEBIH BANYAK/);
   });
 
-  it('tahun di atas confirmedThroughYear ditandai belum dicocokkan', () => {
-    const c = holidayCoverage({ ...CAL, confirmedThroughYear: 2025 }, 2026);
+  it('set yang belum diverifikasi ditandai belum dicocokkan', () => {
+    /* Dulu satu skalar `confirmedThroughYear` untuk seluruh kalender; kini
+       `verified` melekat pada SET TAHUNNYA (PRD regulatory-reference-annual). */
+    const belum = { ...CAL, sets: CAL.sets.map((s) => ({ ...s, verified: false, note: '' })) };
+    const c = holidayCoverage(belum, 2026);
     expect(c.usable).toBe(true);
     expect(c.confirmed).toBe(false);
     expect(c.note).toMatch(/SKB/);
   });
 
   it('setiap entri punya penetapan yang jelas & tanggal yang nyata', () => {
-    for (const h of CAL.entries) {
+    for (const h of holidayEntries(CAL)) {
       expect(['tetap', 'hisab'], h.date).toContain(h.penetapan);
       expect(workingDaySpan(h.date, h.date, undefined).valid, h.date).toBe(true);
     }
