@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-16 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9) · **PR-3 SELESAI** (SC-10·11) · **PR-4 SELESAI** (SC-1·2·3·24·25) · **PR-5 SELESAI** (SC-12·13·14) · **PR-6 SELESAI** (SC-15·16·17) · **PR-7 SELESAI** (SC-18..SC-23). **ARC TUNTAS** — SC-1..SC-25 tertutup kecuali SC-24a (dua register SKP, dicatat) — PR-4..PR-7 menunggu keputusan |
+| Status | **Implemented** — Q-1·Q-4·Q-6 dijawab 2026-08-16 (Q-1 = **(b)** perbesar roster ~69 · Q-4 = **(b)** blokir dgn override Partner · Q-6 = **PR-1..PR-3 lalu checkpoint**); Q-2·Q-3·Q-5 mengikuti rekomendasi. **Proceed.** diberikan 2026-08-16. **PR-1 SELESAI** (SC-4·5·6) · **PR-2 SELESAI** (SC-7·8·9) · **PR-3 SELESAI** (SC-10·11) · **PR-4 SELESAI** (SC-1·2·3·24·25) · **PR-5 SELESAI** (SC-12·13·14) · **PR-6 SELESAI** (SC-15·16·17) · **PR-7 SELESAI** (SC-18..SC-23). **PR-8 SELESAI** (SC-24a) — register SKP kedua dicabut 2026-08-19. **ARC TUNTAS** — SC-1..SC-25 **seluruhnya** tertutup |
 | Pemicu | Permintaan: "Kembangkan lebih dalam fitur pada modul-modul pada grup menu *SDM & Kepatuhan* sampai tingkat memadai" |
 | Modul | 12 modul grup `SDM & Kepatuhan` (`icons.tsx:116–129`): `hcm` · `orgchart` · `recruitment` · `learning` · `succession` · `payroll` · `leave` · `performance` · `cpe` · `ethics` · `independence` · `hrcase` |
 | Berkas | `view_people.tsx` · `view_pc_hcm.tsx` · `view_pc_org.tsx` · `view_pc_talent.tsx` · `view_pc_conduct.tsx` · `view_payroll.tsx` · `view_hrops.tsx` · `view_independence.tsx` · `data_people.ts` · `data_part1.ts` · `data_part2.ts` |
@@ -328,7 +328,7 @@ punya uji di `migration/src/*.test.ts`.
 | SC-21 | Kasus disiplin berat yang aktif berkategori independensi/kerahasiaan **memblokir** staffing & sign-off orang itu, dengan alasan yang dapat dibaca. Uji: EMP-022 dengan HC-2026-03 terbuka tidak dapat di-sign-off. |
 | SC-22 | Penetapan sanksi memisahkan pelapor · penyelidik · pemutus; kenaikan anak tangga sanksi tidak lagi otomatis satu klik. |
 | SC-23 | `INDEPENDENCE.tenure` diturunkan dari riwayat penandatanganan; cooling-off dievaluasi; pelanggaran rotasi **memblokir** penugasan AP pada klien itu. |
-| SC-24a | **(baru, PR-3)**  &  disatukan menjadi satu register SKP berkunci ; laporan PPPK dan pemantauan harian membaca angka yang sama. Sampai itu terjadi, perbedaannya dipaku uji. |
+| SC-24a | **(baru, PR-3 · SELESAI PR-8 2026-08-19)** `CPE_LOG` (data_part1, empId) & `PPPK_PPL` (data_part4, nama) disatukan menjadi satu register SKP berkunci `empId`; `PPPK_PPL` menjadi POPULASI saja dan realisasinya dibaca lewat `LICENSING.pplOf` → `canon_ppl`. Laporan PPPK dan pemantauan harian membaca angka yang sama, dan gerbang cakupan menolak kelahiran kembali `structured`/`unstructured` di `data_part4`. |
 | SC-24 | Gerbang cakupan: tak ada literal baru di `data_people.ts`/`data_part2.ts` yang menduplikasi fakta yang sudah dapat diturunkan (pola gerbang cakupan #242/#254, dengan pembuangan komentar). |
 
 ---
@@ -507,3 +507,34 @@ Setiap klaim §1 diverifikasi terhadap sumber pada 2026-08-16, bukan diingat:
 - Tabel TER tak ada: `grep -rn "TER_TABLE|terTable|TER_A|terBracket"` → kosong.
 - Skor tertimbang EMP-021: 4,6×30 + 4,5×30 + 3,5×15 + 4,4×25 = 435,5 → **4,355**
   (bobot berjumlah 100) vs `perf: 4.5` tersimpan.
+
+---
+
+## 13. PR-8 — SC-24a ditutup (2026-08-19)
+
+Register SKP kedua dicabut. `PPPK_PPL` tak lagi membawa `structured`/`unstructured`
+miliknya sendiri; ia kini daftar **siapa yang dilaporkan** (`emp`), dengan nama &
+jenjang diturunkan dari roster. Kesiapan P2PK dan SMM 1 membaca realisasi lewat
+`LICENSING.pplOf(emp)` — register, mesin, dan entri user yang sama dengan
+CPE/PPL Tracker.
+
+**Angka yang bergeser di modul Kesiapan P2PK** (kiri = ditampilkan sebelum PR-8,
+kanan = angka register yang sesungguhnya, PMK 186 Ps. 37):
+
+| Orang | Sebelum | Sesudah | Sebab |
+|---|---|---|---|
+| Hartono Wijaya (EMP-001) | 32 | **24** | register kedua mengklaim 22+22; catatan nyata 14 terstruktur + 10 tidak |
+| Rudi Gunawan (EMP-002) | 30 | **18** | 20+21 diklaim; catatan nyata 12 + 6 |
+| Sari Dewanti (EMP-003) | 28 | **31** | 18+20 diklaim; catatan nyata 22 + 9 — di sini register kedua justru MENGECILKAN |
+| Anindya Pramesti (EMP-007) | 32 | **28** | 22+10 diklaim; catatan nyata 18 + 14, empat SKP hangus di atas cap |
+| Bayu Saputra (EMP-008) | 24 | **0** | tak ada satu pun catatan SKP atas namanya di register |
+
+Nol milik Bayu bukan kegagalan render: ia berarti **belum tercatat**, dan modul
+menyatakan sebabnya secara eksplisit dengan tautan ke CPE/PPL Tracker — sebab
+nol-karena-tak-ada-catatan dan nol-karena-tak-hadir adalah dua fakta berbeda yang
+menuntut tindakan berbeda.
+
+Konsekuensi hilir: hitungan "Realisasi PPL" di tab P2PK dan baris Sumber Daya di
+SMM 1 kini menghitung dari angka yang sama. Bila firma memang ingin Bayu punya SKP,
+perbaikannya adalah **mencatat kegiatannya** di register — bukan menuliskan
+angkanya di modul laporan.

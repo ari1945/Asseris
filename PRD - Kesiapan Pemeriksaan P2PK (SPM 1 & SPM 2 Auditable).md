@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-08-12 |
 | Pemilik | Ari Widodo |
-| Status | **Approved** — "Proceed." diberikan 2026-08-12 |
+| Status | **In Progress** — "Proceed." diberikan 2026-08-12; PR-1·PR-2·PR-3 merged (#194·#195·#196·#197), PR-4 & PR-6 SELESAI, PR-5 menunggu Q-5, PR-7 menunggu. Status ini disamakan dengan `docs/PRD-REGISTRY.md` pada 2026-08-19 (sebelumnya berkas ini masih **Approved** sementara registri sudah **In Progress** — satu PRD, dua status). |
 | Menggantikan | `PRD - Mutu Firma (SOQM Evaluasi Tahunan Q-01 + Independensi-Rotasi Q-03).md` → **Superseded** |
 | Basis | master `d7dbe34` |
 

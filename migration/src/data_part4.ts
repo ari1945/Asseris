@@ -389,18 +389,40 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { id: 'C-047', client: 'PT Teknologi Andalan Digital', service: 'Audit LK', std: 'SA', ap: 'Sari Dewanti', emiten: false, opinion: 'WDP', fee: 410, reportDate: '2026-03-28', tenure: 1 },
     { id: 'C-052', client: 'PT Karya Beton Perkasa', service: 'Audit LK', std: 'SA', ap: 'Hartono Wijaya', emiten: false, opinion: 'WTM', fee: 640, reportDate: '2026-04-02', tenure: 3 },
   ];
-  const PPPK_PPL = [
-    /* Realisasi dinyatakan sebagai terstruktur + TIDAK terstruktur, bukan
-       `total`. `total` menyembunyikan batas atas 10 SKP tidak terstruktur
-       (PMK 186/2021 Ps. 37): "44 SKP" milik Hartono sesungguhnya bernilai
-       22 + min(22,10) = 32 SKP terhitung. Ambang datang dari `canon_ppl`,
-       tak lagi dari `req`/`reqStr` per-baris yang dapat menyimpang. */
-    { ap: 'Hartono Wijaya', grade: 'Partner · AP', structured: 22, unstructured: 22 },
-    { ap: 'Rudi Gunawan', grade: 'Partner · AP', structured: 20, unstructured: 21 },
-    { ap: 'Sari Dewanti', grade: 'Partner · AP', structured: 18, unstructured: 20 },
-    { ap: 'Anindya Pramesti', grade: 'Manager', structured: 22, unstructured: 10 },
-    { ap: 'Bayu Saputra', grade: 'Manager', structured: 14, unstructured: 10 },
-  ];
+  /* Populasi pelaporan PPL ke PPPK — FAKTA, bukan angka.
+
+     SC-24a (PRD sdm-kepatuhan). Sampai 2026-08-19 baris-baris ini membawa
+     `structured`/`unstructured` MILIK SENDIRI: register SKP KEDUA di samping
+     `CPE_LOG` (data_part1, berkunci empId) yang dibaca CPE/PPL Tracker,
+     `pplOf` dan Data Personal. Keduanya berbeda untuk KELIMA orang di sini —
+     Hartono 32 di sini vs 24 di sana, Rudi 30 vs 18, Sari 28 vs 31, Anindya
+     32 vs 28, dan Bayu 24 vs NOL karena ia tak punya satu pun catatan SKP.
+     Satu firma, satu tahun, dua angka resmi, tanpa cara tahu mana yang
+     dibaca orang. Sebelum PR-3 memperbaiki mesinnya, keduanya kebetulan
+     sama-sama 32 untuk Anindya sehingga perbedaannya tak terlihat.
+
+     Angkanya DICABUT. Yang tersisa adalah satu-satunya fakta yang tak dapat
+     diturunkan: SIAPA yang dilaporkan. Realisasi dibaca konsumen lewat
+     `LICENSING.pplOf(emp)` → `canon_ppl`, mesin dan register yang sama
+     dengan pemantauan harian. Identitas & jenjang diturunkan dari roster.
+
+     Tiga AP pertama WAJIB mencerminkan `BO.AP_LICENSES`; itu ditegakkan uji
+     (impor langsung akan membentuk siklus modul data_part4 → data_backoffice
+     → data → data_part4). Dua Manager terakhir bukan AP: mereka dipantau
+     firma, bukan dilaporkan sebagai pemegang izin. */
+  /* Sertifikasi dibaca sebagai daftar, bukan substring: 'CPA, CA, AP' punya AP,
+     'CPA, CA' tidak. Pencocokan substring akan menganggap 'AP' ada di dalam kata
+     lain dan menaikkan Manager menjadi AP secara diam-diam. */
+  const hasAP = (cert?: string) => String(cert || '').split(',').map(c => c.trim()).includes('AP');
+  const PPPK_PPL_POP = ['EMP-001', 'EMP-002', 'EMP-003', 'EMP-007', 'EMP-008'];
+  const PPPK_PPL = PPPK_PPL_POP.map((emp) => {
+    const s = STAFF.find(x => x.id === emp);
+    return {
+      emp,
+      ap: s ? s.name : emp,
+      grade: s ? s.grade + (hasAP(s.cert) ? ' · AP' : '') : '—',
+    };
+  });
   /* Rezim per-perikatan: PIE umum 5 th (PP 20/2015 Ps. 11) ·
      sektor jasa keuangan 3 th (POJK 13/POJK.03/2017) · cooling-off 2 th. */
   const PPPK_ROTATION = [
