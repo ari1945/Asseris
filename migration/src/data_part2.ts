@@ -171,12 +171,46 @@ import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
     ...PAYROLL_EXT,   // PR-4 — 59 personel tambahan roster
   };
   /* BPJS & statutory rates */
+  /* Tarif & batas upah BPJS — BERKUNCI MASA BERLAKU (PRD regulatory-reference-annual PR-2).
+
+     Bentuk lama menaruh `period: 'Maret 2026'` berdampingan dengan `kesCap`/`jpCap`
+     dalam satu objek datar. `period` dipakai sebagai kunci masa penggajian (id jurnal,
+     post-check, judul slip) tetapi TAK PERNAH dipakai memilih tarifnya — sehingga
+     pasangan "masa" dan "batas upah" berlaku semata karena ditulis berdekatan. Batas
+     upah JP disesuaikan tiap tahun; pada Januari 2027 bentuk lama akan menghitung
+     potongan setiap pegawai dengan batas 2026 tanpa satu pun tanda.
+
+     `periodDate` menjadikan masa itu TANGGAL, dan `sets` menjawab untuk tanggal itu.
+
+     verified: false — dan ini bukan kelalaian yang diwariskan, melainkan pembacaan
+     jujur atas bentuk lama: ia tak pernah menyebut dokumen sumber, siapa yang
+     mencocokkan, atau kapan. Ketiadaan provenans = belum terverifikasi. Angkanya
+     TIDAK diubah (nol-delta), tetapi sekarang ia mengatakan bahwa ia belum
+     dicocokkan. Bandingkan dengan kalender libur, yang bentuk lamanya MEMANG
+     menyatakan sudah dicocokkan (`confirmedThroughYear`) dan karena itu dimigrasi
+     sebagai `verified: true`. Yang dipindahkan adalah pernyataan yang ada, bukan
+     yang seharusnya ada. */
   const PAYROLL_RATES = {
     period: 'Maret 2026',
-    kesEmp: 0.01, kesEr: 0.04, kesCap: 12_000_000,
-    jhtEmp: 0.02, jhtEr: 0.037,
-    jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
-    jkkEr: 0.0024, jkmEr: 0.003,
+    periodDate: '2026-03-01',
+    sets: [
+      {
+        effectiveFrom: '2026-01-01',
+        effectiveTo: '2026-12-31',
+        basis: 'Perpres 64/2020 (Kesehatan) · PP 46/2015 jo. PP 60/2015 (JHT) · PP 45/2015 (JP)',
+        sourceDoc: '',
+        verified: false,
+        note: 'Batas upah & tarif 2026 belum dicocokkan dengan sumber resminya. '
+          + 'Batas upah Jaminan Pensiun disesuaikan setiap tahun (PP 45/2015 Ps. 29); '
+          + 'sampai dicocokkan, potongan JP di atas batas tidak dapat dipertanggungjawabkan.',
+        value: {
+          kesEmp: 0.01, kesEr: 0.04, kesCap: 12_000_000,
+          jhtEmp: 0.02, jhtEr: 0.037,
+          jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
+          jkkEr: 0.0024, jkmEr: 0.003,
+        },
+      },
+    ],
   };
   /* ---- Kalender hari libur nasional (PRD sdm-kepatuhan PR-1) ----
      Hari kerja sebuah permintaan cuti = rentang tanggal − akhir pekan − hari libur.
