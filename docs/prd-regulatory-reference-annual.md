@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-08-19 |
 | Pemilik | Ari Widodo |
-| Status | **In Progress** — **Proceed.** 2026-08-19 untuk **Tahap A saja**; Q-3 = **blokir yang menyangkut uang** (BPJS/TER/PTKP menolak menghitung; kalender libur tetap memperingatkan). Q-2 = Tahap B dinilai ulang setelah Tahap A terbukti. Q-1·Q-4·Q-5 menunggu DATA dari Ari dan TIDAK memblokir mekanismenya. **PR-1 SELESAI** (SC-1·2·7) |
+| Status | **In Progress** — **Proceed.** 2026-08-19 untuk **Tahap A saja**; Q-3 = **blokir yang menyangkut uang** (BPJS/TER/PTKP menolak menghitung; kalender libur tetap memperingatkan). Q-2 = Tahap B dinilai ulang setelah Tahap A terbukti. Q-1·Q-4·Q-5 menunggu DATA dari Ari dan TIDAK memblokir mekanismenya. **PR-1 SELESAI** (SC-1·2·7) · **PR-2 SELESAI** (SC-3·4) · **PR-3 SELESAI** (SC-5·6) · **PR-4 SELESAI** (SC-8·9). **TAHAP A TUNTAS** — SC-1..SC-10 tertutup |
 | Pemicu | Dua utang tersisa arc SDM (`TER_TABLE.verified=false`, kalender libur SKB) + arahan Ari: *"biarkan saja atau atur agar dapat diupdate setiap tahun"* |
 | Modul | `payroll` · `leave` · `personal` · (hilir: `hrops`, `pc_hcm`) |
 | Berkas | `canon_pph21.ts` · `canon_leave.ts` · `data_part2.ts` (`PAYROLL_RATES`, `LEAVE_HOLIDAYS`) · `view_payroll.tsx` · `view_personal.tsx` |
@@ -224,3 +224,49 @@ Satu hal yang sengaja TIDAK saya isi: `verifiedBy` & `verifiedAt` set 2026. Bent
 pernah merekam siapa yang mencocokkan dan kapan; mengarangnya sekarang akan menjadi persis
 jenis provenans palsu yang hendak dicabut arc ini. Keduanya kosong sampai ada yang benar-benar
 mencocokkannya.
+
+---
+
+## 14. PR-2 · PR-3 · PR-4 — Tahap A tuntas (2026-08-19)
+
+**PR-2 — BPJS.** Temuan terbesar arc ini, dan ia belum pernah tercatat sebagai
+cacat: `kesCap`/`jpCap` menghitung potongan di DUA tempat dengan rumus yang
+disalin, salah satunya slip gaji yang dilihat pegawai itu sendiri. Rumus salinan
+dicabut dari keduanya — gerbang yang hanya dipasang di salah satu bukan gerbang.
+`periodDate` menjadikan "masa" sebuah tanggal, dan masa tak tercakup MENGHENTIKAN
+perhitungan. Nol-delta 2026 dipaku sebagai konstanta yang dihitung tangan
+(EMP-001 `dJp` 105.474 kena batas vs EMP-032 95.000 tidak), bukan sebagai rumus
+yang akan ikut bergeser bila registry-nya bergeser.
+
+**PR-3 — TER · PTKP · biaya jabatan.** Yang muncul saat mendatakan TER lebih tua
+daripada "tabelnya usang": **TER baru ada sejak 1 Januari 2024**. Masa sebelumnya
+memakai metode lain sama sekali, dan aplikasi menghitungnya tanpa suara karena tak
+ada tempat untuk bertanya "masa apa?". Registry MENUNJUK literal yang sudah ada
+(diuji dengan identitas objek, bukan kesamaan nilai) supaya arc ini tidak
+melahirkan register kedua — pelajaran SC-24a.
+
+**PR-4 — halaman & gerbang.** `regrefCatalog()` adalah daftar yang **ditegakkan**,
+dan halaman `regref` merenderinya alih-alih mengetik ulang labelnya, supaya "yang
+tampil" dan "yang ditegakkan" tak dapat berbeda. Gerbang SC-9 mencocokkan pada
+**tipe** (`RegRefSet<…>[]`), bukan pada nama: gerbang yang mencocokkan nama akan
+menyeret `STANDARDS_REGISTRY` yang tak ada hubungannya, lalu dilemahkan orang
+berikutnya karena berisik — dan berhenti menjaga apa pun.
+
+Setiap entri katalog wajib menyatakan **akibat** bila kedaluwarsa, bukan namanya;
+uji menolak deskripsi yang cuma mengulang label. "Kalender libur 2027 belum diisi"
+tak memberi tahu siapa pun apa yang rusak.
+
+**Live-verified** di bundel yang berjalan, tiga tanggal:
+
+| Tanggal | Keadaan |
+|---|---|
+| 2026-03-01 | tak ada yang berhenti; BPJS & TER bertanda *belum dicocokkan* |
+| 2027-01-01 | **BPJS berhenti**; kalender libur tak tercakup tetapi hanya memperingatkan |
+| 2023-06-01 | **BPJS & TER berhenti** — TER memang belum ada pada masa itu |
+
+Falsifikasi dijalankan untuk ketiga PR: set 2026 dibuat terbuka (3 uji merah) ·
+TER digeser ke 2000 (2 uji merah) · registry tak terdaftar ditambahkan (1 uji merah).
+
+**Yang masih menunggu DATA dari Ari** (Q-1 · Q-4 · Q-5) — mekanismenya kini membuat
+ketiganya terlihat setiap hari di halaman `regref`, bukan terlupakan:
+Lampiran PMK 168 · cuti bersama 2026 · pencocokan batas upah BPJS 2026.
