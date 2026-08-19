@@ -9,7 +9,7 @@ import { Avatar, Badge, Btn, Panel, Stat, Switch, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import {
   TER_TABLE, annualReconciliation, payrollGlRows, payrollJournal, payrollJournalIds,
-  payrollPostCheck, terRate,
+  payrollPostCheck, terRateOn, terTableOn,
 } from './canon_pph21';
 import type { GlJournalRow } from './canon_pph21';
 import { BPJS_LABEL, bpjsContribution, bpjsRatesOn } from './canon_bpjs';
@@ -35,7 +35,7 @@ function calcPayslip(p: any, R: any) {
      `view_personal`, dengan batas upah yang tak pernah dicocokkan dengan masanya. */
   const c = bpjsContribution(p.gross, R, R?.periodDate);
   const { dKes, dJht, dJp } = c;
-  const look = terRate(p.ptkp, base);
+  const look = terRateOn(p.ptkp, base, R?.periodDate);
   /* `ter` tersimpan hanya dipakai bila tabel belum dapat menjawab. Tanpa ini,
      59 baris payroll yang ditambahkan PR-4 (tanpa `ter`) menghasilkan NaN. */
   const ter = look.rate != null ? look.rate : (typeof p.ter === 'number' ? p.ter : null);
@@ -121,7 +121,12 @@ function Payroll() {
      dasar tahun lain — dan itu tampil di slip gaji orangnya sendiri. Modul
      menolak menghitung, bukan menghitung lalu menyesal. */
   const bpjsGate = bpjsRatesOn(R, R?.periodDate);
-  if (bpjsGate.blocked) {
+  /* TER hanya ada SEJAK 1 Januari 2024 (PMK 168/2023). Masa sebelumnya memakai
+     metode lain sama sekali; menghitungnya dengan tabel ini memberi angka yang
+     tampak sah di atas dasar yang belum ada (PR-3). */
+  const terGate = terTableOn(R?.periodDate);
+  const gate = bpjsGate.blocked ? bpjsGate : terGate.blocked ? terGate : null;
+  if (gate) {
     return (
       <>
         <SubBar moduleId="payroll" right={<Badge kind="red">Perhitungan ditahan</Badge>} />
@@ -132,7 +137,7 @@ function Payroll() {
                 <span style={{ color: 'var(--red)' }}><I.alert size={17} /></span>
                 <span style={{ fontSize: 15, fontWeight: 700 }}>Penggajian {R?.period || ''} tidak dihitung</span>
               </div>
-              <p className="tiny" style={{ lineHeight: 1.6, color: 'var(--ink-2)', margin: '0 0 10px' }}>{bpjsGate.note}</p>
+              <p className="tiny" style={{ lineHeight: 1.6, color: 'var(--ink-2)', margin: '0 0 10px' }}>{gate.note}</p>
               <p className="tiny" style={{ lineHeight: 1.6, color: 'var(--ink-3)', margin: 0 }}>
                 {BPJS_LABEL} berubah tiap tahun. Menghitung masa ini dengan set tahun lain akan menggeser
                 potongan <b>setiap pegawai</b> — dan angkanya akan tampil di slip gaji mereka sendiri tanpa
