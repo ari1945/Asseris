@@ -32,7 +32,43 @@ import { FIRMFIN } from './data_firmfin';
 interface WipFirmCtx { engagements: unknown[]; clients: unknown[]; activeEngagement: { id: string } | null }
 interface WipAuditCtx { timeEntries: unknown[] }
 interface EngWip { stdValue: number; costValue: number; actualHrs: number }
-type LiveByEng = Record<string, { std: number; cost: number; actualHrs: number }> | null;
+export interface WipLiveEntry { std: number; cost: number; actualHrs: number }
+type LiveByEng = Record<string, WipLiveEntry> | null;
+
+/**
+ * Overlay jam-aktual per perikatan.
+ *
+ * Sampai 2026-08-21 fungsi ini hanya melihat perikatan AKTIF. Akibatnya nilai
+ * satu perikatan bergantung pada perikatan mana yang kebetulan dibuka:
+ * ENG-…-014 punya roster SELALU, tetapi selama perikatan lain dipilih seluruh
+ * firma melihat std seed 3.200 jt / biaya 1.950 jt, dan begitu ia dipilih
+ * angkanya menjadi 980 jt / 492 jt — WIP firma bergeser 1.820 jt tanpa ada
+ * yang berubah pada perikatannya. Itulah wujud sebenarnya dari "WIP_ENG.cost
+ * membantah engagementWip().costValue": bukan dua angka yang harus dipilih
+ * salah satunya, melainkan satu angka yang tidak konsisten dipakai.
+ *
+ * Aturannya sekarang: roster berlaku bagi SETIAP perikatan yang memilikinya;
+ * jam timesheet live hanya berlaku bagi perikatan yang MEMILIKINYA — sebab
+ * `timeEntries` di-scope per perikatan (`useServerState(…, 'engagement', …)`),
+ * jadi meneruskannya ke perikatan lain akan mengkreditkan jam milik orang lain
+ * (cacat sekelas TB1/PF1).
+ */
+export function wipLiveByEng(
+  engagements: readonly unknown[],
+  timeEntries: unknown[],
+  activeEngId: string | null,
+): LiveByEng {
+  const out: Record<string, WipLiveEntry> = {};
+  (engagements || []).forEach((raw) => {
+    const id = (raw as { id?: string }).id;
+    if (!id) return;
+    /* hanya perikatan aktif yang timesheet live-nya berlaku baginya */
+    const live = id === activeEngId ? timeEntries : [];
+    const ew = FIRMFIN.engagementWip(live, id) as EngWip | null;
+    if (ew) out[id] = { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs };
+  });
+  return Object.keys(out).length ? out : null;
+}
 export type WipAdj = Record<string, number>;
 type SetWipAdj = (next: WipAdj | ((prev: WipAdj) => WipAdj)) => void;
 
@@ -89,12 +125,9 @@ export function useFirmWip(provFactor?: number) {
 
   /* overlay jam-aktual T&B untuk engagement aktif → std/biaya/jam = live,
      bukan std seed. null bila engagement aktif tak punya timesheet. */
-  const liveByEng: LiveByEng = React.useMemo(() => {
-    const id = activeEngagement && activeEngagement.id;
-    if (!id) return null;
-    const ew = FIRMFIN.engagementWip(timeEntries, id) as EngWip | null;
-    return ew ? { [id]: { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs } } : null;
-  }, [timeEntries, activeEngagement]);
+  const liveByEng: LiveByEng = React.useMemo(
+    () => wipLiveByEng(engagements, timeEntries, (activeEngagement && activeEngagement.id) || null),
+    [engagements, timeEntries, activeEngagement]);
 
   /* Cast di LUAR useMemo: tanpa @types/react, `React.useMemo` sendiri untyped →
      hasilnya `any` dan tipe di dalam callback tak akan sampai ke pemanggil. */

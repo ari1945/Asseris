@@ -60,8 +60,21 @@ export const PM_COST_CARD: PMRates = shortKeys(FIRMFIN.WIP_COST as Record<string
 export interface PMEngRoster { actualHrs: number; costValue: number; stdValue: number }
 export type PMRosterOf = (engId: string) => PMEngRoster | null;
 /** Pabrik pembaca roster; menyimpan FIRMFIN di LUAR view. */
-export const pmRosterOf = (timeEntries: readonly PMTimeEntry[] | null | undefined): PMRosterOf =>
-  (engId) => FIRMFIN.engagementWip(timeEntries, engId) as PMEngRoster | null;
+/**
+ * Pabrik pembaca roster; menyimpan FIRMFIN di LUAR view.
+ *
+ * `timeEntries` adalah timesheet perikatan AKTIF saja (`useServerState` scope
+ * 'engagement'), jadi ia hanya boleh diterapkan pada perikatan itu. Meneruskan
+ * ke semua perikatan — seperti yang dilakukan PR #269 — mengkreditkan jam
+ * perikatan lain ke perikatan ber-roster: PF1 yang masuk lewat pintu lain,
+ * bukan id literal melainkan timesheet yang salah pemilik.
+ */
+export const pmRosterOf = (
+  timeEntries: readonly PMTimeEntry[] | null | undefined,
+  activeEngId?: string | null,
+): PMRosterOf =>
+  (engId) => FIRMFIN.engagementWip(
+    engId === activeEngId ? timeEntries : [], engId) as PMEngRoster | null;
 export const PM_DEFAULT_MIX: PMRates = { Partner: 0.05, Manager: 0.15, Senior: 0.35, Junior: 0.45 };
 
 const sumHours = (rows: readonly PMTimeEntry[] | null | undefined): number =>

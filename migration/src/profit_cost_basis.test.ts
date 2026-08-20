@@ -146,7 +146,9 @@ describe('PC2 — WIP charge-out tanpa pengali karangan', () => {
    c · PC4 — roster perikatan berlaku bila ada (tie-out ke SSOT)
    ============================================================ */
 describe('PC4 — roster perikatan adalah SSOT biaya', () => {
-  const rosterOf = () => pmRosterOf(seed());
+  /* `pmRosterOf` menerima id perikatan AKTIF: jam timesheet live hanya berlaku
+     bagi perikatan yang memilikinya (lihat wip_roster_scope.test.ts). */
+  const rosterOf = () => pmRosterOf(seed(), DEMO);
   const ew = (): PMEngRoster => {
     const w = FIRMFIN.engagementWip(seed(), DEMO) as PMEngRoster | null;
     if (!w) throw new Error('roster demo hilang dari seed');
@@ -221,7 +223,7 @@ describe('jam: roster vs actualHrs + delta', () => {
     const live: PMTimeEntry[] = [...seed(), { member: 'Dimas Raharjo', hours: 12 } as PMTimeEntry];
     const e = A.ENGAGEMENTS.find((x) => x.id === DEMO)!;
     const delta = pmRows({
-      engagements: [e], clients: A.CLIENTS, schedule: A.SCHEDULE, rosterOf: pmRosterOf(live),
+      engagements: [e], clients: A.CLIENTS, schedule: A.SCHEDULE, rosterOf: pmRosterOf(live, DEMO),
     })[0];
     expect(wip(live).actualHrs).toBe(anggota + 12);
     expect(delta.hours).toBe(anggota + 12);
@@ -246,7 +248,7 @@ describe('jam: roster vs actualHrs + delta', () => {
    ============================================================ */
 describe('tanda write-up/(down)', () => {
   it('premis: total firma memang write-UP pada basis yang benar', () => {
-    const t = pmRecoveryTotals(pmRecovery(rows(pmRosterOf(seed()))));
+    const t = pmRecoveryTotals(pmRecovery(rows(pmRosterOf(seed(), DEMO))));
     expect(t.writedown).toBeLessThan(0);
     expect(t.recoveryPct!).toBeGreaterThan(1);
   });
