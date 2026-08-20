@@ -4,6 +4,7 @@
    Anchor "hari ini" = AMS.TODAY (klok SSOT, K-02).
    ============================================================ */
 import { AMS } from './data';
+import { ASSET_CLASS_GL, FIXED_ASSETS as FIXED_ASSETS_SEED, assetsAt, duplicateCandidates } from './data_fixedassets';
 const BO: any = (function () {
   const today = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const daysTo = (d: any) => Math.round((new Date(d).getTime() - today.getTime()) / 864e5);
@@ -84,22 +85,27 @@ const BO: any = (function () {
   })();
 
   /* ---------------- Aset & Fasilitas Kantor ----------------
-     Register aset = sub-ledger PSAK 16 (garis lurus, ref 1 Mar 2026).
-     nbv DISELARASKAN ke mesin penyusutan (gross − akumulasi); vendorId
-     menaut perolehan ke master vendor; insured menaut ke polis; gl ke akun. */
-  const ASSET_GL = {
-    'Perangkat TI': '1-2100', 'Infrastruktur TI': '1-2100', 'Perangkat Kantor': '1-2100',
-    'Furnitur': '1-2100', 'Kendaraan': '1-2100', 'Fasilitas Gedung': '1-2100',
-  };
-  const FIXED_ASSETS = [
-    { id: 'AST-1042', name: 'Laptop ThinkPad X1 (batch audit)', cat: 'Perangkat TI', qty: 35, acq: '2024-06-01', cost: 612_500_000, life: 4, nbv: 344_531_250, residu: 0, loc: 'Pusat — Jakarta', custodian: 'Andini R.', vendorId: 'V-018', insured: 'POL-PRP', gl: '1-2100', status: 'Digunakan' },
-    { id: 'AST-1051', name: 'Server & NAS arsip kertas kerja', cat: 'Infrastruktur TI', qty: 1, acq: '2023-02-15', cost: 285_000_000, life: 5, nbv: 109_250_000, residu: 0, loc: 'Ruang Server', custodian: 'Andini R.', vendorId: 'V-018', insured: 'POL-PRP', gl: '1-2100', status: 'Digunakan' },
-    { id: 'AST-0890', name: 'Furnitur ruang kerja (workstation)', cat: 'Furnitur', qty: 64, acq: '2022-01-10', cost: 448_000_000, life: 8, nbv: 214_666_667, residu: 0, loc: 'Pusat — Jakarta', custodian: 'Bayu S.', vendorId: null, insured: 'POL-PRP', gl: '1-2100', status: 'Digunakan' },
-    { id: 'AST-1110', name: 'Kendaraan operasional (Innova)', cat: 'Kendaraan', qty: 2, acq: '2024-11-01', cost: 760_000_000, life: 8, nbv: 633_333_333, residu: 0, loc: 'Pusat — Jakarta', custodian: 'Dwi P.', vendorId: null, insured: 'POL-PRP', gl: '1-2100', status: 'Digunakan' },
-    { id: 'AST-1133', name: 'Proyektor & perangkat rapat', cat: 'Perangkat Kantor', qty: 6, acq: '2025-03-20', cost: 84_000_000, life: 4, nbv: 63_000_000, residu: 0, loc: 'Ruang Rapat', custodian: 'Bayu S.', vendorId: 'V-018', insured: 'POL-PRP', gl: '1-2100', status: 'Digunakan' },
-    { id: 'AST-0770', name: 'AC & sistem pendingin', cat: 'Fasilitas Gedung', qty: 12, acq: '2021-05-01', cost: 168_000_000, life: 8, nbv: 66_500_000, residu: 0, loc: 'Seluruh Lantai', custodian: 'Citra W.', vendorId: null, insured: 'POL-PRP', gl: '1-2100', status: 'Perlu Servis' },
-    { id: 'AST-0655', name: 'Laptop lama (tahap pelepasan)', cat: 'Perangkat TI', qty: 18, acq: '2020-04-01', cost: 234_000_000, life: 4, nbv: 0, residu: 0, loc: 'Gudang', custodian: 'Andini R.', vendorId: 'V-018', insured: null, gl: '1-2100', status: 'Usul Hapus' },
-  ];
+     PRD firm-erp-deepening PR-1 — register aset tetap kini SATU sumber
+     (`data_fixedassets.ts`), dipakai bersama modul `fixedassets` di grup
+     Keuangan Firma (ERP). Yang berubah di sini:
+
+       · tujuh baris AST-xxxx pindah ke register tunggal — tak satu nilai
+         `cost`/`acq`/`life` pun diubah;
+       · kolom `nbv` LITERAL dicabut; ia kini DITURUNKAN (`assetsAt`).
+         Ketujuh literal itu memang persis garis lurus pada `AMS.TODAY`,
+         jadi pencabutannya nol-delta;
+       · `ASSET_GL` dulu memetakan SELURUH kategori ke `1-2100` — akun yang
+         TIDAK PERNAH ADA di `FIRM_COA`, sehingga ia gagal DIAM-DIAM. Peta
+         akun kini `ASSET_CLASS_GL`, dan diuji terhadap COA.
+
+     `today` = `new Date(AMS.TODAY)` (klok SSOT, K-02). */
+  const ASSET_GL = ASSET_CLASS_GL;
+  /* `FIXED_ASSETS` = SEED (identitas array yang sama dengan `AMS.FIXED_ASSETS`).
+     `ASSET_REGISTER` = turunan pada klok SSOT — NBV, akumulasi & beban tahunan
+     dihitung SEKALI di sini, bukan diulang di tiap view. */
+  const FIXED_ASSETS = FIXED_ASSETS_SEED;
+  const ASSET_REGISTER = assetsAt(today);
+  const FIXED_ASSET_DUPS = duplicateCandidates();
   /* DISPOSALS — usulan pelepasan/penghapusan aset (PSAK 16 ¶¶67–72). */
   const DISPOSALS = [
     { id: 'DSP-01', assetId: 'AST-0655', asset: 'Laptop lama (18 unit)', method: 'Lelang internal & donasi', nbv: 0, proceeds: 9_000_000, reason: 'Habis umur manfaat & tak ekonomis diperbaiki', date: '2026-03-20', appr: 'Manajer GA', status: 'Menunggu Approval' },
@@ -270,7 +276,7 @@ const BO: any = (function () {
     today, daysTo,
     VENDORS, PURCHASE_ORDERS, SPEND_BY_CAT, CAT_COLOR,
     REQUISITIONS, RECEIPTS, BILLS, PROC_BUDGET,
-    FIXED_ASSETS, MAINTENANCE, SOFTWARE_LICENSES, SPACE, DISPOSALS, ASSET_GL,
+    FIXED_ASSETS, ASSET_REGISTER, FIXED_ASSET_DUPS, MAINTENANCE, SOFTWARE_LICENSES, SPACE, DISPOSALS, ASSET_GL,
     RETENTION_POLICY, ARCHIVES, LEGAL_HOLDS,
     CONTRACTS, DISPUTES,
     POLICIES, CLAIMS, RISK_REGISTER,

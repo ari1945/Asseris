@@ -3,6 +3,7 @@
    ============================================================ */
 import { fmt } from './data_base';
 import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
+import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
 
   const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
   /* Kurs BUKU — kurs saat transaksi dibukukan; buku besar mencatat valas pada kurs ini.
@@ -111,15 +112,11 @@ import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
     { m: 'Agu', open: 10_125, inflow: 2_050, outflow: 2_300 },
   ];
 
-  /* Office fixed-asset register (depreciation ref date 1 Mar 2026) */
-  const FIXED_ASSETS = [
-    { id: 'FA-001', name: 'Renovasi & Interior Kantor Pusat', cat: 'Bangunan & Renovasi', acq: '2021-06-01', cost: 2_400_000_000, life: 8 },
-    { id: 'FA-002', name: 'Server & Infrastruktur Jaringan', cat: 'Peralatan IT', acq: '2023-03-15', cost: 880_000_000, life: 4 },
-    { id: 'FA-003', name: 'Lisensi Software Audit (perpetual)', cat: 'Aset Takberwujud', acq: '2024-01-10', cost: 620_000_000, life: 5 },
-    { id: 'FA-004', name: 'Kendaraan Operasional (3 unit)', cat: 'Kendaraan', acq: '2022-09-01', cost: 1_350_000_000, life: 8 },
-    { id: 'FA-005', name: 'Furnitur, Partisi & Inventaris', cat: 'Inventaris Kantor', acq: '2021-06-01', cost: 540_000_000, life: 4 },
-    { id: 'FA-006', name: 'Laptop Tim Audit (40 unit)', cat: 'Peralatan IT', acq: '2024-07-01', cost: 720_000_000, life: 4 },
-  ];
+  /* Register aset tetap — SATU sumber bersama `BO.FIXED_ASSETS`.
+     PRD firm-erp-deepening PR-1: daftar literal enam baris di sini DICABUT;
+     ia dulu adalah register KEDUA yang tak pernah didamaikan dengan register
+     GA/Fasilitas. Lihat `data_fixedassets.ts`. */
+  const FIXED_ASSETS = FIXED_ASSETS_REGISTER;
 
   /* Firm's own tax obligations + e-Faktur PPN */
   const TAX_OBLIGATIONS = [

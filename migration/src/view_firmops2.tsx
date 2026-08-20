@@ -178,12 +178,30 @@ function FopsLineage({ oc, spendRecon, nbv, register, B, nav }: any) {
   const spendTotal = F.sum(spendRecon, (s: any) => s.recorded);
   const spendMaster = F.sum(spendRecon, (s: any) => s.master);
   const spendOk = spendRecon.every((s: any) => s.ok);
-  const grossCost = F.sum(B.FIXED_ASSETS, (a: any) => a.cost);
-  const accumDep = grossCost - nbv;
+  /* PR-1 (PRD firm-erp-deepening) — angka register dari SATU sumber turunan. */
+  const reg = B.ASSET_REGISTER;
+  const grossCost = reg.totCost;
+  const accumDep = reg.totAccDep;
+  /* Kontrol GL yang SEBENARNYA, dibaca dari COA — bukan `nbv` yang dibandingkan
+     dengan dirinya sendiri. Baris `r2` dulu berbunyi `av: nbv, bv: nbv, ok: true`
+     dengan catatan "Sub-ledger menutup ke GL": panel yang MUSTAHIL merah, persis
+     kelas cacat `note` hardcode #240 dan panel SA 220 yang dipaku hijau #254.
+     Penutupan penuh (dan konsekuensi blokir ekspor) adalah PR-2; di sini ia
+     berhenti berbohong lebih dulu. */
+  const glAset = (AMS.FIRM_COA as Array<{ code: string; bal: number }>).find((a) => a.code === '1-400');
+  const glNbv = glAset ? glAset.bal : 0;
+  const assetGap = glNbv - reg.totNbv;
+  const assetTied = Math.abs(assetGap) < 1_000_000;
+  const dups = B.FIXED_ASSET_DUPS || [];
 
   const recons = [
     { id: 'r1', title: 'Belanja per kategori ↔ Master Vendor', ok: spendOk, a: 'Σ kategori belanja', av: spendTotal, b: 'Σ vendor.ytd', bv: spendMaster, note: spendOk ? 'Setiap kategori P&L menutup ke jumlah belanja vendor di master.' : 'Mayoritas kategori menutup ke master vendor; sisa Rp ' + AMS.fmt((spendTotal - spendMaster) / 1e6, 0) + ' jt pada “Lainnya” adalah belanja kecil tak-terkonsolidasi ke satu vendor — ditandai untuk ditinjau.', to: 'procurement' },
-    { id: 'r2', title: 'Register Aset (sub-ledger) ↔ Kontrol GL', ok: true, a: 'Σ NBV register', av: nbv, b: 'Aset Tetap Kantor (GL)', bv: nbv, note: 'Harga perolehan Rp ' + AMS.fmt(grossCost / 1e6, 0) + ' jt − akumulasi penyusutan Rp ' + AMS.fmt(accumDep / 1e6, 0) + ' jt = NBV. Sub-ledger menutup ke GL.', to: 'facilities' },
+    { id: 'r2', title: 'Register Aset (sub-ledger) ↔ Kontrol GL', ok: assetTied, a: 'Σ NBV register', av: reg.totNbv, b: 'Aset Tetap — neto (1-400)', bv: glNbv,
+      note: assetTied
+        ? 'Harga perolehan Rp ' + AMS.fmt(grossCost / 1e6, 0) + ' jt − akumulasi penyusutan Rp ' + AMS.fmt(accumDep / 1e6, 0) + ' jt = NBV, dan itu menutup ke akun kontrol 1-400.'
+        : 'Register (13 aset · perolehan Rp ' + AMS.fmt(grossCost / 1e6, 0) + ' jt − akumulasi Rp ' + AMS.fmt(accumDep / 1e6, 0) + ' jt) TIDAK menutup ke kontrol 1-400: selisih Rp ' + AMS.fmt(assetGap / 1e6, 0) + ' jt belum dijelaskan siapa pun. Saldo kontrol tak pernah diturunkan dari register mana pun.'
+          + (dups.length ? ' Selain itu ' + dups.length + ' pasangan aset ditandai sebagai kemungkinan pencatatan ganda antar-register.' : ''),
+      to: 'facilities' },
     { id: 'r3', title: 'Kontrak Legal ↔ Vendor & Sub-Ledger', ok: true, a: 'Kontrak terpetakan', av: register.length, b: 'tertaut ke sumber', bv: register.length, note: 'Seluruh kontrak (sewa, lisensi, polis, MoU) menarik nilainya dari master vendor / polis / lisensi yang sama.', to: 'legal', isCount: true },
   ];
 
