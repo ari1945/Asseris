@@ -13,6 +13,7 @@ import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 import { rotTier } from './data_licensing';
 import { cpeFromTraining, type TrainingCourse } from './cpe_training';
+import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
 
 /* ============================================================
    Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
@@ -198,7 +199,12 @@ function CPETracker() {
   const { fmt } = AMS;
   const nav = useNav();
   const auth = useAuth();
-  const staff: any = AMS.STAFF, req: any = AMS.CPE_REQ;
+  const staff: any = AMS.STAFF;
+  /* Ambang PPL datang dari `canon_ppl.PPL_REQ_PMK186` — SATU sumber, dgn dasar
+     hukumnya melekat. `AMS.CPE_REQ` tinggal menyumbang tahun berjalan; nilainya
+     identik (40/30/10) sehingga pemindahan ini nol-delta. */
+  const pplYear: number = (AMS.CPE_REQ as { year?: number } | undefined)?.year || new Date().getFullYear();
+  const req = { annual: PPL_REQ_PMK186.annual, structured: PPL_REQ_PMK186.structuredMin, year: pplYear };
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   // 2026-07-05 — cpeLog (kredit SKP dasar) & cpeExtra ter-filter server (personal.get).
   const [cpeLog] = useAmsPersist('cpeLog', () => AMS.CPE_LOG);
@@ -215,12 +221,15 @@ function CPETracker() {
   const log = (() => { const m = {}; vstaff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((cpeLog as any)[s.id]) || [])]; }); return m; })();
   const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: AMS.TODAY }, ...(l[id] || [])] }));
 
+  /* PRD sdm-kepatuhan PR-3 — SATU mesin PPL.
+     Modul ini dulu menjumlahkan SKP MENTAH sementara `canon_ppl` yang benar
+     (cap SKP tidak terstruktur PMK 186 Ps. 37, materi wajib, SKP hangus) sudah
+     ada di repo dan dipakai modul Kesiapan P2PK. EMP-007 karenanya berdiri di
+     32/40 di sini dan 28/40 di sebelah. */
   const summary = vstaff.map((s: any) => {
     const recs = (log as any)[s.id] || [];
-    const structured = recs.filter((r: any) => r.type === 'Terstruktur').reduce((a: any, r: any) => a + r.skp, 0);
-    const total = recs.reduce((a: any, r: any) => a + r.skp, 0);
-    const compliant = total >= req.annual && structured >= req.structured;
-    return { ...s, structured, total, compliant, recs };
+    const st = pplStatusFromEntries(recs);
+    return { ...s, structured: st.structured, total: st.countedTotal, compliant: st.compliant, st, recs };
   });
   const compliantN = summary.filter((s: any) => s.compliant).length;
   const atRisk = summary.filter((s: any) => !s.compliant && s.total < req.annual * 0.5).length;
@@ -251,7 +260,7 @@ function CPETracker() {
                     <td className="num mono" style={{ color: s.structured >= req.structured ? 'var(--green)' : 'var(--amber)' }}>{s.structured}/{req.structured}</td>
                     <td className="num mono" style={{ fontWeight: 600 }}>{s.total}/{req.annual}</td>
                     <td><div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, s.total / req.annual * 100) + '%', height: '100%', borderRadius: 4, background: s.compliant ? 'var(--green)' : s.total >= req.annual * 0.5 ? 'var(--amber)' : 'var(--red)' }} /></div></td>
-                    <td>{s.compliant ? <Badge kind="green">Memenuhi</Badge> : <Badge kind={s.total >= req.annual * 0.5 ? 'amber' : 'red'}>{Math.round(s.total / req.annual * 100)}%</Badge>}</td>
+                    <td>{s.compliant && s.st.topicsTracked ? <Badge kind="green">Memenuhi</Badge> : s.compliant ? <Badge kind="amber" title="Materi wajib Pasal 37 belum terlacak">Belum terbukti</Badge> : <Badge kind={s.total >= req.annual * 0.5 ? 'amber' : 'red'}>{Math.round(s.total / req.annual * 100)}%</Badge>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -262,28 +271,40 @@ function CPETracker() {
             <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <Avatar name={person.name} size={28} />
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{person.name}</div><div className="tiny muted">{person.role}</div></div>
-              {person.compliant ? <Badge kind="green">Memenuhi</Badge> : <Badge kind="amber">Kurang {Math.max(0, req.annual - person.total)} SKP</Badge>}
+              {person.compliant && person.st.topicsTracked ? <Badge kind="green">Memenuhi</Badge> : person.compliant ? <Badge kind="amber">Belum dapat dibuktikan</Badge> : <Badge kind="amber">Kurang {Math.max(0, PPL_REQ_PMK186.annual - person.st.countedTotal)} SKP</Badge>}
             </div>
             <div style={{ padding: 14 }}>
               <div className="row gap12" style={{ marginBottom: 14 }}>
-                <Donut segments={[{ value: person.structured, color: '#005085' }, { value: Math.max(0, person.total - person.structured), color: '#0a6b73' }, { value: Math.max(0, req.annual - person.total), color: '#e7ebef' }]} size={92} thickness={13}
+                <Donut segments={[{ value: person.structured, color: '#005085' }, { value: person.st.countedUnstructured, color: '#0a6b73' }, { value: Math.max(0, PPL_REQ_PMK186.annual - person.total), color: '#e7ebef' }]} size={92} thickness={13}
                   center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{person.total}</div><div className="tiny muted">SKP</div></>} />
                 <div style={{ flex: 1, display: 'grid', gap: 5, alignContent: 'center' }}>
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#005085' }} />Terstruktur</span><b className="mono">{person.structured}</b></div>
-                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#0a6b73' }} />Tidak terstruktur</span><b className="mono">{person.total - person.structured}</b></div>
-                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Kurang</span><b className="mono">{Math.max(0, req.annual - person.total)}</b></div>
+                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#0a6b73' }} />Tidak terstruktur</span><b className="mono">{person.st.countedUnstructured}</b></div>
+                  {person.st.forfeitedUnstructured > 0 && <div className="row jb tiny" style={{ color: 'var(--amber)' }}><span className="row ac gap6"><I.alert size={9} />Hangus (di atas batas {PPL_REQ_PMK186.unstructuredCap})</span><b className="mono">{person.st.forfeitedUnstructured}</b></div>}
+                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Kurang</span><b className="mono">{Math.max(0, PPL_REQ_PMK186.annual - person.total)}</b></div>
                 </div>
               </div>
               <div className="tiny muted upper" style={{ marginBottom: 6 }}>Riwayat SKP {req.year}</div>
               <div style={{ display: 'grid', gap: 0 }}>
                 {person.recs.length ? person.recs.map((r: any, i: any) => (
                   <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: i < person.recs.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                    <div style={{ minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.t}</span>{r.src === 'training' && <Badge kind="teal"><I.flask size={9} /> Pelatihan</Badge>}</div><div className="tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {r.type}</div></div>
+                    <div style={{ minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.t}</span>{r.src === 'training' && <Badge kind="teal"><I.flask size={9} /> Pelatihan</Badge>}</div><div className="tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {r.type}{r.type === 'Terstruktur' ? (isSkpTopic(r.topic) ? ' · ' + SKP_TOPIC_LABEL[r.topic as 'pembinaan' | 'akuntansi' | 'lain'] : ' · materi belum diklasifikasi') : ''}</div></div>
                     <span className="mono" style={{ fontWeight: 700 }}>{r.skp} SKP</span>
                   </div>
                 )) : <div className="tiny muted" style={{ padding: 12, textAlign: 'center' }}>Belum ada SKP tercatat tahun ini.</div>}
               </div>
-              {!person.compliant && <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.4 }}>Perlu tambahan {Math.max(0, req.annual - person.total)} SKP ({Math.max(0, req.structured - person.structured)} terstruktur) sebelum akhir tahun untuk memenuhi PPL IAPI.</div></div>}
+              {(person.st.shortfalls.length > 0 || !person.st.topicsTracked) && (
+                <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+                  {person.st.shortfalls.map((f: any) => (
+                    <div key={f} className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>· {PPL_SHORTFALL_LABEL[f as keyof typeof PPL_SHORTFALL_LABEL]}</div>
+                  ))}
+                  {!person.st.topicsTracked && (
+                    <div className="tiny" style={{ lineHeight: 1.5, marginTop: person.st.shortfalls.length ? 4 : 0 }}>
+                      Materi wajib ({PPL_REQ_PMK186.topicPembinaanMin} SKP pembinaan/pengawasan + {PPL_REQ_PMK186.topicAkuntansiMin} SKP akuntansi/asurans) belum terlacak pada seluruh entri terstruktur — kepatuhan penuh Pasal 37 <b>belum dapat dibuktikan</b> dari data ini.
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="row gap8" style={{ marginTop: 12 }}>
                 <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => setShowNew(true)}><I.plus size={13} /> Catat SKP</Btn>
                 <Btn sm style={{ flex: 1 }} onClick={() => nav('learning')}><I.flask size={13} /> Cari Pelatihan</Btn>
@@ -297,13 +318,17 @@ function CPETracker() {
   );
 }
 
-const SKP_FORM_INIT = { id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4 };
+/* `topic` WAJIB untuk entri terstruktur: satu entri tanpa klasifikasi membuat
+   materi wajib Pasal 37 tak dapat diuji untuk SELURUH tahun orang itu
+   (lihat `pplFromEntries`). Karena itu ia field form, bukan afterthought. */
+const SKP_FORM_INIT = { id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4, topic: 'akuntansi' };
 
 function SkpForm({ staff, onClose, onAdd }: any) {
   const uid = React.useId();
   const [d, setD] = useStateE({ ...SKP_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
-  const valid = d.t.trim() && +d.skp > 0;
+  const needTopic = d.type === 'Terstruktur';
+  const valid = d.t.trim() && +d.skp > 0 && (!needTopic || isSkpTopic(d.topic));
   return (
     <Overlay
       variant="modal"
@@ -320,7 +345,7 @@ function SkpForm({ staff, onClose, onAdd }: any) {
       footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d.id, { t: d.t, type: d.type, skp: +d.skp })}><I.check size={14} /> Catat SKP</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d.id, { t: d.t, type: d.type, skp: +d.skp, ...(needTopic ? { topic: d.topic } : {}) })}><I.check size={14} /> Catat SKP</Btn>
         </div>
       )}
     >
@@ -331,6 +356,9 @@ function SkpForm({ staff, onClose, onAdd }: any) {
             <div className="field"><label htmlFor={uid+'-jenis'}>Jenis</label><select id={uid+'-jenis'} className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Terstruktur', 'Tidak Terstruktur'].map(s => <option key={s}>{s}</option>)}</select></div>
             <div className="field"><label htmlFor={uid+'-skp'}>SKP</label><input id={uid+'-skp'} className="input mono" type="number" value={d.skp} onChange={(e: any) => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
+          {needTopic && (
+            <div className="field"><label htmlFor={uid+'-materi'}>Materi wajib (PMK 186 Ps. 37)</label><select id={uid+'-materi'} className="select" value={d.topic} onChange={(e: any) => set('topic', e.target.value)}>{(['akuntansi', 'pembinaan', 'lain'] as const).map((k) => <option key={k} value={k}>{SKP_TOPIC_LABEL[k]}</option>)}</select></div>
+          )}
         </div>
     </Overlay>
   );

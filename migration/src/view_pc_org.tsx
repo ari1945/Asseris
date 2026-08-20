@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { readinessOf, successionRoleState } from './canon_succession';
 import { useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
@@ -203,7 +204,25 @@ function SuccessionPlanning() {
 
   const role = ROLES.find((r: any) => r.id === sel) || ROLES[0];
   const inc = A.byId(role.incumbent);
-  const readyNow = ROLES.filter((r: any) => r.successors.some((s: any) => s.readiness === 'Siap sekarang')).length;
+  /* PRD sdm-kepatuhan PR-7 · SC-18 — kesiapan DITURUNKAN dari tangga karier ×
+     kompetensi × progres IDP; `readiness` literal hanya dibandingkan. */
+  const readinessFor = (empId: string) => {
+    const p = A.byId(empId) || {};
+    const rung = (A.CAREER_LADDER || []).find((r: any) => r.grade === p.grade);
+    return readinessOf({
+      cert: p.cert, currentGrade: p.grade, targetGrade: rung?.next,
+      ladder: A.CAREER_LADDER, competencyActual: (A.COMPETENCY_ACTUAL || {})[empId],
+      competencyRequired: (A.COMPETENCY_REQ || {})[rung?.next] || (A.COMPETENCY_REQ || {})[p.grade],
+      idp: (A.IDP || {})[empId],
+    });
+  };
+  const roleStates = ROLES.map((r: any) => successionRoleState({
+    role: r.role, incumbent: r.incumbent, critical: r.critical,
+    successors: r.successors.map((s: any) => ({ id: s.id, claimed: s.readiness, gaps: s.gaps })),
+    readinessFor,
+  }));
+  const readyNow = roleStates.filter((r: any) => r.readyNow > 0).length;
+  const contradicting = roleStates.reduce((n: number, r: any) => n + r.successors.filter((s: any) => s.contradicts).length, 0);
   const atRisk = ROLES.filter((r: any) => r.riskOfLoss !== 'Rendah').length;
   const noReady = ROLES.filter((r: any) => !r.successors.length).length;
   const RISK_C = { Rendah: 'var(--green)', Sedang: 'var(--amber)', Tinggi: 'var(--red)' };
@@ -217,7 +236,7 @@ function SuccessionPlanning() {
     const roleRows: (string | number)[][] = [];
     for (const r of ROLES) { const ic = A.byId(r.incumbent); roleRows.push([r.role, ic ? ic.name : '', r.critical, r.riskOfLoss, r.vacancyImpact, r.successors.length]); }
     const succRows: (string | number)[][] = [];
-    for (const r of ROLES) for (const s of r.successors) { const p = A.byId(s.id); succRows.push([r.role, p ? p.name : '', p ? p.role : '', s.readiness, s.gaps]); }
+    for (const r of ROLES) for (const s of r.successors) { const p = A.byId(s.id); const d = readinessFor(s.id); succRows.push([r.role, p ? p.name : '', p ? p.role : '', d.label, d.blockers.map((b: any) => b.detail).join(' · ') || s.gaps]); }
     await amsExportXlsx({
       kind: 'firm-succession', scope: 'firm',
       fileName: 'Laporan Suksesi.xlsx',
@@ -252,7 +271,7 @@ function SuccessionPlanning() {
                 <tbody>
                   {ROLES.map((r: any) => {
                     const ic = A.byId(r.incumbent);
-                    const hasReady = r.successors.some((s: any) => s.readiness === 'Siap sekarang');
+                    const hasReady = (roleStates.find((x: any) => x.role === r.role)?.readyNow || 0) > 0;
                     return (
                       <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
                         <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
@@ -284,7 +303,10 @@ function SuccessionPlanning() {
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row ac jb" style={{ marginBottom: 4 }}>
                           <div className="row ac gap8"><Avatar name={p.name} size={26} /><div><div style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</div><div className="tiny muted">{p.role}</div></div></div>
-                          <span className="badge" style={{ background: 'transparent', color: RC[s.readiness] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 11 }}>{s.readiness}</span>
+                          {(() => {
+                          const d = readinessFor(s.id);
+                          return (<span className="badge" title={d.blockers.map((b: any) => b.detail).join(' · ') || 'Tak ada pemblokir teridentifikasi'} style={{ background: 'transparent', color: RC[d.label] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 11 }}>{d.label}{d.label !== s.readiness ? ' ⚠' : ''}</span>);
+                        })()}
                         </div>
                         <div className="tiny muted">Gap: {s.gaps}</div>
                       </div>

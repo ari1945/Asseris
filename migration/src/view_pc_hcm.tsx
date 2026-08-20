@@ -5,6 +5,11 @@ import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 import { amsExportPdf } from './export_pdf';
+import { leaveLedgerOf } from './canon_leave';
+import { perfPersonOf } from './canon_perf';
+import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
+
+const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as LeaveRequestInput[] : []);
 
 /* ============================================================
    Asseris — HCM deepening: 360° Profile drawer + Analytics
@@ -46,18 +51,27 @@ function Profile360Drawer({ s, onClose }: any) {
   const [profiles] = useAmsPersist('staffProfile', () => A.STAFF_PROFILE);
   const [payAll] = useAmsPersist('payrollData', () => A.PAYROLL);
   const [lvAll] = useAmsPersist('leaveBalance', () => A.LEAVE_BALANCE);
+  const [lvReqs] = useAmsPersist('leaveReqs', () => A.LEAVE_REQUESTS);
   const [cpeAll] = useAmsPersist('cpeLog', () => A.CPE_LOG);
   const [perfAll] = useAmsPersist('perfPeople', () => (A.PERF_CYCLE.people || {}));
+  const [perfGoalsAll] = useAmsPersist('perfGoals', () => (A.PERF_CYCLE.goals || {}));
   const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
   const [ethAll] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const p = profileOf(s, profiles);
   const tenure = 2026 - s.joined;
   const pay = (payAll || {})[s.id];
-  const lv = (lvAll || {})[s.id];
-  const lvTotal = lv ? lv.ent + lv.carry : 12;
-  const lvLeft = lv ? lvTotal - lv.used : 12;
+  /* PRD sdm-kepatuhan PR-1 — saldo cuti DITURUNKAN dari register permintaan
+     (canon_leave), bukan dari literal `ent`/`used` yang persetujuan tak pernah
+     menyentuhnya. Mesin yang sama dipakai modul Cuti & Data Personal Saya. */
+  const lvLedger = leaveLedgerOf(s.id, s.joined, arrLv(lvReqs), (lvAll || {})[s.id]?.carry || 0,
+    String(AMS.TODAY || ''), AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar);
+  const lvTotal = lvLedger.quota;
+  const lvLeft = lvLedger.remaining;
   const cpe = ((cpeAll || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
-  const perf = (perfAll || {})[s.id];
+  /* PRD sdm-kepatuhan PR-2 — skor & penempatan 9-box DITURUNKAN (canon_perf),
+     bukan literal `perf`/`box` yang dapat bertentangan dgn KPI-nya sendiri. */
+  const perfRec = (perfAll || {})[s.id];
+  const perf = perfRec ? perfPersonOf(s.id, perfRec, (perfGoalsAll || {})[s.id]) : null;
   const indep = (indepAll || []).find((d: any) => d.id === s.id);
   const ethics = (ethAll || {})[s.id];
   const GC = A.GRADE_COLOR_PC;
@@ -87,7 +101,7 @@ function Profile360Drawer({ s, onClose }: any) {
           { type: 'heading', text: 'Identitas & Posisi' },
           { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure + ' tahun']] },
           { type: 'heading', text: 'Kompensasi & Pengembangan' },
-          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Cuti (ent + carry)', lvTotal + ' hari · sisa ' + lvLeft]] },
+          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
         ],
       });
     } finally {
@@ -151,8 +165,8 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Kinerja & Karier" action={<button className="btn sm" style={{ height: 22 }} onClick={() => { onClose(); nav('performance'); }}><I.arrowRight size={11} /> Kinerja</button>}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Kv l="Skor Kinerja" v={perf ? perf.perf.toFixed(1) + ' / 5' : s.rating.toFixed(1) + ' / 5'} accent="var(--blue)" />
-              <Kv l="Potensi (9-box)" v={perf ? perf.box : '—'} />
+              <Kv l="Skor Kinerja" v={perf && perf.score.score !== null ? perf.score.score.toFixed(2) + ' / 5' : perf ? 'Belum dapat dinilai' : s.rating.toFixed(1) + ' / 5'} accent="var(--blue)" />
+              <Kv l="Potensi (9-box)" v={perf && perf.placement.placeable ? perf.placement.label : '—'} />
               <Kv l="Engagement Aktif" v={s.engagements} />
               <Kv l="Rekomendasi" v={perf && perf.promote !== '—' ? perf.promote : 'Pertahankan'} accent={perf && perf.promote !== '—' ? 'var(--purple)' : undefined} />
             </div>
@@ -242,14 +256,21 @@ function HCMAnalytics() {
     <div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalHC} label="Headcount Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.annualAttrition + '%'} label="Attrition Tahunan" accent={D.annualAttrition > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }} title={D.attritionBasis}><Stat value={D.annualAttrition == null ? '—' : D.annualAttrition + '%'} label="Attrition Tahunan" accent={(D.annualAttrition ?? 0) > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable == null ? 'belum ada kepergian tercatat' : D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.avgTenure == null ? '—' : D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }} title={D.timeToFillBasis}><Stat value={D.timeToFill == null ? 'belum dapat dihitung' : D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
+      </div>
+
+      {/* PRD sdm-kepatuhan PR-4 — angka di atas DITURUNKAN; dasarnya disebutkan
+          agar dapat dibantah, bukan sekadar dipercaya. */}
+      <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>
+        Seluruh angka pada halaman ini diturunkan dari roster {totalHC} personel dan register kepergian —
+        bukan konstanta. Attrition: {D.attritionBasis}. Time-to-fill: {D.timeToFillBasis}.
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, marginBottom: 12, alignItems: 'stretch' }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Tren Headcount & Pergerakan</h3><div style={{ flex: 1 }} /><span className="tiny muted">8 kuartal · hire vs exit</span></div>
+          <div className="panel-h"><h3>Tren Headcount & Pergerakan</h3><div style={{ flex: 1 }} /><span className="tiny muted">5 tahun · masuk vs keluar (presisi tahunan — roster menyimpan tahun bergabung)</span></div>
           <div style={{ padding: 16 }}>
             <div className="row" style={{ gap: 10, alignItems: 'flex-end', height: 160 }}>
               {D.headcountTrend.map((t: any, i: any) => (

@@ -137,18 +137,69 @@ export function pplStatus(r: PplRealisasi, req: PplRequirement = PPL_REQ_PMK186)
   };
 }
 
+/** Klasifikasi materi wajib Pasal 37. `lain` = terstruktur tetapi bukan materi
+ *  wajib (mis. perpajakan) — ia menambah SKP terstruktur, bukan limb materi. */
+export type SkpTopic = 'pembinaan' | 'akuntansi' | 'lain';
+
+export const SKP_TOPIC_LABEL: Record<SkpTopic, string> = {
+  pembinaan: 'Pembinaan/pengawasan AP & KAP',
+  akuntansi: 'Akuntansi dan/atau jasa asurans',
+  lain: 'Materi lain (tidak memenuhi limb materi wajib)',
+};
+
+export function isSkpTopic(v: unknown): v is SkpTopic {
+  return v === 'pembinaan' || v === 'akuntansi' || v === 'lain';
+}
+
 /** Ringkas realisasi dari catatan SKP per-kegiatan (bentuk `CPE_LOG`).
  *  Indeks terbuka: baris nyata membawa field lain (`t` judul, `date`) yang
  *  tak relevan bagi perhitungan — antarmuka ini membacanya, bukan memilikinya. */
-export interface SkpEntry { type?: string | null; skp?: number | null; [k: string]: unknown }
+export interface SkpEntry { type?: string | null; skp?: number | null; topic?: unknown; [k: string]: unknown }
 
+export function isStructuredSkp(e: SkpEntry): boolean {
+  return String(e.type || '').toLowerCase().startsWith('terstruktur');
+}
+
+/**
+ * Ringkas realisasi, termasuk limb materi wajib.
+ *
+ * Materi wajib hanya dapat diuji bila SELURUH entri terstruktur terklasifikasi.
+ * Klasifikasi sebagian akan mengecilkan limb materi tanpa ketahuan, lalu
+ * `topicsTracked` berbohong bahwa ia dapat diuji — maka bar-nya seluruhnya.
+ * Entri tidak terstruktur tak perlu topik: Pasal 37 menaruh materi wajib
+ * DI DALAM yang terstruktur.
+ *
+ * Nol entri terstruktur = terlacak SECARA HAMPA: kedua limb materi pasti 0, dan
+ * itu dapat dinyatakan dengan pasti. Memperlakukannya "tak terlacak" akan
+ * menyembunyikan kegagalan yang justru paling terang.
+ */
 export function pplFromEntries(entries: readonly SkpEntry[] | null | undefined): PplRealisasi {
   let structured = 0, unstructured = 0;
+  let pembinaan = 0, akuntansi = 0;
+  let structuredCount = 0, classified = 0;
   for (const e of entries || []) {
     if (!e) continue;
     const n = Number(e.skp) || 0;
-    if (String(e.type || '').toLowerCase().startsWith('terstruktur')) structured += n;
-    else unstructured += n;
+    if (!isStructuredSkp(e)) { unstructured += n; continue; }
+    structured += n;
+    structuredCount++;
+    if (!isSkpTopic(e.topic)) continue;
+    classified++;
+    if (e.topic === 'pembinaan') pembinaan += n;
+    else if (e.topic === 'akuntansi') akuntansi += n;
   }
-  return { structured, unstructured };
+  const tracked = classified === structuredCount;
+  return {
+    structured, unstructured,
+    topicPembinaan: tracked ? pembinaan : undefined,
+    topicAkuntansi: tracked ? akuntansi : undefined,
+  };
+}
+
+/** Status PPL langsung dari catatan SKP — satu pintu untuk seluruh konsumen. */
+export function pplStatusFromEntries(
+  entries: readonly SkpEntry[] | null | undefined,
+  req: PplRequirement = PPL_REQ_PMK186,
+): PplStatus {
+  return pplStatus(pplFromEntries(entries), req);
 }

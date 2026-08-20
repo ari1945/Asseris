@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { amlState, conductGate, giftState, giftSummary, sanctionCheck, sanctionOptions } from './canon_conduct';
 import { useAmsPersist, useNav, useAuth } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
@@ -31,6 +32,7 @@ function EthicsDeclaration() {
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const [gifts, setGifts] = useAmsPersist('pc.gifts', () => A.GIFTS_REGISTER);
   const [aml] = useAmsPersist('amlScreening', () => A.AML_SCREENING);
+  const amlOf = (id: string) => amlState((aml || []).find((x: any) => x.id === id), String(AMS.TODAY || ''));
   const staff = A.STAFF, ITEMS = A.ETHICS_ITEMS;
   // 2026-07-05 — data personal ter-filter server (personal.get): non-privileged hanya menerima
   // barisnya sendiri. Batasi iterasi tabel ke staf yang datanya benar-benar diterima (pola
@@ -45,7 +47,9 @@ function EthicsDeclaration() {
 
   const signed = myStaff.filter((s: any) => (decl[s.id] || {}).signed).length;
   const exceptions = myStaff.reduce((n: any, s: any) => n + ((decl[s.id] || {}).exceptions || 0), 0);
-  const giftsPending = gifts.filter((g: any) => g.status === 'Menunggu').length;
+  const gsOf = (g: any) => giftState(g, String(AMS.TODAY || ''));
+  const gsum = giftSummary(gifts, String(AMS.TODAY || ''));
+  const giftsPending = gsum.pending;
   const amlPending = aml.filter((a: any) => a.result !== 'Bersih').length;
 
   /* Deklarasi Kode Etik adalah pernyataan PRIBADI. Bentuk lama menandatangani
@@ -167,7 +171,7 @@ function EthicsDeclaration() {
               <tbody>
                 {gifts.map((g: any) => {
                   const p = A.byId(g.staff);
-                  const over = g.value >= 1_000_000;
+                  const gs = gsOf(g); const over = gs.overThreshold;
                   return (
                     <tr key={g.id}>
                       <td className="tiny muted">{new Date(g.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -176,9 +180,11 @@ function EthicsDeclaration() {
                       <td className="tiny">{g.type}</td>
                       <td className="num mono" style={{ fontWeight: 600, color: over ? 'var(--amber)' : 'var(--ink)' }}>{fmt(g.value, 0)}</td>
                       <td className="tiny muted truncate" style={{ maxWidth: 150 }}>{g.action}</td>
-                      <td>{g.status === 'Menunggu'
+                      <td>{gs.derivedStatus === 'Menunggu'
                         ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => decideGift(g.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button aria-label="Tolak" className="btn sm" style={{ height: 22, color: 'var(--red)' }} onClick={() => decideGift(g.id, 'Ditolak')}><I.x size={12} /></button></div>
-                        : <Badge kind={g.status === 'Disetujui' ? 'green' : g.status === 'Ditolak' ? 'red' : 'gray'}>{g.status}</Badge>}</td>
+                        : <Badge kind={gs.derivedStatus === 'Disetujui' ? 'green' : gs.derivedStatus === 'Ditolak' ? 'red' : 'gray'}>{gs.derivedStatus}</Badge>}
+                        {gs.escalated && <div className="tiny" style={{ color: 'var(--red)', marginTop: 2 }} title={gs.note}>⚠ {gs.ageDays} hari menggantung</div>}
+                        {gs.contradicts && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 2 }}>status tersimpan "{gs.storedStatus}" di bawah ambang — dikoreksi</div>}</td>
                     </tr>
                   );
                 })}
@@ -241,11 +247,27 @@ function HRCases() {
     const nc: HcCase = { id, staff: staff[0].id, cat: 'Pelanggaran Ringan', severity: 'Ringan', channel: 'Laporan Langsung', status: 'Terbuka', owner: staff[0].id, desc: 'Kasus baru — lengkapi detail & tetapkan penanggung jawab.', sanction: A.SANCTION_LADDER[0], steps: [[today(), 'Kasus dicatat melalui register disiplin.']] };
     setCases((list: HcCase[]) => [nc, ...list]); setSel(id);
   };
-  const closeCase = (id: string) => patchCase(id, (c) => {
-    const i = A.SANCTION_LADDER.findIndex((x: string) => c.sanction.includes(x.split(' ')[0]));
-    const next = A.SANCTION_LADDER[Math.min(i + 1, A.SANCTION_LADDER.length - 1)] || c.sanction;
-    return { ...c, status: 'Selesai', sanction: next, steps: [...c.steps, [today(), 'Sanksi ditetapkan (' + next + ') & kasus ditutup.']] };
-  });
+  /* PRD sdm-kepatuhan PR-7 · SC-22 — sanksi DIPILIH, bukan dinaikkan otomatis,
+     dan pemutusnya bukan pelapor maupun penyelidik. Bentuk lama menaikkan satu
+     anak tangga lalu menutup dalam satu klik oleh siapa pun yang membuka layar. */
+  const authHr = useAuth();
+  const actor = {
+    emp: resolveEmpId(authHr && authHr.user),
+    canHrManage: !!(authHr && typeof authHr.can === 'function' && authHr.can(CAP.HR_MANAGE)),
+    canFirmAdmin: !!(authHr && typeof authHr.can === 'function' && authHr.can(CAP.FIRM_ADMIN)),
+  };
+  const [pickSanction, setPickSanction] = usePCcon('');
+  const uidC = React.useId();
+  const closeCase = (id: string) => {
+    const c = cases.find((x: HcCase) => x.id === id);
+    const chk = sanctionCheck(c as never, actor);
+    if (!chk.ok || !pickSanction) return;
+    patchCase(id, (cc) => ({
+      ...cc, status: 'Selesai', sanction: pickSanction,
+      decidedBy: actor.emp || undefined, decidedAt: today(),
+      steps: [...cc.steps, [today(), 'Sanksi ditetapkan (' + pickSanction + ') oleh ' + ((authHr && authHr.user && authHr.user.name) || actor.emp) + ' & kasus ditutup.']],
+    }));
+  };
 
   const open = cases.filter((c: any) => c.status !== 'Selesai').length;
   const invest = cases.filter((c: any) => c.status === 'Investigasi').length;
@@ -339,7 +361,23 @@ function HRCases() {
                       </div>
                     ))}
                   </div>
-                  {cur.status !== 'Selesai' && <Btn variant="primary" sm style={{ width: '100%', marginTop: 12 }} onClick={() => closeCase(cur.id)}><I.gavel size={13} /> Tetapkan Sanksi & Tutup</Btn>}
+                  {cur.status !== 'Selesai' && (() => {
+                    const chk = sanctionCheck(cur as never, actor);
+                    const opts = sanctionOptions(cur.sanction);
+                    return (
+                      <div style={{ marginTop: 12 }}>
+                        <label htmlFor={uidC + '-sanksi'} className="tiny muted upper" style={{ display: 'block', marginBottom: 4 }}>Sanksi yang ditetapkan</label>
+                        <select id={uidC + '-sanksi'} className="select" style={{ width: '100%', marginBottom: 8 }} value={pickSanction} onChange={(e: { target: { value: string } }) => setPickSanction(e.target.value)}>
+                          <option value="">— pilih anak tangga sanksi —</option>
+                          {opts.map((x: string) => <option key={x} value={x}>{x}</option>)}
+                        </select>
+                        <Btn variant="primary" sm style={{ width: '100%', opacity: chk.ok && pickSanction ? 1 : .5 }} disabled={!chk.ok || !pickSanction}
+                          title={!chk.ok ? chk.reason : !pickSanction ? 'Pilih anak tangga sanksi terlebih dahulu' : 'Tetapkan sanksi & tutup kasus'}
+                          onClick={() => closeCase(cur.id)}><I.gavel size={13} /> Tetapkan Sanksi &amp; Tutup</Btn>
+                        {!chk.ok && <div className="tiny" style={{ marginTop: 6, color: 'var(--amber)', lineHeight: 1.5 }}>{chk.reason}</div>}
+                      </div>
+                    );
+                  })()}
                 </div>
               </Panel>
             );
