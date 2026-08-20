@@ -171,12 +171,46 @@ import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
     ...PAYROLL_EXT,   // PR-4 — 59 personel tambahan roster
   };
   /* BPJS & statutory rates */
+  /* Tarif & batas upah BPJS — BERKUNCI MASA BERLAKU (PRD regulatory-reference-annual PR-2).
+
+     Bentuk lama menaruh `period: 'Maret 2026'` berdampingan dengan `kesCap`/`jpCap`
+     dalam satu objek datar. `period` dipakai sebagai kunci masa penggajian (id jurnal,
+     post-check, judul slip) tetapi TAK PERNAH dipakai memilih tarifnya — sehingga
+     pasangan "masa" dan "batas upah" berlaku semata karena ditulis berdekatan. Batas
+     upah JP disesuaikan tiap tahun; pada Januari 2027 bentuk lama akan menghitung
+     potongan setiap pegawai dengan batas 2026 tanpa satu pun tanda.
+
+     `periodDate` menjadikan masa itu TANGGAL, dan `sets` menjawab untuk tanggal itu.
+
+     verified: false — dan ini bukan kelalaian yang diwariskan, melainkan pembacaan
+     jujur atas bentuk lama: ia tak pernah menyebut dokumen sumber, siapa yang
+     mencocokkan, atau kapan. Ketiadaan provenans = belum terverifikasi. Angkanya
+     TIDAK diubah (nol-delta), tetapi sekarang ia mengatakan bahwa ia belum
+     dicocokkan. Bandingkan dengan kalender libur, yang bentuk lamanya MEMANG
+     menyatakan sudah dicocokkan (`confirmedThroughYear`) dan karena itu dimigrasi
+     sebagai `verified: true`. Yang dipindahkan adalah pernyataan yang ada, bukan
+     yang seharusnya ada. */
   const PAYROLL_RATES = {
     period: 'Maret 2026',
-    kesEmp: 0.01, kesEr: 0.04, kesCap: 12_000_000,
-    jhtEmp: 0.02, jhtEr: 0.037,
-    jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
-    jkkEr: 0.0024, jkmEr: 0.003,
+    periodDate: '2026-03-01',
+    sets: [
+      {
+        effectiveFrom: '2026-01-01',
+        effectiveTo: '2026-12-31',
+        basis: 'Perpres 64/2020 (Kesehatan) · PP 46/2015 jo. PP 60/2015 (JHT) · PP 45/2015 (JP)',
+        sourceDoc: '',
+        verified: false,
+        note: 'Batas upah & tarif 2026 belum dicocokkan dengan sumber resminya. '
+          + 'Batas upah Jaminan Pensiun disesuaikan setiap tahun (PP 45/2015 Ps. 29); '
+          + 'sampai dicocokkan, potongan JP di atas batas tidak dapat dipertanggungjawabkan.',
+        value: {
+          kesEmp: 0.01, kesEr: 0.04, kesCap: 12_000_000,
+          jhtEmp: 0.02, jhtEr: 0.037,
+          jpEmp: 0.01, jpEr: 0.02, jpCap: 10_547_400,
+          jkkEr: 0.0024, jkmEr: 0.003,
+        },
+      },
+    ],
   };
   /* ---- Kalender hari libur nasional (PRD sdm-kepatuhan PR-1) ----
      Hari kerja sebuah permintaan cuti = rentang tanggal − akhir pekan − hari libur.
@@ -185,31 +219,57 @@ import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
 
      `penetapan` membedakan yang tanggalnya tetap dari yang mengikuti kalender
      Hijriah/Imlek/Saka — yang terakhir FINAL hanya lewat SKB 3 Menteri tiap tahun.
-     `confirmedThroughYear` menyatakan sampai tahun berapa isi ini sudah dicocokkan;
-     `holidayCoverage()` (canon_leave) menolak berpura-pura untuk tahun di atasnya.
+     Sejak PRD regulatory-reference-annual PR-1 kalender ini berbentuk SET PER TAHUN
+     (`canon_regref.RegRefSet`); `verified` melekat pada tahunnya, bukan pada kalender
+     seluruhnya. `holidayCoverage()` (canon_leave) menolak berpura-pura untuk tahun
+     yang tak punya set.
 
      Cuti bersama SENGAJA dikosongkan: ia diumumkan tahunan dan tak dapat diturunkan.
      Mengarangnya akan membuat hari kerja kurang-hitung tanpa dasar. */
   const LEAVE_HOLIDAYS = {
     basis: 'SKB 3 Menteri tentang Hari Libur Nasional & Cuti Bersama',
-    confirmedThroughYear: 2026,
-    entries: [
-      { date: '2026-01-01', name: 'Tahun Baru Masehi', kind: 'nasional', penetapan: 'tetap' },
-      { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-03-20', name: 'Idulfitri 1447 H (1 Syawal)', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-03-21', name: 'Idulfitri 1447 H (2 Syawal)', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-04-03', name: 'Wafat Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-05-01', name: 'Hari Buruh Internasional', kind: 'nasional', penetapan: 'tetap' },
-      { date: '2026-05-14', name: 'Kenaikan Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-05-27', name: 'Iduladha 1447 H', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-06-01', name: 'Hari Lahir Pancasila', kind: 'nasional', penetapan: 'tetap' },
-      { date: '2026-06-16', name: 'Tahun Baru Islam 1448 H', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-08-17', name: 'Hari Kemerdekaan RI', kind: 'nasional', penetapan: 'tetap' },
-      { date: '2026-08-25', name: 'Maulid Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
-      { date: '2026-12-25', name: 'Hari Raya Natal', kind: 'nasional', penetapan: 'tetap' },
+    /* SATU SET PER TAHUN (PRD regulatory-reference-annual PR-1). Bentuk lama
+       adalah satu daftar datar + satu skalar `confirmedThroughYear` untuk
+       seluruh kalender — yang tak dapat menyatakan "2026 sudah dicocokkan,
+       2027 sudah diisi tetapi belum". Tiap Desember keadaan itulah yang
+       terjadi, jadi bentuknya harus bisa mengucapkannya.
+
+       Tahun tanpa set = belum diisi, dan `holidayCoverage()` mengatakannya
+       alih-alih diam. */
+    sets: [
+      {
+        effectiveFrom: '2026-01-01',
+        effectiveTo: '2026-12-31',
+        basis: 'SKB 3 Menteri tentang Hari Libur Nasional & Cuti Bersama Tahun 2026',
+        sourceDoc: 'SKB 3 Menteri 2026',
+        verified: true,
+        /* `verified: true` MEMPERTAHANKAN pernyataan bentuk lama
+           (`confirmedThroughYear: 2026`) apa adanya — migrasi ini tidak
+           menggeser satu pun perilaku. Yang bentuk lama tak pernah rekam:
+           SIAPA yang mencocokkan dan KAPAN. Karena itu `verifiedBy` &
+           `verifiedAt` DIBIARKAN KOSONG, bukan dikarang; keduanya terisi
+           saat seseorang benar-benar mencocokkannya (atau lewat halaman
+           referensi bila Tahap B jadi dikerjakan). */
+        note: '',
+        value: [
+          { date: '2026-01-01', name: 'Tahun Baru Masehi', kind: 'nasional', penetapan: 'tetap' },
+          { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-03-20', name: 'Idulfitri 1447 H (1 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-03-21', name: 'Idulfitri 1447 H (2 Syawal)', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-04-03', name: 'Wafat Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-05-01', name: 'Hari Buruh Internasional', kind: 'nasional', penetapan: 'tetap' },
+          { date: '2026-05-14', name: 'Kenaikan Isa Almasih', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-05-27', name: 'Iduladha 1447 H', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-06-01', name: 'Hari Lahir Pancasila', kind: 'nasional', penetapan: 'tetap' },
+          { date: '2026-06-16', name: 'Tahun Baru Islam 1448 H', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-08-17', name: 'Hari Kemerdekaan RI', kind: 'nasional', penetapan: 'tetap' },
+          { date: '2026-08-25', name: 'Maulid Nabi Muhammad SAW', kind: 'nasional', penetapan: 'hisab' },
+          { date: '2026-12-25', name: 'Hari Raya Natal', kind: 'nasional', penetapan: 'tetap' },
+        ],
+      },
     ],
   };
 

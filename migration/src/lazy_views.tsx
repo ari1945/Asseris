@@ -122,6 +122,7 @@ export const LazyViews: Record<string, ReturnType<typeof lazy>> = {
   'capacity': lazy(() => import('./view_capacity').then(m => ({ default: m.CapacityPlanning }))),
   'hcm': lazy(() => import('./view_people').then(m => ({ default: m.HCM }))),
   'payroll': lazy(() => import('./view_payroll').then(m => ({ default: m.Payroll }))),
+  'regref': lazy(() => import('./view_regref').then(m => ({ default: m.RegRefView }))),
   'leave': lazy(() => import('./view_hrops').then(m => ({ default: m.LeaveAttendance }))),
   'performance': lazy(() => import('./view_hrops').then(m => ({ default: m.Performance }))),
   'cpe': lazy(() => import('./view_people').then(m => ({ default: m.CPETracker }))),

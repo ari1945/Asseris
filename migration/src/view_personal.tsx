@@ -2,6 +2,8 @@ import React from 'react';
 import { AMS } from './data';
 import { evaluateLeaveRow, leaveLedgerOf } from './canon_leave';
 import { perfPersonOf } from './canon_perf';
+import { bpjsContribution } from './canon_bpjs';
+import type { BpjsRegistry } from './canon_bpjs';
 import type { HolidayCalendar } from './canon_leave';
 import { useAmsPersist, useAuth } from './contexts';
 import { resolveEmpId } from './ethics_compliance';
@@ -23,7 +25,6 @@ import { Avatar, Badge, Btn, Panel, Stat } from './ui';
 const { useState: useStatePS } = React;
 
 type PayRec = { gross: number; allowance: number; ptkp: string; ter: number };
-type PayRates = { kesEmp: number; kesCap: number; jhtEmp: number; jpEmp: number; jpCap: number };
 type Emergency = { name?: string; rel?: string; phone?: string };
 type Prof = { salaryBand?: string; band?: string; empType?: string; location?: string; npwp?: string; nik?: string; bpjsKes?: string; bpjsTk?: string; emergency?: Emergency };
 type Bal = { carry?: number };
@@ -116,7 +117,7 @@ function DataPersonalSaya() {
   const rosterA = AMS as { STAFF?: unknown; FIRM_STAFF?: unknown };
   const staff = [...arr<StaffRow>(rosterA.STAFF), ...arr<StaffRow>(rosterA.FIRM_STAFF)].find((s) => s.id === empId);
   const req = (AMS as { CPE_REQ?: { annual: number; structured: number } }).CPE_REQ || { annual: 40, structured: 30 };
-  const R = (AMS as { PAYROLL_RATES?: PayRates }).PAYROLL_RATES;
+  const R = (AMS as { PAYROLL_RATES?: BpjsRegistry }).PAYROLL_RATES;
   const ethItems = arr<{ k: string }>((AMS as { ETHICS_ITEMS?: unknown }).ETHICS_ITEMS);
 
   if (!empId || !staff) {
@@ -185,9 +186,22 @@ function DataPersonalSaya() {
       case 'payroll': {
         if (!pay) return <div className="tiny muted">Data gaji Anda belum tersedia.</div>;
         const base = pay.gross + pay.allowance;
-        const dKes = R ? Math.round(Math.min(pay.gross, R.kesCap) * R.kesEmp) : 0;
-        const dJht = R ? Math.round(pay.gross * R.jhtEmp) : 0;
-        const dJp = R ? Math.round(Math.min(pay.gross, R.jpCap) * R.jpEmp) : 0;
+        /* PRD regulatory-reference-annual PR-2 — satu pintu (`canon_bpjs`).
+           Rumus ini dulu SALINAN dari `view_payroll`, dengan batas upah yang tak
+           pernah dicocokkan dengan masanya. Bila set masa itu tak ada, halaman ini
+           menolak menampilkan potongan: ini slip gaji orangnya sendiri. */
+        const c = bpjsContribution(pay.gross, R, R?.periodDate);
+        if (!c.computed) {
+          return (<>
+            <DRow l="Gaji Pokok" v={rp(pay.gross)} />
+            <DRow l="Tunjangan" v={rp(pay.allowance)} />
+            <DRow l="Penghasilan Bruto" v={rp(base)} bold />
+            <div className="tiny" style={{ marginTop: 8, lineHeight: 1.55, color: 'var(--red)', fontWeight: 600 }}>
+              Potongan BPJS belum dapat dihitung untuk masa ini. {c.note}
+            </div>
+          </>);
+        }
+        const { dKes, dJht, dJp } = c;
         const net = base - dKes - dJht - dJp - payPph;
         return (<>
           <DRow l="Gaji Pokok" v={rp(pay.gross)} />
