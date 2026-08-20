@@ -86,16 +86,39 @@ const seedWipOf: TBWipOf = (live, engId) =>
    a · TB1 — perikatan tanpa roster TIDAK mendapat angka perikatan lain
    ============================================================ */
 describe('TB1 — perikatan tanpa roster', () => {
-  it('seed memang hanya memberi roster pada satu perikatan (premis uji)', () => {
-    const punya = engagements().filter((e) => seedWipOf(entries(), e.id) !== null).map((e) => e.id);
-    expect(punya).toEqual([DEMO]);
+  /* PREMIS DIPERBARUI (#273). Ketika berkas ini ditulis, seed hanya memberi
+     roster pada perikatan demo, sehingga "tidak meminjam" paling tajam
+     dinyatakan sebagai "mengembalikan null". Sejak roster keenam perikatan lain
+     di-backfill (`roster_profile.ts`), SETIAP perikatan seed punya roster
+     sendiri — jadi null tak lagi dapat dipakai sebagai buktinya.
+
+     Sifat yang dijaga TB1 tidak berubah sedikit pun: model tidak boleh
+     menampilkan angka perikatan LAIN. Yang berubah hanya cara membuktikannya —
+     kini dengan menunjukkan bahwa tiap perikatan mendapat angkanya SENDIRI, dan
+     bahwa perikatan yang benar-benar tak punya roster tetap null. */
+  const TAKDIKENAL = 'ENG-' + '2099-001';
+
+  it('setiap perikatan seed punya roster SENDIRI (premis uji, diperbarui)', () => {
+    const tanpa = engagements().filter((e) => seedWipOf(entries(), e.id) === null).map((e) => e.id);
+    expect(tanpa).toEqual([]);
   });
 
-  it('model mengembalikan null — bukan angka perikatan lain', () => {
+  it('model TIDAK meminjam angka perikatan demo', () => {
+    const demo = tbModel(entries(), engById(DEMO), clients(), seedWipOf)!;
     engagements().filter((e) => e.id !== DEMO).forEach((e) => {
       const m = tbModel(entries(), e, clients(), seedWipOf);
-      expect(m, e.id + ' mendapat model padahal tak punya roster').toBeNull();
+      expect(m, e.id).not.toBeNull();
+      expect(m!.budgetTotal, e.id + ' memakai anggaran perikatan demo').not.toBe(demo.budgetTotal);
+      expect(m!.budgetTotal, e.id).toBe((e as TBEngagement & { budgetHrs: number }).budgetHrs);
+      expect(m!.roster.map((r) => r.name), e.id + ' memakai roster perikatan demo')
+        .not.toEqual(demo.roster.map((r) => r.name));
     });
+  });
+
+  it('perikatan yang benar-benar tak punya roster tetap null', () => {
+    const palsu = { ...engById(DEMO), id: TAKDIKENAL };
+    expect(seedWipOf(entries(), TAKDIKENAL)).toBeNull();
+    expect(tbModel(entries(), palsu, clients(), seedWipOf)).toBeNull();
   });
 
   it('perikatan yang PUNYA roster tetap menghasilkan model (anti-tautologi)', () => {
