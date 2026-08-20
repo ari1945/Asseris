@@ -8,7 +8,7 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 54 |
 | Approved | 5 |
 | In Progress | 13 |
 | Implemented | 39 |
@@ -95,6 +95,7 @@
 | docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |
 | docs/prd-delivery-milestones-deepening.md | In Progress — Approved ("Sesuai rekomendasi" 2026-08-16; Q-1..Q-5 = seluruh rekomendasi) |
 | docs/prd-estimasi-terfalsifikasi.md | Implemented — PR-1..PR-5 (#182·#183·#184·#185·#186) merged 2026-08-12; K1–K13 tertutup, Q1–Q3 dijawab |
+| docs/prd-export-seal-identity-ssot.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-firmfin-ledger-derived.md | Implemented — SELESAI 2026-08-15. FIRMFIN menerima COA turunan-ledger di 3 pemanggil; posting jurnal kini menggeser P&L/Neraca/KPI/kontrol. Live-verified dua arah (2,80 M ⇄ 2,59 M). Nol-delta pada seed bersih |
 | docs/prd-finalisation-gate-execution-completeness.md | Draft |
 | docs/prd-firm-erp-deepening.md | In Progress — Approved ("Proceed sesuai rekomendasi" 2026-08-16; Q-1=keenam PR · Q-2=blokir ekspor · Q-3=utang · Q-4=bentuk B isi A · Q-5=read-only) |
