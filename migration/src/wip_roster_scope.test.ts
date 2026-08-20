@@ -93,10 +93,18 @@ describe('WS1 — overlay roster berlaku untuk SEMUA perikatan ber-roster', () =
     expect(m![DEMO]).toBeDefined();
   });
 
-  it('perikatan tanpa roster tidak pernah masuk overlay', () => {
+  it('SETIAP perikatan seed masuk overlay, dengan angkanya sendiri', () => {
     const m = by(LAIN);
-    A.ENGAGEMENTS.filter((e) => e.id !== DEMO)
-      .forEach((e) => expect(m![e.id], e.id).toBeUndefined());
+    const std = A.ENGAGEMENTS.map((e) => {
+      expect(m![e.id], e.id).toBeDefined();
+      return m![e.id].std;
+    });
+    expect(new Set(std).size, 'ada perikatan yang berbagi nilai').toBe(std.length);
+  });
+
+  it('perikatan yang tak dikenal tetap tidak masuk overlay', () => {
+    const palsu = [...A.ENGAGEMENTS, { id: 'ENG-' + '2099-001' } as PMEngagement];
+    expect(wipLiveByEng(palsu, seed(), LAIN)!['ENG-' + '2099-001']).toBeUndefined();
   });
 
   it('nilai …-014 SAMA baik ia aktif maupun tidak — kecuali jam live-nya sendiri', () => {

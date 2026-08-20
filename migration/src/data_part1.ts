@@ -308,7 +308,7 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { id: 'TE-05', member: 'Dimas Raharjo', date: '2026-03-07', phase: 'Eksekusi', task: 'Cut-off testing pendapatan', hours: 8 },
     { id: 'TE-06', member: 'Anindya Pramesti', date: '2026-03-07', phase: 'Eksekusi', task: 'Walkthrough pengendalian', hours: 5 },
     { id: 'TE-07', member: 'Rina Kusuma', date: '2026-03-06', phase: 'Eksekusi', task: 'Observasi stock opname', hours: 6 },
-  ];
+  ].map((t) => ({ engagementId: 'ENG-2025-014', ...t }));   /* seed milik perikatan demo (presedens REVIEW_NOTES/ENG_RISK_SEED) */
 
   /* ---- D: Sales pipeline (opportunities) ----
      `history` (PRD prd-sales-pipeline-deepening PR-4) = jejak perpindahan tahap.

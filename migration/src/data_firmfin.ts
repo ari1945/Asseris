@@ -17,6 +17,7 @@
    perubahan di pemilik data otomatis mengalir ke seluruh modul firma.
    ============================================================ */
 import { AMS } from './data';
+import { rpRosterMap, rpSeedHours, type RPRosterRow } from './roster_profile';
 const FIRMFIN = (function () {
   const REFDATE = new Date(AMS.TODAY); /* K-02: klok SSOT */
   const BLENDED_RATE = 875_000;             // tarif blended cost/jam (biaya waktu)
@@ -38,8 +39,16 @@ const FIRMFIN = (function () {
      charge-out) & biaya. INI satu-satunya tempat angka ini hidup: `view_timebudget`
      memakainya untuk modelnya, dan `wip()` meng-overlay baris engagement aktif dengan
      hasilnya (param `liveByEng`) sehingga T&B ↔ WIP Valuation ↔ WIP & Realisasi tak lagi
-     menyimpan jam paralel. Hanya engagement dengan roster (demo: ENG-2025-014) yang punya
-     timesheet; lainnya → null (pakai seed WIP_ENG). */
+     menyimpan jam paralel.
+
+     2026-08-21 — SELURUH perikatan kini punya roster. `WIP_ROSTER_ENG` di bawah tetap
+     berisi satu-satunya roster NYATA (ENG-2025-014); roster enam perikatan lain
+     DITURUNKAN dari profil grade roster itu (`roster_profile.ts`) dan menutup eksak ke
+     `budgetHrs`/`actualHrs` masing-masing. Komposisi timnya adalah DATA DEMO yang
+     di-backfill — dinyatakan demikian di berkas itu, lengkap dengan pertanyaan terbuka
+     soal kapasitas firma. Yang berubah bagi pemanggil: `engagementWip` tak lagi
+     mengembalikan null untuk perikatan seed mana pun, sehingga biaya & nilai WIP
+     berhenti ditaksir dari mix jadwal mingguan. */
   const WIP_BILL = { 'Engagement Partner': 2_500_000, 'Audit Manager': 1_200_000, 'Senior Auditor': 700_000, 'Junior Auditor': 400_000 };
   const WIP_COST = { 'Engagement Partner': 1_100_000, 'Audit Manager': 620_000, 'Senior Auditor': 360_000, 'Junior Auditor': 210_000 };
   const WIP_ROSTER_ENG = {
@@ -52,9 +61,25 @@ const FIRMFIN = (function () {
       { name: 'Rina Kusuma',         role: 'Junior Auditor',     budget: 280, base: 120 },
     ],
   };
+  /* Peta roster LENGKAP: literal (nyata) + turunan profil. Dibangun malas dan
+     di-cache pada identitas array sumbernya — `hydrateCoreFromApi` mengganti
+     AMS.ENGAGEMENTS pada saat boot, jadi cache berbasis identitas ikut gugur
+     dengan sendirinya alih-alih menyajikan roster basi. */
+  let rosterCache: { engs: unknown; sched: unknown; entries: unknown; map: Record<string, RPRosterRow[]> } | null = null;
+  function rosterMap(): Record<string, RPRosterRow[]> {
+    const engs = A().ENGAGEMENTS || [], sched = A().SCHEDULE || [], entries = A().TIME_ENTRIES || [];
+    if (rosterCache && rosterCache.engs === engs && rosterCache.sched === sched && rosterCache.entries === entries) {
+      return rosterCache.map;
+    }
+    const map = rpRosterMap(engs, WIP_ROSTER_ENG as Record<string, RPRosterRow[]>, sched, rpSeedHours(entries));
+    rosterCache = { engs, sched, entries, map };
+    return map;
+  }
+  function rosterFor(engId: string): RPRosterRow[] | null { return rosterMap()[engId] || null; }
+
   function engagementWip(timeEntries: any, engId: any) {
-    const roster0 = (WIP_ROSTER_ENG as any)[engId];
-    if (!roster0) return null;                       // tak ada roster → engagement ini tak punya timesheet
+    const roster0 = rosterFor(engId);
+    if (!roster0) return null;                       // perikatan tak dikenal → tak ada roster
     const liveByMember: any = {};
     (timeEntries || []).forEach((t: any) => { liveByMember[t.member] = (liveByMember[t.member] || 0) + t.hours; });
     const roster = roster0.map((r: any) => {
@@ -634,7 +659,7 @@ const FIRMFIN = (function () {
 
   return {
     REFDATE, BLENDED_RATE, STD_RATE, WIP_PROV_MATRIX, SERVICE_MIX,
-    WIP_BILL, WIP_COST, WIP_ROSTER_ENG, engagementWip,
+    WIP_BILL, WIP_COST, WIP_ROSTER_ENG, rosterFor, engagementWip,
     pl, balanceSheet, serviceLines, partners, arAging, ap, wip, cash, bankRecon, budget,
     kpis, reconciliations, provenance,
   };

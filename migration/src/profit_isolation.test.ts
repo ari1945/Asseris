@@ -39,6 +39,12 @@ const BARU = 'ENG-' + '2099-001';
 const seedEntries = (): PMTimeEntry[] =>
   (AMS as unknown as { TIME_ENTRIES: PMTimeEntry[] }).TIME_ENTRIES.map((t) => ({ ...t }));
 const seedTotal = (): number => seedEntries().reduce((s, t) => s + t.hours, 0);
+/* Timesheet perikatan `engId` sebagaimana ia dimulai: irisan seed MILIKNYA
+   (kosong untuk perikatan selain demo), ditambah jam yang dicatat auditor. */
+const liveFor = (engId: string, tambah: number): PMTimeEntry[] => [
+  ...seedEntries().filter((t) => t.engagementId === engId),
+  { hours: tambah } as PMTimeEntry,
+];
 
 /* ---- portofolio sintetis: dua perikatan, dua partner, satu tanpa jadwal ---- */
 const ENGS: readonly PMEngagement[] = [
@@ -66,40 +72,39 @@ const byId = (id: string, extra?: Readonly<Record<string, number>>) => {
    a · PF1 — jam timesheet masuk ke perikatan AKTIF
    ============================================================ */
 describe('PF1 — delta jam timesheet milik perikatan aktif', () => {
-  const live = (): PMTimeEntry[] => [...seedEntries(), { hours: 12 }];
-
   it('dikreditkan ke perikatan aktif, bukan ke id yang dipaku', () => {
-    expect(pmExtraHours(live(), seedEntries(), LAIN)).toEqual({ [LAIN]: 12 });
+    expect(pmExtraHours(liveFor(LAIN, 12), seedEntries(), LAIN)).toEqual({ [LAIN]: 12 });
   });
 
   it('perikatan LAIN tidak ikut menerima jam itu', () => {
-    const extra = pmExtraHours(live(), seedEntries(), LAIN);
+    const extra = pmExtraHours(liveFor(LAIN, 12), seedEntries(), LAIN);
     expect(Object.keys(extra)).toEqual([LAIN]);
     expect(extra[DEMO]).toBeUndefined();
   });
 
   it('anti-tautologi — ketika perikatan demo yang aktif, ia MEMANG dikredit', () => {
-    expect(pmExtraHours(live(), seedEntries(), DEMO)).toEqual({ [DEMO]: 12 });
+    expect(pmExtraHours(liveFor(DEMO, 12), seedEntries(), DEMO)).toEqual({ [DEMO]: 12 });
   });
 
   it('tanpa perikatan aktif tak ada yang dikredit — bukan menebak', () => {
-    expect(pmExtraHours(live(), seedEntries(), null)).toEqual({});
-    expect(pmExtraHours(live(), seedEntries(), undefined)).toEqual({});
+    expect(pmExtraHours(liveFor(LAIN, 12), seedEntries(), null)).toEqual({});
+    expect(pmExtraHours(liveFor(LAIN, 12), seedEntries(), undefined)).toEqual({});
   });
 
-  it('timesheet sama dengan seed → delta nol, bukan jam karangan', () => {
-    expect(pmExtraHours(seedEntries(), seedEntries(), LAIN)).toEqual({ [LAIN]: 0 });
+  it('timesheet sama dengan baseline perikatan itu → delta nol', () => {
+    expect(pmExtraHours(seedEntries(), seedEntries(), DEMO)).toEqual({ [DEMO]: 0 });
+    expect(pmExtraHours([], seedEntries(), LAIN)).toEqual({ [LAIN]: 0 });
     expect(seedTotal()).toBeGreaterThan(0);   /* premis: seed memang berisi */
   });
 
   it('jam perikatan aktif naik; jam perikatan lain TIDAK bergerak', () => {
-    const extra = pmExtraHours(live(), seedEntries(), LAIN);
+    const extra = pmExtraHours(liveFor(LAIN, 12), seedEntries(), LAIN);
     expect(byId(LAIN, extra).hours).toBe(512);
     expect(byId(DEMO, extra).hours).toBe(1000);
   });
 
   it('biaya standar ikut naik hanya di perikatan yang jamnya diisi', () => {
-    const extra = pmExtraHours(live(), seedEntries(), LAIN);
+    const extra = pmExtraHours(liveFor(LAIN, 12), seedEntries(), LAIN);
     expect(byId(LAIN, extra).stdCost).toBeGreaterThan(byId(LAIN).stdCost);
     expect(byId(DEMO, extra).stdCost).toBe(byId(DEMO).stdCost);
   });

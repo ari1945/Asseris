@@ -31,7 +31,7 @@
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
 
-export interface PMTimeEntry { hours: number }
+export interface PMTimeEntry { hours: number; engagementId?: string }
 export interface PMEngagement { id: string; clientId?: string; partner: string; actualHrs: number; budgetHrs: number }
 export interface PMClient { id: string; name?: string; fee?: number }
 export interface PMAlloc { eng: string; hrs: number }
@@ -84,9 +84,11 @@ const sumHours = (rows: readonly PMTimeEntry[] | null | undefined): number =>
  * Jam timesheet yang melebihi baseline seed, dikreditkan ke perikatan AKTIF.
  * `{}` bila tak ada perikatan aktif — tidak ada perikatan pengganti.
  *
- * `seed` adalah nilai awal `useServerState('timeEntries', …)`, yakni baseline
- * yang sama untuk setiap perikatan; mengurangkannya membuat perikatan yang
- * timesheet-nya belum disentuh mendapat delta nol, bukan +48 jam gratis.
+ * `seed` adalah REGISTER seed penuh (`AMS.TIME_ENTRIES`); baseline yang
+ * dikurangkan adalah bagian milik perikatan aktif saja. Baseline global akan
+ * salah dua arah begitu seed-nya ber-scope: perikatan tanpa entri seed memulai
+ * dari baseline 48 jam, sehingga sepuluh jam pertama yang dicatat auditor
+ * ditelan diam-diam (`max(0, 10 − 48) = 0`).
  */
 export function pmExtraHours(
   live: readonly PMTimeEntry[] | null | undefined,
@@ -94,7 +96,8 @@ export function pmExtraHours(
   activeEngId: string | null | undefined,
 ): Record<string, number> {
   if (!activeEngId) return {};
-  return { [activeEngId]: Math.max(0, sumHours(live) - sumHours(seed)) };
+  const baseline = (seed || []).filter((t) => t.engagementId === activeEngId);
+  return { [activeEngId]: Math.max(0, sumHours(live) - sumHours(baseline)) };
 }
 
 /** Tarif realisasi fee perikatan; `null` = tak ada tarif utk perikatan ini. */
