@@ -4,6 +4,16 @@
 # vulnerability is present in production dependencies, on every push/PR AND on a weekly schedule
 # (so a newly-published CVE against an already-merged dependency doesn't go unnoticed until the
 # next code change touches package.json).
+#
+# Override aktif (server/package.json → "overrides"):
+#   deepmerge-ts ^8.0.1 — GHSA-ggr8-5vv4-36mx (high, CWE-674 stack exhaustion) menjangkiti
+#   deepmerge-ts <8.0.0, yang dipin KERAS oleh @prisma/config 6.19.3 (dependensi prisma CLI;
+#   prisma ada di dependencies PROD karena `prisma migrate deploy` dijalankan saat deploy).
+#   Tak ada rilis prisma yang menutupnya: advisory mencakup 6.13.0-dev.1 – 7.10.0 sedangkan
+#   `latest` npm masih 7.9.1. Menaikkan transitifnya adalah satu-satunya jalan yang tidak
+#   menuntut migrasi mayor Prisma 6→7. CABUT override ini begitu prisma >7.10.0 rilis dan
+#   dipasang — biarkan gerbang ini yang membuktikannya, jangan menebak.
+#
 name: dependency-audit
 
 on:
