@@ -30,6 +30,7 @@ function Profitability() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement } = useFirm() as { activeEngagement?: { id?: string } | null };
+  const aktifId = (activeEngagement && activeEngagement.id) || null;
   const { timeEntries } = useAuditHeavy(['timeEntries']);
   const [view, setView] = useStatePRF('engagement');
   const [sel, setSel] = useStatePRF(null);
@@ -43,11 +44,9 @@ function Profitability() {
      memang state ber-scope perikatan, jadi deltanya milik perikatan itu. */
   const rows: PMRow[] = useMemoPRF(() => pmRows({
     engagements: A.ENGAGEMENTS, clients: A.CLIENTS, schedule: A.SCHEDULE,
-    rosterOf: pmRosterOf(timeEntries as PMTimeEntry[] | null),
-    extraHours: pmExtraHours(
-      timeEntries as PMTimeEntry[] | null, A.TIME_ENTRIES,
-      (activeEngagement && activeEngagement.id) || null),
-  }), [A, timeEntries, activeEngagement]);
+    rosterOf: pmRosterOf(timeEntries as PMTimeEntry[] | null, aktifId),
+    extraHours: pmExtraHours(timeEntries as PMTimeEntry[] | null, A.TIME_ENTRIES, aktifId),
+  }), [A, timeEntries, aktifId]);
 
   /* Cast di LUAR useMemo: tanpa @types/react, `React.useMemo` sendiri untyped →
      hasilnya `any` dan tipe di dalam callback tak akan sampai ke pemanggil
