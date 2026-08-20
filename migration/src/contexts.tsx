@@ -1089,7 +1089,14 @@ function AuditProvider({ children }: any) {
     const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
     const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId, { defer: true });
     const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId, { defer: true }); // noteId -> [reply,...] overlay (works for module & WP notes)
-    const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId, { defer: true });
+    /* Seed timesheet MILIK perikatan demo. Tanpa filter ini, setiap perikatan
+       memulai dengan 7 entri (48 jam) milik ENG-…-014 sebagai timesheet-nya
+       sendiri — jam hantu yang akan langsung mencemari roster perikatan mana pun
+       yang ditambahkan kemudian. Presedens: `risks` (ENG_RISK_SEED.filter) di atas. */
+    const timeEntriesSeed = useMemo(
+      () => (D.TIME_ENTRIES || []).filter((t: { engagementId?: string }) => t.engagementId === activeEngagementId),
+      [activeEngagementId]);
+    const [timeEntries, setTimeEntries] = useServerState('timeEntries', timeEntriesSeed, 'engagement', activeEngagementId, { defer: true });
     const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId, { defer: true }); // taskId -> done
     /* PR-B - jembatan jejak untuk setAjeStatus/toggleAjeStatus. Dideklarasikan di sini
        (sebelum logActivity) karena keduanya memakainya lewat `.current`. */
