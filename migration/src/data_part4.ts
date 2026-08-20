@@ -551,6 +551,36 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { id: 'ENG-2025-058', std: 2_180_000_000, openingUnbilled: 0,             chargedInPeriod: 2_180_000_000, billed: 2_260_000_000, writeUp: 60_000_000,  writeDown: 0,           cost: 1_320_000_000, originDays: 12 },
   ];
 
+  /* ---- Realisasi FEE per perikatan (konsumen: modul Profitabilitas) ----
+     Berapa persen FEE KONTRAK yang benar-benar terealisasi sebagai pendapatan.
+     Sampai 2026-08-20 tabel ini adalah literal tingkat-modul di dalam
+     `view_profit.tsx` — lengkap dengan cadangan `|| 0.9` yang mengarang tarif
+     untuk perikatan yang tak ada di dalamnya. Angka di bawah SAMA PERSIS dengan
+     literal itu (nol-delta untuk ketujuh perikatan seed); yang berubah adalah
+     tempatnya (data, bukan view) dan perilakunya di luar daftar: perikatan tanpa
+     baris di sini TIDAK punya realisasi, dan modulnya wajib mengatakan begitu.
+
+     JANGAN dikelirukan dengan `FIRMFIN.wip().realization` — itu recoverable ÷
+     nilai STANDAR CHARGE-OUT, penyebut yang sama sekali lain. Bukti bahwa
+     keduanya bukan ukuran yang sama ada di `profit_isolation.test.ts`: untuk
+     tiga perikatan seed realisasi WIP > 100% (write-up), sehingga memakainya
+     sebagai realisasi fee akan menghasilkan pendapatan MELEBIHI fee kontrak.
+
+     TERBUKA (butuh keputusan Ari, jangan diputuskan sepihak): dari mana tarif
+     ini seharusnya berasal. INVOICES adalah penagihan termin (progres), bukan
+     realisasi; dan seed-nya sendiri tak konsisten (INV-2026-012 menagih 1.650 jt
+     "Final (100%)" untuk klien C-058 yang fee-nya 580 jt). Selama sumber itu
+     belum ada, ini DATA DEMO yang dinyatakan sebagai data. */
+  const ENG_FEE_REALIZATION = [
+    { eng: 'ENG-2025-014', rate: 0.91 },
+    { eng: 'ENG-2025-040', rate: 0.88 },
+    { eng: 'ENG-2025-031', rate: 0.84 },
+    { eng: 'ENG-2025-063', rate: 0.79 },
+    { eng: 'ENG-2025-022', rate: 0.93 },
+    { eng: 'ENG-2025-058', rate: 0.96 },
+    { eng: 'ENG-2025-047', rate: 0.90 },
+  ];
+
   /* Komponen jembatan sub-buku → kontrol GL 1-300, DIENUMERASI.
 
      Sebelum 2026-08-15 kedua baris ini adalah `selisih × 0,82` dan `selisih × 0,18` —
@@ -633,4 +663,4 @@ import { objectivesForComponent } from './canon_smm_objectives';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, QM_DOC_RETENTION, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_NONMATERIAL, WIP_ACCRUAL, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, SMM_OBJECTIVE_WAIVERS, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_NETWORK, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, QM_DOC_RETENTION, EQR_META, EQR_PARTNER_HISTORY, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, ENG_FEE_REALIZATION, WIP_NONMATERIAL, WIP_ACCRUAL, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
