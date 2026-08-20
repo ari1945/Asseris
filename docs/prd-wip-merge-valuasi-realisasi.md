@@ -1,6 +1,6 @@
 # PRD — Penggabungan `wip` (WIP · Valuasi) + `wipreal` (WIP · Realisasi) menjadi satu modul
 
-> **Status:** **In Progress** — "Proceed." 2026-08-15. Q-1 = `wip` · Q-2 = **Operasi Praktik**
+> **Status:** **Implemented** — "Proceed." 2026-08-15. Q-1 = `wip` · Q-2 = **Operasi Praktik**
 > · Q-3 = **Opsi A** (dua terakhir didelegasikan: "berikan saya terbaik").
 > Fase 1–4 SELESAI, `npm run verify` hijau, **SC-1..SC-9 SEMUA TERTUTUP** —
 > terverifikasi HIDUP 2026-08-15 (write-down Rp 200 jt pada ENG-2025-063: KPI, aging,
