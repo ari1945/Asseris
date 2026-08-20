@@ -22,7 +22,7 @@ const { useState: useStateW, useMemo: useMemoW, useCallback: useCallbackW } = Re
 const TONE: any = {
   high: { bg: 'var(--red-bg, #fde8e8)', fg: 'var(--red, #c0392b)' },
   med: { bg: 'var(--amber-bg, #fdf3e0)', fg: 'var(--amber, #b9770e)' },
-  low: { bg: 'var(--blue-bg, #e8f0fd)', fg: 'var(--blue, #2a63d6)' },
+  low: { bg: 'var(--blue-050)', fg: 'var(--blue, #2a63d6)' },
 };
 const card: any = { background: '#fff', border: '1px solid var(--line, #e3e7ee)', borderRadius: 10 };
 const rpJt = (n: number) => 'Rp ' + Math.round(n).toLocaleString('id-ID');

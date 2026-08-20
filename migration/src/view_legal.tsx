@@ -137,7 +137,7 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
               <span style={{ width: 16, height: 16, borderRadius: 4, display: 'grid', placeItems: 'center', flex: '0 0 16px', background: cl.ok ? 'var(--green-bg)' : 'var(--amber-bg)', color: cl.ok ? 'var(--green)' : 'var(--amber)' }}>
                 {cl.ok ? <I.check size={11} /> : <I.alert size={11} />}
               </span>
-              <span style={{ color: cl.ok ? 'var(--ink-1)' : 'var(--ink-2)' }}>{cl.k}</span>
+              <span style={{ color: cl.ok ? 'var(--ink)' : 'var(--ink-2)' }}>{cl.k}</span>
               {!cl.ok && <span className="tiny" style={{ color: 'var(--amber)', marginLeft: 'auto', fontWeight: 600 }}>perlu reviu</span>}
             </div>
           ))}

@@ -261,7 +261,7 @@ function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: {
     <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Draf Surat Representasi Manajemen</h3><div style={{ flex: 1 }} /><Badge kind="blue">Kop Surat Klien</Badge></div>
-        <div style={{ padding: 22, background: 'var(--surface-1, #fff)' }}>
+        <div style={{ padding: 22, background: 'var(--surface)' }}>
           <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12, lineHeight: 1.65, color: 'var(--ink)' }}>
             <div className="row jb" style={{ marginBottom: 18, alignItems: 'flex-start' }}>
               <div style={{ fontWeight: 800, fontSize: 15 }}>{client}</div>
