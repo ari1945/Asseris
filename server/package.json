@@ -35,6 +35,9 @@
     "tsx": "^4.23.5",
     "zod": "^4.4.3"
   },
+  "overrides": {
+    "deepmerge-ts": "^8.0.1"
+  },
   "devDependencies": {
     "@types/node": "^22.20.1",
     "@vitest/coverage-v8": "^2.1.9",
