@@ -51,8 +51,8 @@ describe('applySecretsToEnv — merge WITHOUT clobbering operator-set vars', () 
 // loadSecretsIntoEnv does real network I/O via the AWS SDK — mock the client's .send().
 const sendMock = vi.fn();
 vi.mock('@aws-sdk/client-secrets-manager', () => ({
-  SecretsManagerClient: vi.fn().mockImplementation(() => ({ send: sendMock })),
-  GetSecretValueCommand: vi.fn().mockImplementation((input: unknown) => ({ input })),
+  SecretsManagerClient: vi.fn().mockImplementation(function () { return { send: sendMock }; }),
+  GetSecretValueCommand: vi.fn().mockImplementation(function (input: unknown) { return { input }; }),
 }));
 
 describe('loadSecretsIntoEnv — opt-in fetch + fail-closed', () => {
