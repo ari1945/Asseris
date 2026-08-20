@@ -155,9 +155,16 @@ describe('PC4 — roster perikatan adalah SSOT biaya', () => {
     return w;
   };
 
-  it('premis: seed hanya memberi roster pada satu perikatan', () => {
-    const punya = A.ENGAGEMENTS.filter((e) => rosterOf()(e.id) !== null).map((e) => e.id);
-    expect(punya).toEqual([DEMO]);
+  /* Sejak roster di-backfill, SETIAP perikatan seed punya roster — dan itulah
+     yang membuat kolom biaya berhenti ditaksir. Yang tersisa ditaksir hanyalah
+     perikatan yang tak dikenal sama sekali. */
+  it('premis: setiap perikatan seed punya roster', () => {
+    const tanpa = A.ENGAGEMENTS.filter((e) => rosterOf()(e.id) === null).map((e) => e.id);
+    expect(tanpa).toEqual([]);
+  });
+
+  it('id yang tak dikenal tetap tak punya roster', () => {
+    expect(rosterOf()('ENG-' + '2099-001')).toBeNull();
   });
 
   it('biaya perikatan ber-roster == costValue FIRMFIN, persis', () => {
@@ -174,12 +181,13 @@ describe('PC4 — roster perikatan adalah SSOT biaya', () => {
     expect(r.costSource).toMatch(/roster/i);
   });
 
-  it('perikatan TANPA roster tidak memakai angka perikatan ber-roster', () => {
+  it('tiap perikatan memakai roster MILIKNYA, bukan milik perikatan demo', () => {
     const lain = A.ENGAGEMENTS.filter((e) => e.id !== DEMO);
     lain.forEach((e) => {
       const r = row(e.id, rosterOf());
       expect(r.stdCost, e.id).not.toBe(ew().costValue);
-      expect(r.costSource, e.id).not.toMatch(/roster/i);
+      expect(r.hours, e.id).not.toBe(ew().actualHrs);
+      expect(r.costSource, e.id).toBe('roster perikatan');
     });
   });
 

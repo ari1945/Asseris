@@ -61,7 +61,7 @@
   },
   "src/data_firmfin.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 113
+      "count": 112
     }
   },
   "src/data_firmops.ts": {

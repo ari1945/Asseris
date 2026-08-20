@@ -181,10 +181,15 @@ describe('cockpit — utilisasi perikatan vs utilisasi firma (S7)', () => {
   });
 });
 
-describe('cockpit — perikatan tanpa roster tidak mengarang rincian', () => {
-  it('engagement tanpa roster → members kosong & figur rupiah null', () => {
-    const m = model(seedEntries(), 'ENG-2025-040');
-    expect(wipFor(seedEntries(), 'ENG-2025-040')).toBeNull();
+describe('cockpit — roster: milik sendiri, tak pernah dipinjam', () => {
+  /* Sejak roster di-backfill (roster_profile.ts) SETIAP perikatan seed punya
+     roster. Cabang `hasRoster:false` tetap hidup & tetap diuji — kini lewat id
+     yang memang tak dikenal, bukan lewat perikatan seed. */
+  const TAKDIKENAL = 'ENG-' + '2099-001';
+
+  it('perikatan tak dikenal → members kosong & figur rupiah null', () => {
+    const m = model(seedEntries(), TAKDIKENAL);
+    expect(wipFor(seedEntries(), TAKDIKENAL)).toBeNull();
     expect(m.hasRoster).toBe(false);
     expect(m.members).toEqual([]);
     expect(m.wipStd).toBeNull();
@@ -194,18 +199,26 @@ describe('cockpit — perikatan tanpa roster tidak mengarang rincian', () => {
     expect(m.wipVsFeePct).toBeNull();
   });
 
-  it('total tingkat-perikatan tetap tampil dari seed, dengan burn yang konsisten', () => {
-    const m = model(seedEntries(), 'ENG-2025-040', { fallbackBudgetHrs: 2200, fallbackActualHrs: 615 });
+  it('perikatan seed kini SEMUANYA punya roster (premis baru)', () => {
+    const m = model([], 'ENG-' + '2025-040');
+    expect(m.hasRoster).toBe(true);
+    expect(m.members.length).toBeGreaterThan(0);
+  });
+
+  it('jam roster menutup ke jam perikatan — tanpa timesheet, tanpa selisih', () => {
+    const m = model([], 'ENG-' + '2025-040', { fallbackBudgetHrs: 2200, fallbackActualHrs: 615 });
     expect(m.budgetHrs).toBe(2200);
     expect(m.actualHrs).toBe(615);
     expect(Math.round(m.burnPct)).toBe(28);
   });
 
-  it('TIDAK meminjam roster perikatan lain', () => {
-    const other = model(seedEntries(), 'ENG-2025-031');
-    const target = model(seedEntries(), ENG);
-    expect(other.members).toHaveLength(0);
-    expect(target.members).toHaveLength(6);
+  it('TIDAK meminjam roster perikatan lain — komposisinya berbeda', () => {
+    const other = model([], 'ENG-' + '2025-031');
+    const target = model([], ENG);
+    expect(target.members).toHaveLength(6);          /* roster NYATA perikatan demo */
+    expect(other.members).toHaveLength(4);           /* turunan profil: 4 grade */
+    expect(other.members.map((x) => x.name)).not.toEqual(target.members.map((x) => x.name));
+    expect(other.actualHrs).not.toBe(target.actualHrs);
   });
 });
 
