@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useFirm, useNav } from './contexts';
-import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
-import type { DeliveryEngPlan } from './canon_delivery';
+import { milestoneOfKind, normalizeDeliveryPlan, seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryMilestone } from './canon_delivery';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -83,7 +83,10 @@ function AuditTimeline() {
   /* SSOT: fase & milestone dari deliveryPlan.v1 tersimpan (seed AMS.DELIVERY,
      editable di modul Delivery); status milestone diturunkan vs AMS.TODAY. */
   const [planRaw] = useAmsPersist('deliveryPlan.v1', () => seedDeliveryPlan(A.DELIVERY));
-  const DELIVERY = useMemoATL(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
+  /* PR-2 — normalisasi pada PEMBACAAN: dokumen tersimpan sebelum PR ini tak punya
+     `baselineDate`. Konsumen baca-saja ini memakai peta yang sama dengan modul
+     Delivery agar keduanya tak pernah menyebut komitmen yang berbeda. */
+  const DELIVERY = useMemoATL(() => normalizeDeliveryPlan(planRaw).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
 
   // perikatan yang punya rencana pengiriman
   const planned = DELIVERY.map((d: any) => d.id);
@@ -126,7 +129,10 @@ function AuditTimeline() {
 
   // KPI
   const phEnd = plan.phases.length ? plan.phases[plan.phases.length - 1].end : null;
-  const signMs = plan.milestones.find((m: any) => /sign|opini/i.test(m.label));
+  /* PR-3 — dulu `/sign|opini/i.test(m.label)`: mengganti label "Sign-off" menjadi
+     "Penerbitan laporan" membuat linimasa yang DIHADAPKAN KE KLIEN kehilangan
+     tanggal tanda tangannya, diam-diam. Kini lewat KONTRAK `kind`. */
+  const signMs = milestoneOfKind<DeliveryMilestone>(plan.milestones, 'signoff');
   const target = signMs ? signMs.date : eng.deadline;
   const durWk = plan.phases.length ? Math.round((ATL_ms(phEnd) - ATL_ms(plan.phases[0].start)) / 864e5 / 7) : 0;
   const dueSoon = plan.milestones.filter((m: any) => m.status !== 'done' && ATL_daysTo(m.date, today) >= 0 && ATL_daysTo(m.date, today) <= 14).length;

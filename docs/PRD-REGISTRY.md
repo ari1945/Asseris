@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 10 |
+| In Progress | 11 |
 | Implemented | 37 |
 | Superseded | 1 |
 
@@ -93,6 +93,7 @@
 | docs/prd-budget-actual-ledger-derived.md | Implemented — SELESAI 2026-08-15 (Q-1=a hapus kolom `actual` · Q-2=a gerbang cakupan · Q-3=a tiga akun kontrol · Q-4=a dua PR · Q-5=a cabut `+ 6`). Bagian C #242 (`d7f4365`) + Bagian B #243 (`b24d1d0`). SC-1..SC-12 tertutup; verify hijau (1829 uji); live-verified dua arah termasuk keadaan MERAH. Dua cacat ditemukan HANYA di peramban: cache `firmgl` basi merusak saldo diam-diam (neraca tetap seimbang), dan tab Buku Besar crash sejak Program E |
 | docs/prd-cash-bank-reconciliation-register.md | Implemented — SELESAI 2026-08-15 (Q-1..Q-6 = seluruh rekomendasi). PR-1 #247 (`f62ea7f`) sub-akun kas per rekening + register rekonsiliasi; PR-2 #249 (`e831df2`) revaluasi PSAK 10 dibukukan + chip bank feed dicabut. Baris Kas menutup, ekspor LK terbuka; live-verified dua arah. Laba operasi 2.800 -> 2.860,638 jt (konsekuensi PSAK 10 yang disengaja) |
 | docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |
+| docs/prd-delivery-milestones-deepening.md | In Progress — Approved ("Sesuai rekomendasi" 2026-08-16; Q-1..Q-5 = seluruh rekomendasi) |
 | docs/prd-estimasi-terfalsifikasi.md | Implemented — PR-1..PR-5 (#182·#183·#184·#185·#186) merged 2026-08-12; K1–K13 tertutup, Q1–Q3 dijawab |
 | docs/prd-firmfin-ledger-derived.md | Implemented — SELESAI 2026-08-15. FIRMFIN menerima COA turunan-ledger di 3 pemanggil; posting jurnal kini menggeser P&L/Neraca/KPI/kontrol. Live-verified dua arah (2,80 M ⇄ 2,59 M). Nol-delta pada seed bersih |
 | docs/prd-finalisation-gate-execution-completeness.md | Draft |
