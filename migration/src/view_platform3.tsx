@@ -10,6 +10,7 @@ import { auditList, auditVerify } from './api';
 import { resolveAuditView, deriveStats, type AuditRow, type VerifyState } from './audit_trail_core';
 import { amsExportPdf } from './export_pdf';
 import { amsDateIso } from './clock_ssot';
+import { FIRM_SCOPE_ID } from './persist_scope';
 
 /* ============================================================
    Asseris — Firm Platform · Audit Trail (PRD prd-audit-trail-server-chain.md)
@@ -92,7 +93,7 @@ function AuditTrail() {
   const doExport = async () => {
     setExportMsg(null);
     const r = await amsExportPdf({
-      kind: 'audit-log', scope: 'firm', scopeId: 'WHR',
+      kind: 'audit-log', scope: 'firm', scopeId: FIRM_SCOPE_ID,
       fileName: `Jejak Audit - ${amsDateIso()}.pdf`,
       firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Jejak Audit Sistem (Append-Only Hash-Chain)',
@@ -220,7 +221,7 @@ async function exportEntryPdf(eRaw: AuditEntryLike) {
   const who = e.actorUserId || e.who || '—';
   const scopeLbl = e.scopeId || e.module || e.scope || '—';
   await amsExportPdf({
-    kind: 'audit-entry', scope: 'firm', scopeId: 'WHR',
+    kind: 'audit-entry', scope: 'firm', scopeId: FIRM_SCOPE_ID,
     fileName: `Bukti Audit #${String(e.seq).padStart(3, '0')}.pdf`,
     firm: 'KAP Wijaya Hartono & Rekan',
     title: 'Bukti Entri Audit — Jejak Append-Only',

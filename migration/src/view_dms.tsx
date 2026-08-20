@@ -10,6 +10,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { PDrawer, PEVT, PField, PModal, PVerList, pNowTime } from './view_docparts';
 import { OKv } from './view_onboarding';
+import { FIRM_SCOPE_ID } from './persist_scope';
 
 /* ============================================================
    Asseris — Document Management & Retensi (DMS natif)
@@ -269,7 +270,7 @@ function DocManagement() {
     if (meta.file && window.amsAttachmentUpload) {
       try {
         const up = await window.amsAttachmentUpload({
-          scope: 'firm', scopeId: 'FIRM-WHR', collection: 'dms', refId: id, meta,
+          scope: 'firm', scopeId: FIRM_SCOPE_ID, collection: 'dms', refId: id, meta,
           /* Server mengurai retentionClass sebagai ID KELAS (server/src/attachments/
              retention.ts). Klien dulu mengirim 'SA230/10y' — string yang tak dikenali,
              sehingga server diam-diam jatuh ke default. Kirim id kelasnya. */

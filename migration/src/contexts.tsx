@@ -10,6 +10,9 @@ import { mergeLegacyFlux } from './flux_state';
 import { parseHash } from './route_hash';
 import { coerceTab, tabFromHash, writeTabToAddress } from './tab_address';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
+/* PR-1 (prd-export-seal-identity-ssot) — SATU-SATUNYA penerbit register
+   identitas ekspor. Gerbang `export_identity.test.ts` §3 menolak penulis kedua. */
+import { publishActiveEngagement } from './export_identity';
 import { materialityFor } from './canon_selectors';
 /* PR-1 (prd-wp-signoff-integrity) — `amsShortName` pindah ke modul murni agar
    server dapat memakainya; di-re-export dari sini supaya seluruh pengimpor lama
@@ -1127,6 +1130,16 @@ function FirmProvider({ children }: any) {
       () => clients.find((c: any) => c.id === activeEngagement?.clientId),
       [clients, activeEngagement]
     );
+    /* Terbitkan perikatan aktif ke register identitas ekspor. Yang diterbitkan
+       adalah perikatan yang BENAR-BENAR TERSELESAIKAN — `activeEngagementId`
+       dapat menunjuk perikatan yang tak ada di daftar (mis. cache pengguna basi),
+       dan menerbitkannya berarti menyegel artefak atas id hantu. Melepas provider
+       mengembalikannya ke null supaya tak ada nilai basi yang tertinggal. */
+    useEffect(() => {
+      publishActiveEngagement(activeEngagement?.id ?? null);
+      return () => publishActiveEngagement(null);
+    }, [activeEngagement]);
+
     const clientById = useCallback((id: any) => clients.find((c: any) => c.id === id), [clients]);
     const engagementsForClient = useCallback(
       (id: any) => engagements.filter((e: any) => e.clientId === id), [engagements]
