@@ -9,10 +9,10 @@ const objects = new Map<string, Buffer>();
 const sendMock = vi.fn();
 
 vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn().mockImplementation(() => ({ send: sendMock })),
-  PutObjectCommand: vi.fn().mockImplementation((input: unknown) => ({ __kind: 'put', input })),
-  GetObjectCommand: vi.fn().mockImplementation((input: unknown) => ({ __kind: 'get', input })),
-  DeleteObjectCommand: vi.fn().mockImplementation((input: unknown) => ({ __kind: 'delete', input })),
+  S3Client: vi.fn().mockImplementation(function () { return { send: sendMock }; }),
+  PutObjectCommand: vi.fn().mockImplementation(function (input: unknown) { return { __kind: 'put', input }; }),
+  GetObjectCommand: vi.fn().mockImplementation(function (input: unknown) { return { __kind: 'get', input }; }),
+  DeleteObjectCommand: vi.fn().mockImplementation(function (input: unknown) { return { __kind: 'delete', input }; }),
 }));
 
 beforeEach(() => {
