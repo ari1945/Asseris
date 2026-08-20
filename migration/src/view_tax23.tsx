@@ -255,7 +255,7 @@ function TaxPPh23() {
                     <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setSel(r)}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                       <td style={{ maxWidth: 200 }}>
-                        <div className="row ac gap6"><span className="truncate" style={{ fontWeight: 600 }}>{r.name.replace('PT ', '')}</span>{r.master && <span className="chip tiny" style={{ height: 16, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }} title="Tertaut master vendor">{r.vendorId}</span>}</div>
+                        <div className="row ac gap6"><span className="truncate" style={{ fontWeight: 600 }}>{r.name.replace('PT ', '')}</span>{r.master && <span className="chip tiny" style={{ height: 16, background: 'var(--surface-3)', color: 'var(--navy)', borderColor: 'transparent' }} title="Tertaut master vendor">{r.vendorId}</span>}</div>
                         <div className="tiny" style={{ color: r.hasNpwp ? 'var(--ink-4)' : 'var(--red)', fontWeight: r.hasNpwp ? 400 : 700 }}>{r.hasNpwp ? (r.isOP ? r.npwp + ' · NIK' : r.npwp) : 'TANPA NPWP'}</div>
                       </td>
                       <td className="tiny"><span style={{ fontWeight: 600 }}>{r.obj}</span></td>
@@ -337,7 +337,7 @@ function T23Counterparty({ opts, nav }: any) {
         <tbody>
           {groups.map((g: any) => (
             <tr key={g.key}>
-              <td style={{ fontWeight: 600, maxWidth: 200 }} className="truncate">{g.name}{g.master && <span className="chip tiny" style={{ height: 16, marginLeft: 6, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }}>{g.vendorId}</span>}</td>
+              <td style={{ fontWeight: 600, maxWidth: 200 }} className="truncate">{g.name}{g.master && <span className="chip tiny" style={{ height: 16, marginLeft: 6, background: 'var(--surface-3)', color: 'var(--navy)', borderColor: 'transparent' }}>{g.vendorId}</span>}</td>
               <td className="mono tiny" style={{ color: g.hasNpwp ? 'var(--ink-3)' : 'var(--red)', fontWeight: g.hasNpwp ? 400 : 700 }}>{g.hasNpwp ? (g.isOP ? g.npwp + ' · NIK' : g.npwp) : 'TANPA NPWP'}</td>
               <td className="tiny muted">{g.cat}</td>
               <td className="tiny"><div className="row gap4 wrap">{g.objs.slice(0, 2).map((o: any) => <span key={o} className="chip tiny" style={{ height: 17 }}>{o.replace('Jasa ', '')}</span>)}{g.objs.length > 2 && <span className="tiny muted">+{g.objs.length - 2}</span>}</div></td>

@@ -401,7 +401,7 @@ function GoingConcern() {
               <thead><tr><th>Skenario</th><th style={{ width: 90 }}>−Pend.</th><th style={{ width: 90 }}>−Biaya</th><th style={{ width: 130 }}>Refinancing</th><th style={{ width: 130 }}>Kas Terendah</th><th style={{ width: 120 }}>Bulan Defisit</th></tr></thead>
               <tbody>
                 {scenarioCompare.map(x => (
-                  <tr key={x.s.id} style={x.s.id === activeId ? { background: 'var(--blue-bg, var(--line-soft))' } : undefined}>
+                  <tr key={x.s.id} style={x.s.id === activeId ? { background: 'var(--blue-050)' } : undefined}>
                     <td><span className="row ac gap6">{x.s.id === activeId && <I.chevron size={12} style={{ color: 'var(--blue)' }} />}<span style={{ fontWeight: x.s.id === activeId ? 700 : 500 }}>{x.s.name}</span></span></td>
                     <td className="mono tiny">−{x.s.revShock}%</td>
                     <td className="mono tiny">−{x.s.costCut}%</td>

@@ -109,7 +109,7 @@ function Templates() {
                             <span title={t.status} style={{ width: 8, height: 8, borderRadius: 8, background: st.dot, flex: '0 0 8px' }} />
                           </div>
                           <div className="row ac gap6 wrap">
-                            {t.sa.map((s: any) => <span key={s.code} className="chip tiny" style={{ height: 18, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }}>{s.code}</span>)}
+                            {t.sa.map((s: any) => <span key={s.code} className="chip tiny" style={{ height: 18, background: 'var(--surface-3)', color: 'var(--navy)', borderColor: 'transparent' }}>{s.code}</span>)}
                           </div>
                           <div className="row jb ac" style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 8, marginTop: 'auto' }}>
                             <span className="row ac gap5 tiny" style={{ color: 'var(--blue)', fontWeight: 600 }}><ModIc size={12} /> {mod.label}</span>

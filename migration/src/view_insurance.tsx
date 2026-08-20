@@ -168,7 +168,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
           <Panel title={'Tindakan Terbuka' + (alerts.length ? ' · ' + alerts.length : '')} noBody>
             <div style={{ padding: 12, display: 'grid', gap: 7 }}>
               {alerts.slice(0, 5).map((a, i) => (
-                <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                   <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 260 }}>{a.t}</div>
@@ -247,7 +247,7 @@ function InsPolicies({ pols, nav, setTab }: any) {
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Klaim terhadap polis</div>
               <div style={{ display: 'grid', gap: 5, marginBottom: 12 }}>
                 {p.claims.map((c: any) => (
-                  <button key={c.id} type="button" onClick={() => setTab('claims')} className="row jb ac" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface-1)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+                  <button key={c.id} type="button" onClick={() => setTab('claims')} className="row jb ac" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
                     <span className="tiny"><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span> · {c.status}</span>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{boJt(c.nilai)}</span>
                   </button>
@@ -301,7 +301,7 @@ function InsClaims({ claims, nav, setTab }: any) {
               <KV label="Tgl insiden" v={c.insiden} />
               <KV label="Tgl notifikasi" v={c.diajukan} />
               <KV label="Deductible" v={boJt(c.deductible)} />
-              <KV label="Nilai klaim" v={boJt(c.nilai)} accent="var(--ink-1)" />
+              <KV label="Nilai klaim" v={boJt(c.nilai)} accent="var(--ink)" />
               <KV label="Net (− deductible)" v={boJt(c.net)} accent="var(--amber)" />
               <KV label="Cadangan (reserve)" v={c.reserve ? boJt(c.reserve) : '—'} />
               <KV label="Telah dipulihkan" v={c.recovered ? boJt(c.recovered) : '—'} accent={c.recovered ? 'var(--green)' : undefined} />
@@ -359,7 +359,7 @@ function InsRegister({ reg, nav, setTab }: any) {
               <div style={{ textAlign: 'center' }}><div className="tiny muted" style={{ marginBottom: 3 }}>Inheren</div><ScoreBox v={r.inherent} color={r.inhColor} size={30} /></div>
               <div style={{ flex: 1, position: 'relative', height: 30, display: 'grid', placeItems: 'center' }}>
                 <div style={{ width: '100%', height: 3, background: 'var(--line)' }} />
-                <span className="tiny mono" style={{ position: 'absolute', top: -2, background: 'var(--surface-1)', padding: '0 6px', fontWeight: 700, color: 'var(--green)' }}>−{Math.round(r.reduction * 100)}% kontrol</span>
+                <span className="tiny mono" style={{ position: 'absolute', top: -2, background: 'var(--surface)', padding: '0 6px', fontWeight: 700, color: 'var(--green)' }}>−{Math.round(r.reduction * 100)}% kontrol</span>
                 <I.arrowRight size={13} style={{ position: 'absolute', right: 0, color: 'var(--ink-4)' }} />
               </div>
               <div style={{ textAlign: 'center' }}><div className="tiny muted" style={{ marginBottom: 3 }}>Residual</div><ScoreBox v={r.residual} color={r.resColor} size={30} /></div>
@@ -494,7 +494,7 @@ function InsLineage({ IRM, firm, nav }: any) {
           ].map((n, i) => (
             <React.Fragment key={n.lbl}>
               {i > 0 && <div style={{ display: 'grid', placeItems: 'center', padding: '0 14px' }}><I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} /></div>}
-              <div style={{ flex: '1 1 180px', padding: '10px 12px', borderRadius: 9, border: '1px solid var(--line)', borderLeft: '3px solid ' + n.c, background: 'var(--surface-1)' }}>
+              <div style={{ flex: '1 1 180px', padding: '10px 12px', borderRadius: 9, border: '1px solid var(--line)', borderLeft: '3px solid ' + n.c, background: 'var(--surface)' }}>
                 <div className="tiny muted upper" style={{ letterSpacing: '.04em', marginBottom: 2 }}>{n.lbl}</div>
                 <div className="mono" style={{ fontWeight: 800, fontSize: 15 }}>{n.v != null ? boJt(n.v) : '—'}</div>
                 <div className="tiny muted">{n.sub}</div>

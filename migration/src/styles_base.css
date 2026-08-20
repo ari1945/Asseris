@@ -97,6 +97,27 @@
   --purple-solid: #5b3fa6;
   --teal-solid:   #0a6b73;
 
+  /* Peran ON-DARK (PR-C-6) ------------------------------------------------
+     Panel bergradien gelap (hero cockpit, chrome sidebar/topbar) menaruh teks &
+     aksen di ATAS latar gelap, sehingga token teks biasa (--ink-*, --green,
+     --amber) tak berlaku di sana: kontrasnya dihitung terhadap --surface yang
+     terang. Nilai-nilai ini sudah dipakai MENTAH di 58 berkas (122 kemunculan);
+     di sini mereka diberi nama satu kali supaya berhenti menjadi hex tercecer.
+     Menyapu 57 berkas sisanya adalah sweep tersendiri, bukan bagian PR ini.
+     TIDAK di-override di blok tema gelap — latarnya memang selalu gelap, jadi
+     nilainya sama di kedua tema. */
+  --on-dark-fg:     #ffffff;
+  --on-dark-muted:  #bcd6e4;
+  --on-dark-faint:  #8fb0c2;
+  --on-dark-accent: #4db8ff;
+  --on-dark-danger: #ff9b8a;
+  --on-dark-warn:   #ffd479;
+  --on-dark-ok:     #7fe0a8;
+  /* isian tembus-pandang di atas latar gelap: chip, alur gauge, latar bahaya */
+  --on-dark-chip:      rgba(255,255,255,.14);
+  --on-dark-track:     rgba(255,255,255,.16);
+  --on-dark-danger-bg: rgba(255,107,87,.24);
+
   /* Type */
   --ui:   'Inter', -apple-system, system-ui, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;

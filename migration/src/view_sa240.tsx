@@ -308,7 +308,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
                 <button key={k} onClick={() => setSelId(k)} style={{
                   position: 'absolute', ...pos, width: 116, padding: '9px 8px', borderRadius: 10, cursor: 'pointer',
                   border: '1.5px solid ' + (on ? `var(--${t.color})` : 'var(--line)'),
-                  background: on ? `var(--${t.color}-bg)` : 'var(--surface-1, #fff)', textAlign: 'center',
+                  background: on ? `var(--${t.color}-bg)` : 'var(--surface)', textAlign: 'center',
                   boxShadow: on ? '0 2px 10px rgba(0,0,0,.08)' : 'none' }}>
                   <span style={{ color: `var(--${t.color})` }}><Tic size={18} /></span>
                   <div style={{ fontWeight: 700, fontSize: 12, marginTop: 3, color: on ? `var(--${t.color})` : 'var(--ink)' }}>{t.k}</div>

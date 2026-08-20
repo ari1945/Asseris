@@ -39,7 +39,7 @@ function FacAlerts({ B, FA, firm, nav, setTab, setSel }: any) {
   return (
     <div style={{ display: 'grid', gap: 7 }}>
       {items.slice(0, 7).map((a, i) => (
-        <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+        <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 300 }}>{a.t}</div>
@@ -131,7 +131,7 @@ function Facilities() {
                     ].map((r, i) => (
                       <div key={i} className="row jb ac" style={{ padding: '4px 0', borderBottom: '1px solid var(--line-soft)' }}>
                         <span className="tiny" style={{ fontWeight: 600 }}>{r.k}</span>
-                        <span className="mono tiny" style={{ fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.pos ? 'var(--green)' : 'var(--ink-1)' }}>{r.v < 0 ? '(' + boJt(-r.v) + ')' : boJt(r.v)}</span>
+                        <span className="mono tiny" style={{ fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.pos ? 'var(--green)' : 'var(--ink)' }}>{r.v < 0 ? '(' + boJt(-r.v) + ')' : boJt(r.v)}</span>
                       </div>
                     ))}
                     <div className="row jb ac" style={{ padding: '6px 0 0' }}>

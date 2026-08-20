@@ -236,13 +236,18 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
   ];
 
   /* ---- Activity feed ---- */
+  /* `eng` (PR-C-5) — tiap kejadian MILIK satu perikatan. Tanpa field ini feed
+     aktivitas firma tampil apa adanya di dalam ruang kerja perikatan mana pun:
+     baris ENG-2025-063 (draft opini Citra) muncul di cockpit ENG-2025-014 tanpa
+     penanda. Konsumen berlingkup-perikatan menyaring dengan field ini; konsumen
+     firma (Beranda/Dashboard) tetap memakai daftar penuh. */
   const ACTIVITY = [
-    { who: 'Dimas Raharjo', what: 'mengunggah konfirmasi bank BCA pada WP A-2', when: '14 menit lalu', icon: 'upload' },
-    { who: 'Hartono Wijaya', what: 'me-review dan menyetujui AJE-04', when: '1 jam lalu', icon: 'check' },
-    { who: 'Sistem', what: 'WTB ENG-2025-014 disinkronkan dari GL klien', when: '2 jam lalu', icon: 'sync' },
-    { who: 'Anindya Pramesti', what: 'menaikkan risiko Pendapatan ke Significant', when: '3 jam lalu', icon: 'flag' },
-    { who: 'Sinta Wulandari', what: 'menyelesaikan re-kalkulasi liabilitas sewa (F-1)', when: '5 jam lalu', icon: 'check' },
-    { who: 'Citra Halim', what: 'mengirim draft opini ENG-2025-063 untuk EQR', when: 'Kemarin', icon: 'send' },
+    { who: 'Dimas Raharjo', what: 'mengunggah konfirmasi bank BCA pada WP A-2', when: '14 menit lalu', icon: 'upload', eng: 'ENG-2025-014' },
+    { who: 'Hartono Wijaya', what: 'me-review dan menyetujui AJE-04', when: '1 jam lalu', icon: 'check', eng: 'ENG-2025-014' },
+    { who: 'Sistem', what: 'WTB ENG-2025-014 disinkronkan dari GL klien', when: '2 jam lalu', icon: 'sync', eng: 'ENG-2025-014' },
+    { who: 'Anindya Pramesti', what: 'menaikkan risiko Pendapatan ke Significant', when: '3 jam lalu', icon: 'flag', eng: 'ENG-2025-014' },
+    { who: 'Sinta Wulandari', what: 'menyelesaikan re-kalkulasi liabilitas sewa (F-1)', when: '5 jam lalu', icon: 'check', eng: 'ENG-2025-014' },
+    { who: 'Citra Halim', what: 'mengirim draft opini ENG-2025-063 untuk EQR', when: 'Kemarin', icon: 'send', eng: 'ENG-2025-063' },
   ];
 
   /* ---- Deadlines ---- */

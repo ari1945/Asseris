@@ -395,7 +395,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
             })}
           </tbody>
         </table>
-        <div className="panel" style={{ margin: 12, padding: '10px 12px', background: flagged.length ? 'var(--amber-bg, #fdf6e3)' : 'var(--green-050, #eef7f0)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ margin: 12, padding: '10px 12px', background: flagged.length ? 'var(--amber-bg, #fdf6e3)' : 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: flagged.length ? 'var(--amber)' : 'var(--green)', flex: '0 0 auto' }}>{flagged.length ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
             <span style={{ fontSize: 12, lineHeight: 1.45 }}>
