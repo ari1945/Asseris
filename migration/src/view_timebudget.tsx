@@ -1,12 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { FIRMFIN } from './data_firmfin';
-import { useAudit, useAuditHeavy, useFirm } from './contexts';
+import { useAuditHeavy, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { tbModel, tbEntryValue, tbLabelMinggu, tbTanggalPanjang, type TBModel, type TBTimeEntry, type TBWeeklySeries } from './timebudget_model';
 
 /* ============================================================
    Asseris — Time & Budget (expanded module)
@@ -14,64 +14,21 @@ import { amsExportXlsx } from './export_xlsx';
    ============================================================ */
 const { useState: useTB, useMemo: useTBMemo } = React;
 
-/* charge-out (standard) rates, cost rates & roster — SSOT bersama di FIRMFIN
-   (dipakai juga oleh WIP Valuation/WIP & Realisasi via overlay jam-aktual). */
-const TB_BILL = FIRMFIN.WIP_BILL;
-const TB_COST = FIRMFIN.WIP_COST;
-const TB_ROSTER = FIRMFIN.WIP_ROSTER_ENG['ENG-2025-014'];
-/* Program B lanjutan (K-07) — fee perikatan dari SSOT klien (dulu literal
-   1,52 M — drift dgn client.fee 1,85 M). Fallback utk data lama. */
-const TB_FEE_FALLBACK = 1_520_000_000;
+/* Tarif, roster, anggaran per fase & seri mingguan TIDAK hidup di sini lagi:
+   semuanya diturunkan dari perikatan aktif oleh `timebudget_model.ts`. Yang
+   tersisa di berkas ini hanyalah presentasi. */
 const TB_ROLE_COLOR = { 'Engagement Partner': '#5b3fa6', 'Audit Manager': '#005085', 'Senior Auditor': '#0a6b73', 'Junior Auditor': '#9a6a00' };
-/* phases — opening logged hours BEFORE live timesheet */
-const TB_PHASES = [
-  { id: 'Perencanaan', label: 'Perencanaan',          budget: 320,  base: 318, pct: 100, period: '02–20 Feb' },
-  { id: 'Eksekusi',    label: 'Eksekusi (Fieldwork)', budget: 1080, base: 658, pct: 65,  period: '24 Feb–20 Mar' },
-  { id: 'Finalisasi',  label: 'Finalisasi & Review',  budget: 320,  base: 98,  pct: 30,  period: '21–28 Mar' },
-  { id: 'Pelaporan',   label: 'Pelaporan & Arsip',    budget: 120,  base: 24,  pct: 20,  period: '29–31 Mar' },
-];
-const TB_WEEKLY = [ // 8 minggu terakhir, jam tercatat / minggu
-  { wk: 'W1', h: 96 }, { wk: 'W2', h: 132 }, { wk: 'W3', h: 158 }, { wk: 'W4', h: 174 },
-  { wk: 'W5', h: 168 }, { wk: 'W6', h: 152 }, { wk: 'W7', h: 138 }, { wk: 'W8', h: 80 },
-];
 
 const tbJt = (n: any) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
 const tbM  = (n: any) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 
 /* ----- shared derived model (reactive to live timesheet) -----
-   Roster + jam aktual + nilai standar/biaya ditarik dari SSOT `FIRMFIN.engagementWip`
-   (sama persis dengan yang dipakai overlay WIP). Fase tetap lokal (presentasi T&B). */
-function useTBModel(timeEntries: any, e: any) {
-  return useTBMemo(() => {
-    const ew = (FIRMFIN.engagementWip(timeEntries, e.id) || FIRMFIN.engagementWip(timeEntries, 'ENG-2025-014'))!;
-    const roster = ew.roster;
-    const liveByPhase: any = {};
-    timeEntries.forEach((t: any) => { liveByPhase[t.phase] = (liveByPhase[t.phase] || 0) + t.hours; });
-    const phases = TB_PHASES.map(p => {
-      const actual = p.base + (liveByPhase[p.id] || 0);
-      const eac = p.pct > 0 ? actual / (p.pct / 100) : p.budget;
-      return { ...p, actual, eac, variance: p.budget - actual };
-    });
-    const actualTotal = ew.actualHrs;
-    const budgetTotal = ew.budgetHrs;
-    const stdValue = ew.stdValue;
-    const costActual = ew.costValue;
-    const stdValueBudget = roster.reduce((s: any, r: any) => s + r.budget * r.bill, 0);
-    const costBudget = roster.reduce((s: any, r: any) => s + r.budget * r.cost, 0);
-    const prog = (e.progress || 0) / 100;
-    const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
-    /* fee dari SSOT klien perikatan (fallback liter 1,52 M) */
-    const fee = (AMS.CLIENTS as { id: string; fee?: number }[]).find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
-    const revRecognized = fee * prog;
-    return {
-      roster, phases, actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
-      burn: actualTotal / budgetTotal, stdValue, costActual, stdValueBudget, costBudget,
-      eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal), revRecognized,
-      fee, marginNow: revRecognized - costActual,
-      marginCompletion: fee - costBudget, realization: fee / stdValueBudget,
-      blendedBill: stdValue / actualTotal, blendedCost: costActual / actualTotal,
-    };
-  }, [timeEntries, e]);
+   Seluruh derivasi ada di `timebudget_model.ts` (murni, diuji di node oleh
+   `timebudget_isolation.test.ts`). `null` = perikatan aktif tak punya
+   roster/timesheet — dan itu dirender sebagai keadaan kosong, BUKAN ditambal
+   dengan angka perikatan lain. */
+function useTBModel(timeEntries: TBTimeEntry[], e: { id: string; clientId?: string; progress?: number }): TBModel | null {
+  return useTBMemo(() => tbModel(timeEntries, e, AMS.CLIENTS as { id: string; fee?: number }[]), [timeEntries, e]);
 }
 
 /* small horizontal budget/actual bar */
@@ -88,7 +45,7 @@ function TBBar({ budget, actual, pct, max }: any) {
 }
 
 function TimeBudget() {
-  const { activeEngagement, locked } = useFirm();
+  const { activeEngagement, activeClient, locked } = useFirm();
   const { timeEntries, addTimeEntry, team } = useAuditHeavy(['timeEntries']);
   const [tab, setTab] = useTB('overview');
   const e = activeEngagement;
@@ -97,8 +54,12 @@ function TimeBudget() {
 
   /* K-06 lanjutan — wire tombol "Export Timesheet" (dulu mati): ekspor XLSX tersegel
      timesheet + anggaran per fase. */
+  /* `activeEngagement` TIDAK punya `clientName` — dulu nama berkas ekspor selalu
+     jatuh ke literal 'Klien'. Nama klien hanya hidup di CLIENTS (lewat activeClient). */
+  const namaKlien = (activeClient as { name?: string } | null)?.name || e?.id || 'Klien';
+
   const onExportXlsx = async () => {
-    if (exporting) return;
+    if (exporting || !m) return;
     setExporting(true);
     try {
       const tsRows = timeEntries.map((t: { date: string; member: string; task: string; phase: string; hours: number }) => [
@@ -112,10 +73,10 @@ function TimeBudget() {
       ]);
       await amsExportXlsx({
         kind: 'timesheet-export', scope: 'engagement', scopeId: e?.id,
-        fileName: `Timesheet & Anggaran - ${(e as { clientName?: string }).clientName || 'Klien'}.xlsx`,
+        fileName: `Timesheet & Anggaran - ${namaKlien}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Timesheet & Anggaran Perikatan',
-        meta: [`${e?.id || ''} · ${e?.fy || 'FY2025'} · fee Rp ${Math.round(m.fee / 1e6)} jt`,
+        meta: [`${e?.id || ''} · ${e?.fy || ''} · fee Rp ${Math.round(m.fee / 1e6)} jt`,
           `Jam aktual ${m.actualTotal}/${m.budgetTotal} · burn ${(m.burn * 100).toFixed(0)}% — jam`],
         sheets: [
           { name: 'Timesheet', heading: 'Timesheet (jam)',
@@ -145,19 +106,59 @@ function TimeBudget() {
         <div className="row gap8 ac">
           <Badge kind="blue">{e.id}</Badge>
           <Btn sm><I.sparkle size={13} /> Analisis AI</Btn>
-          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Timesheet'}</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting || !m} title={m ? undefined : 'Perikatan ini belum punya roster/timesheet — tak ada yang bisa diekspor'}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Timesheet'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
         {locked && <LockBanner />}
-        <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
-        {tab === 'overview' && <TBOverview m={m} e={e} />}
-        {tab === 'phase' && <TBPhase m={m} />}
-        {tab === 'timesheet' && <TBTimesheet m={m} timeEntries={timeEntries} addTimeEntry={addTimeEntry} team={team} locked={locked} />}
-        {tab === 'team' && <TBTeam m={m} />}
-        {tab === 'econ' && <TBEconomics m={m} e={e} />}
+        {!m ? <TBNoRoster engId={e.id} klien={namaKlien} /> : (
+          <>
+            <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
+            {tab === 'overview' && <TBOverview m={m} e={e} />}
+            {tab === 'phase' && <TBPhase m={m} e={e} />}
+            {tab === 'timesheet' && <TBTimesheet m={m} timeEntries={timeEntries} addTimeEntry={addTimeEntry} team={team} locked={locked} />}
+            {tab === 'team' && <TBTeam m={m} />}
+            {tab === 'econ' && <TBEconomics m={m} e={e} />}
+          </>
+        )}
       </div></div>
     </>
+  );
+}
+
+/* =================== KEADAAN KOSONG (tanpa roster) ===================
+   TB1 — perikatan tanpa roster/timesheet. Yang ditampilkan di sini adalah
+   KETIADAAN DATA, bukan nol: nol berarti "sudah diukur, hasilnya nihil", dan
+   itu pernyataan yang berbeda. Sebelum PR ini layar ini menampilkan seluruh
+   ekonomi perikatan demo di bawah judul perikatan aktif. */
+function TBNoRoster({ engId, klien }: { engId: string; klien: string }) {
+  const nav = useNav();
+  return (
+    <Panel>
+      <div style={{ padding: '28px 24px', maxWidth: 640 }}>
+        <div className="row ac gap8" style={{ marginBottom: 10 }}>
+          <span style={{ color: 'var(--amber)' }}><I.clock size={19} /></span>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-lg)' }}>Belum ada roster & timesheet untuk perikatan ini</h3>
+        </div>
+        <p className="muted" style={{ margin: '0 0 12px', fontSize: 'var(--fs-md)', lineHeight: 1.55 }}>
+          <strong>{klien}</strong> ({engId}) belum punya alokasi tim beranggaran jam,
+          sehingga jam aktual, nilai standar (WIP), biaya waktu, utilisasi, dan ekonomi
+          perikatan <em>tidak terukur</em> — bukan nol.
+        </p>
+        <p className="muted" style={{ margin: '0 0 16px', fontSize: 'var(--fs-sm)', lineHeight: 1.55 }}>
+          Angka pada modul ini hanya boleh berasal dari perikatan yang sedang aktif.
+          Selama rosternya kosong, tidak ada angka yang jujur untuk ditampilkan di sini.
+        </p>
+        <div className="row gap8 ac">
+          <Btn sm variant="primary" onClick={() => nav('scheduler', { from: 'time' })}>
+            <I.users size={13} /> Alokasikan tim di Resource Scheduler
+          </Btn>
+          <Btn sm onClick={() => nav('engagement', { from: 'time' })}>
+            <I.briefcase size={13} /> Buka Engagement Management
+          </Btn>
+        </div>
+      </div>
+    </Panel>
   );
 }
 
@@ -167,7 +168,6 @@ function TBOverview({ m, e }: any) {
   const burnPct = Math.round(m.burn * 100);
   const onTrack = m.burn <= e.progress / 100 + 0.05;
   const eacVar = m.budgetTotal - m.eacHrs; // + = di bawah anggaran
-  const maxWk = Math.max(...TB_WEEKLY.map(w => w.h));
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 12 }}>
@@ -237,27 +237,54 @@ function TBOverview({ m, e }: any) {
           </div>
         </Panel>
 
-        <Panel title="Tren Jam Mingguan" sub="8 minggu terakhir">
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 132, padding: '6px 2px 4px', borderBottom: '1px solid var(--line)' }}>
-            {TB_WEEKLY.map((w, i) => (
-              <div key={w.wk} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{w.h}</span>
-                <div style={{ width: '100%', height: (w.h / maxWk) * 96, borderRadius: '3px 3px 0 0', background: i === TB_WEEKLY.length - 1 ? 'var(--blue-400)' : 'var(--blue)', opacity: i === TB_WEEKLY.length - 1 ? 0.55 : 1 }} />
-              </div>
-            ))}
-          </div>
-          <div className="row jb" style={{ marginTop: 4 }}>
-            {TB_WEEKLY.map(w => <span key={w.wk} className="tiny muted" style={{ flex: 1, textAlign: 'center' }}>{w.wk}</span>)}
-          </div>
-          <div className="row jb tiny muted" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
-            <span>Rata-rata {fmt(Math.round(TB_WEEKLY.reduce((s, w) => s + w.h, 0) / TB_WEEKLY.length))} jam/minggu</span>
-            <span>Puncak {Math.max(...TB_WEEKLY.map(w => w.h))} jam (W4)</span>
-          </div>
-        </Panel>
+        <TBWeeklyPanel weekly={m.weekly} />
       </div>
     </>
   );
 }
+/* TB4 — seri jam mingguan DITURUNKAN dari tanggal entri timesheet.
+   Delapan pasang literal yang dulu ada di sini (W1…W8, puncak dipaku "(W4)")
+   adalah minggu kerja yang tidak pernah terjadi. Jam PEMBUKA roster tidak
+   bertanggal, jadi tidak muncul di sini — itu dikatakan, bukan ditambal. */
+function TBWeeklyPanel({ weekly }: { weekly: TBWeeklySeries }) {
+  const { fmt } = AMS;
+  const { weeks, peak } = weekly;
+  const maxWk = Math.max(...weeks.map(w => w.h), 1);
+  const rentang = weekly.from && weekly.to
+    ? `${tbLabelMinggu(weekly.from)} – ${tbLabelMinggu(weekly.to)}`
+    : 'belum ada entri';
+  return (
+    <Panel title="Tren Jam Mingguan" sub={`dari timesheet · ${rentang}`}>
+      {weeks.length === 0 ? (
+        <div className="muted" style={{ padding: '28px 12px', textAlign: 'center', fontSize: 'var(--fs-sm)' }}>
+          Belum ada entri timesheet bertanggal pada perikatan ini.
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 132, padding: '6px 2px 4px', borderBottom: '1px solid var(--line)' }}>
+            {weeks.map((w, i) => (
+              <div key={w.start} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{fmt(w.h, 1)}</span>
+                <div title={`${w.start} – ${w.end}: ${fmt(w.h, 1)} jam`} style={{ width: '100%', height: (w.h / maxWk) * 96, borderRadius: '3px 3px 0 0', background: i === weeks.length - 1 ? 'var(--blue-400)' : 'var(--blue)', opacity: i === weeks.length - 1 ? 0.55 : 1 }} />
+              </div>
+            ))}
+          </div>
+          <div className="row jb" style={{ marginTop: 4 }}>
+            {weeks.map(w => <span key={w.start} className="tiny muted" style={{ flex: 1, textAlign: 'center' }}>{w.wk}</span>)}
+          </div>
+          <div className="row jb tiny muted" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
+            <span>Rata-rata {fmt(weekly.avg, 1)} jam/minggu</span>
+            {peak && <span>Puncak {fmt(peak.h, 1)} jam (pekan {peak.wk})</span>}
+          </div>
+          <div className="tiny muted" style={{ marginTop: 8 }}>
+            Hanya jam timesheet bertanggal. Jam pembuka roster tidak punya tanggal, jadi tidak masuk seri ini.
+          </div>
+        </>
+      )}
+    </Panel>
+  );
+}
+
 function EacRow({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac" style={{ fontSize: strong ? 13 : 12 }}>
@@ -268,15 +295,18 @@ function EacRow({ label, v, strong, accent }: any) {
 }
 
 /* =================== ANGGARAN PER FASE =================== */
-function TBPhase({ m }: any) {
+function TBPhase({ m, e }: any) {
   const { fmt } = AMS;
+  /* Tenggat DARI perikatan aktif. Dulu kalimat ini berbunyi "31 Mar 2026" literal —
+     benar hanya untuk satu perikatan, dan diam-diam salah untuk semua yang lain. */
+  const tenggat = tbTanggalPanjang(e?.deadline);
   const totB = m.phases.reduce((s: any, p: any) => s + p.budget, 0);
   const totA = m.phases.reduce((s: any, p: any) => s + p.actual, 0);
   const totEac = m.phases.reduce((s: any, p: any) => s + p.eac, 0);
   return (
     <>
       <Panel noBody className="" >
-        <div className="panel-h"><h3>Anggaran Jam per Fase Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">metode earned-value · proyeksi per fase</span></div>
+        <div className="panel-h"><h3>Anggaran Jam per Fase Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted" title="Total anggaran & jam pembuka menutup ke perikatan aktif; pembagian antar-fase memakai profil alokasi tetap, bukan pengukuran per fase">metode earned-value · pembagian antar-fase = model alokasi</span></div>
         <table className="dtbl">
           <thead><tr><th>Fase</th><th>Periode</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">% Selesai</th><th className="num">Proyeksi (EAC)</th><th className="num">Varians</th><th>Status</th></tr></thead>
           <tbody>
@@ -303,7 +333,7 @@ function TBPhase({ m }: any) {
       </Panel>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12, alignItems: 'start' }}>
-        <Panel title="Timeline Fase" sub="Feb–Mar 2026">
+        <Panel title="Timeline Fase" sub={`profil alokasi · tenggat ${tenggat || '—'}`}>
           <div style={{ display: 'grid', gap: 10 }}>
             {m.phases.map((p: any, i: any) => {
               const seg = [[0, 18], [22, 25], [50, 8], [82, 4]][i]; // [leftStart%, span ticks≈]
@@ -321,7 +351,7 @@ function TBPhase({ m }: any) {
               );
             })}
           </div>
-          <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>Bilah terang = porsi terselesaikan. Tenggat fieldwork 31 Mar 2026.</div>
+          <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>Bilah terang = porsi terselesaikan.{tenggat && ` Tenggat perikatan ${tenggat}.`}</div>
         </Panel>
 
         <Panel title="Komposisi Jam per Peran" sub="aktual berjalan">
@@ -401,8 +431,7 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
             <thead><tr><th>Tanggal</th><th>Anggota</th><th>Tugas</th><th>Fase</th><th className="num">Jam</th><th className="num">Nilai (std)</th></tr></thead>
             <tbody>
               {filtered.map((t: any) => {
-                const r = TB_ROSTER.find(x => x.name === t.member);
-                const val = r ? t.hours * (TB_BILL as any)[r.role] : 0;
+                const val = tbEntryValue(m.roster, t.member, t.hours);
                 return (
                   <tr key={t.id}>
                     <td className="mono tiny muted">{new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>

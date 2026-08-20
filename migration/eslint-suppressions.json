@@ -1101,7 +1101,7 @@
   },
   "src/view_timebudget.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 62
+      "count": 53
     }
   },
   "src/view_workspace.tsx": {
