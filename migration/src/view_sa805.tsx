@@ -111,9 +111,8 @@ function SA805View() {
     try {
       const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
       await amsExportPdf({
-        kind: 'sa805-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa805-memo', scope: 'engagement',
         fileName: `Memo SA 805 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Audit Elemen/LK Tunggal (SA 805)',
         meta: [`${sel.id} · ${sel.client} · subjek ${sel.subject}`,
           `Opini ${opLabel} · diaudit bersamaan: ${sel.conjunction ? 'Ya' : 'Tidak'}`],
@@ -122,8 +121,7 @@ function SA805View() {
           { type: 'para', text: sel.purpose || '' },
           { type: 'heading', text: '2. Opini' },
           { type: 'para', text: sel.opinion === 'Wajar' ? 'Elemen menyajikan secara wajar sesuai kerangka pelaporan.' : 'Opini modifikasian/terkendala — lihat dasar modifikasi.' },
-        ],
-      });
+        ]});
     } finally { setExporting(false); }
   };
   const onExportReport = async () => {
@@ -132,17 +130,15 @@ function SA805View() {
     try {
       const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
       await amsExportPdf({
-        kind: 'sa805-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa805-report', scope: 'engagement',
         fileName: `Laporan Auditor - SA 805 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'LAPORAN AUDITOR INDEPENDEN — Audit atas Elemen LK (SA 805)',
         meta: [`Kepada ${sel.users} — ${sel.client} · subjek ${sel.subject} · ${sel.framework}`],
         blocks: [
           { type: 'heading', text: 'Opini (' + opLabel + ')' },
           { type: 'para', text: 'Kami telah mengaudit ' + sel.subject.toLowerCase() + ' ' + sel.client + ' ("' + sel.element + '") yang disusun berdasarkan ' + sel.framework + '.' },
           ...(sel.conjunction ? [{ type: 'heading', text: 'Hal Lain' }, { type: 'para', text: 'Opini atas LK lengkap: ' + sel.completeOpinion + ' (SA 805 ¶14).' }] : []),
-        ],
-      });
+        ]});
     } finally { setExporting(false); }
   };
 

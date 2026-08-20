@@ -303,17 +303,15 @@ function ComplianceView({ stdId }: any) {
         return [it.ref, it.text, stLbl[st] || st, notes[it.id] || ''];
       });
       await amsExportXlsx({
-        kind: 'compliance-wp', scope: 'engagement', scopeId: activeEng?.id,
+        kind: 'compliance-wp', scope: 'engagement',
         fileName: `Checklist Kepatuhan - ${stLabel.split('·')[0].trim()}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja Kepatuhan — ${stLabel}`,
         meta: [`Standar ${stdId.toUpperCase()} · risiko ${meta.risk || '—'}`,
           `${done}/${applicable} selesai (${pct}%) · ${counts.na || 0} N/A`],
         sheets: [
           { name: 'Checklist', heading: `Checklist kepatuhan ${stLabel} (${stdId.toUpperCase()})`,
             columns: ['Acuan', 'Item', 'Status', 'Catatan'], rows, colWidths: [12, 56, 10, 34] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

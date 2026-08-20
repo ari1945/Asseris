@@ -144,9 +144,8 @@ function PSAK58View() {
         ['Laba/(rugi) operasi dihentikan — neto', dg.postTaxDisc],
       ];
       await amsExportXlsx({
-        kind: 'psak58-kk-e7', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak58-kk-e7', scope: 'engagement',
         fileName: `KK E-7 HFS & Operasi Dihentikan (PSAK 58) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja E-7 — Aset HFS & Operasi Dihentikan (PSAK 58) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 58 (IFRS 5)`,
           `Nilai tercatat ${fmt(Math.round(dg.carryBefore))} jt → FVLCS ${fmt(Math.round(dg.fvlcs))} jt · rugi penurunan ${fmt(Math.round(dg.writedown))} jt — Rp juta`],
@@ -160,8 +159,7 @@ function PSAK58View() {
           { name: 'Operasi Dihentikan', heading: 'Analisis operasi dihentikan (Rp juta)',
             columns: ['Pos', 'Rp juta'], rows: discRows.map(r => [r[0], fmt(Math.round(r[1] as number))]),
             totals: ['Laba bersih — operasi dilanjutkan', fmt(Math.round(dg.contProfit))], colWidths: [58, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

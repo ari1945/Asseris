@@ -93,9 +93,8 @@ function AuditTrail() {
   const doExport = async () => {
     setExportMsg(null);
     const r = await amsExportPdf({
-      kind: 'audit-log', scope: 'firm', scopeId: FIRM_SCOPE_ID,
+      kind: 'audit-log', scope: 'firm',
       fileName: `Jejak Audit - ${amsDateIso()}.pdf`,
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Jejak Audit Sistem (Append-Only Hash-Chain)',
       refNo: `AUD-${all.length}-${amsDateIso()}`,
       meta: [
@@ -107,8 +106,7 @@ function AuditTrail() {
         { type: 'kv', rows: [['Total entri', String(all.length)], ['Pengguna unik', String(stats.uniqueUsers)], ['Sumber', view.source === 'server' ? 'Server chain' : 'Fallback lokal']] },
         { type: 'heading', text: 'Entri' },
         { type: 'table', head: ['#', 'Waktu', 'Pengguna', 'Peran', 'Aksi', 'Detail', 'Hash'], body: all.slice(0, 300).map((a: any) => [String(a.seq), String(a.ts), String(a.actorUserId || a.who), String(a.actorRole || a.role || ''), String(a.action), String(a.detail || ''), String(a.hash || '').slice(0, 16)]) },
-      ],
-    });
+      ]});
     if (r && r.sealed) setExportMsg(`Tersegel (Ed25519) — ${r.contentHash ? r.contentHash.slice(0, 12) : ''}…`);
     else if (r) setExportMsg('Terunduh — TIDAK TERSEGEL (server/izin ekspor tidak tersedia)');
     else setExportMsg('Gagal membuat PDF');
@@ -221,9 +219,8 @@ async function exportEntryPdf(eRaw: AuditEntryLike) {
   const who = e.actorUserId || e.who || '—';
   const scopeLbl = e.scopeId || e.module || e.scope || '—';
   await amsExportPdf({
-    kind: 'audit-entry', scope: 'firm', scopeId: FIRM_SCOPE_ID,
+    kind: 'audit-entry', scope: 'firm',
     fileName: `Bukti Audit #${String(e.seq).padStart(3, '0')}.pdf`,
-    firm: 'KAP Wijaya Hartono & Rekan',
     title: 'Bukti Entri Audit — Jejak Append-Only',
     refNo: `AUD-${String(e.seq).padStart(3, '0')}`,
     meta: [`Aksi ${e.action} · ${who} · ${e.ts || ''}`,
@@ -246,8 +243,7 @@ async function exportEntryPdf(eRaw: AuditEntryLike) {
           ['Sesudah', JSON.stringify(e.after)],
         ] },
       ] : []),
-    ],
-  });
+    ]});
 }
 
 function AuditEntryDrawer({ e, onClose, nav, verified }: any) {

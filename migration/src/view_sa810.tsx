@@ -108,9 +108,8 @@ function SA810View() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'sa810-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa810-memo', scope: 'engagement',
         fileName: `Memo SA 810 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Audit atas Ringkasan LK (SA 810)',
         meta: [`${sel.id} · ${sel.client} · ${sel.period}`,
           `Opini LK auditan: ${sel.auditOpinion} · opini ringkasan: ${sel.summaryOpinion}`],
@@ -119,8 +118,7 @@ function SA810View() {
           { type: 'para', text: sel.criteria },
           { type: 'table', head: ['Prosedur', 'Status'],
             body: (sel.procedures as [string, boolean][]).map(p => [p[0], p[1] ? 'Selesai' : 'Tertunda']) },
-        ],
-      });
+        ]});
     } finally { setExporting(false); }
   };
   const onExportReport = async () => {
@@ -128,17 +126,15 @@ function SA810View() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'sa810-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa810-report', scope: 'engagement',
         fileName: `Laporan atas Ringkasan LK - SA 810 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'LAPORAN AUDITOR INDEPENDEN — atas Ringkasan LK (SA 810)',
         meta: [`Kepada pengguna ringkasan — ${sel.client} · ${sel.period} · ${sel.criteria}`,
           `Opini ringkasan: ${sel.summaryOpinion} — konsisten dengan opini LK auditan ${sel.auditOpinion}`],
         blocks: [
           { type: 'heading', text: 'Opini' },
           { type: 'para', text: 'Ringkasan LK ' + sel.client + ' untuk ' + sel.period + ' konsisten, dalam semua hal yang material, dengan LK auditan ' + sel.auditOpinion + ' (SA 810 ¶17–18).' },
-        ],
-      });
+        ]});
     } finally { setExporting(false); }
   };
 

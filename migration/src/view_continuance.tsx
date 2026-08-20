@@ -277,11 +277,13 @@ function ContinuanceRegister() {
     if (!mi || !sel || busyExport) return;
     setBusyExport(true); setVerifyRes(null);
     try {
-      const base = { kind: 'continuance-memo', firm: firmName, title: memoTitle(mi), meta: memoMeta(mi) };
+      /* Keberlanjutan klien (ISQM 1 / SA 220) diputuskan SEBELUM perikatan ada —
+         artefaknya milik firma, bukan perikatan. */
+      const base = { kind: 'continuance-memo', scope: 'firm' as const, title: memoTitle(mi), meta: memoMeta(mi) };
       const res = fmtKind === 'pdf'
         ? await amsExportPdf({ ...base, refNo: memoRefNo(mi), fileName: `Memo Keberlanjutan - ${sel.client}.pdf`, blocks: buildMemoBlocks(mi) })
         : await amsExportXlsx({ ...base, fileName: `Memo Keberlanjutan - ${sel.client}.xlsx`, sheets: buildMemoSheets(mi) });
-      if (res && res.sealed && res.sealId) patchRec(sel.clientId, { memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
+      if (res && res.sealed && res.sealId && res.contentHash) patchRec(sel.clientId, { memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
     } finally { setBusyExport(false); }
   };
   const doVerify = async () => {

@@ -149,9 +149,8 @@ function PSAK72View() {
       ]);
       const tieOutRows = tieRows.map(r => [r.label, r.std, fmt(Math.round(r.a)), fmt(Math.round(r.b)), r.ok ? 'Menutup' : 'SELISIH']);
       await amsExportXlsx({
-        kind: 'psak72-kk-r', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak72-kk-r', scope: 'engagement',
         fileName: `KK R Pendapatan (PSAK 72) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja R — Pendapatan (PSAK 72) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 72 (IFRS 15)`,
           `Pendapatan audited ${fmt(Math.round(rev.revAudited))} · koreksi cut-off ${fmt(Math.round(rev.cutoffRev))} — Rp juta`],
@@ -163,8 +162,7 @@ function PSAK72View() {
             totals: ['TOTAL', '', fmt(Math.round(rev.revBooked))], colWidths: [34, 18, 16] },
           { name: 'Tie-out', heading: 'Rekonsiliasi lintas-laporan (Rp juta)',
             columns: ['Pernyataan', 'Acuan', 'A', 'B', 'Status'], rows: tieOutRows, colWidths: [50, 9, 15, 15, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

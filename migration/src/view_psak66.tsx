@@ -110,9 +110,8 @@ function PSAK66View() {
       ]);
       const jvRows = (p66.reg || []).map((r: { label: string; v: number }) => [r.label, fmt(Math.round(r.v))]);
       await amsExportXlsx({
-        kind: 'psak66-kk-g3', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak66-kk-g3', scope: 'engagement',
         fileName: `KK G-3 Pengaturan Bersama (PSAK 66) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja G-3 — Pengaturan Bersama (PSAK 66) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 66 (IFRS 11)`,
           `${p66.counts.jv} ventura bersama · ${p66.counts.jo} operasi bersama — Rp juta`],
@@ -121,8 +120,7 @@ function PSAK66View() {
             columns: ['Pengaturan', 'Jenis', 'Bagian', 'Kolektif', 'Bulat'], rows: arrRows, colWidths: [34, 18, 10, 10, 10] },
           { name: 'Metode Ekuitas', heading: 'Ventura bersama — roll-forward metode ekuitas (Rp juta)',
             columns: ['Mutasi', 'Rp juta'], rows: jvRows, colWidths: [48, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -112,7 +112,6 @@ function SA240View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'fraud.v1' → engagement) — isolasi W7.5
@@ -142,8 +141,7 @@ function SA240View() {
     const triRows = Object.values(triangle).flatMap(cat => cat.factors.filter(f => f.on).map(f => [cat.k, f.t, f.sev]));
     const ovRows = overrideProc.map(p => [p.ref, p.t, p.wp, p.done ? 'Selesai' : 'Belum']);
     amsExportPdf({
-      kind: 'memo-fraud', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Penilaian Risiko Kecurangan (SA 240)',
+      kind: 'memo-fraud', scope: 'engagement', title: 'Memo Penilaian Risiko Kecurangan (SA 240)',
       refNo: 'F-240 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 240 — Tanggung Jawab Auditor atas Kecurangan', 'Dibuat: ' + fraudToday() + ' · ' + me],
       blocks: [
@@ -153,8 +151,7 @@ function SA240View() {
         { type: 'table', head: ['Kategori', 'Faktor', 'Severitas'], body: triRows.length ? triRows : [['—', 'Tidak ada faktor aktif.', '—']], columnStyles: { 1: { cellWidth: 240 } } },
         { type: 'heading', text: 'Prosedur Wajib atas Risiko Override Manajemen (¶32)' },
         { type: 'table', head: ['Ref', 'Prosedur', 'WP', 'Status'], body: ovRows },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

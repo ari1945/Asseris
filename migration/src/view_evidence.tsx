@@ -171,9 +171,8 @@ function EvidenceEvaluation() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'evidence-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'evidence-memo', scope: 'engagement',
         fileName: `Memo Evaluasi Bukti (SA 500) - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Evaluasi Bukti Audit (SA 500)',
         meta: [`${client} · ENG-2025-014 · FY2025 · SA 500`,
           `Skor rata-rata ${avgScore.toFixed(1)}/5 · cakupan asersi ${coverage}% · ${openContra} kontradiksi terbuka`],
@@ -183,8 +182,7 @@ function EvidenceEvaluation() {
             body: live.map((i: EvArea) => [i.area, i.wp, String(i.suff), String(i.approp), evScore(i).toFixed(1)]) },
           { type: 'heading', text: '2. Simpulan' },
           { type: 'para', text: verdict.t },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

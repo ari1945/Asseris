@@ -48,9 +48,8 @@ function RiskAssessment() {
         return [r.id, r.area, r.assertion, r.assertionLvl ? 'Level Asersi' : 'Level LK', r.desc, r.likelihood, r.impact, sc, scoreLabel(sc), r.fraud ? 'Ya' : '—', r.response, r.owner, r.wp];
       });
       await amsExportXlsx({
-        kind: 'risk-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'risk-register', scope: 'engagement',
         fileName: `Register Risiko (RoMM) - ${activeClient?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Register Risiko Salah Saji Material (RoMM) — ${activeClient?.name || ''}`,
         meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · SA 315/330`,
           `${risks.length} risiko · skor = Kemungkinan (L) × Dampak (I)`],
@@ -58,8 +57,7 @@ function RiskAssessment() {
           name: 'Register RoMM',
           columns: ['ID', 'Area', 'Asersi', 'Tingkat', 'Deskripsi Risiko', 'L', 'I', 'Skor', 'Tingkat Risiko', 'Fraud (SA 240)', 'Respons Audit', 'Penanggung Jawab', 'WP'],
           rows, colWidths: [8, 22, 14, 13, 46, 5, 5, 7, 14, 14, 40, 20, 8],
-        }],
-      });
+        }]});
     } finally {
       setExporting(false);
     }

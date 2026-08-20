@@ -167,9 +167,8 @@ function PSAK48View() {
         it.kind, it.party, it.likely, fmt(Math.round(it.estimate)), it.assess || '',
       ]);
       await amsExportXlsx({
-        kind: 'psak48-kk-p4857', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak48-kk-p4857', scope: 'engagement',
         fileName: `KK P-48/57 Penurunan Nilai & Provisi - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja P-48/57 — Penurunan Nilai & Provisi (PSAK 48/57) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 48 (IAS 36) jo. PSAK 57 (IAS 37)`,
           `UPK: tercatat ${fmt(Math.round(p48.carry))} jt · terpulihkan ${fmt(Math.round(p48.recoverable))} jt · headroom ${(p48.headroomPct * 100).toFixed(1)}% — Rp juta`],
@@ -184,8 +183,7 @@ function PSAK48View() {
             columns: ['Skenario', 'Dampak', 'Catatan'], rows: sensRows, colWidths: [34, 16, 40] },
           { name: 'Register Provisi', heading: 'Register provisi & liabilitas kontinjensi (Rp juta)',
             columns: ['Jenis', 'Pihak', 'Kemungkinan', 'Estimasi', 'Penilaian'], rows: provRows, colWidths: [12, 28, 16, 14, 40] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

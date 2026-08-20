@@ -214,7 +214,12 @@ function OpeningBalance() {
     setBusyExport(true);
     try {
       const mi = buildMemoInput();
-      const base = { kind: 'opening-memo', firm: firmName, title: openingMemoTitle(mi), meta: openingMemoMeta(mi) };
+      /* Saldo awal (SA 510) adalah pekerjaan PERIKATAN. `openingMemoMeta` mengembalikan
+         pasangan [label, nilai] — dulu diserahkan apa adanya ke `meta` yang menuntut
+         baris teks, dan tipe `any` menyembunyikannya: barisnya tercetak sebagai
+         "label,nilai". Dirata-kan di sini. */
+      const base = { kind: 'opening-memo', scope: 'engagement' as const, title: openingMemoTitle(mi),
+        meta: openingMemoMeta(mi).map(([k, v]) => `${k}: ${v}`) };
       if (kind === 'pdf') await amsExportPdf({ ...base, refNo: openingMemoRefNo(mi), fileName: `Memo Saldo Awal - ${clientName}.pdf`, blocks: buildOpeningBlocks(mi) });
       else await amsExportXlsx({ ...base, fileName: `Memo Saldo Awal - ${clientName}.xlsx`, sheets: buildOpeningSheets(mi) });
     } finally { setBusyExport(false); }

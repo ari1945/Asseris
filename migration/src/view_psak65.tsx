@@ -140,9 +140,8 @@ function PSAK65View() {
         r.label, fmt(Math.round(r.induk)), fmt(Math.round(r.anak)), fmt(Math.round(r.elim)), fmt(Math.round(r.konsol)),
       ]);
       await amsExportXlsx({
-        kind: 'psak65-kk-g1', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak65-kk-g1', scope: 'engagement',
         fileName: `KK G-1 Konsolidasi (PSAK 65) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja G-1 — Konsolidasi (PSAK 65) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 65 (IFRS 10)`,
           `Goodwill ${fmt(Math.round(p65.goodwillTotal))} jt · NCI ${fmt(Math.round(p65.nciCloseTotal))} jt · laba konsolidasi ${fmt(Math.round(p65.consolNpat))} jt — Rp juta`],
@@ -153,8 +152,7 @@ function PSAK65View() {
             columns: ['ID', 'Entitas', 'Kepemilikan', 'Biaya Perolehan', 'Goodwill'], rows: subRows,
             totals: ['TOTAL', '', '', fmt(Math.round(p65.costTotal)), fmt(Math.round(p65.goodwillTotal))],
             colWidths: [10, 30, 13, 16, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -148,7 +148,6 @@ function ISAK35View() {
           <Btn sm variant="primary" onClick={() => {
             amsExportPdf({
               kind: 'isak35-fs', scope: 'engagement', fileName: `Laporan Keuangan ISAK 35 - ${amsYear()}.pdf`,
-              firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
               title: 'Laporan Keuangan Entitas Berorientasi Nonlaba (ISAK 35)',
               refNo: 'ISAK 35 · ' + (I35_TITLES as Record<string, string>)[tab],
               meta: ['Entitas berorientasi nonlaba · ' + U.label, 'Tie-out: ' + passed + '/' + m.checks.length, 'Pengungkapan: ' + discPct + '%'],
@@ -179,8 +178,7 @@ function ISAK35View() {
                   ...(signoff.prepared ? [{ name: signoff.prepared.by, role: 'Disusun oleh', at: signoff.prepared.date }] : []),
                   ...(signoff.reviewed ? [{ name: signoff.reviewed.by, role: 'Direviu oleh', at: signoff.reviewed.date }] : []),
                 ] }] : []),
-              ],
-            }).catch(() => {});
+              ]}).catch(() => {});
           }}><I.download size={14} /> Export PDF</Btn>
         </div>
       } />

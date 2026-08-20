@@ -76,9 +76,8 @@ function SA501View() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'sa501-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa501-memo', scope: 'engagement',
         fileName: `Memo SA 501 - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Bukti Audit: Unsur Pilihan (SA 501)',
         meta: [`${client} · ENG-2025-014 · FY2025 · SA 501`,
           `Persediaan Rp ${invTotal} jt (${INV_LOCATIONS.length} lokasi) · eksposur litigasi Rp ${litExposure} jt`],
@@ -92,8 +91,7 @@ function SA501View() {
           { type: 'heading', text: '3. Litigasi & Klaim (register PSAK 57)' },
           { type: 'table', head: ['Perkara', 'Pihak', 'Kemungkinan', 'Estimasi (jt)', 'Perlakuan'],
             body: LIT_CASES.map((c: { party: string; nature: string; likely: string; estimate?: number; disc?: string }) => [c.party, c.nature, c.likely, String(c.estimate || 0), c.disc || '']) },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

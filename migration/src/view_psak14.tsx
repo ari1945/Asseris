@@ -140,9 +140,8 @@ function PSAK14View() {
         it.shortfall > 0 ? fmt(Math.round(it.shortfall)) : '—',
       ]);
       await amsExportXlsx({
-        kind: 'psak14-kk-c', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak14-kk-c', scope: 'engagement',
         fileName: `KK C Persediaan (PSAK 14) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja C — Persediaan (PSAK 14) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 14 / IAS 2`,
           `Saldo akhir audited ${fmt(Math.round(inv.closeNet))} · NRV shortfall ${fmt(Math.round(inv.shortfallWD))} — Rp juta`],
@@ -157,8 +156,7 @@ function PSAK14View() {
           { name: 'Uji NRV per-SKU', heading: 'Nilai realisasi neto per item (WP C-2, ¶28-33) — Rp juta',
             columns: ['Kode', 'Klas', 'Item', 'Biaya', 'Harga Jual', 'Biaya Jual', 'NRV', 'Lebih Rendah', 'Shortfall'],
             rows: itemRows, colWidths: [10, 8, 34, 14, 14, 14, 14, 14, 14] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

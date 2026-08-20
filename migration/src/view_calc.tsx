@@ -61,9 +61,8 @@ function ECLCalculator() {
     try {
       const rows = withEcl.map((b: { label: string; stage: number; gross: number; rate: number; ecl: number }) => [b.label, 'Stage ' + b.stage, fmt(b.gross), b.rate.toFixed(1) + '%', fmt(b.ecl)]);
       await amsExportXlsx({
-        kind: 'ecl-kk-b7', scope: 'engagement', scopeId: firm.activeEngagement?.id,
+        kind: 'ecl-kk-b7', scope: 'engagement',
         fileName: `KK B-7 ECL (PSAK 71) - ${firm.activeClient?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja B-7 — ECL Piutang Usaha (PSAK 71) — ${firm.activeClient?.name || ''}`,
         meta: [`${firm.activeEngagement?.id || ''} · ${firm.activeEngagement?.fy || 'FY2025'} · PSAK 71 (IFRS 9)`,
           `CKPN dibukukan ${rp(booked)} · selisih model ${(diff >= 0 ? '+' : '') + rp(diff)} — loss rate interaktif`],
@@ -74,8 +73,7 @@ function ECLCalculator() {
             colWidths: [22, 9, 24, 13, 24] },
           { name: 'Komposisi Stage', columns: ['Stage', 'ECL (Rp)'],
             rows: segs.map(s => [s.label, fmt(s.value)]), colWidths: [14, 24] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

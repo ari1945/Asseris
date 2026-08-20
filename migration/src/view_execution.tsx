@@ -104,9 +104,8 @@ function WTBView() {
       });
       const t = wtb.reduce((a: any, r: any) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
       await amsExportXlsx({
-        kind: 'wtb-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'wtb-register', scope: 'engagement',
         fileName: `Working Trial Balance - ${activeClient?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Working Trial Balance — ${activeClient?.name || ''}`,
         meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · ${activeEngagement?.standard || 'SAK'}`,
           `Performance materiality: ${pm != null ? rp(pm) : 'belum ditetapkan'} · saldo penuh dalam Rupiah (setelah penyesuaian audit)`],
@@ -116,8 +115,7 @@ function WTBView() {
           rows,
           totals: ['', 'TOTAL', '', '', '', rp(t.ly), rp(t.unadj), rp(t.aje), rp(t.adj), ''],
           colWidths: [12, 34, 18, 8, 15, 20, 20, 18, 20, 10],
-        }],
-      });
+        }]});
     } finally {
       setExporting(false);
     }

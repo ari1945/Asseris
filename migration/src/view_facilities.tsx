@@ -85,11 +85,9 @@ function Facilities() {
     await amsExportXlsx({
       kind: 'firm-facilities', scope: 'firm',
       fileName: 'Register Aset & Fasilitas.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Register Aset & Fasilitas Kantor (sub-ledger PSAK 16)',
       meta: [`per 1 Mar 2026 · perolehan ${boM(reg.totCost, 2)} · NBV ${boM(reg.totNbv, 2)} · penyusutan ${boJt(reg.totAnnual)}/th`],
-      sheets: [{ name: 'Register Aset', columns: ['Kode', 'Aset', 'Kategori', 'Qty', 'Lokasi', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'NBV', 'Terpakai', 'Status'], rows, colWidths: [10, 26, 16, 6, 16, 12, 8, 16, 16, 16, 10, 12] }],
-    });
+      sheets: [{ name: 'Register Aset', columns: ['Kode', 'Aset', 'Kategori', 'Qty', 'Lokasi', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'NBV', 'Terpakai', 'Status'], rows, colWidths: [10, 26, 16, 6, 16, 12, 8, 16, 16, 16, 10, 12] }]});
   };
 
   return (

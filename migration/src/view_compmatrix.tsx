@@ -118,9 +118,8 @@ function ComplianceMatrix() {
         r.code, r.title, r.type, r.coverage, r.phase || '', isApplicable(r.code) ? 'Berlaku' : 'Tidak berlaku',
       ]);
       await amsExportXlsx({
-        kind: 'compmatrix-register', scope: 'firm', scopeId: undefined,
+        kind: 'compmatrix-register', scope: 'firm',
         fileName: `Register Standar (Matriks Kepatuhan) - ${amsYear()}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Register Standar — Matriks Kepatuhan',
         meta: [`${STANDARDS_REGISTRY.length} standar · ${applRows.length} berlaku`,
           `Checklist ${nChecklist} · Modul ${nModule} · Gap ${nGap} · rata-rata kepatuhan ${avgPct}%`],
@@ -128,8 +127,7 @@ function ComplianceMatrix() {
           { name: 'Register', heading: 'Registri standar audit & akuntansi (SA · PSAK · SAK · SPR · SJAH · SMM · SPA)',
             columns: ['Kode', 'Standar', 'Jenis', 'Cakupan', 'Fase', 'Keberlakuan'],
             rows: regRows, colWidths: [10, 46, 10, 12, 10, 14] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

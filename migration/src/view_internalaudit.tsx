@@ -297,10 +297,8 @@ function InternalAudit() {
     try {
       const input = memoInput();
       await amsExportPdf({
-        kind: 'sa610-memo',
-        scope: 'engagement', scopeId: memoCtx.engagementId,
+        kind: 'sa610-memo', scope: 'engagement',
         fileName: sa610MemoFileName(input),
-        firm: memoCtx.firmName,
         title: sa610MemoTitle(input),
         refNo: sa610MemoRefNo(input),
         meta: sa610MemoMeta(input),

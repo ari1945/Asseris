@@ -81,9 +81,8 @@ function RelatedParties() {
         t.id, t.party, t.type + ' — ' + t.terms, fmt(t.amount), t.arm ? 'Arm\'s length' : 'NON-arm', t.disclosed ? 'Diungkapkan' : 'Belum', t.conf || '—',
       ]);
       await amsExportXlsx({
-        kind: 'related-register', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'related-register', scope: 'engagement',
         fileName: `Daftar Pihak Berelasi (SA 550) - ${(window as { activeClient?: { name?: string } }).activeClient?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Daftar Transaksi Pihak Berelasi — SA 550 / PSAK 7',
         meta: [`${txns.length} transaksi · total Rp ${fmt(totalRPT / 1e6, 0)} jt`,
           `${undisclosed} belum diungkap · ${nonArm} non arm's-length`],
@@ -91,8 +90,7 @@ function RelatedParties() {
           { name: 'Register RPT', heading: 'Transaksi pihak berelasi (Rp)',
             columns: ['ID', 'Pihak', 'Transaksi', 'Nilai', 'Kewajaran', 'Pengungkapan', 'Konfirmasi'],
             rows: txnRows, colWidths: [9, 22, 40, 16, 14, 14, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

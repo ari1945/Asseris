@@ -200,9 +200,8 @@ function AuditProgramme() {
         r.riskId, r.risk || r.t, p.id, p.t, p.wp, p.prep || '', p.bud || 0, p.act || 0, p.exc || 0, p.status,
       ]));
       await amsExportXlsx({
-        kind: 'programme-export', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'programme-export', scope: 'engagement',
         fileName: 'Program Audit (Programme).xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Program Audit — RoMM & Prosedur',
         meta: [`${allProcs.length} prosedur · ${done} selesai (${pct}%)`,
           `Jam anggaran ${budTot} · aktual ${actTot} · ekspektasi ${excTot} — jam`],
@@ -210,8 +209,7 @@ function AuditProgramme() {
           { name: 'Programme', heading: 'Program audit per risiko',
             columns: ['RoMM', 'Risiko', 'Prosedur ID', 'Prosedur', 'WP', 'Disiapkan', 'Bud', 'Aktual', 'Eksp', 'Status'],
             rows: progRows, colWidths: [9, 26, 10, 44, 10, 14, 8, 8, 8, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

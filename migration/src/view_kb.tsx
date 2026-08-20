@@ -85,9 +85,8 @@ function KnowledgeBase() {
     try {
       const artRows = all.map((a: { code: string; title: string; type: string; tags?: string[]; read?: string }) => [a.code, a.title, a.type, kbFamily(a.type), (a.tags || []).join(', '), a.read || '']);
       await amsExportXlsx({
-        kind: 'kb-index', scope: 'firm', scopeId: undefined,
+        kind: 'kb-index', scope: 'firm',
         fileName: `Indeks Basis Pengetahuan - ${amsYear()}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Indeks Basis Pengetahuan — Referensi Audit',
         meta: [`${all.length} artikel · ${authored} ditulis · ${checklistN} checklist`,
           `${popular.length} populer · cakupan SA/PSAK/Editorial`],
@@ -95,8 +94,7 @@ function KnowledgeBase() {
           { name: 'Indeks', heading: 'Indeks artikel basis pengetahuan',
             columns: ['Kode', 'Judul', 'Jenis', 'Keluarga', 'Tag', 'Baca (mnt)'],
             rows: artRows, colWidths: [10, 50, 12, 12, 26, 10] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -298,9 +296,8 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'kb-article', scope: 'firm', scopeId: undefined,
+        kind: 'kb-article', scope: 'firm',
         fileName: `KB - ${reg.code} - ${reg.title}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Basis Pengetahuan — ' + reg.code + ' · ' + reg.title,
         meta: [`${reg.code} · ${reg.phase} · ${reg.type} · cakupan ${cov.label || reg.coverage}`,
           `Modul ${reg.module || '—'} · diindeks ${AMS.KB_UPDATED || ''}`],
@@ -310,8 +307,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           { type: 'heading', text: 'Tautan & Rujukan' },
           { type: 'table', head: ['Tipe', 'Kode', 'Judul'],
             body: related.slice(0, 6).map((r: { code: string; title: string }) => ['Rujukan', r.code, r.title]) },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -73,9 +73,8 @@ function LeaseCalculator() {
     try {
       const schedRows = display.map((r: { label: string; opening: number; interest: number; pmt: number; principal: number; closing: number }) => [r.label, fmt(r.opening), fmt(r.interest), fmt(r.pmt), fmt(r.principal), fmt(r.closing)]);
       await amsExportXlsx({
-        kind: 'psak73-skedul', scope: 'engagement', scopeId: ((AMS as { activeEngagement?: { id?: string } }).activeEngagement || {}).id,
+        kind: 'psak73-skedul', scope: 'engagement',
         fileName: `Skedul Amortisasi Sewa (PSAK 73) - ${cur.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Skedul Amortisasi — Liabilitas Sewa (PSAK 73) — ${cur.name || ''}`,
         meta: [`${cur.id} · ${cur.termMo} bln · IBR ${cur.rate}% · ${yearly ? 'tahunan' : 'bulanan'}`,
           `PV liabilitas ${fmt(pv)} — ROU garis lurus ${fmt(rouAmort)}/bln`],
@@ -83,8 +82,7 @@ function LeaseCalculator() {
           { name: 'Skedul', heading: `Skedul amortisasi — ${cur.name} (${cur.id})`,
             columns: ['Periode', 'Saldo Awal', 'Bunga', 'Pembayaran', 'Pokok', 'Saldo Akhir'],
             rows: schedRows, colWidths: [14, 18, 16, 16, 16, 18] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

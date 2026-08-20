@@ -128,9 +128,8 @@ function PSAK25View() {
         e.pos, e.basis, e.ref, fmt(Math.round(e.carryPy)), fmt(Math.round(e.carryCy)), fmt(Math.round(e.carryCy - e.carryPy)), '±' + fmt(Math.round(e.sens)) + ' · ' + e.sensLbl,
       ]);
       await amsExportXlsx({
-        kind: 'psak25-kk', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak25-kk', scope: 'engagement',
         fileName: `KK Kebijakan & Estimasi (PSAK 25) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja — Kebijakan, Estimasi & Kesalahan (PSAK 25) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 25 / IAS 8`,
           `${M.changes.length} perubahan · ${M.estimates.length} estimasi terdaftar — Rp juta`],
@@ -139,8 +138,7 @@ function PSAK25View() {
             columns: ['Pos', 'Perlakuan', 'Ref', 'Dampak'], rows: chgRows, colWidths: [40, 24, 10, 16] },
           { name: 'Register Estimasi', heading: 'Register estimasi akuntansi — carry vs prior year (Rp juta)',
             columns: ['Pos', 'Basis', 'Ref', 'PY', 'CY', 'Delta', 'Sensitivitas'], rows: estRows, colWidths: [26, 30, 8, 14, 14, 14, 24] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

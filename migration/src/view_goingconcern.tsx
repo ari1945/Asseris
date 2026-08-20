@@ -157,7 +157,6 @@ function GoingConcern() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* rasio & Altman Z dari WTB (SSOT) — reaktif terhadap AJE live */
@@ -234,8 +233,7 @@ function GoingConcern() {
     ];
     const scnRows = scenarioCompare.map(x => [x.s.name, '−' + x.s.revShock + '% pend / −' + x.s.costCut + '% biaya / ' + (x.s.financing ? 'refinancing' : 'tanpa refinancing'), 'Rp ' + x.minBal.toFixed(1) + ' M', x.breach || 'Tidak ada']);
     amsExportPdf({
-      kind: 'memo-goingconcern', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Penilaian Kelangsungan Usaha (SA 570)',
+      kind: 'memo-goingconcern', scope: 'engagement', title: 'Memo Penilaian Kelangsungan Usaha (SA 570)',
       refNo: 'A-570 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 570 — Going Concern · Penilaian: ' + level.l, 'Altman Z: ' + z + ' · Kas terendah 12 bln: Rp ' + minBal.toFixed(1) + ' M' + (breach ? ' · defisit ' + breach.m : ''), 'Dibuat: ' + gcToday() + ' · ' + me],
       blocks: [
@@ -252,8 +250,7 @@ function GoingConcern() {
         { type: 'table', head: ['Ref', 'Covenant', 'Ambang', 'Aktual', 'Status'], body: covRows.length ? covRows : [['—', '—', '—', '—', '—']] },
         { type: 'heading', text: 'Evaluasi Rencana Mitigasi Manajemen (SA 570 ¶16)' },
         { type: 'table', head: ['Ref', 'Rencana', 'Jenis', 'Kelayakan', 'Berbukti'], body: mitiRows.length ? mitiRows : [['—', '—', '—', '—', '—']] },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

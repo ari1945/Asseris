@@ -59,7 +59,6 @@ function SA530View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useInitialTab('sa530', 'kalkulator');
@@ -133,8 +132,7 @@ function SA530View() {
     const findRows = findings.map(f => { const ms = f.bv - f.av; return [f.id, f.type, f.bv.toLocaleString('id-ID'), f.av.toLocaleString('id-ID'), ms ? ms.toLocaleString('id-ID') : '—', projOf(f) ? projOf(f).toLocaleString('id-ID') : '—']; });
     const totalProj = findings.reduce((s, f) => s + projOf(f), 0);
     amsExportPdf({
-      kind: 'memo-sampling', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Kertas Kerja Sampling Audit (SA 530)',
+      kind: 'memo-sampling', scope: 'engagement', title: 'Kertas Kerja Sampling Audit (SA 530)',
       refNo: 'S-530 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 530 — Sampling Audit · Metode MUS (PPS)', 'Dibuat: ' + smpToday() + ' · ' + me],
       blocks: [
@@ -143,8 +141,7 @@ function SA530View() {
         { type: 'heading', text: 'Evaluasi Salah Saji & Proyeksi ke Populasi (¶13–14)' },
         { type: 'table', head: ['Ref', 'Sifat', 'Tercatat', 'Teraudit', 'Salah Saji', 'Proyeksi'], body: findRows.length ? findRows : [['—', '—', '—', '—', '—', '—']] },
         { type: 'para', text: 'Proyeksi salah saji total Rp ' + totalProj.toLocaleString('id-ID') + ' jt ' + (totalProj < tm ? 'di bawah' : 'melampaui') + ' salah saji yang ditoleransi (TM Rp ' + tm.toLocaleString('id-ID') + ' jt). ' + (totalProj < tm ? 'Ditambah pertimbangan risiko sampling, populasi dapat diterima; salah saji aktual dicatat ke SAD.' : 'Pertimbangkan perluasan sampel atau prosedur alternatif.') },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

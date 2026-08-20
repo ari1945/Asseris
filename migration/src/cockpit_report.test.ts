@@ -52,7 +52,7 @@ function input(over: Partial<CockpitReportInput> = {}): CockpitReportInput {
   const start = engagementStart(ENG);
   return {
     engagementId: ENG.id, fy: ENG.fy, clientName: 'PT Sentosa Makmur Tbk',
-    firmName: 'KAP Wijaya Hartono & Rekan', phase: ENG.phase, verdict: 'Perlu Perhatian',
+    phase: ENG.phase, verdict: 'Perlu Perhatian',
     daysLeft: 22, burnPct: 72, overall: Math.round(bridge.provenPct), asserted: 62, bridge, econ,
     phaseRows: [{ phase: 'Eksekusi', pct: 20, wpCount: 11, bud: 198, tsAct: 48 },
       { phase: 'Review & Arsip', pct: 0, wpCount: 0, bud: 26, tsAct: 0 }],
@@ -78,26 +78,37 @@ describe('payload dapat diuji — bukan dirakit inline di handler tombol', () =>
     expect(src.replace(/\/\*[\s\S]*?\*\//g, '')).not.toMatch(/colWidths:/);
   });
 
-  /* C-2 · IDENTITAS YANG DISEGEL. `firmName` dulu literal di call-site:
-     'KAP Wijaya Hartono & Rekan' ditulis langsung ke payload yang disegel
-     Ed25519 dan keluar sebagai artefak. Menyegel identitas yang salah lebih
-     buruk daripada tidak menyegel — segelnya memberi otoritas pada isi yang
-     keliru, dan pembaca berkas tak punya cara tahu bahwa nama itu tak pernah
-     berasal dari profil firma. Gerbang ini statik karena cacatnya ada di
-     call-site, bukan di pembangun payload. */
-  it('nama firma pada payload tersegel berasal dari SSOT, bukan literal', () => {
+  /* C-2 · IDENTITAS YANG DISEGEL — dinaikkan oleh F-2 (prd-export-seal-identity-ssot).
+
+     #265 menutup satu literal `firmName: 'KAP …'` di call-site ini dengan menuntut
+     nilainya berasal dari `AMS.FIRM`. Gerbang itu kini DICABUT karena tuntutannya
+     sudah terlalu lemah: selama payload BOLEH membawa identitas, ia boleh membawa
+     identitas yang salah, dan gerbang hanya bisa memeriksa bentuk ekspresinya.
+
+     Penggantinya lebih keras: payload tak boleh membawa identitas SAMA SEKALI.
+     `firm`/`scopeId` diambil helper dari SSOT (`export_identity.ts`), dan tipe
+     `firm?: never` membuat penyelundupannya kembali menjadi error tsc — termasuk
+     lewat spread. */
+  it('payload TIDAK membawa identitas — helper yang menariknya dari SSOT', () => {
+    const r = build() as unknown as Record<string, unknown>;
+    expect(r.firm).toBeUndefined();
+    expect(r.scopeId).toBeUndefined();
+    expect(Object.keys(r)).not.toContain('firm');
+    expect(Object.keys(r)).not.toContain('scopeId');
+  });
+
+  it('view tak lagi merakit identitas untuk payload tersegel', () => {
     const src = readFileSync(join(__dirname, 'view_cockpit2.tsx'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '');
-    expect(src).toMatch(/firmName:\s*\(AMS\.FIRM/);
+    expect(src).not.toMatch(/firmName:/);
     /* tak ada literal nama firma di mana pun di view ini — termasuk sebagai
        fallback: berkas tersegel tidak boleh mengarang identitas. */
     expect(src).not.toMatch(/'KAP [^']*'/);
   });
 
-  it('membawa identitas & lingkup perikatan', () => {
+  it('membawa lingkup perikatan (identitasnya dari helper)', () => {
     const r = build();
     expect(r.scope).toBe('engagement');
-    expect(r.scopeId).toBe('ENG-2025-014');
     expect(r.fileName).toContain('PT Sentosa Makmur Tbk');
   });
 

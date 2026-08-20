@@ -107,9 +107,8 @@ function SA800View() {
     try {
       const opLabel = sel.opinion === 'Wajar' ? 'Wajar — sesuai kerangka' : 'Modifikasian (' + sel.opinion + ')';
       await amsExportPdf({
-        kind: 'sa800-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa800-memo', scope: 'engagement',
         fileName: `Memo SA 800 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Audit LK Bertujuan Khusus (SA 800)',
         meta: [`${sel.id} · ${sel.client} · kerangka ${sel.framework}`,
           `Opini ${opLabel} · penggunaan ${sel.restricted ? 'TERBATAS (' + sel.users + ')' : 'umum'}`],
@@ -119,8 +118,7 @@ function SA800View() {
             body: (sel.accept as [string, boolean][]).map(a => [a[0], a[1] ? 'Terpenuhi' : 'PERLU TELAAH']) },
           { type: 'heading', text: '2. Pertimbangan & Kesimpulan' },
           { type: 'para', text: sel.notes || '—' },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -131,9 +129,8 @@ function SA800View() {
     try {
       const opLabel = sel.opinion === 'Wajar' ? 'Wajar — sesuai kerangka' : 'Modifikasian (' + sel.opinion + ')';
       await amsExportPdf({
-        kind: 'sa800-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa800-report', scope: 'engagement',
         fileName: `Laporan Auditor - SA 800 - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'LAPORAN AUDITOR INDEPENDEN — Audit LK Bertujuan Khusus (SA 800)',
         meta: [`Kepada ${sel.users} — ${sel.client} · kerangka ${sel.framework}`,
           `Pembatasan distribusi: ${sel.restricted ? 'TERBATAS' : 'umum'}`],
@@ -144,8 +141,7 @@ function SA800View() {
           { type: 'para', text: 'Kami mengarahkan perhatian pada Catatan atas Laporan Keuangan yang menjelaskan basis akuntansi. Laporan keuangan disusun untuk ' + sel.purpose.toLowerCase() + ' Sebagai akibatnya, laporan ini mungkin tidak sesuai untuk tujuan lain. Opini kami tidak dimodifikasi sehubungan dengan hal ini.' },
           { type: 'heading', text: 'Pembatasan Distribusi & Penggunaan' },
           { type: 'para', text: 'Laporan kami ditujukan semata-mata untuk ' + sel.users + ' dan tidak boleh didistribusikan kepada pihak lain.' },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

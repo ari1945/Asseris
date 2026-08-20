@@ -136,7 +136,10 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
   if (doc.opts.legalReg) blocks.push({ type: 'heading', text: 'Laporan atas Ketentuan Hukum dan Regulasi Lain' }, { type: 'para', text: OP_TXT.legalReg });
   if (doc.opts.comparative) blocks.push({ type: 'para', text: comparativeParagraph(client, doc.compMode, doc.comp) });
   const signer = O.SIGNERS[doc.signer] || O.SIGNERS.partner1;
-  blocks.push({ type: 'signature', signers: [{ label: 'KAP Wijaya Hartono & Rekan', name: signer.name, role: `${signer.role} · Izin AP No. ${signer.reg}`, at: `Jakarta, ${fmtDateID(doc.reportDate)}` }] });
+  /* E-4 — nama KAP pada blok tanda tangan LAPORAN AUDITOR dulu literal, dan blok
+   ikut di-hash segel: segelnya memberi otoritas pada penerbit yang tak pernah
+   berasal dari profil firma. Kini dari SSOT. */
+  blocks.push({ type: 'signature', signers: [{ label: (AMS.FIRM as { name?: string }).name || '', name: signer.name, role: `${signer.role} · Izin AP No. ${signer.reg}`, at: `Jakarta, ${fmtDateID(doc.reportDate)}` }] });
   return blocks;
 }
 
@@ -167,9 +170,8 @@ function AuditOpinionGen() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'opinion', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'opinion', scope: 'engagement',
         fileName: `Laporan Auditor Independen - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Laporan Auditor Independen',
         refNo: 'No. 142/WHR-CPA/AR/III/2026',
         meta: [`${activeEngagement?.id || ''} · ${client} · FY2025`, `${o.title} (${fwStdLabel})`],

@@ -448,20 +448,12 @@ function RecordsRetention() {
     await amsExportXlsx({
       kind: 'firm-records', scope: 'firm',
       fileName: 'Register Arsip & Retensi.xlsx',
-      /* ⚠ Penerbit masih literal — DISENGAJA. Butir E1 paket W1-E DICABUT oleh
-         keputusan Ari (#330, `868678d`): baris ini ada di dalam lingkup arc
-         `export_identity.ts` (`claude/intelligent-keller-7b28db`), yang MENCABUT
-         argumen `firm:` seluruhnya dari 123 call-site dan membuat eksporter menarik
-         identitas dari SSOT. Menambal di sini dengan `useFirmName()` justru memasang
-         pola yang dibantah PRD-nya. Ditutup arc itu, bukan oleh PR ini. */
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Register Arsip & Kebijakan Retensi (SA 230 / SMM 1 / SMM)',
       meta: [`${m.total} arsip · ${m.sizeGB.toFixed(1)} GB · ${m.locked} terkunci · ${m.due} jatuh tempo pemusnahan · ${m.holds} legal hold aktif`],
       sheets: [
         { name: 'Register Arsip', columns: ['Kotak', 'Klien', 'Perikatan', 'FY', 'Sumber', 'Berkas', 'Ukuran', 'Diarsip', 'Retensi s/d', 'Status'], rows: boxRows, colWidths: [12, 26, 14, 8, 10, 8, 10, 14, 14, 12] },
         { name: 'Kebijakan Retensi', columns: ['Kelas Dokumen', 'Dasar Hukum / Standar', 'Retensi', 'Format'], rows: clsRows, colWidths: [24, 40, 10, 14] },
-      ],
-    });
+      ]});
   };
 
   return (

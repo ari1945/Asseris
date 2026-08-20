@@ -141,9 +141,8 @@ function SA230View() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'sa230-memo', scope: 'engagement', scopeId: eng,
+        kind: 'sa230-memo', scope: 'engagement',
         fileName: `Memo SA 230 - ${client}.pdf`,
-        firm: (AMS.FIRM as { name?: string } | undefined)?.name || 'KAP',
         title: 'Memo — Dokumentasi Audit (SA 230)',
         meta: [`${client} · ${eng || '—'} · ${engFy} · SA 230 (Revisi)`,
           `Kelengkapan ${C.agg.docPct}% · ${C.agg.blocking ? 'ada item menghalangi finalisasi' : 'lengkap'}`],
@@ -164,8 +163,7 @@ function SA230View() {
                 : 'Belum ada berkas terdaftar', '¶14–16'],
             ] },
           { type: 'para', text: 'Dokumentasi memungkinkan auditor berpengalaman yang tidak memiliki kaitan dengan perikatan memahami: sifat/saat/luas prosedur, hasilnya & bukti yang diperoleh, serta hal signifikan yang timbul (SA 230.¶8).' },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -189,7 +187,7 @@ function SA230View() {
             <div style={{ minWidth: 232 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 230</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Dokumentasi Audit</div>
-              <div className="tiny muted">{client} · {eng}</div>
+              <div className="tiny muted">{client} · {eng || 'tanpa perikatan aktif'}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <D2Hero label="KK Ter-review Penuh" value={`${C.agg.fullySigned}/${C.agg.total}`} />

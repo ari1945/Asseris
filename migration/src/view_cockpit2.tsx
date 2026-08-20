@@ -320,7 +320,6 @@ function EngagementCockpit() {
            buruk daripada tak menyegel, karena segelnya memberi otoritas pada isi
            yang keliru. Tanpa fallback literal dengan alasan yang sama: bila SSOT
            tak menyebut nama, berkas TIDAK boleh mengarang satu. */
-        firmName: (AMS.FIRM as { name?: string } | undefined)?.name || '',
         phase: e?.phase || '', verdict: D.verdict.l,
         daysLeft: D.daysLeft, burnPct: D.burnPct,
         overall: D.overall, asserted: D.asserted, bridge: D.bridge, econ: D.econ,

@@ -176,9 +176,8 @@ function PSAK19View() {
         c.label, c.life ? c.life + ' th' : 'Tak terbatas', fmt(Math.round(c.gross)), fmt(Math.round(c.accum)), fmt(Math.round(c.carry)),
       ]);
       await amsExportXlsx({
-        kind: 'psak19-kk-eint', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak19-kk-eint', scope: 'engagement',
         fileName: `KK E-INT Aset Takberwujud (PSAK 19) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja E-INT — Aset Takberwujud (PSAK 19) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 19 / IAS 38`,
           `Nilai buku neto audited ${fmt(Math.round(it.netClose))} jt · amortisasi ${fmt(Math.round(it.amortAudited))} jt — Rp juta`],
@@ -190,8 +189,7 @@ function PSAK19View() {
             columns: ['Kelompok', 'Umur', 'Harga Perolehan', 'Akm. Amortisasi', 'Nilai Buku'], rows: clsRows,
             totals: ['TOTAL', '', fmt(Math.round(it.grossTot)), fmt(Math.round(it.accumTot)), fmt(Math.round(it.carryTot))],
             colWidths: [30, 12, 18, 18, 18] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

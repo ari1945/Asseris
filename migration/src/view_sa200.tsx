@@ -51,9 +51,8 @@ function SA200View() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'sa200-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sa200-memo', scope: 'engagement',
         fileName: `Memo SA 200 - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Tujuan Keseluruhan Auditor (SA 200)',
         meta: [`${client} · ENG-2025-014 · FY2025 · SA (IAPI)`,
           'Kerangka SAK tujuan umum · keyakinan memadai (bukan absolut)'],
@@ -66,8 +65,7 @@ function SA200View() {
             body: SA200_SKEPTIS.map(s => [s.t, s.ex]) },
           { type: 'heading', text: '3. Model Risiko Audit' },
           { type: 'para', text: 'Risiko audit = f(risiko bawaan, risiko pengendalian, risiko deteksi). Bukti dikumpulkan untuk menekan risiko deteksi sesuai tingkat risiko material (SA 200.¶17–18).' },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -119,9 +119,8 @@ function TimeBudget() {
         r.name.split(',')[0], r.role, Math.round(r.budget), r.actual.toFixed(1),
       ]);
       await amsExportXlsx({
-        kind: 'timesheet-export', scope: 'engagement', scopeId: e?.id,
+        kind: 'timesheet-export', scope: 'engagement',
         fileName: `Timesheet & Anggaran - ${namaKlien}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Timesheet & Anggaran Perikatan',
         meta: [`${e?.id || ''} · ${e?.fy || ''} · ${m.fee == null ? 'nilai kontrak belum ditetapkan' : 'fee ' + tbJt(m.fee)}`,
           `Jam aktual ${m.actualTotal}/${m.budgetTotal} · burn ${(m.burn * 100).toFixed(0)}% — jam`],
@@ -132,8 +131,7 @@ function TimeBudget() {
             columns: ['Fase', 'Label', 'Anggaran', 'Aktual', '% terbukti', 'Varians'], rows: phaseRows, colWidths: [12, 32, 12, 12, 12, 12] },
           { name: 'Roster', heading: 'Roster tim (jam)',
             columns: ['Anggota', 'Peran', 'Anggaran', 'Aktual'], rows: rosterRows, colWidths: [22, 22, 12, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

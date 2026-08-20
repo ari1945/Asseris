@@ -132,11 +132,9 @@ function NAReport({ kind, engId, onClose }: any) {
     }
     if (!title) return;
     amsExportPdf({
-      kind: 'na-report', scope: 'engagement', fileName: title + '.pdf',
-      firm: FIRM.name, title, refNo: stdLabel,
+      kind: 'na-report', scope: 'engagement', fileName: title + '.pdf', title, refNo: stdLabel,
       meta: [stdLabel, 'Jakarta, ' + today],
-      blocks: [...blocks, { type: 'signature', signers: [{ name: signerName, role: 'Akuntan Publik', at: today }] }],
-    }).catch(() => {});
+      blocks: [...blocks, { type: 'signature', signers: [{ name: signerName, role: 'Akuntan Publik', at: today }] }]}).catch(() => {});
   };
   if (kind === 'aup') {
     const E = (AMS as any).aupEngine();

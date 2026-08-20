@@ -174,9 +174,8 @@ function FSGenerator() {
         signoff.reviewed && { label: 'Direviu oleh', name: signoff.reviewed.by, at: signoff.reviewed.date },
       ].filter(Boolean);
       await amsExportPdf({
-        kind: 'fs', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'fs', scope: 'engagement',
         fileName: `Laporan Keuangan - ${activeClient?.name || 'Klien'}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Laporan Keuangan — ${activeClient?.name || ''}`,
         meta: [
           `${activeEngagement?.id || ''} · FY2025 · ${activeEngagement?.standard || 'SAK'}`,
@@ -185,8 +184,7 @@ function FSGenerator() {
         blocks: [
           ...buildFsBlocks(model, sc, comparative),
           ...(signers.length ? [{ type: 'signature', signers }] : []),
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

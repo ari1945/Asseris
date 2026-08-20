@@ -244,9 +244,8 @@ function SADLedger() {
       const sumRows = calc.uncorr.map(rowOf);
       const eng = activeEngagement;
       await amsExportXlsx({
-        kind: 'sad-ledger', scope: 'engagement', scopeId: eng?.id,
+        kind: 'sad-ledger', scope: 'engagement',
         fileName: `SAD Ledger (SA 450) - ${(eng as { clientName?: string }).clientName || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `SAD Ledger — Akumulasi Salah Saji (SA 450)`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 450 · metode ${method === 'rollover' ? 'roll-over' : 'iron curtain'}`,
           `Tidak dikoreksi neto Rp ${fmt(Math.round(Math.abs(calc.rolloverNet) / 1e6))} jt (${(Math.abs(calc.rolloverNet) / om * 100).toFixed(0)}% OM) — Rp juta`],
@@ -256,8 +255,7 @@ function SADLedger() {
             rows: sadRows, colWidths: [10, 40, 16, 11, 12, 12, 12, 14, 13, 6] },
           { name: 'Lampiran SUM', heading: 'Lampiran Surat Untuk Manajemen — salah saji tidak dikoreksi (Rp juta)',
             columns: ['Ref', 'Deskripsi', 'Efek Laba', 'Efek Aset Neto'], rows: sumRows.map((r: (string | number)[]) => [r[0], r[1], r[6], r[7]]), colWidths: [10, 56, 14, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -693,8 +691,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
     const repItems = calc.uncorr;
     amsExportPdf({
       kind: 'representation-letter', scope: 'engagement',
-      fileName: 'Surat Representasi Tertulis - Klien.pdf',
-      firm: FIRM.name, title: 'Surat Representasi Tertulis (SA 580)',
+      fileName: 'Surat Representasi Tertulis - Klien.pdf', title: 'Surat Representasi Tertulis (SA 580)',
       refNo: 'SA 580 · ' + amsDateIso(),
       meta: ['Kepada KAP Wijaya Hartono & Rekan', 'Daftar salah saji tidak dikoreksi terlampir', (exceedsOM ? 'Material — memengaruhi opini' : (exceedsPM ? 'Perlu evaluasi lanjut' : 'Tidak material kuantitatif'))],
       blocks: [
@@ -706,8 +703,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
         ...(repItems.length ? [{ type: 'table', head: ['Ref', 'FS Line', 'Efek Laba (jt)'], body: repItems.map((m: { id: string; fsli?: string; pbt?: number }) => [m.id, m.fsli || '—', m.pbt ? fmt(m.pbt / 1e6, 0) : '—']) }] : [{ type: 'para', text: 'Tidak ada salah saji tidak dikoreksi.' }]),
         ...(exceedsOM || exceedsPM ? [{ type: 'para', text: 'Catatan: agregat salah saji tidak dikoreksi sebesar Rp ' + fmt(Math.abs(calc.rolloverNet) / 1e6, 0) + ' jt (' + (Math.abs(calc.rolloverNet) / om * 100).toFixed(0) + '% dari materialitas keseluruhan) — pertimbangan kualitatif (' + qualCount + ' faktor relevan) ikut dievaluasi.' }] : []),
         { type: 'signature', signers: [{ name: 'Manajemen', role: 'Direksi', at: amsDateIso() }] },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

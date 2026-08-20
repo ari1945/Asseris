@@ -207,9 +207,8 @@ function AJEView() {
       const lineRows: any[] = [];
       model.forEach((a: any) => ajeLines(a).forEach((l: any) => lineRows.push([a.id, l.code, l.name, +l.debit ? rp(+l.debit) : '', +l.credit ? rp(+l.credit) : ''])));
       await amsExportXlsx({
-        kind: 'aje-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'aje-register', scope: 'engagement',
         fileName: `Register AJE - ${activeClient?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Register Jurnal Penyesuaian & Reklasifikasi — ${activeClient?.name || ''}`,
         meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · SA 450`,
           `${model.length} jurnal · ${posted.length} posted · ${proposed.length} usulan · efek laba & saldo penuh dalam Rupiah`],
@@ -220,8 +219,7 @@ function AJEView() {
           { name: 'Baris Jurnal',
             columns: ['No. AJE', 'Kode Akun', 'Nama Akun', 'Debit', 'Kredit'],
             rows: lineRows, colWidths: [10, 12, 34, 20, 20] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

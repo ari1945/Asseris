@@ -125,9 +125,8 @@ function SA520View() {
         (r.pct > 0 ? '+' : '') + r.pct.toFixed(1) + '%', r.flag ? (r.note ? 'Diselidiki' : 'Perlu investigasi') : 'Dalam ambang', r.note || '',
       ]);
       await amsExportXlsx({
-        kind: 'sa520-kk', scope: 'engagement', scopeId: eng?.id,
+        kind: 'sa520-kk', scope: 'engagement',
         fileName: `KK Analitis Substantif (SA 520) - ${clientName}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja — Prosedur Analitis Substantif (SA 520) — ${clientName}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 520 (Revisi)`,
           `Ambang selisih ${thr}% · ${flagged} akun ter-flag · ${investigated} investigasi terdokumentasi — Rp juta`],
@@ -135,8 +134,7 @@ function SA520View() {
           { name: 'Telaah Selisih', heading: 'Telaah fluktuasi per akun (Rp juta)',
             columns: ['ID', 'Akun', 'Asersi', 'Ekspektasi', 'Aktual', 'Selisih', 'Δ%', 'Status', 'Investigasi'],
             rows: rowData, colWidths: [9, 24, 24, 14, 14, 14, 9, 16, 30] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

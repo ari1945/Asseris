@@ -84,9 +84,8 @@ function DeliveryMilestones() {
         (m.shifts || []).map((s) => `${s.at} ${s.by}: ${s.from}→${s.to}${s.reason ? ' (' + s.reason + ')' : ''}`).join(' · ') || '—',
       ]));
       await amsExportXlsx({
-        kind: 'delivery-plan', scope: 'firm', scopeId: undefined,
+        kind: 'delivery-plan', scope: 'firm',
         fileName: `Rencana Pengiriman (Delivery Plan).xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Rencana Pengiriman — Fase & Milestone',
         meta: [`${DELIVERY.length} perikatan · ${planRows.length} milestone`,
           `Aktif ${active.length} · at-risk ${atRisk} · lewat tempo ${overdueMs} (vs komitmen semula ${overdueBaseline})`,
@@ -105,8 +104,7 @@ function DeliveryMilestones() {
             columns: ['Engagement', 'Jenis temuan', 'Rincian'],
             rows: issues.map((is) => [is.eng, PLAN_ISSUE_LABEL[is.kind], is.detail]),
             colWidths: [14, 22, 90] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

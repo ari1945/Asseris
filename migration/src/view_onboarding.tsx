@@ -303,11 +303,12 @@ function StepAcceptance({ p, onPatch }: any) {
     setBusyMemo(true); setMemoVerify(null);
     try {
       const mi = buildMi();
-      const base = { kind: memoKind + '-memo', firm: firmName, title: memoTitle(mi), meta: memoMeta(mi) };
+      /* Memo penerimaan dibuat atas PROSPEK — perikatannya belum ada. */
+      const base = { kind: memoKind + '-memo', scope: 'firm' as const, title: memoTitle(mi), meta: memoMeta(mi) };
       const res = fmtKind === 'pdf'
         ? await amsExportPdf({ ...base, refNo: memoRefNo(mi), fileName: `Memo Penerimaan - ${p.name}.pdf`, blocks: buildMemoBlocks(mi) })
         : await amsExportXlsx({ ...base, fileName: `Memo Penerimaan - ${p.name}.xlsx`, sheets: buildMemoSheets(mi) });
-      if (res && res.sealed && res.sealId) setAcc({ memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
+      if (res && res.sealed && res.sealId && res.contentHash) setAcc({ memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
     } finally { setBusyMemo(false); }
   };
   const verifyMemo = async () => { if (a.memoSeal) setMemoVerify(await exportVerifySeal({ sealId: a.memoSeal.sealId, contentHash: a.memoSeal.contentHash })); };

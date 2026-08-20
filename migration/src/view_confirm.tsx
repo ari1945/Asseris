@@ -36,8 +36,7 @@ function CfDetailPanel(props: any) {
     const idDate = (s: string) => { const [y, m, d] = s.split('-'); return d + ' ' + ({ '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'Mei', '06': 'Jun', '07': 'Jul', '08': 'Agu', '09': 'Sep', '10': 'Okt', '11': 'Nov', '12': 'Des' } as Record<string, string>)[m] + ' ' + y; };
     amsExportPdf({
       kind: 'confirmation-letter', scope: 'engagement',
-      fileName: `Surat Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`,
-      firm: FIRM.name, title: 'Surat Permintaan Konfirmasi Pihak Ketiga (SA 505)',
+      fileName: `Surat Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`, title: 'Surat Permintaan Konfirmasi Pihak Ketiga (SA 505)',
       refNo: sel.id, meta: [sel.party, 'Metode ' + sel.method + ' · Kanal ' + sel.channel, 'Jatuh tempo ' + idDate(sel.due)],
       blocks: [
         { type: 'para', text: 'Kepada Yth. ' + sel.party },
@@ -55,9 +54,8 @@ function CfDetailPanel(props: any) {
           ['Jatuh Tempo', idDate(sel.due)],
         ] },
         { type: 'para', text: 'Mohon kirimkan respons langsung kepada kami melalui ' + sel.channel + '. Surat ini diterbitkan sesuai Standar Audit (SA) 505 — Konfirmasi Eksternal.' },
-        { type: 'signature', signers: [{ name: 'KAP Wijaya Hartono & Rekan', role: 'Akuntan Publik', at: idDate(sel.sent) }] },
-      ],
-    }).catch(() => {});
+        { type: 'signature', signers: [{ name: (AMS.FIRM as { name?: string }).name || '', role: 'Akuntan Publik', at: idDate(sel.sent) }] },
+      ]}).catch(() => {});
   };
 
   /* Program A sisa — wire tombol "Unduh" respons konfirmasi: PDF tersegel ringkasan respons
@@ -66,8 +64,7 @@ function CfDetailPanel(props: any) {
     const FIRM = AMS.FIRM;
     amsExportPdf({
       kind: 'confirmation-response', scope: 'engagement',
-      fileName: `Respons Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`,
-      firm: FIRM.name, title: 'Respons Konfirmasi Pihak Ketiga (SA 505)',
+      fileName: `Respons Konfirmasi - ${sel.id} - ${(sel.party || '').replace('PT ', '')}.pdf`, title: 'Respons Konfirmasi Pihak Ketiga (SA 505)',
       refNo: sel.id, meta: [sel.party, sel.type + ' · diterima +' + sel.days + ' hari'],
       blocks: [
         { type: 'para', text: 'Respons konfirmasi atas ' + sel.id + ' — ' + sel.party },
@@ -80,9 +77,8 @@ function CfDetailPanel(props: any) {
           ['Status', sel.status],
         ] },
         ...(sel.resp != null ? [{ type: 'para', text: 'Respons telah diterima dan divalidasi. Selisih dengan saldo per buku dievaluasi pada kertas kerja rekonsiliasi konfirmasi (SA 505).' }] : []),
-        { type: 'signature', signers: [{ name: 'KAP Wijaya Hartono & Rekan', role: 'Akuntan Publik', at: sel.sent }] },
-      ],
-    }).catch(() => {});
+        { type: 'signature', signers: [{ name: (AMS.FIRM as { name?: string }).name || '', role: 'Akuntan Publik', at: sel.sent }] },
+      ]}).catch(() => {});
   };
 
   return (

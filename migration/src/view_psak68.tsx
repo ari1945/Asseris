@@ -188,9 +188,8 @@ function PSAK68View() {
       ];
       const sensRows = (p68.sens || []).map((s: { label: string; v: number }) => [s.label, fmt(Math.round(s.v))]);
       await amsExportXlsx({
-        kind: 'psak68-kk-v1', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak68-kk-v1', scope: 'engagement',
         fileName: `KK V-1 Nilai Wajar (PSAK 68) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja V-1 — Pengukuran Nilai Wajar (PSAK 68) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 68 (IFRS 13)`,
           `Total nilai wajar ${fmt(Math.round(p68.total))} jt · Level 3 ${fmt(Math.round(p68.l3Total))} jt — Rp juta`],
@@ -203,8 +202,7 @@ function PSAK68View() {
             colWidths: [56, 16] },
           { name: 'Sensitivitas', heading: 'Analisis sensitivitas input tak teramati (Rp juta)',
             columns: ['Skenario', 'Dampak'], rows: sensRows, colWidths: [48, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

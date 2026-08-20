@@ -131,14 +131,12 @@ function Procurement() {
     await amsExportXlsx({
       kind: 'firm-procurement', scope: 'firm',
       fileName: 'Register Pengadaan & Vendor.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Register Vendor & Purchase Order',
       meta: [`${B.VENDORS.length} vendor master · ${B.PURCHASE_ORDERS.length} PO · belanja YTD ${AMS.fmt(hl.spendYtd / 1e9, 1)} M · HHI ${conc.hhi}`],
       sheets: [
         { name: 'Master Vendor', columns: ['ID', 'Vendor', 'Kategori', 'NPWP', 'Sejak', 'Belanja YTD', 'Share', 'SLA', 'Risiko', 'PMPJ', 'Status'], rows: vRows, colWidths: [10, 28, 16, 20, 8, 20, 8, 8, 10, 14, 12] },
         { name: 'Purchase Order', columns: ['No. PO', 'Nilai', 'Status'], rows: poRows, colWidths: [16, 20, 20] },
-      ],
-    });
+      ]});
   };
 
   return (

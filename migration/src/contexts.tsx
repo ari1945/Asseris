@@ -1470,7 +1470,60 @@ function AuditProvider({ children }: any) {
     <AuditContext.Provider value={audit}>
       {children}
       <ConflictToaster />
+      <ExportRefusalToaster />
     </AuditContext.Provider>
+  );
+}
+
+/* ============================================================
+   F-2 (prd-export-seal-identity-ssot) — penolakan yang TERLIHAT.
+
+   `amsExportPdf`/`amsExportXlsx` kini MENOLAK menerbitkan artefak yang tak dapat
+   menyebut penerbit & perikatannya. Menolak tanpa memberi tahu akan mengganti
+   satu kegagalan senyap (berkas tak tersegel yang tampak normal) dengan
+   kegagalan senyap lain (tombol yang tak melakukan apa-apa) — persis kelas cacat
+   yang PRD ini ada untuk menutupnya. Karena itu penolakan disiarkan dan
+   dirender, bukan sekadar dikembalikan sebagai nilai.
+
+   Menonaktifkan tombolnya lebih dulu (agar penolakan jadi langka) adalah
+   pekerjaan F-4; toaster ini jaring pengamannya, bukan penggantinya. */
+function ExportRefusalToaster() {
+  const [items, setItems] = React.useState([]);
+  const dismiss = React.useCallback((id: any) => setItems((l: any) => l.filter((t: any) => t.id !== id)), []);
+
+  React.useEffect(() => {
+    const onRefused = (ev: any) => {
+      const d = (ev && ev.detail) || {};
+      const id = (d.kind || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
+      setItems((l: any) => [...l.filter((t: any) => t.kind !== d.kind), { id, kind: d.kind, reason: d.reason }]);
+    };
+    window.addEventListener('ams:export-refused', onRefused);
+    return () => window.removeEventListener('ams:export-refused', onRefused);
+  }, []);
+
+  React.useEffect(() => {
+    if (!items.length) return undefined;
+    const timers = items.map((t: any) => setTimeout(() => dismiss(t.id), 12000));
+    return () => timers.forEach(clearTimeout);
+  }, [items, dismiss]);
+
+  if (!items.length) return null;
+  const wrap = { position: 'fixed', right: 18, bottom: 18, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 380 };
+  const card = { background: 'var(--surface,#fff)', border: '1px solid var(--line,#e3e6ea)', borderLeft: '3px solid var(--red,#c0392b)', borderRadius: 10, boxShadow: '0 8px 28px rgba(15,23,42,.16)', padding: '12px 14px', font: '13px/1.45 inherit', color: 'var(--ink,#1f2733)' };
+  const head = { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 };
+  const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 15, lineHeight: 1 };
+  return (
+    <div style={wrap} role="status" aria-live="polite" data-testid="export-refusal-toaster">
+      {items.map((t: any) => (
+        <div key={t.id} style={card} data-export-kind={t.kind}>
+          <div style={head}>
+            <span>Artefak tidak diterbitkan</span>
+            <button style={x} title="Tutup" aria-label="Tutup pesan" onClick={() => dismiss(t.id)}>×</button>
+          </div>
+          <div>{t.reason}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -134,7 +134,8 @@ function p71WpSignoffDefaults() {
    Rekonsiliasi & FS Generator. Tidak ada angka yang ditulis ulang.
    ============================================================ */
 function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
-  const FIRM: any = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+  /* Tanpa fallback literal: kertas kerja tak boleh mengarang nama firma. */
+  const FIRM: any = (AMS && AMS.FIRM) || { name: '', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak71', p71WpSignoffDefaults());
   const r0 = (x: any) => Math.round(x);
@@ -479,9 +480,8 @@ function PSAK71View() {
         ['CKPN akhir — audited', p71.ckpnAudited],
       ];
       await amsExportXlsx({
-        kind: 'psak71-kk-b7', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak71-kk-b7', scope: 'engagement',
         fileName: `KK B-7 ECL (PSAK 71) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja B-7 — ECL Piutang Usaha (PSAK 71) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 71 (IFRS 9) — pendekatan disederhanakan`,
           `Eksposur bruto ${fmt(p71.grossAudited)} · ECL model ${fmt(p71.eclModel)} · CKPN dibukukan ${fmt(p71.ckpnBooked)} — Rp juta`],
@@ -497,8 +497,7 @@ function PSAK71View() {
           { name: 'Mutasi CKPN', heading: 'Roll-forward CKPN — menutup ke WTB 1-1210 (Rp juta)',
             columns: ['Mutasi', 'Rp juta'], rows: mRows.map(r => [r[0], fmt(r[1] as number)]),
             totals: ['Selisih model vs audited', fmt(p71.auditVariance)], colWidths: [40, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

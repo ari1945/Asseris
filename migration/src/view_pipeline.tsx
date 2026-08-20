@@ -702,7 +702,6 @@ function Billing() {
                     if (!selInv) return;
                     amsExportPdf({
                       kind: 'invoice', scope: 'firm', fileName: `Faktur - ${selInv.id} - ${selInv.client}.pdf`,
-                      firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
                       title: 'Faktur Jasa Audit',
                       refNo: selInv.id,
                       meta: [selInv.client, selInv.eng + ' · ' + selInv.milestone, 'Status: ' + selInv.status],

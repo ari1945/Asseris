@@ -173,9 +173,8 @@ function PSAK16View() {
       const assetRows = reg.rows.map((r: any) => [r.tag, r.name + (r.fullyDep ? ' (tersusut penuh)' : ''), r.classLabel, r.acqYear, r.life ? r.life + ' th' : '—', rp(r.cost), r.accum ? rp(-r.accum) : '—', rp(r.nbv)]);
       const reconRows = reg.recon.map((r: any) => [r.label, r.code, rp(r.sub), rp(r.gl), r.ok ? '0' : rp(r.diff), r.ok ? 'Menutup' : 'Selisih']);
       await amsExportXlsx({
-        kind: 'fixed-asset-register', scope: 'engagement', scopeId: eng?.id,
+        kind: 'fixed-asset-register', scope: 'engagement',
         fileName: `Register Aset Tetap (KK-E) - ${client?.name || 'Klien'}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: `Register Aset Tetap — Kertas Kerja E (PSAK 16) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 16 / IAS 16`,
           `${reg.count} aset · rekonsiliasi sub-ledger ↔ GL: ${reg.reconciled ? 'MENUTUP' : 'SELISIH'} · saldo penuh dalam Rupiah`],
@@ -188,8 +187,7 @@ function PSAK16View() {
           { name: 'Rekonsiliasi GL',
             columns: ['Total Kontrol', 'Akun GL', 'Sub-ledger', 'GL (WTB)', 'Selisih', 'Status'],
             rows: reconRows, colWidths: [28, 12, 22, 22, 18, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
