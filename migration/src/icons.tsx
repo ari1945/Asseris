@@ -126,6 +126,7 @@ const MODULES = [
     { id: 'ethics',       label: 'Kode Etik & AML/PMPJ', icon: 'scale', tag: 'NEW', deep: true },
     { id: 'independence', label: 'Independensi Firma & Rotasi', icon: 'sync', deep: true },
     { id: 'hrcase',       label: 'Sanksi & Disiplin', icon: 'gavel', tag: 'NEW', deep: true },
+    { id: 'regref',       label: 'Data Referensi Regulatori', icon: 'scale', tag: 'NEW', deep: true },
   ]},
   { group: 'Keuangan Firma (ERP)', items: [
     { id: 'firmgl',       label: 'General Ledger', icon: 'ledger', deep: true },

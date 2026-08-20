@@ -9,9 +9,10 @@ import { Avatar, Badge, Btn, Panel, Stat, Switch, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import {
   TER_TABLE, annualReconciliation, payrollGlRows, payrollJournal, payrollJournalIds,
-  payrollPostCheck, terRate,
+  payrollPostCheck, terRateOn, terTableOn,
 } from './canon_pph21';
 import type { GlJournalRow } from './canon_pph21';
+import { BPJS_LABEL, bpjsContribution, bpjsRatesOn } from './canon_bpjs';
 
 /* ============================================================
    Asseris — HCM: Payroll (Penggajian)
@@ -29,13 +30,12 @@ type PSent = Record<string, { at: string; by: string }>;
    mendadak berubah tanpa jejak; `terSource` mengatakan mana yang dipakai. */
 function calcPayslip(p: any, R: any) {
   const base = p.gross + p.allowance;                     // penghasilan bruto
-  const kesBase = Math.min(p.gross, R.kesCap);
-  const jpBase = Math.min(p.gross, R.jpCap);
-  // employee deductions
-  const dKes = Math.round(kesBase * R.kesEmp);
-  const dJht = Math.round(p.gross * R.jhtEmp);
-  const dJp = Math.round(jpBase * R.jpEmp);
-  const look = terRate(p.ptkp, base);
+  /* PRD regulatory-reference-annual PR-2 — iuran BPJS lewat SATU pintu
+     (`canon_bpjs`), berkunci masa berlaku. Dulu rumusnya disalin di sini DAN di
+     `view_personal`, dengan batas upah yang tak pernah dicocokkan dengan masanya. */
+  const c = bpjsContribution(p.gross, R, R?.periodDate);
+  const { dKes, dJht, dJp } = c;
+  const look = terRateOn(p.ptkp, base, R?.periodDate);
   /* `ter` tersimpan hanya dipakai bila tabel belum dapat menjawab. Tanpa ini,
      59 baris payroll yang ditambahkan PR-4 (tanpa `ter`) menghasilkan NaN. */
   const ter = look.rate != null ? look.rate : (typeof p.ter === 'number' ? p.ter : null);
@@ -45,14 +45,11 @@ function calcPayslip(p: any, R: any) {
   const totalDed = dKes + dJht + dJp + pph;
   const net = base - totalDed;
   // employer contributions
-  const eKes = Math.round(kesBase * R.kesEr);
-  const eJht = Math.round(p.gross * R.jhtEr);
-  const eJp = Math.round(jpBase * R.jpEr);
-  const eJkk = Math.round(p.gross * R.jkkEr);
-  const eJkm = Math.round(p.gross * R.jkmEr);
+  const { eKes, eJht, eJp, eJkk, eJkm } = c;
   const employerCost = base + eKes + eJht + eJp + eJkk + eJkm;
   return { base, dKes, dJht, dJp, pph, totalDed, net, eKes, eJht, eJp, eJkk, eJkm, employerCost,
-    ter, terSource, terCategory: look.category, terVerified: look.verified, terNote: look.note };
+    ter, terSource, terCategory: look.category, terVerified: look.verified, terNote: look.note,
+    bpjsComputed: c.computed, bpjsBlocked: c.blocked, bpjsNote: c.note, bpjsVerified: c.status === 'ok' };
 }
 
 function Payroll() {
@@ -118,6 +115,42 @@ function Payroll() {
   const alreadyPosted = glRows.some((j) => j.id === posted.salary);
   const unverifiedTer = !TER_TABLE.verified;
 
+  /* GERBANG BPJS (PRD regulatory-reference-annual PR-2 · Q-3 = blokir yang
+     menyangkut uang). Batas upah BPJS disesuaikan tiap tahun; menghitung masa
+     yang tak dicakup registry akan menghasilkan potongan setiap pegawai atas
+     dasar tahun lain — dan itu tampil di slip gaji orangnya sendiri. Modul
+     menolak menghitung, bukan menghitung lalu menyesal. */
+  const bpjsGate = bpjsRatesOn(R, R?.periodDate);
+  /* TER hanya ada SEJAK 1 Januari 2024 (PMK 168/2023). Masa sebelumnya memakai
+     metode lain sama sekali; menghitungnya dengan tabel ini memberi angka yang
+     tampak sah di atas dasar yang belum ada (PR-3). */
+  const terGate = terTableOn(R?.periodDate);
+  const gate = bpjsGate.blocked ? bpjsGate : terGate.blocked ? terGate : null;
+  if (gate) {
+    return (
+      <>
+        <SubBar moduleId="payroll" right={<Badge kind="red">Perhitungan ditahan</Badge>} />
+        <div className="view-scroll"><div className="view-pad">
+          <Panel>
+            <div style={{ padding: 22, maxWidth: 760 }}>
+              <div className="row ac gap8" style={{ marginBottom: 8 }}>
+                <span style={{ color: 'var(--red)' }}><I.alert size={17} /></span>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>Penggajian {R?.period || ''} tidak dihitung</span>
+              </div>
+              <p className="tiny" style={{ lineHeight: 1.6, color: 'var(--ink-2)', margin: '0 0 10px' }}>{gate.note}</p>
+              <p className="tiny" style={{ lineHeight: 1.6, color: 'var(--ink-3)', margin: 0 }}>
+                {BPJS_LABEL} berubah tiap tahun. Menghitung masa ini dengan set tahun lain akan menggeser
+                potongan <b>setiap pegawai</b> — dan angkanya akan tampil di slip gaji mereka sendiri tanpa
+                penanda. Isi set yang berlaku untuk masa <span className="mono">{String(R?.periodDate || '—')}</span>{' '}
+                lebih dulu, lalu jalankan kembali.
+              </p>
+            </div>
+          </Panel>
+        </div></div>
+      </>
+    );
+  }
+
   return (
     <>
       <SubBar moduleId="payroll" right={<div className="row gap8 ac">
@@ -144,6 +177,15 @@ function Payroll() {
               agar mereproduksi tarif yang selama ini dipakai aplikasi — <b>bukan disalin dari Lampiran {TER_TABLE.basis}</b>.
               Mekanismenya (PTKP → kategori → lapisan → tarif) sudah benar dan terpusat; angka lapisannya harus diganti
               dengan Lampiran resmi sebelum dipakai menghitung pajak sesungguhnya.
+            </div>
+          </div>
+        )}
+        {bpjsGate.status === 'unverified' && (
+          <div className="panel" style={{ padding: '9px 12px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+            <div className="tiny" style={{ lineHeight: 1.5 }}>
+              <b>{BPJS_LABEL} belum diverifikasi.</b> {bpjsGate.note} Set yang dipakai berlaku{' '}
+              <span className="mono">{bpjsGate.set?.effectiveFrom} – {bpjsGate.set?.effectiveTo || 'seterusnya'}</span>;
+              dasarnya {bpjsGate.set?.basis}.
             </div>
           </div>
         )}

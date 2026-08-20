@@ -31,6 +31,8 @@
 
    Fungsi MURNI; tanpa React/state.
    ============================================================ */
+import { regrefFor } from './canon_regref';
+import type { RegRefSet } from './canon_regref';
 
 /* ------------------------------------------------------------------
    1. Kategori TER dari PTKP
@@ -155,6 +157,53 @@ export const TER_TABLE: TerTable = {
   ],
 };
 
+/* ------------------------------------------------------------------
+   2b. Registry bermasa berlaku (PRD regulatory-reference-annual PR-3)
+   ------------------------------------------------------------------ */
+
+/* TER, PTKP dan biaya jabatan berubah SAAT PMK-nya berubah — bukan tiap tahun,
+   tetapi juga bukan tak pernah. Sampai PR-3 ketiganya konstanta telanjang tanpa
+   masa berlaku, dan itu menyembunyikan kesalahan yang lebih tua daripada
+   "tabelnya usang": TER hanya ada SEJAK 1 Januari 2024. Menghitung masa 2023
+   dengan tabel ini bukan sekadar memakai angka yang salah — ia memakai METODE
+   yang belum ada. Bentuk lama melakukannya tanpa suara.
+
+   Registry ini TIDAK menyalin angka: `value` menunjuk objek yang sama dengan
+   `TER_TABLE`/`PTKP_ANNUAL`. Satu literal, dua nama, nol duplikasi. */
+
+export const TER_REGISTRY: RegRefSet<TerTable>[] = [{
+  effectiveFrom: '2024-01-01',
+  effectiveTo: null,
+  basis: 'PMK 168/PMK.03/2023 — berlaku sejak 1 Januari 2024',
+  sourceDoc: '',
+  verified: false,
+  note: TER_TABLE.note,
+  value: TER_TABLE,
+}];
+
+export const PTKP_REGISTRY: RegRefSet<Record<string, number>>[] = [{
+  effectiveFrom: '2016-01-01',
+  effectiveTo: null,
+  basis: 'PMK 101/PMK.010/2016 — PTKP berlaku sejak Tahun Pajak 2016',
+  sourceDoc: 'PMK 101/PMK.010/2016',
+  verified: true,
+  note: '',
+  value: PTKP_ANNUAL,
+}];
+
+export const TER_LABEL = 'Tarif Efektif Rata-rata (TER) PPh 21';
+export const PTKP_LABEL = 'Penghasilan Tidak Kena Pajak (PTKP)';
+
+/** Tabel TER yang berlaku pada `date`, atau penolakan. Ini pajak — `block`. */
+export function terTableOn(date: string | undefined | null) {
+  return regrefFor(TER_REGISTRY, String(date ?? ''), { label: TER_LABEL, enforcement: 'block' });
+}
+
+/** PTKP yang berlaku pada `date`, atau penolakan. */
+export function ptkpTableOn(date: string | undefined | null) {
+  return regrefFor(PTKP_REGISTRY, String(date ?? ''), { label: PTKP_LABEL, enforcement: 'block' });
+}
+
 export interface TerLookup {
   category: TerCategory | null;
   rate: number | null;
@@ -189,6 +238,34 @@ export function terRate(ptkp: string | undefined | null, bruto: number, table: T
   }
   const last = brackets[brackets.length - 1];
   return { category, rate: last.rate, bracketUpTo: last.upTo, verified: table.verified, note: table.verified ? '' : table.note };
+}
+
+export interface TerLookupOn extends TerLookup {
+  /** true = masa itu tak dicakup registry; konsumen WAJIB menolak menghitung. */
+  blocked: boolean;
+}
+
+/**
+ * Tarif TER untuk (PTKP, bruto) pada MASA tertentu.
+ *
+ * Beda dengan `terRate()`: yang ini bertanya lebih dulu apakah TER memang
+ * berlaku pada masa itu. TER baru ada sejak 1 Januari 2024; masa sebelumnya
+ * memakai metode lain sama sekali, dan menghitungnya dengan tabel ini akan
+ * memberi angka yang tampak sah atas dasar yang belum ada.
+ */
+export function terRateOn(
+  ptkp: string | undefined | null,
+  bruto: number,
+  date: string | undefined | null,
+): TerLookupOn {
+  const look = terTableOn(date);
+  if (!look.value) {
+    return {
+      category: terCategoryOf(ptkp), rate: null, bracketUpTo: null,
+      verified: false, note: look.note, blocked: look.blocked,
+    };
+  }
+  return { ...terRate(ptkp, bruto, look.value), blocked: false };
 }
 
 /* ------------------------------------------------------------------
@@ -243,6 +320,27 @@ export interface AnnualReconciliation {
 
 export const BIAYA_JABATAN_RATE = 0.05;
 export const BIAYA_JABATAN_CAP_ANNUAL = 6_000_000;
+
+export interface BiayaJabatan { rate: number; capAnnual: number }
+
+/** Biaya jabatan juga bermasa berlaku — ia berubah saat PMK-nya berubah (SC-6). */
+export const BIAYA_JABATAN_REGISTRY: RegRefSet<BiayaJabatan>[] = [{
+  effectiveFrom: '2009-01-01',
+  effectiveTo: null,
+  basis: 'PMK 250/PMK.03/2008 — biaya jabatan 5%, maksimal Rp 6.000.000/tahun',
+  sourceDoc: 'PMK 250/PMK.03/2008',
+  verified: true,
+  note: '',
+  value: { rate: BIAYA_JABATAN_RATE, capAnnual: BIAYA_JABATAN_CAP_ANNUAL },
+}];
+
+export const BIAYA_JABATAN_LABEL = 'Biaya jabatan';
+
+export function biayaJabatanOn(date: string | undefined | null) {
+  return regrefFor(BIAYA_JABATAN_REGISTRY, String(date ?? ''), {
+    label: BIAYA_JABATAN_LABEL, enforcement: 'block',
+  });
+}
 
 /**
  * Rekonsiliasi tahunan masa Desember.

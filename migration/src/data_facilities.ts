@@ -2,14 +2,16 @@
 import { AMS } from './data';
 import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
+import { assetsAt, activeAssets, danglingDisposals, depreciate as depreciateOne, duplicateCandidates, rollForward as rollForwardAssets, type DisposalRef } from './data_fixedassets';
 
 /* ============================================================
    Asseris — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)
    ------------------------------------------------------------
-   Register aset fasilitas (BO.FIXED_ASSETS) = sub-ledger PSAK 16
-   tunggal untuk aset kantor. Lapisan ini TIDAK menyimpan angka kedua —
+   Register aset fasilitas = sub-ledger PSAK 16/19 TUNGGAL untuk aset kantor
+   (`data_fixedassets.ts`). Lapisan ini TIDAK menyimpan angka kedua —
    ia MENURUNKAN tiap nilai dari pemilik datanya dengan SATU mesin:
-     · Penyusutan & NBV      ← mesin garis lurus PSAK 16 (ref 1 Mar 2026)
+     · Penyusutan & NBV      ← mesin garis lurus di `data_fixedassets`
+                               (PRD firm-erp-deepening PR-1; ref = AMS.TODAY)
      · Pemeliharaan & K3      ← BO.MAINTENANCE (vendorId → master vendor)
      · Lisensi & langganan    ← BO.SOFTWARE_LICENSES (vendor → master + Legal)
      · Sewa kantor (PSAK 73)  ← V-024 + registri kontrak Legal (OPS-LEASE)
@@ -21,44 +23,40 @@ import { LEGAL } from './data_legal';
    fasilitas direkonsiliasi ke kontrol GL & dijembatani ke register ERP.
    ============================================================ */
 const FAC = (function () {
-  const REF = new Date('2026-03-01');
+  /* K-02 — klok SSOT. DULU `new Date('2026-03-01')`: literal beku yang membuat
+     lapisan ini menjawab berbeda dari modul mana pun yang memakai AMS.TODAY. */
+  const REF = new Date(AMS.TODAY);
   const sum = (a: any, f: any) => a.reduce((s: any, x: any) => s + f(x), 0);
   const R = Math.round;
 
-  /* ---------- mesin penyusutan garis lurus (PSAK 16) ---------- */
-  function depreciate(a: any) {
-    const start = new Date(a.acq);
-    const months = Math.max(0, Math.min(a.life * 12, (REF.getFullYear() - start.getFullYear()) * 12 + (REF.getMonth() - start.getMonth())));
-    const monthly = a.cost / (a.life * 12);
-    const accDep = R(monthly * months);
-    const nbv = a.cost - accDep;
-    return { ...a, months, monthly, accDep, nbv, pct: months / (a.life * 12), annualDep: R(monthly * 12), fullyDep: months >= a.life * 12 };
-  }
+  /* ---------- mesin penyusutan: DIPINJAM, bukan disalin ----------
+     PRD firm-erp-deepening PR-1 — berkas ini dulu membawa SALINAN KETIGA mesin
+     garis lurus (setelah `view_firmtreasury` dan perhitungan di `data_firmops`).
+     Tiga salinan atas dua register yang berbeda = empat jawaban untuk satu
+     pertanyaan. Kini satu mesin, satu register. */
+  function depreciate(a: any) { return depreciateOne(a, REF); }
   function depRows(list?: any) { return (list || BO.FIXED_ASSETS || []).map(depreciate); }
 
   /* ---------- register & total ---------- */
   function register() {
-    const rows = depRows();
-    const totCost = sum(rows, (r: any) => r.cost);
-    const totAcc = sum(rows, (r: any) => r.accDep);
-    const totNbv = sum(rows, (r: any) => r.nbv);
-    const totAnnual = sum(rows.filter((r: any) => !r.fullyDep), (r: any) => r.annualDep);
-    const byCat = Object.values(rows.reduce((m: any, r: any) => {
-      (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 });
-      m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n += r.qty || 1; return m;
-    }, {})).sort((a: any, b: any) => b.cost - a.cost);
-    return { rows, totCost, totAcc, totNbv, totAnnual, byCat };
+    /* PSAK 16 ¶67 — aset yang pelepasannya SELESAI dihentikan pengakuannya dan
+       keluar dari register aktif. Pada seed sekarang tak ada satu pun (pelepasan
+       yang selesai menunjuk aset di luar register), jadi ini nol-delta — tetapi
+       mekanismenya kini ADA, sehingga roll-forward tak pecah saat pelepasan
+       pertama yang sah terjadi. */
+    const reg = assetsAt(REF, activeAssets((BO.DISPOSALS || []) as DisposalRef[]));
+    const byCat = reg.byClass.map((c) => ({
+      cat: c.cat, cost: c.cost, nbv: c.nbv,
+      n: reg.rows.filter((r) => r.cat === c.cat).reduce((s, r) => s + (r.qty || 1), 0),
+    }));
+    return { rows: reg.rows, totCost: reg.totCost, totAcc: reg.totAccDep, totNbv: reg.totNbv, totAnnual: reg.totAnnualDep, byCat };
   }
 
-  /* ---------- roll-forward NBV (12 bln ke ref) ---------- */
+  /* ---------- roll-forward NBV (12 bln ke ref) ----------
+     Mesinnya ada di `data_fixedassets.rollForward` — SATU tempat, dipakai juga
+     modul Aset Tetap. Lihat komentar di sana untuk alasan tiap komponen. */
   function rollForward() {
-    const r = register();
-    const capex = sum(depRows().filter((a: any) => new Date(a.acq) >= new Date('2025-03-01')), (a: any) => a.cost);
-    const disposalNbv = sum(BO.DISPOSALS || [], (d: any) => d.nbv);
-    const depreciation = r.totAnnual;
-    const closing = r.totNbv;
-    const opening = closing - capex + depreciation + disposalNbv;
-    return { opening, capex, depreciation, disposalNbv, closing };
+    return rollForwardAssets(REF, (BO.DISPOSALS || []) as DisposalRef[]);
   }
 
   /* ---------- pemeliharaan & K3 (kalender) ---------- */
@@ -127,11 +125,22 @@ const FAC = (function () {
       .map((r: any) => ({ ...r, capCat: /kursi|furnitur/i.test(r.desc) ? 'Furnitur' : /scanner|server|laptop|perangkat/i.test(r.desc) ? 'Perangkat TI' : r.budgetCat }));
   }
 
-  /* ---------- register ERP (AMS.FIXED_ASSETS) untuk jembatan ---------- */
+  /* ---------- register ERP ----------
+     PR-1: `AMS.FIXED_ASSETS` dan `BO.FIXED_ASSETS` kini daftar yang SAMA, jadi
+     fungsi ini mengembalikan register yang sama pula. Ia dipertahankan karena
+     `view_facilities2` memakainya — dan supaya identitas itu TERUJI, bukan
+     diasumsikan. */
   function erpRegister() {
     const list = (AMS && (AMS as any).FIXED_ASSETS) || [];
     const rows = list.map(depreciate);
     return { rows, totCost: sum(rows, (r: any) => r.cost), totNbv: sum(rows, (r: any) => r.nbv), n: rows.length };
+  }
+
+  /* Akun kontrol aset tetap di buku besar firma. */
+  function glControl() {
+    const coa = ((AMS as any).FIRM_COA || []) as Array<{ code: string; bal: number }>;
+    const a = coa.find((x) => x.code === '1-400');
+    return a ? a.bal : 0;
   }
 
   /* ---------- rekonsiliasi sub-ledger → kontrol + jembatan lintas-modul ---------- */
@@ -142,6 +151,9 @@ const FAC = (function () {
     const lic = licenses(firm);
     const annualOps = (window.FIRMOPS && window.FIRMOPS.annualDepreciation) ? window.FIRMOPS.annualDepreciation() : r.totAnnual;
     const licMapped = lic.filter((l: any) => l.vendorId).length;
+    const glNbv = glControl();
+    const dups = duplicateCandidates();
+    const dangling = danglingDisposals((BO.DISPOSALS || []) as DisposalRef[]);
 
     return [
       {
@@ -149,20 +161,55 @@ const FAC = (function () {
         a: 'Perolehan − akumulasi', av: r.totCost - r.totAcc, b: 'Σ NBV register', bv: r.totNbv,
         note: 'NBV diturunkan satu mesin garis lurus (PSAK 16) — bukan angka yang diketik. Identitas akuntansi menutup per aset.',
       },
+      /* DULU baris ini berbunyi `av: r.totNbv, bv: r.totNbv, ok: true` dengan
+         catatan "totalnya menjadi rincian saldo akun kontrol" — ia MEMBANDINGKAN
+         ANGKA DENGAN DIRINYA SENDIRI dan mustahil merah. Kini sisi kanan adalah
+         saldo akun `1-400` yang sesungguhnya. */
       {
-        id: 'gl', title: 'Sub-Ledger Aset ↔ Kontrol GL', ok: true, to: 'firmgl',
-        a: 'Σ NBV register (sub-ledger)', av: r.totNbv, b: 'Akun kontrol Aset Tetap', bv: r.totNbv,
-        note: 'Register fasilitas adalah buku besar pembantu aset tetap; totalnya menjadi rincian saldo akun kontrol di General Ledger.',
+        id: 'gl', title: 'Sub-Ledger Aset ↔ Kontrol GL', ok: Math.abs(glNbv - r.totNbv) < 1_000_000, to: 'firmgl',
+        a: 'Σ NBV register (sub-ledger)', av: r.totNbv, b: 'Kontrol 1-400 Aset Tetap — neto', bv: glNbv,
+        note: Math.abs(glNbv - r.totNbv) < 1_000_000
+          ? 'Register adalah buku besar pembantu aset tetap dan totalnya menutup ke saldo akun kontrol.'
+          : 'Saldo kontrol 1-400 (Rp ' + AMS.fmt(glNbv / 1e6, 0) + ' jt) TIDAK diturunkan dari register mana pun — ia literal. Selisih Rp '
+            + AMS.fmt((glNbv - r.totNbv) / 1e6, 0) + ' jt belum dijelaskan. Pemisahan akun bruto/akumulasi & pembukuan beban penyusutan: PR-2.',
       },
+      /* Sesudah PR-1 kedua sisi berasal dari register yang sama, jadi baris ini
+         nyaris tautologi — ia dipertahankan sebagai penjaga regresi (kalau ada
+         yang menyalin mesinnya lagi, ia memerah). Gerbang yang SESUNGGUHNYA
+         berisiko ditambahkan di bawah: beban penyusutan vs laba rugi. */
       {
         id: 'dep', title: 'Penyusutan ↔ Biaya Operasi', ok: r.totAnnual === annualOps, to: 'firmops',
-        a: 'Run-rate penyusutan (FAC)', av: r.totAnnual, b: 'Beban penyusutan (FIRMOPS)', bv: annualOps,
+        a: 'Run-rate penyusutan (register)', av: r.totAnnual, b: 'Beban penyusutan (FIRMOPS)', bv: annualOps,
         note: 'Run-rate penyusutan mengisi pos overhead di Komposisi Biaya Operasi (Cockpit) → Laba Rugi KAP & rekonsiliasi fiskal.',
       },
+      /* Baris ini dulu berbunyi `ok: false` dengan catatan "Direkomendasikan
+         konsolidasi ke satu master aset". PR-1 MELAKUKAN konsolidasi itu; baris
+         ini kini menjaga agar ia tak terpecah lagi. */
       {
-        id: 'erp', title: 'Register Fasilitas ↔ Register ERP', ok: false, to: 'fixedassets', isCount: true,
+        id: 'erp', title: 'Register Fasilitas ↔ Register ERP (konsolidasi)', ok: r.rows.length === erp.n && r.totNbv === erp.totNbv, to: 'fixedassets', isCount: true,
         a: 'Register fasilitas (custody)', av: r.rows.length, b: 'Register ERP (akuntansi)', bv: erp.n,
-        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + AMS.fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
+        note: r.rows.length === erp.n && r.totNbv === erp.totNbv
+          ? 'Satu master aset — modul Fasilitas & modul Aset Tetap membaca register yang SAMA (NBV Rp ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt). Dulu dua daftar terpisah tanpa satu pun aset beririsan.'
+          : 'Register terpecah lagi: fasilitas ' + r.rows.length + ' aset (Rp ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP ' + erp.n + ' aset (Rp ' + AMS.fmt(erp.totNbv / 1e6, 0) + ' jt).',
+      },
+      /* Kandidat pencatatan ganda hasil penggabungan — DITANDAI, bukan dihapus. */
+      {
+        id: 'dup', title: 'Kandidat Pencatatan Ganda', ok: dups.length === 0, to: 'fixedassets', isCount: true,
+        a: 'Pasangan ditandai', av: dups.length, b: 'Total aset', bv: r.rows.length,
+        note: dups.length === 0
+          ? 'Tak ada pasangan lintas-register yang sekelas dan berdekatan tanggal perolehan.'
+          : dups.length + ' pasangan sekelas & diperoleh dalam 90 hari berasal dari dua register asal yang berbeda — mungkin aset fisik yang sama tercatat dua kali (nilai gabungan Rp '
+            + AMS.fmt(dups.reduce((s, d) => s + d.combinedCost, 0) / 1e6, 0) + ' jt). Keputusan ada di firma; sistem tidak menghapus diam-diam.',
+      },
+      /* Pelepasan yang menunjuk aset di luar register — gagal DIAM-DIAM sebelum
+         PR ini, persis seperti akun hantu `1-2100`. */
+      {
+        id: 'disp', title: 'Pelepasan ↔ Register Aset', ok: dangling.length === 0, to: 'facilities', isCount: true,
+        a: 'Pelepasan menggantung', av: dangling.length, b: 'Total usulan pelepasan', bv: (BO.DISPOSALS || []).length,
+        note: dangling.length === 0
+          ? 'Setiap usulan pelepasan menunjuk aset yang ada di register.'
+          : dangling.length + ' usulan pelepasan menunjuk aset yang TIDAK ADA di register (' + dangling.map((d) => d.id + '→' + d.assetId).join(', ')
+            + '). Selama referensinya menggantung, penghentian pengakuan PSAK 16 ¶67 tak dapat dibukukan dan roll-forward tak dapat memperhitungkannya.',
       },
       {
         id: 'maint', title: 'Vendor Pemeliharaan ↔ Master Vendor', ok: mt.masterLinked > 0, to: 'procurement', isCount: true,

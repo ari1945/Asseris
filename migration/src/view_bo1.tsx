@@ -165,12 +165,14 @@ function ProcurementLegacy() {
 function FacilitiesLegacy() {
   const B = BO;
   const [tab, setTab] = useStateBO1('register');
-  const totCost = B.FIXED_ASSETS.reduce((s: any, a: any) => s + a.cost, 0);
-  const totNbv = B.FIXED_ASSETS.reduce((s: any, a: any) => s + a.nbv, 0);
+  /* PR-1 — register tunggal & turunan; `nbv` bukan lagi kolom seed. */
+  const assetRows = B.ASSET_REGISTER.rows;
+  const totCost = B.ASSET_REGISTER.totCost;
+  const totNbv = B.ASSET_REGISTER.totNbv;
   const totSeats = B.SPACE.reduce((s: any, f: any) => s + f.seats, 0);
   const totOcc = B.SPACE.reduce((s: any, f: any) => s + f.occ, 0);
   const tabs = [
-    { id: 'register', label: 'Register Aset', count: B.FIXED_ASSETS.length },
+    { id: 'register', label: 'Register Aset', count: assetRows.length },
     { id: 'maint', label: 'Pemeliharaan & K3', count: B.MAINTENANCE.length },
     { id: 'license', label: 'Lisensi Software', count: B.SOFTWARE_LICENSES.length },
     { id: 'space', label: 'Ruang & Okupansi' },
@@ -191,7 +193,7 @@ function FacilitiesLegacy() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Aset</th><th>Kategori</th><th className="num">Qty</th><th className="num">Perolehan</th><th className="num">NBV</th><th>Lokasi</th><th>Status</th></tr></thead>
               <tbody>
-                {B.FIXED_ASSETS.map((a: any) => (
+                {assetRows.map((a: any) => (
                   <tr key={a.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
                     <td><div style={{ fontWeight: 600, fontSize: 12 }}>{a.name}</div><div className="tiny muted mono">akuisisi {a.acq} · umur {a.life} thn</div></td>

@@ -144,53 +144,85 @@ describe('SC-11 — materi wajib terlacak, atau dinyatakan belum terbukti', () =
 });
 
 /* ------------------------------------------------------------------
-   3. CACAT TERSISA — DUA REGISTER SKP (ditemukan saat PR-3)
+   3. SC-24a — SATU register SKP (dulu dua)
    ------------------------------------------------------------------ */
 
-/* PR-3 menyatukan MESIN-nya. Ia TIDAK menyatukan REGISTER-nya, dan saat
-   mengerjakannya ketahuan bahwa registernya memang ada dua:
+/* PR-3 menyatukan MESIN-nya dan, sambil mengerjakannya, membuktikan bahwa
+   REGISTER-nya ada dua:
 
-     CPE_LOG    (data_part1)  per-kegiatan, berkunci empId  → CPE/PPL Tracker · pplOf
-     PPPK_PPL   (data_part4)  agregat s/u,  berkunci NAMA   → Kesiapan P2PK
+     CPE_LOG    (data_part1)  per-kegiatan, berkunci empId  -> CPE/PPL Tracker · pplOf
+     PPPK_PPL   (data_part4)  agregat s/u,  berkunci NAMA   -> Kesiapan P2PK
 
-   Keempat orang yang ada di kedua register punya angka BERBEDA. Sebelum PR-3
-   keduanya kebetulan menampilkan 32 untuk Anindya — Tracker menjumlah mentah
-   18+14, P2PK menghitung 22+min(10,10) — sehingga perbedaannya tak terlihat.
-   Setelah mesinnya dibetulkan, Tracker menunjukkan 28 dan perbedaan register
-   ini MUNCUL ke permukaan. Itu perbaikan: ia nyata, dan sekarang terlihat.
+   Kelima orang di register kedua punya angka BERBEDA dari register pertama:
+   Hartono 32 vs 24 · Rudi 30 vs 18 · Sari 28 vs 31 · Anindya 32 vs 28 · dan
+   Bayu 24 vs NOL, karena ia tak punya satu pun catatan SKP. Sebelum PR-3
+   keduanya kebetulan sama-sama 32 untuk Anindya, sehingga tak terlihat.
 
-   Uji ini MEMAKU keadaan itu supaya tidak terlupakan — bukan merestuinya. */
-const DUA_REGISTER: Record<string, { cpeLog: number; pppk: number }> = {
-  'Hartono Wijaya': { cpeLog: 24, pppk: 32 },
-  'Rudi Gunawan': { cpeLog: 18, pppk: 30 },
-  'Sari Dewanti': { cpeLog: 31, pppk: 28 },
-  'Anindya Pramesti': { cpeLog: 28, pppk: 32 },
+   SC-24a mencabut register kedua. `PPPK_PPL` kini POPULASI saja — siapa yang
+   dilaporkan — dan angkanya dibaca lewat `LICENSING.pplOf` dari register yang
+   sama dengan pemantauan harian. Uji ini menjaga agar angka kedua tak lahir
+   kembali dalam bentuk apa pun. */
+
+/** Angka yang kini ditampilkan Kesiapan P2PK — sama persis dgn Tracker. */
+const SATU_REGISTER: Record<string, number> = {
+  'EMP-001': 24, 'EMP-002': 18, 'EMP-003': 31, 'EMP-007': 28, 'EMP-008': 0,
 };
 
-describe('cacat tersisa — dua register SKP untuk satu firma', () => {
-  const PPPK = (AMS as unknown as { PPPK_PPL: { ap: string; structured: number; unstructured: number }[] }).PPPK_PPL;
-  const STAFF = AMS.STAFF as unknown as { id: string; name: string }[];
+type PppkRow = { emp: string; ap: string; grade: string };
 
-  it('kedua register memakai mesin yang sama — perbedaannya DATA, bukan hitungan', () => {
-    for (const [nama, exp] of Object.entries(DUA_REGISTER)) {
-      const emp = STAFF.find((s) => s.name === nama);
-      const row = PPPK.find((p) => p.ap === nama);
-      expect(emp, nama).toBeTruthy();
-      expect(row, nama).toBeTruthy();
-      expect(pplStatusFromEntries(CPE_LOG[emp!.id]).countedTotal, nama).toBe(exp.cpeLog);
-      expect(pplStatus({ structured: row!.structured, unstructured: row!.unstructured }).countedTotal, nama).toBe(exp.pppk);
+describe('SC-24a — satu register SKP untuk satu firma', () => {
+  const PPPK = (AMS as unknown as { PPPK_PPL: PppkRow[] }).PPPK_PPL;
+  const STAFF = AMS.STAFF as unknown as { id: string; name: string; grade: string; cert?: string }[];
+
+  it('PPPK_PPL berkunci empId — bukan nama', () => {
+    expect(PPPK.length).toBeGreaterThan(0);
+    for (const row of PPPK) {
+      expect(typeof row.emp, row.ap).toBe('string');
+      expect(STAFF.find((s) => s.id === row.emp), row.emp).toBeTruthy();
     }
   });
 
-  it('keempatnya memang BERBEDA — kalau suatu saat sama, register sudah disatukan', () => {
-    const beda = Object.entries(DUA_REGISTER).filter(([, v]) => v.cpeLog !== v.pppk).map(([k]) => k);
-    expect(beda).toHaveLength(4);
+  it('PPPK_PPL tidak lagi membawa realisasi SENDIRI — register kedua dicabut', () => {
+    for (const row of PPPK) {
+      expect(row, row.emp).not.toHaveProperty('structured');
+      expect(row, row.emp).not.toHaveProperty('unstructured');
+    }
   });
 
-  it('PPPK_PPL berkunci NAMA, bukan empId — itu akar penyatuannya nanti', () => {
+  it('identitas & jenjang DITURUNKAN dari roster, tidak diketik ulang', () => {
     for (const row of PPPK) {
-      expect(row).not.toHaveProperty('emp');
-      expect(typeof row.ap).toBe('string');
+      const s = STAFF.find((x) => x.id === row.emp)!;
+      expect(row.ap, row.emp).toBe(s.name);
+      const punyaAP = String(s.cert || '').split(',').map((c) => c.trim()).includes('AP');
+      expect(row.grade, row.emp).toBe(s.grade + (punyaAP ? ' · AP' : ''));
+    }
+  });
+
+  it('laporan PPPK dan pemantauan harian membaca ANGKA YANG SAMA', async () => {
+    const { LICENSING } = await import('./data_licensing') as unknown as
+      { LICENSING: { pplOf: (id: string) => { total: number; recs: SkpEntry[] } } };
+    for (const row of PPPK) {
+      const dariRegister = pplStatusFromEntries(CPE_LOG[row.emp]).countedTotal;
+      expect(LICENSING.pplOf(row.emp).total, row.emp).toBe(dariRegister);
+      expect(dariRegister, row.emp).toBe(SATU_REGISTER[row.emp]);
+    }
+  });
+
+  it('NOL SKP karena tak ada catatan dapat dibedakan dari nol yang terhitung', async () => {
+    const { LICENSING } = await import('./data_licensing') as unknown as
+      { LICENSING: { pplOf: (id: string) => { total: number; recs: SkpEntry[] } } };
+    /* Bayu Saputra tak punya entri sama sekali. Angkanya nol, dan sebabnya
+       harus dapat dinyatakan — bukan disamarkan menjadi "belum memenuhi". */
+    expect(LICENSING.pplOf('EMP-008').recs).toHaveLength(0);
+    expect(LICENSING.pplOf('EMP-008').total).toBe(0);
+    expect(LICENSING.pplOf('EMP-001').recs.length).toBeGreaterThan(0);
+  });
+
+  it('populasi AP mencerminkan register izin — tak ada AP yang hilang dari laporan', async () => {
+    const { BO } = await import('./data_backoffice') as unknown as
+      { BO: { AP_LICENSES: { emp: string }[] } };
+    for (const lic of BO.AP_LICENSES) {
+      expect(PPPK.map((r) => r.emp), lic.emp).toContain(lic.emp);
     }
   });
 });
@@ -205,7 +237,7 @@ const read = (f: string) => readFileSync(join(SRC, f), 'utf8')
   .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 /** Setiap pembaca SKP. Menambah pembaca? Daftarkan di sini. */
-const KONSUMEN = ['view_people.tsx', 'data_licensing.ts', 'view_pppk.tsx'];
+const KONSUMEN = ['view_people.tsx', 'data_licensing.ts', 'view_pppk.tsx', 'view_isqm_parts.tsx'];
 
 describe('gerbang cakupan — satu mesin PPL, nol penjumlah mentah', () => {
   it.each(KONSUMEN)('%s masuk lewat canon_ppl', (f) => {
@@ -216,6 +248,20 @@ describe('gerbang cakupan — satu mesin PPL, nol penjumlah mentah', () => {
     for (const f of KONSUMEN) {
       /* pola lama: `recs.reduce((a, r) => a + r.skp, 0)` */
       expect(read(f), f).not.toMatch(/reduce\(\([^)]*\)\s*=>\s*\w+\s*\+\s*\(?\w+\.skp/);
+    }
+  });
+
+  it('SC-24a — register SKP kedua tak dapat lahir kembali di data_part4', () => {
+    /* Komentar dibuang oleh `read`, jadi ini menguji KODE. Menaruh kembali
+       `structured`/`unstructured` pada baris PPPK berarti dua angka lagi. */
+    expect(read('data_part4.ts')).not.toContain('unstructured');
+    expect(read('data_part4.ts')).toContain('PPPK_PPL_POP');
+  });
+
+  it('SC-24a — konsumen PPPK tak merakit realisasi dari barisnya sendiri', () => {
+    for (const f of ['view_pppk.tsx', 'view_isqm_parts.tsx']) {
+      expect(read(f), f).not.toContain('p.structured');
+      expect(read(f), f).toContain('pplOf(');
     }
   });
 

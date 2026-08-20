@@ -36,9 +36,13 @@ import { LEGAL } from './data_legal';
   ];
 
   /* ---------- penyusutan tahunan aset tetap (PSAK 16, garis lurus) ----------
-     run-rate = Σ (harga perolehan / umur manfaat) untuk aset yang masih dipakai. */
+     PRD firm-erp-deepening PR-1 — dulu fungsi ini menghitung ulang sendiri di
+     atas register GA saja (`Σ cost/life` untuk baris ber-`nbv > 0`), sehingga
+     ia menjawab BERBEDA dari modul `fixedassets` yang menghitung di atas
+     register Keuangan. Satu register sekarang, satu jawaban: `totAnnualDep`
+     dari `ASSET_REGISTER` (yang juga sudah menihilkan aset habis umur). */
   function annualDepreciation() {
-    return Math.round(sum(BO.FIXED_ASSETS.filter((a: any) => a.nbv > 0), (a: any) => a.cost / a.life));
+    return BO.ASSET_REGISTER.totAnnualDep;
   }
 
   /* ---------- komposisi biaya operasi backoffice (run-rate, sumber sub-ledger) ----------
