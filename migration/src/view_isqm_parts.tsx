@@ -4,7 +4,8 @@ import { AMS } from './data';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import { I } from './icons';
 import { Badge } from './ui';
-import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
+import { PPL_REQ_PMK186 } from './canon_ppl';
+import { LICENSING } from './data_licensing';
 import { componentMetrics, coverageText, COMPONENT_STATUS_LABEL } from './canon_smm_component_metrics';
 import { objectiveCoverage, coverageByComponent, type ObjectiveLinkedRisk, type ObjectiveWaiver } from './canon_smm_objectives';
 import { evaluateSmm } from './canon_smm_evaluation';
@@ -45,8 +46,10 @@ function soqmPull() {
   const rotationDue = (A.INDEPENDENCE || []).filter((i: any) => i.tenure >= i.rotationLimit);
   const undeclared = (A.INDEPENDENCE || []).filter((i: any) => !i.declared);
 
-  /* Sumber Daya · realisasi PPL terstruktur dari PPPK */
-  const pplShort = (A.PPPK_PPL || []).filter((p: any) => !pplStatus({ structured: p.structured, unstructured: p.unstructured }).compliant);
+  /* Sumber Daya · realisasi PPL terstruktur — SC-24a: dari register SKP tunggal
+     (`LICENSING.pplOf` → `canon_ppl`), bukan dari angka yang dulu dititipkan pada
+     baris `PPPK_PPL` sendiri. Populasi tetap datang dari `PPPK_PPL`; angkanya tidak. */
+  const pplShort = (A.PPPK_PPL || []).filter((p: any) => !LICENSING.pplOf(p.emp).status.compliant);
 
   /* Penyedia jasa eksternal & teknologi dari register penyedia */
   const providerWatch = (A.QM_PROVIDERS || []).filter((p: any) => p.status !== 'Memadai');

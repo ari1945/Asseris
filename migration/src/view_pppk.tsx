@@ -6,7 +6,8 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { OKv } from './view_onboarding';
-import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
+import { PPL_REQ_PMK186 } from './canon_ppl';
+import { LICENSING } from './data_licensing';
 
 /* ============================================================
    Asseris — Pelaporan PPPK (P2PK Kemenkeu)
@@ -31,7 +32,13 @@ function PPPKReport() {
   const ready = R.sections.filter((s: any) => s.status === 'Lengkap').length;
   const daysLeft = Math.round((+new Date(R.dueDate) - +new Date(AMS.TODAY)) / 864e5);
   const rotationDue = rotation.filter((r: any) => r.status === 'Wajib Rotasi').length;
-  const pplOk = ppl.filter((p: any) => pplStatus({ structured: p.structured, unstructured: p.unstructured }).compliant).length;
+  /* SC-24a — realisasi PPL dibaca dari register SKP yang SAMA dengan pemantauan
+     harian (`CPE_LOG` + entri user terpersist + kredit pelatihan), lewat
+     `LICENSING.pplOf` → `canon_ppl`. Sebelumnya baris `PPPK_PPL` membawa
+     `structured`/`unstructured` sendiri: register kedua yang berbeda dari
+     register pertama untuk kelima orangnya. */
+  const pplOf = (emp: string) => LICENSING.pplOf(emp);
+  const pplOk = ppl.filter((p: any) => pplOf(p.emp).status.compliant).length;
   const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   const tabs = [
@@ -134,7 +141,9 @@ function PPPKReport() {
               <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)', maxWidth: 760 }}>Kewajiban PPL berkelanjutan (<b>{PPL_REQ_PMK186.basis}</b>): <b>{PPL_REQ_PMK186.annual} SKP/tahun</b>, minimal <b>{PPL_REQ_PMK186.structuredMin} SKP terstruktur</b> dan maksimal <b>{PPL_REQ_PMK186.unstructuredCap} SKP tidak terstruktur</b>. Di dalam yang terstruktur wajib ada <b>{PPL_REQ_PMK186.topicPembinaanMin} SKP</b> pembinaan/pengawasan AP-KAP dan <b>{PPL_REQ_PMK186.topicAkuntansiMin} SKP</b> akuntansi/jasa asurans. Kelebihan dapat dibawa ke tahun berikutnya maksimal {PPL_REQ_PMK186.carryForwardCap} SKP; laporan realisasi disampaikan paling lambat akhir Januari tahun berikutnya.</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {ppl.map((p: any, i: any) => {
-                  const st = pplStatus({ structured: p.structured, unstructured: p.unstructured });
+                  const r = pplOf(p.emp);
+                  const st = r.status;
+                  const noRecords = !r.recs.length;
                   const okTotal = !st.shortfalls.includes('total');
                   const okStr = !st.shortfalls.includes('structured');
                   const ok = st.compliant;
@@ -154,6 +163,13 @@ function PPPKReport() {
                           <Progress value={st.structured / PPL_REQ_PMK186.structuredMin * 100} color={okStr ? 'var(--green)' : 'var(--amber)'} />
                         </div>
                       </div>
+                      {/* NOL SKP karena tak ada catatan ≠ nol SKP karena tak hadir. Angka
+                          yang sama membutuhkan sebab yang berbeda, maka sebabnya dinyatakan. */}
+                      {noRecords && (
+                        <div className="tiny" style={{ marginTop: 7, color: 'var(--amber)', fontWeight: 600 }}>
+                          <I.alert size={11} /> Belum ada satu pun catatan SKP atas nama ini di register (<span onClick={() => nav('cpe', { from: 'pppk' })} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>CPE / PPL Tracker</span>) — 0 SKP di sini berarti belum tercatat, bukan sudah dinilai nol.
+                        </div>
+                      )}
                       {/* Batas atas tidak terstruktur: kelebihannya HANGUS, tidak menambal
                           kekurangan terstruktur. Sebelumnya ia diam-diam ikut ke "total". */}
                       {st.forfeitedUnstructured > 0 && (
