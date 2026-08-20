@@ -225,7 +225,17 @@ describe('gerbang sumber', () => {
     const jsx = kode('view_profit.tsx');
     expect(jsx).not.toMatch(/REALIZATION/);
     expect(jsx).not.toMatch(/RATE_CARD|DEFAULT_MIX/);
-    expect(jsx).not.toMatch(/FIRMFIN/);
+    /* Yang dilarang adalah view MEMBACA FIRMFIN — maka jalur impornya yang
+       digerbang, bukan tokennya. Menggerbang token akan lolos oleh
+       `import * as FF from './data_firmfin'`, dan sebaliknya melarang view
+       MENYEBUT sumber angka pada keterangan provenance — padahal itu justru
+       pola rumah (cockpit_report.ts menulis "… (FIRMFIN.WIP_BILL)"). */
+    expect(jsx).not.toMatch(/from '\.\/data_firmfin'/);
+  });
+
+  it('gerbang impor FIRMFIN bisa merah (anti-tautologi)', () => {
+    expect("import { FIRMFIN } from './data_firmfin';").toMatch(/from '\.\/data_firmfin'/);
+    expect(kode('profit_model.ts')).toMatch(/from '\.\/data_firmfin'/);
   });
 
   /* `(REALIZATION as any)[e.id] || 0.9` — cadangan pecahan yang mengarang tarif.

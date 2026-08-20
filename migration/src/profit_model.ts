@@ -44,9 +44,24 @@ const ROLE_SHORT: Readonly<Record<string, string>> = {
   'Engagement Partner': 'Partner', 'Audit Manager': 'Manager',
   'Senior Auditor': 'Senior', 'Junior Auditor': 'Junior',
 };
-export const PM_RATE_CARD: PMRates = Object.fromEntries(
-  Object.entries(FIRMFIN.WIP_BILL as Record<string, number>).map(([k, v]) => [ROLE_SHORT[k] || k, v]),
-);
+const shortKeys = (src: Record<string, number>): PMRates =>
+  Object.fromEntries(Object.entries(src).map(([k, v]) => [ROLE_SHORT[k] || k, v]));
+/** tarif CHARGE-OUT per grade (FIRMFIN.WIP_BILL) — untuk NILAI, bukan biaya */
+export const PM_BILL_CARD: PMRates = shortKeys(FIRMFIN.WIP_BILL as Record<string, number>);
+/** tarif BIAYA per grade (FIRMFIN.WIP_COST) — untuk biaya, bukan nilai.
+    Sampai 2026-08-21 modul ini memakai `WIP_BILL` untuk keduanya: biaya
+    dibukukan pada harga jual. ENG-…-031 karenanya dibebani Rp 1.659k/jam —
+    di atas tarif TAGIHAN Manager — dan melaporkan rugi 43% yang tak pernah
+    ada. Preseden pemisahan ini: `cockpit_model.ts` (cacat yang sama, arah
+    sebaliknya: nilai WIP dihitung pada tarif biaya, meleset 2×). */
+export const PM_COST_CARD: PMRates = shortKeys(FIRMFIN.WIP_COST as Record<string, number>);
+
+/** Roster perikatan dari SSOT (FIRMFIN.engagementWip) — null bila tak ada. */
+export interface PMEngRoster { actualHrs: number; costValue: number; stdValue: number }
+export type PMRosterOf = (engId: string) => PMEngRoster | null;
+/** Pabrik pembaca roster; menyimpan FIRMFIN di LUAR view. */
+export const pmRosterOf = (timeEntries: readonly PMTimeEntry[] | null | undefined): PMRosterOf =>
+  (engId) => FIRMFIN.engagementWip(timeEntries, engId) as PMEngRoster | null;
 export const PM_DEFAULT_MIX: PMRates = { Partner: 0.05, Manager: 0.15, Senior: 0.35, Junior: 0.45 };
 
 const sumHours = (rows: readonly PMTimeEntry[] | null | undefined): number =>
@@ -85,7 +100,7 @@ export interface PMBlended { rate: number; source: string }
 export function pmBlendedRate(
   schedule: readonly PMScheduleRow[] | null | undefined,
   engId: string,
-  rateCard: PMRates = PM_RATE_CARD,
+  rateCard: PMRates = PM_COST_CARD,
 ): PMBlended {
   let wsum = 0, hsum = 0;
   (schedule || []).forEach((m) => m.alloc
@@ -102,6 +117,8 @@ export interface PMRow {
   fee: number | null;
   hours: number; budgetHrs: number;
   stdCost: number; blendedRate: number; costSource: string;
+  /** nilai WIP @ tarif charge-out untuk jam yang sama */
+  wipCharge: number;
   /** tarif realisasi fee; `null` = tak diketahui → seluruh turunan ikut null */
   realized: number | null;
   billed: number | null; margin: number | null;
@@ -114,18 +131,35 @@ export interface PMInput {
   clients: readonly PMClient[];
   schedule: readonly PMScheduleRow[] | null | undefined;
   realizationOf?: PMRealizationOf;
+  rosterOf?: PMRosterOf;
   extraHours?: Readonly<Record<string, number>>;
-  rateCard?: PMRates;
+  costCard?: PMRates;
+  billCard?: PMRates;
 }
 
 export function pmRows(input: PMInput): PMRow[] {
-  const { engagements, clients, schedule, extraHours, rateCard } = input;
+  const { engagements, clients, schedule, extraHours } = input;
   const realizationOf = input.realizationOf || pmRealizationOf;
+  const costCard = input.costCard || PM_COST_CARD;
+  const billCard = input.billCard || PM_BILL_CARD;
+  const rosterOf = input.rosterOf || (() => null);
   return engagements.map((e) => {
     const c = clients.find((x) => x.id === e.clientId);
-    const hours = e.actualHrs + ((extraHours || {})[e.id] || 0);
-    const br = pmBlendedRate(schedule, e.id, rateCard);
-    const stdCost = Math.round(hours * br.rate);
+    const hoursApprox = e.actualHrs + ((extraHours || {})[e.id] || 0);
+    /* Bila perikatan punya ROSTER, FIRMFIN sudah menjawab jam, biaya & nilai
+       standarnya — angka yang sama dipakai Time & Budget dan Engagement
+       Cockpit. Menghitungnya lagi di sini berarti register keempat, jadi
+       roster yang berlaku. Tanpa roster: mix jadwal × tarif, dan `costSource`
+       mengatakan bahwa itu PENDEKATAN. */
+    const roster = rosterOf(e.id);
+    const hours = roster ? roster.actualHrs : hoursApprox;
+    const br = roster
+      ? { rate: roster.actualHrs ? roster.costValue / roster.actualHrs : 0, source: 'roster perikatan' }
+      : pmBlendedRate(schedule, e.id, costCard);
+    const stdCost = roster ? roster.costValue : Math.round(hours * br.rate);
+    const wipCharge = roster
+      ? roster.stdValue
+      : Math.round(hours * pmBlendedRate(schedule, e.id, billCard).rate);
     /* `c.fee || 0` dulu mengubah "fee tak tercatat" menjadi "fee nol jt" —
        angka yang tampak seperti fakta. Kini ia tak diketahui, dan berkata begitu. */
     const fee = c && typeof c.fee === 'number' ? c.fee : null;
@@ -135,7 +169,7 @@ export function pmRows(input: PMInput): PMRow[] {
     const margin = billed === null ? null : billed - stdCost;
     return {
       id: e.id, client: ((c && c.name) || '').replace(' Tbk', ''), partner: e.partner.split(',')[0],
-      fee, hours, budgetHrs: e.budgetHrs, stdCost, blendedRate: br.rate, costSource: br.source,
+      fee, hours, budgetHrs: e.budgetHrs, stdCost, blendedRate: br.rate, costSource: br.source, wipCharge,
       realized, billed, margin,
       marginPct: margin === null || !billed ? null : margin / billed * 100,
       effRate: billed === null || !hours ? null : billed / hours,
@@ -188,20 +222,17 @@ export function pmPartners(rows: readonly PMRow[]): PMPartner[] {
 }
 
 /* ---- Leverage & recovery (tab ketiga) ----
-   `chargeMult` = tarif charge-out standar terhadap biaya. Ia LITERAL, dan tetap
-   literal di sini karena tak ada sumbernya di data; ia dinyatakan di UI. */
+   `wipCharge` kini dihitung di `pmRows` pada tarif CHARGE-OUT yang sebenarnya,
+   jadi tak ada lagi pengali karangan yang harus diteruskan dari view. */
 export interface PMRecoveryRow extends PMRow {
-  wipCharge: number; recoveryPct: number | null; writedown: number | null;
+  recoveryPct: number | null; writedown: number | null;
 }
-export function pmRecovery(rows: readonly PMRow[], chargeMult: number): PMRecoveryRow[] {
-  return rows.map((r) => {
-    const wipCharge = Math.round(r.hours * r.blendedRate * chargeMult);
-    return {
-      ...r, wipCharge,
-      recoveryPct: r.billed === null || !wipCharge ? null : r.billed / wipCharge,
-      writedown: r.billed === null ? null : wipCharge - r.billed,
-    };
-  });
+export function pmRecovery(rows: readonly PMRow[]): PMRecoveryRow[] {
+  return rows.map((r) => ({
+    ...r,
+    recoveryPct: r.billed === null || !r.wipCharge ? null : r.billed / r.wipCharge,
+    writedown: r.billed === null ? null : r.wipCharge - r.billed,
+  }));
 }
 export interface PMRecoveryTotals { wip: number; billed: number; writedown: number; recoveryPct: number | null; incomplete: string[] }
 export function pmRecoveryTotals(rows: readonly PMRecoveryRow[]): PMRecoveryTotals {
