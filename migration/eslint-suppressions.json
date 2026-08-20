@@ -819,11 +819,6 @@
       "count": 43
     }
   },
-  "src/view_profit.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 51
-    }
-  },
   "src/view_psak1.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 39
