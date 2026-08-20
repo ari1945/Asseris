@@ -196,4 +196,36 @@ describe('SC-6 — whitelist tab tidak boleh membusuk', () => {
     expect(stripComments(read('view_execution.tsx')))
       .toMatch(/const WTB_TAB_IDS = WTB_TABS\.map\(/);
   });
+
+  it('CKP_TAB_IDS diturunkan dari CKP_TABS (bukan disalin tangan)', () => {
+    expect(stripComments(read('view_cockpit2.tsx')))
+      .toMatch(/const CKP_TAB_IDS = CKP_TABS\.map\(/);
+  });
+});
+
+/* ---------------------------------------------------------------
+   C-1 — Engagement Cockpit. SC-9 hanya memeriksa modul yang SUDAH jadi sasaran
+   `nav(id, { tab })`; cockpit belum, sehingga tab-nya bisa kembali ke
+   `useState('ringkasan')` murni tanpa satu pun gerbang memerah — persis keadaan
+   sebelum perbaikan ini, ketika `#/cockpit?tab=risiko` selalu mendarat di
+   Ringkasan dan tiga pemanggil (`view_home`, `view_home_cockpit`,
+   `view_scheduler`) tak punya cara menunjuk tab tertentu.
+   --------------------------------------------------------------- */
+describe('C-1 — tab cockpit beralamat', () => {
+  const src = () => stripComments(read('view_cockpit2.tsx'));
+
+  it("memakai useInitialTab('cockpit', …), bukan useState lokal", () => {
+    expect(src()).toMatch(/useInitialTab\(\s*'cockpit',\s*'ringkasan',\s*CKP_TAB_IDS\s*\)/);
+    expect(src()).not.toMatch(/const \[tab, setTab\] = useStateCkp\(/);
+  });
+
+  it('daftar tab yang dirender = daftar yang jadi whitelist (satu sumber)', () => {
+    const listed = (src().match(/const CKP_TABS = \[([\s\S]*?)\];/) as RegExpMatchArray)[1];
+    const ids = [...listed.matchAll(/\{\s*id:\s*'([a-z0-9_]+)'/g)].map((m) => m[1]);
+    expect(ids).toEqual(['ringkasan', 'jalur', 'anggaran', 'tim', 'risiko']);
+    /* tiap id benar-benar punya panel — whitelist yang menerima id tanpa panel
+       merender layar kosong alih-alih jatuh ke fallback */
+    ids.forEach((id) => expect(src(), `tab '${id}' tanpa panel`).toContain(`tab === '${id}'`));
+    expect(src()).toMatch(/<Tabs tabs=\{CKP_TABS\}/);
+  });
 });
