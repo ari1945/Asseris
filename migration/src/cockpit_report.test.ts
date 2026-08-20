@@ -78,6 +78,22 @@ describe('payload dapat diuji — bukan dirakit inline di handler tombol', () =>
     expect(src.replace(/\/\*[\s\S]*?\*\//g, '')).not.toMatch(/colWidths:/);
   });
 
+  /* C-2 · IDENTITAS YANG DISEGEL. `firmName` dulu literal di call-site:
+     'KAP Wijaya Hartono & Rekan' ditulis langsung ke payload yang disegel
+     Ed25519 dan keluar sebagai artefak. Menyegel identitas yang salah lebih
+     buruk daripada tidak menyegel — segelnya memberi otoritas pada isi yang
+     keliru, dan pembaca berkas tak punya cara tahu bahwa nama itu tak pernah
+     berasal dari profil firma. Gerbang ini statik karena cacatnya ada di
+     call-site, bukan di pembangun payload. */
+  it('nama firma pada payload tersegel berasal dari SSOT, bukan literal', () => {
+    const src = readFileSync(join(__dirname, 'view_cockpit2.tsx'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(src).toMatch(/firmName:\s*\(AMS\.FIRM/);
+    /* tak ada literal nama firma di mana pun di view ini — termasuk sebagai
+       fallback: berkas tersegel tidak boleh mengarang identitas. */
+    expect(src).not.toMatch(/'KAP [^']*'/);
+  });
+
   it('membawa identitas & lingkup perikatan', () => {
     const r = build();
     expect(r.scope).toBe('engagement');

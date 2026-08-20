@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights';
-import { useAudit, useAuditHeavy, useFirm, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useFirm, useInitialTab, useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
@@ -122,6 +122,22 @@ function EVBar({ label, pct, tone, hint }: any) {
   );
 }
 
+/* C-1 · TAB BERALAMAT. `TABS` dulu hidup DI DALAM komponen dan tab-nya
+   `useState('ringkasan')` murni: `nav('cockpit', { tab:'risiko' })` dan
+   `#/cockpit?tab=risiko` sama-sama DIABAIKAN tanpa suara — pemanggil mengira
+   tautannya bekerja, dan setiap kunjungan mendarat di Ringkasan. Daftar naik ke
+   scope modul agar whitelist SC-6 bisa DITURUNKAN darinya; menyalinnya tangan
+   berarti tab baru diam-diam jadi "tak dikenal" dan deep-link ke sana dibuang
+   ke fallback. */
+const CKP_TABS = [
+  { id: 'ringkasan', label: 'Ringkasan' },
+  { id: 'jalur', label: 'Jalur Kritis' },
+  { id: 'anggaran', label: 'Anggaran & Jam' },
+  { id: 'tim', label: 'Tim & Beban' },
+  { id: 'risiko', label: 'Risiko & Kualitas' },
+];
+const CKP_TAB_IDS = CKP_TABS.map(t => t.id);
+
 /* ============================================================ */
 function EngagementCockpit() {
   const { fmt } = AMS;
@@ -135,7 +151,10 @@ function EngagementCockpit() {
   const auditCtx = useAuditHeavy(['reviewNotes', 'timeEntries']);  // P5 Fase 2: catatan engagement aktif
   const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState, timeEntries } = auditCtx;
   const e = activeEngagement;
-  const [tab, setTab] = useStateCkp('ringkasan');
+  /* C-1: beralamat dua arah — `?tab=` dibaca saat mount, klik tab ditulis balik
+     ke hash. Whitelist menolak id tab yang tak dirender (tautan lama) alih-alih
+     merender panel kosong. */
+  const [tab, setTab] = useInitialTab('cockpit', 'ringkasan', CKP_TAB_IDS);
 
   const D = useMemoCkp(() => {
     /* PR-C-2 · PROGRES — dua angka, bukan satu literal:
@@ -275,14 +294,6 @@ function EngagementCockpit() {
     };
   }, [e, reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, activeClient, wpState, timeEntries]);
 
-  const TABS = [
-    { id: 'ringkasan', label: 'Ringkasan' },
-    { id: 'jalur', label: 'Jalur Kritis' },
-    { id: 'anggaran', label: 'Anggaran & Jam' },
-    { id: 'tim', label: 'Tim & Beban' },
-    { id: 'risiko', label: 'Risiko & Kualitas' },
-  ];
-
   /* PR-C-7 · Status Report tersegel. Payload dulu dirakit INLINE di sini,
      sehingga tak ada uji yang bisa menyentuhnya — satu-satunya cara memeriksa
      apa yang disegel adalah mengunduh berkasnya. Kini `buildCockpitStatusReport`
@@ -295,7 +306,13 @@ function EngagementCockpit() {
     try {
       await amsExportXlsx(buildCockpitStatusReport({
         engagementId: e?.id || '', fy: e?.fy || '', clientName: activeClient?.name || '',
-        firmName: 'KAP Wijaya Hartono & Rekan', phase: e?.phase || '', verdict: D.verdict.l,
+        /* C-2: nama firma dari SSOT `AMS.FIRM`, bukan literal. Payload ini
+           DISEGEL (Ed25519, export_xlsx) — menyegel identitas yang salah lebih
+           buruk daripada tak menyegel, karena segelnya memberi otoritas pada isi
+           yang keliru. Tanpa fallback literal dengan alasan yang sama: bila SSOT
+           tak menyebut nama, berkas TIDAK boleh mengarang satu. */
+        firmName: (AMS.FIRM as { name?: string } | undefined)?.name || '',
+        phase: e?.phase || '', verdict: D.verdict.l,
         daysLeft: D.daysLeft, burnPct: D.burnPct,
         overall: D.overall, asserted: D.asserted, bridge: D.bridge, econ: D.econ,
         phaseRows: D.phaseRows, tsTotal: D.tsTotal, untaggedHrs: D.untaggedHrs,
@@ -378,7 +395,7 @@ function EngagementCockpit() {
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <Tabs tabs={TABS} active={tab} onChange={setTab} />
+          <Tabs tabs={CKP_TABS} active={tab} onChange={setTab} />
         </div>
 
         {tab === 'ringkasan' && <TabRingkasan D={D} e={e} nav={nav} activity={activity} setTab={setTab} />}
