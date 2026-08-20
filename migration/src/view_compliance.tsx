@@ -4,6 +4,8 @@ import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { complianceContextRows } from './compliance_context';
+import { useAudit, useFirm } from './contexts';
 import { RowKv } from './view_calc';
 
 /* ============================================================
@@ -256,6 +258,12 @@ function compliancePct(stdId: any) {
 function ComplianceView({ stdId }: any) {
   const m = (MODULE_INDEX as any)[stdId] || { label: stdId };
   const cfg = (COMPLIANCE_CONFIG as any)[stdId];
+  /* Identitas perikatan = TURUNAN konteks aktif, bukan literal. Klien datang dari
+     CLIENTS lewat activeClient (baris ENGAGEMENTS tak punya clientName); penyusun
+     dari rantai sign-off kertas kerja. Lihat compliance_context.ts. */
+  const firm = useFirm() as { activeEngagement?: { id?: string } | null; activeClient?: { name?: string } | null } | null;
+  const audit = useAudit();
+  const activeEng = (firm && firm.activeEngagement) || null;
   // flatten items with stable ids
   const flat = useMemoCO(() => cfg.sections.flatMap((s: any, si: any) => s.items.map((it: any, ii: any) => ({ sid: si, id: si + '-' + ii, text: it[0], ref: it[1] }))), [stdId]);
   const [status, setStatus] = useStateCO(() => loadLS('ams.comp.' + stdId + '.status', {}));
@@ -274,6 +282,11 @@ function ComplianceView({ stdId }: any) {
   const done = counts.done || 0;
   const pct = applicable ? Math.round(done / applicable * 100) : 100;
 
+  const ctxRows = complianceContextRows({
+    moduleId: stdId, totalProcedures: flat.length,
+    engagement: activeEng, client: (firm && firm.activeClient) || null, audit,
+  });
+
   const meta = (STD_META as any)[stdId] || {};
   const stLabel = m.label;
 
@@ -290,7 +303,7 @@ function ComplianceView({ stdId }: any) {
         return [it.ref, it.text, stLbl[st] || st, notes[it.id] || ''];
       });
       await amsExportXlsx({
-        kind: 'compliance-wp', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'compliance-wp', scope: 'engagement', scopeId: activeEng?.id,
         fileName: `Checklist Kepatuhan - ${stLabel.split('·')[0].trim()}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja Kepatuhan — ${stLabel}`,
@@ -343,10 +356,7 @@ function ComplianceView({ stdId }: any) {
               </Panel>
               <Panel title="Konteks Engagement">
                 <div style={{ display: 'grid', gap: 8 }}>
-                  <RowKv label="Klien" v="PT Sentosa Makmur" />
-                  <RowKv label="Engagement" v="ENG-2025-014" />
-                  <RowKv label="Total Prosedur" v={flat.length + ' item'} />
-                  <RowKv label="Preparer" v="Dimas R." />
+                  {ctxRows.map((r) => <RowKv key={r.key} label={r.label} v={r.value} />)}
                 </div>
               </Panel>
             </div>
