@@ -5,6 +5,7 @@ import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1';
 import { NONAUDIT } from './data_part2';
 import { componentParaLabel, smm1Ref } from './canon_smm_refs';
 import { objectivesForComponent } from './canon_smm_objectives';
+import { smmEvalPeriod } from './canon_smm_period';
 
   const DD_OPP  = PIPELINE.find(o => o.id === 'OPP-105')!;
   const DD_PROS = PROSPECTS.find(p => p.id === 'PROS-06')!;
@@ -198,11 +199,22 @@ import { objectivesForComponent } from './canon_smm_objectives';
 
      Toolkit & Matriks Ilustrasi IAPI ditulis untuk KAP NON-JARINGAN,
      jadi wadah ini bersandar langsung pada teks SMM 1. */
+  /* ---- SMM 1 ¶53: PERIODE yang dicakup evaluasi tahunan SMM ----
+     Dua tanggal ISO ini adalah SSOT-nya. Label manusiawi `QM_EVAL.period` dan
+     tahun alamat atestasi (`firmAttest.soqmAnnualEval.<tahun>`) sama-sama
+     DITURUNKAN dari sini, sehingga label dan alamat tak dapat berselisih —
+     dan tak ada modul yang perlu mengurai tahun dari string tampilan.
+
+     BUKAN tanggal evaluasi dilakukan (`QM_EVAL.date`, jatuh di tahun
+     berikutnya) dan BUKAN tahun kewajiban PPL (`CPE_REQ.year`, PMK 186/2021).
+     Ketiganya periode berbeda dengan jadwal masing-masing. */
+  const QM_EVAL_PERIOD = smmEvalPeriod({ periodStart: '2025-01-01', periodEnd: '2025-12-31' });
+
   const QM_NETWORK = {
     inNetwork: true,
     name: 'AGN-Asia (Jaringan Afiliasi Global)',
-    /* tahun cakupan = periode evaluasi SMM (QM_EVAL.period) */
-    year: 2025,
+    /* tahun cakupan = periode evaluasi SMM — DITURUNKAN, bukan diketik ulang. */
+    year: QM_EVAL_PERIOD.year!,
     items: [
       { id: 'NR-01', kind: 'requirement', title: 'Metodologi audit jaringan (WHR v4.2)', component: 'Sumber Daya',
         firmResponsibility: 'Anindya Pramesti, CPA', adaptation: 'adapted',
@@ -246,7 +258,11 @@ import { objectivesForComponent } from './canon_smm_objectives';
     { k: 'Survei budaya mutu (skor)', v: '4,3 / 5', accent: 'green', note: 'Persepsi staf atas prioritas mutu di atas tenggat waktu.' },
   ];
   const QM_EVAL = {
-    period: '1 Jan – 31 Des 2025', date: '2026-03-05', by: 'Anindya Pramesti, CPA (QM Leader)',
+    periodStart: QM_EVAL_PERIOD.start, periodEnd: QM_EVAL_PERIOD.end,
+    /* Label DITURUNKAN dari dua tanggal di atas — bentuknya sama persis dengan
+       label yang dulu diketik tangan ('1 Jan – 31 Des 2025'). */
+    period: QM_EVAL_PERIOD.label,
+    date: '2026-03-05', by: 'Anindya Pramesti, CPA (QM Leader)',
     approvedBy: 'Hartono Wijaya, CPA (Managing Partner)',
     conclusion: 'reasonable',
     statement: 'Sistem Manajemen Mutu firma memberikan keyakinan memadai bahwa firma dan personelnya memenuhi tanggung jawab profesional sesuai standar profesi & ketentuan hukum, serta laporan yang diterbitkan telah tepat sesuai kondisinya — dengan pengecualian defisiensi pada komponen Sumber Daya yang tidak berdampak pervasif dan tengah diremediasi.',

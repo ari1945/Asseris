@@ -59,10 +59,17 @@ const IZIN: Record<string, { n: number; alasan: string }> = {
     n: 1,
     alasan: 'Waktu pesan obrolan portal klien (HH.MM saja).',
   },
-  'canon_firm_attest.ts': {
-    n: 1,
-    alasan: 'Modul KANON murni — tak boleh mengimpor AMS. Ini fallback tahun saat `period` tak terbaca; klok yang benar disuntik pemanggilnya.',
-  },
+  /* 'canon_firm_attest.ts' DICABUT 2026-08-27 (W0-2, periode atestasi SMM ¶53).
+     Izinnya dulu berbunyi "fallback tahun saat `period` tak terbaca; klok yang
+     benar disuntik pemanggilnya" — dan justru kalimat kedua itu yang tak pernah
+     terjadi. Fallback `attestYear(period, fallback?)` hanya dieksekusi ketika
+     label kehilangan empat digitnya, sehingga tak ada gejala yang menunjukkan
+     apa yang duduk di sana: ketiga modul SMM mengisinya dengan `CPE_REQ.year`,
+     tahun kewajiban PPL Akuntan Publik — bukan klok, dan bukan periode evaluasi.
+     Parameter itu beserta `new Date().getFullYear()` di belakangnya kini dicabut;
+     tahun alamat atestasi datang dari periode yang DICAKUP evaluasi
+     (`canon_smm_period`), dan periode yang tak dinyatakan menghasilkan `null`
+     alih-alih tebakan. */
   'canon_hcm.ts': {
     n: 1,
     alasan: 'Modul KANON murni — fallback tahun saat `asOf` tak terbaca.',

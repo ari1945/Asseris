@@ -24,7 +24,8 @@ import { evaluateSmm } from './canon_smm_evaluation';
 import { collectSmmDeficiencies } from './canon_smm_deficiencies';
 import { componentMetrics, COMPONENT_STATUS_LABEL, type ComponentStatus } from './canon_smm_component_metrics';
 import { objectiveCoverage, coverageByComponent, type ObjectiveLinkedRisk, type ObjectiveWaiver } from './canon_smm_objectives';
-import { attestKeyFor, attestChainLinks, attestChainComplete, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import { attestChainLinks, attestChainComplete, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import { smmEvalPeriod, soqmAnnualAttestKey, SOQM_ATTEST_UNSET_KEY, SOQM_PERIOD_UNSET_LABEL } from './canon_smm_period';
 import { useFirmAttest } from './firm_attest';
 
 /** Wadah jaringan ¶48–52 sebagaimana tersimpan di AMS.QM_NETWORK. */
@@ -62,8 +63,16 @@ function Governance() {
      layar ini hanya mencerminkan.
      --------------------------------------------------------------- */
   const evalMaster = ev || {};
-  const evalPeriod: string = evalMaster.period || 'Tahun Berjalan';
-  const attestKey = attestKeyFor('soqmAnnualEval', evalPeriod, (A.CPE_REQ || {}).year);
+  /* Periode & tahun alamat DITURUNKAN dari periode yang dicakup evaluasi SMM
+     (¶53) di `canon_smm_period` — bukan diurai dari label tampilan, dan bukan
+     dari `CPE_REQ.year` (tahun kewajiban PPL, periode yang sama sekali lain). */
+  const smmEval = smmEvalPeriod(evalMaster);
+  const evalPeriod: string = smmEval.label;
+  const evalYear: string = smmEval.year == null ? '—' : String(smmEval.year);
+  /* Satu frasa untuk dua tempat, agar keadaan "belum ditetapkan" tak dibaca
+     sebagai nama periode ("Periode Periode evaluasi belum ditetapkan"). */
+  const evalPeriodPhrase: string = smmEval.year == null ? SOQM_PERIOD_UNSET_LABEL : `Periode ${evalPeriod}`;
+  const attestKey = soqmAnnualAttestKey(smmEval) || SOQM_ATTEST_UNSET_KEY;
   const attest = useFirmAttest(attestKey, evalPeriod);
   const attestLinks = attestChainLinks(attest.state, SOQM_ANNUAL_ROLES);
   const attestComplete = attestChainComplete(attestLinks);
@@ -111,7 +120,7 @@ function Governance() {
         fileName: 'Evaluasi SMM Tahunan.pdf',
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Evaluasi Sistem Manajemen Mutu — Tahunan',
-        meta: [`SMM 1 · periode ${evalPeriod}`,
+        meta: [`SMM 1 · ${evalPeriodPhrase.toLowerCase()}`,
           `Cakupan tujuan mandatori ${objCov.addressedPct}% (${objCov.complete ? 'lengkap' : 'ada celah'}) · ${effective}/${comps.length} komponen efektif`],
         blocks: [
           { type: 'heading', text: '1. Komponen SMM' },
@@ -137,7 +146,7 @@ function Governance() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={objCov.addressedPct + '%'} label="Cakupan Tujuan Mandatori ¶28–33" accent={objCov.complete ? 'var(--green)' : objCov.addressedPct >= 50 ? 'var(--amber)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={attestComplete && attest.state && attest.state.engineLabel ? attest.state.engineLabel : 'Belum dievaluasi'} label={'Simpulan Evaluasi ¶54 · ' + String(evalPeriod.slice(-4) || '')} accent={attestComplete ? concColor : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={attestComplete && attest.state && attest.state.engineLabel ? attest.state.engineLabel : 'Belum dievaluasi'} label={'Simpulan Evaluasi ¶54 · ' + evalYear} accent={attestComplete ? concColor : 'var(--amber)'} /></div></Panel>
         </div>
 
         {/* Annual evaluation conclusion — centerpiece of SMM 1 */}
@@ -145,7 +154,7 @@ function Governance() {
           <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 42, height: 42, borderRadius: 11, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: '0 0 42px' }}><I.shield size={22} /></div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SMM Tahunan — Periode {evalPeriod}</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SMM Tahunan — {evalPeriodPhrase}</div>
               {/* Nama penandatangan HANYA dari rantai atestasi. Sebelumnya
                   `ev.by`/`ev.approvedBy` seed ditampilkan sebagai fakta. */}
               <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>
