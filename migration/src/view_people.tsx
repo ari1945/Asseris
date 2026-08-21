@@ -23,8 +23,7 @@ import { appraisalOf, empIdsOf, nextEmpId } from './hcm_derive';
 import type { Appraisal } from './hcm_derive';
 import type { PerfGoal, PerfPersonInput } from './canon_perf';
 import { cpeFromTraining, type TrainingCourse } from './cpe_training';
-import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
-import { amsYear } from './clock_ssot';
+import { PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplReqOn, pplStatusFromEntries, pplYearOf, skpInYear } from './canon_ppl';
 
 /* ============================================================
    Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
@@ -263,11 +262,15 @@ function CPETracker() {
   const nav = useNav();
   const auth = useAuth();
   const staff: any = AMS.STAFF;
-  /* Ambang PPL datang dari `canon_ppl.PPL_REQ_PMK186` — SATU sumber, dgn dasar
-     hukumnya melekat. `AMS.CPE_REQ` tinggal menyumbang tahun berjalan; nilainya
-     identik (40/30/10) sehingga pemindahan ini nol-delta. */
-  const pplYear: number = (AMS.CPE_REQ as { year?: number } | undefined)?.year || amsYear();
-  const req = { annual: PPL_REQ_PMK186.annual, structured: PPL_REQ_PMK186.structuredMin, year: pplYear };
+  /* Tahap A-2 · R1 — tahun DAN ambang PPL kini DIPILIH menurut tanggal hitung
+     (`canon_ppl.PPL_REGISTRY`). Dulu tahunnya diketik di `CPE_REQ.year: 2026`
+     dan ambangnya satu record tanpa masa berlaku: pada 1 Januari 2027 layar ini
+     akan berkata "PPL 2026" sambil menilai kepatuhan terhadap kewajiban 2026.
+     Masa yang tak tercakup TIDAK memakai ambang tahun lain — modul menolak
+     menilai dan menyebutkan alasannya. */
+  const pplLook = pplReqOn(String(AMS.TODAY || ''));
+  const pplYear = pplYearOf(String(AMS.TODAY || ''));
+  const pplReq = pplLook.value;
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   // 2026-07-05 — cpeLog (kredit SKP dasar) & cpeExtra ter-filter server (personal.get).
   const [cpeLog] = useAmsPersist('cpeLog', () => AMS.CPE_LOG);
@@ -284,14 +287,32 @@ function CPETracker() {
   const log = (() => { const m = {}; vstaff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((cpeLog as any)[s.id]) || [])]; }); return m; })();
   const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: AMS.TODAY }, ...(l[id] || [])] }));
 
+  /* Masa tak tercakup registry: modul MENOLAK menilai. Sebuah verdict kepatuhan
+     tak punya jawaban separuh — "Memenuhi" terhadap kewajiban tahun yang salah
+     adalah nasihat kepatuhan yang keliru, bukan angka yang kurang teliti. */
+  if (!pplReq || pplYear == null) return (
+    <><SubBar moduleId="cpe" /><div className="view-scroll"><div className="view-pad"><Panel>
+      <div style={{ padding: 28, textAlign: 'center', maxWidth: 620, margin: '0 auto' }}>
+        <div style={{ color: 'var(--red)', marginBottom: 8 }}><I.alert size={22} /></div>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Kewajiban PPL untuk masa ini belum ada di registry</div>
+        <div className="tiny muted" style={{ lineHeight: 1.6 }}>{pplLook.note}</div>
+        <div style={{ marginTop: 12 }}><Btn sm onClick={() => nav('regref', { from: 'cpe' })}>Buka Data Referensi Regulatori</Btn></div>
+      </div>
+    </Panel></div></div></>
+  );
+  const req = { annual: pplReq.annual, structured: pplReq.structuredMin, year: pplYear };
+
   /* PRD sdm-kepatuhan PR-3 — SATU mesin PPL.
      Modul ini dulu menjumlahkan SKP MENTAH sementara `canon_ppl` yang benar
      (cap SKP tidak terstruktur PMK 186 Ps. 37, materi wajib, SKP hangus) sudah
      ada di repo dan dipakai modul Kesiapan P2PK. EMP-007 karenanya berdiri di
      32/40 di sini dan 28/40 di sebelah. */
+  /* Tahap A-2 · SC-A3 — catatan disaring ke TAHUN PPL yang dinilai. Membenarkan
+     label tahunnya tanpa ini justru memperburuk: layar akan berkata "PPL 2027"
+     sambil menjumlahkan SKP yang diperoleh 2026. */
   const summary = vstaff.map((s: any) => {
-    const recs = (log as any)[s.id] || [];
-    const st = pplStatusFromEntries(recs);
+    const recs = skpInYear((log as any)[s.id] || [], pplYear);
+    const st = pplStatusFromEntries(recs, pplReq);
     return { ...s, structured: st.structured, total: st.countedTotal, compliant: st.compliant, st, recs };
   });
   const compliantN = summary.filter((s: any) => s.compliant).length;
@@ -334,17 +355,17 @@ function CPETracker() {
             <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <Avatar name={person.name} size={28} />
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{person.name}</div><div className="tiny muted">{person.role}</div></div>
-              {person.compliant && person.st.topicsTracked ? <Badge kind="green">Memenuhi</Badge> : person.compliant ? <Badge kind="amber">Belum dapat dibuktikan</Badge> : <Badge kind="amber">Kurang {Math.max(0, PPL_REQ_PMK186.annual - person.st.countedTotal)} SKP</Badge>}
+              {person.compliant && person.st.topicsTracked ? <Badge kind="green">Memenuhi</Badge> : person.compliant ? <Badge kind="amber">Belum dapat dibuktikan</Badge> : <Badge kind="amber">Kurang {Math.max(0, pplReq.annual - person.st.countedTotal)} SKP</Badge>}
             </div>
             <div style={{ padding: 14 }}>
               <div className="row gap12" style={{ marginBottom: 14 }}>
-                <Donut segments={[{ value: person.structured, color: '#005085' }, { value: person.st.countedUnstructured, color: '#0a6b73' }, { value: Math.max(0, PPL_REQ_PMK186.annual - person.total), color: '#e7ebef' }]} size={92} thickness={13}
+                <Donut segments={[{ value: person.structured, color: '#005085' }, { value: person.st.countedUnstructured, color: '#0a6b73' }, { value: Math.max(0, pplReq.annual - person.total), color: '#e7ebef' }]} size={92} thickness={13}
                   center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{person.total}</div><div className="tiny muted">SKP</div></>} />
                 <div style={{ flex: 1, display: 'grid', gap: 5, alignContent: 'center' }}>
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#005085' }} />Terstruktur</span><b className="mono">{person.structured}</b></div>
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#0a6b73' }} />Tidak terstruktur</span><b className="mono">{person.st.countedUnstructured}</b></div>
-                  {person.st.forfeitedUnstructured > 0 && <div className="row jb tiny" style={{ color: 'var(--amber)' }}><span className="row ac gap6"><I.alert size={9} />Hangus (di atas batas {PPL_REQ_PMK186.unstructuredCap})</span><b className="mono">{person.st.forfeitedUnstructured}</b></div>}
-                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Kurang</span><b className="mono">{Math.max(0, PPL_REQ_PMK186.annual - person.total)}</b></div>
+                  {person.st.forfeitedUnstructured > 0 && <div className="row jb tiny" style={{ color: 'var(--amber)' }}><span className="row ac gap6"><I.alert size={9} />Hangus (di atas batas {pplReq.unstructuredCap})</span><b className="mono">{person.st.forfeitedUnstructured}</b></div>}
+                  <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Kurang</span><b className="mono">{Math.max(0, pplReq.annual - person.total)}</b></div>
                 </div>
               </div>
               <div className="tiny muted upper" style={{ marginBottom: 6 }}>Riwayat SKP {req.year}</div>
@@ -363,7 +384,7 @@ function CPETracker() {
                   ))}
                   {!person.st.topicsTracked && (
                     <div className="tiny" style={{ lineHeight: 1.5, marginTop: person.st.shortfalls.length ? 4 : 0 }}>
-                      Materi wajib ({PPL_REQ_PMK186.topicPembinaanMin} SKP pembinaan/pengawasan + {PPL_REQ_PMK186.topicAkuntansiMin} SKP akuntansi/asurans) belum terlacak pada seluruh entri terstruktur — kepatuhan penuh Pasal 37 <b>belum dapat dibuktikan</b> dari data ini.
+                      Materi wajib ({pplReq.topicPembinaanMin} SKP pembinaan/pengawasan + {pplReq.topicAkuntansiMin} SKP akuntansi/asurans) belum terlacak pada seluruh entri terstruktur — kepatuhan penuh Pasal 37 <b>belum dapat dibuktikan</b> dari data ini.
                     </div>
                   )}
                 </div>
@@ -435,6 +456,8 @@ type IndepRow = {
   id: string; name: string; declared?: boolean; conflicts: number; finInterest?: string;
   role?: string; rotationClient?: string; rotationLimit: number; tenure: number;
   cooloff?: number; listed?: boolean;
+  /* Dasar hukum rezim rotasi yang DIPILIH registry untuk baris ini (canon_rotation). */
+  rotationBasis?: string;
   requested?: boolean; requestedAt?: string; requestedBy?: string;
 };
 /* Pesan yang TERLIHAT. Modul ini dulu menawarkan aksi yang server pasti tolak
@@ -480,6 +503,14 @@ function Independence() {
   const rotationWarn = rows.filter((d) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
   /* jendela peringatan dini ≤6 bulan sebelum batas (SSOT rotTier) */
   const rotationAlertList = rows.filter((d) => d.rotationClient !== '—' && rotTier(d.tenure, d.rotationLimit) === 'alert');
+  /* Tahap A-2 · SC-A5 — dasar hukum yang DIKUTIP spanduk berasal dari rezim yang
+     dipilih registry untuk baris-baris itu sendiri, bukan dari string yang
+     diketik di view. Dulu spanduk menulis "UU 5/2011 & POJK 13/2017" untuk
+     siapa pun, termasuk baris yang rezimnya PP 20/2015. */
+  const basisOf = (list: Array<{ rotationBasis?: string }>) => {
+    const uniq = Array.from(new Set(list.map((r) => r.rotationBasis).filter((b): b is string => !!b)));
+    return uniq.length ? uniq.join(' · ') : 'dasar rotasi belum tercakup registry';
+  };
   const [sel, setSel] = useStateE(null);
 
   /* Klok SSOT (K-02). Bentuk lama memakai `new Date()` — jam sistem nyata —
@@ -636,13 +667,13 @@ function Independence() {
 
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{rows.filter((d) => d.tenure >= d.rotationLimit).map((d) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {rows.find((d) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 &amp; POJK 13/2017).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{rows.filter((d) => d.tenure >= d.rotationLimit).map((d) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {rows.find((d) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti ({basisOf(rows.filter((d) => d.tenure >= d.rotationLimit))}).</span></div>
           </div>
         )}
 
         {rotationAlertList.length > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi &amp; cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi &amp; cooling-off partner pengganti sekarang ({basisOf(rotationAlertList)}).</span></div>
           </div>
         )}
 

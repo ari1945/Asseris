@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { fiscalReconciliation } from './canon_base';
+import { RATE as CIT_RATE, fiscalReconciliation } from './canon_base';
+import { citRatePct } from './canon_cit';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -24,7 +25,11 @@ import { amsExportXlsx } from './export_xlsx';
    ============================================================ */
 const { useState: useStateP46, useMemo: useMemoP46 } = React;
 
-const P46_RATE = 0.22;
+/* Tarif statuter DIPILIH menurut tanggal pelaporan (registry `canon_cit`). */
+const P46_RATE = CIT_RATE;
+/* Label tarif MENGIKUTI tarifnya — teks '22%' yang diketik akan basi sendirian
+   pada tahun tarif berikutnya berubah, sementara angkanya sudah pindah. */
+const P46_PCT = citRatePct(P46_RATE);
 
 /* ---- rekonsiliasi fiskal: laba komersial → PKP, Rp juta ----
    PR-F: baris ini DITURUNKAN dari `fiscalReconciliation()`, tidak lagi diketik
@@ -116,7 +121,7 @@ const P46_MBUCKET = {
 const P46_PRESENT_META = [
   { id: 'p1', stmt: 'sofp', ref: '¶74', key: 'closing',    line: 'Aset pajak tangguhan — neto (tidak lancar)', note: 'DTA/DTL disaling-hapus: hak hukum & otoritas pajak yang sama.' },
   { id: 'p2', stmt: 'sofp', ref: '¶12', key: 'currentTax', line: 'Utang pajak kini (PPh Badan terutang)', note: 'Dikurangi angsuran PPh 25 & kredit pajak untuk utang neto.' },
-  { id: 'p3', stmt: 'pl',   ref: '¶79', key: 'currentTax', line: 'Beban pajak kini', note: 'PKP × 22% (lihat Rekonsiliasi Fiskal).' },
+  { id: 'p3', stmt: 'pl',   ref: '¶79', key: 'currentTax', line: 'Beban pajak kini', note: `PKP × ${P46_PCT} (lihat Rekonsiliasi Fiskal).` },
   { id: 'p4', stmt: 'pl',   ref: '¶79', key: 'deferredNeg', line: 'Manfaat pajak tangguhan', note: 'Kenaikan aset pajak tangguhan neto via laba rugi.' },
   { id: 'p5', stmt: 'oci',  ref: '¶62', key: 'oci',        line: 'Pajak penghasilan terkait pengukuran kembali', note: 'Mengikuti pos OCI imbalan kerja (PSAK 24).' },
 ];
@@ -125,10 +130,10 @@ const P46_PRESENT_META = [
 const P46_PROC_SUPP = [
   { id: 's1', ref: 'SA 500 ¶6',  t: 'Peroleh SPT Tahunan PPh Badan & rekonsiliasi fiskal; rekonsiliasi ke buku besar dan laporan keuangan' },
   { id: 's2', ref: 'SA 500',     t: 'Uji dasar pengenaan pajak (tax base) tiap aset/liabilitas & pilah beda temporer vs permanen' },
-  { id: 's3', ref: 'PSAK 46 ¶47',t: 'Verifikasi tarif 22% (berlaku / secara substantif berlaku) dipakai mengukur pajak tangguhan' },
+  { id: 's3', ref: 'PSAK 46 ¶47',t: `Verifikasi tarif ${P46_PCT} (berlaku / secara substantif berlaku) dipakai mengukur pajak tangguhan` },
   { id: 's4', ref: 'SA 540',     t: 'Evaluasi proyeksi laba kena pajak masa depan yang mendukung pemulihan DTA & rugi fiskal' },
   { id: 's5', ref: 'PSAK 46 ¶74',t: 'Uji syarat saling hapus DTA/DTL — hak hukum & entitas/otoritas pajak yang sama' },
-  { id: 's6', ref: 'SA 500',     t: 'Rekonsiliasi tarif pajak efektif (ETR) & telaah penyebab simpangan dari 22%' },
+  { id: 's6', ref: 'SA 500',     t: `Rekonsiliasi tarif pajak efektif (ETR) & telaah penyebab simpangan dari ${P46_PCT}` },
   { id: 's7', ref: 'PSAK 46 ¶79',t: 'Telaah kecukupan pengungkapan CALK: komponen beban pajak, rekonsiliasi ETR, rugi fiskal & batas waktu' },
   { id: 's8', ref: 'SA 230',     t: 'Dokumentasikan dasar kesimpulan & jejak audit pos perpajakan' },
 ];
@@ -151,7 +156,7 @@ const P46_TLC = [
 
 /* ---- ketentuan pajak kunci (UU HPP No.7/2021) ---- */
 const P46_HPP = [
-  { k: 'Tarif PPh Badan', v: '22%', note: 'Final — rencana penurunan ke 20% dibatalkan UU HPP.' },
+  { k: 'Tarif PPh Badan', v: P46_PCT, note: 'Final — rencana penurunan ke 20% dibatalkan UU HPP.' },
   { k: 'Kompensasi rugi fiskal', v: '5 tahun', note: 'Rugi fiskal dikompensasikan maksimum lima tahun ke depan.' },
   { k: 'Natura / kenikmatan', v: 'Objek PPh', note: 'Kini dapat dikurangkan bagi pemberi kerja → sebagian beda permanen bergeser ke temporer.' },
   { k: 'Tarif pengukuran DT', v: '¶47', note: 'Pajak tangguhan diukur pada tarif yang berlaku / secara substantif berlaku saat pembalikan.' },
@@ -232,7 +237,7 @@ function PSAK46View() {
   const etrExo = -Math.round(canon.FIG.permLess * canon.RATE);
   const etrResid = taxExpense - (etrStat + etrNd + etrExo);
   const P46_ETR = [
-    { id: 'stat', t: 'Laba sebelum pajak × tarif 22%', v: etrStat, head: true },
+    { id: 'stat', t: `Laba sebelum pajak × tarif ${P46_PCT}`, v: etrStat, head: true },
     { id: 'nd',   t: 'Efek beban yang tidak dapat dikurangkan', v: etrNd },
     { id: 'exo',  t: 'Efek penghasilan tidak kena pajak / PPh final', v: etrExo },
     ...(etrResid !== 0 ? [{ id: 'adj', t: 'Penyesuaian pajak tangguhan periode lalu', v: etrResid }] : []),
@@ -265,7 +270,7 @@ function PSAK46View() {
         firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja PPh — PSAK 46 — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 46 / IAS 12`,
-          `PKP ${fmt(FR.pkp)} × 22% → pajak kini ${fmt(currentTax)} · DTA neto ${fmt(netDT)} — Rp juta`],
+          `PKP ${fmt(FR.pkp)} × ${P46_PCT} → pajak kini ${fmt(currentTax)} · DTA neto ${fmt(netDT)} — Rp juta`],
         sheets: [
           { name: 'Rekonsiliasi Fiskal', heading: 'Rekonsiliasi Fiskal — laba komersial → PKP (Rp juta)',
             columns: ['Pos', 'Jenis', 'Rp juta'], rows: fiscalRows, colWidths: [58, 16, 14] },
@@ -300,7 +305,7 @@ function PSAK46View() {
           {/* summary */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
             <P46Card value={'Rp ' + fmt(taxExpense) + ' jt'} label="Beban pajak penghasilan" sub="¶79 · Laba Rugi (kini − tangguhan)" accent="var(--navy)" />
-            <P46Card value={'Rp ' + fmt(currentTax) + ' jt'} label="Beban pajak kini" sub={'PKP ' + fmt(FR.pkp) + ' × 22%'} accent="var(--blue)" />
+            <P46Card value={'Rp ' + fmt(currentTax) + ' jt'} label="Beban pajak kini" sub={'PKP ' + fmt(FR.pkp) + ' × ' + P46_PCT} accent="var(--blue)" />
             <P46Card value={'Rp ' + fmt(deferredPL) + ' jt'} label="Manfaat pajak tangguhan — L/R" sub="kenaikan DTA neto via laba rugi" accent="var(--purple)" />
             <P46Card value={'Rp ' + fmt(netDT) + ' jt'} label="Aset pajak tangguhan neto" sub={supp ? '¶74 · pemulihan didukung' : '¶56 · recoverability diragukan'} accent={supp ? 'var(--green)' : 'var(--amber)'} />
             <P46Card value={score + '%'} label="Prosedur audit selesai" sub={doneCount + '/' + procs.length + ' langkah'} accent={score === 100 ? 'var(--green)' : 'var(--navy)'} />
@@ -404,7 +409,7 @@ function PSAK46View() {
 
               {/* perbedaan temporer → pajak tangguhan */}
               <Panel noBody>
-                <div className="panel-h"><h3>Perbedaan Temporer & Pajak Tangguhan</h3><span className="sub mono">nilai tercatat vs dasar pajak · @22%</span></div>
+                <div className="panel-h"><h3>Perbedaan Temporer & Pajak Tangguhan</h3><span className="sub mono">nilai tercatat vs dasar pajak · @{P46_PCT}</span></div>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="dtbl" style={{ width: '100%' }}>
                     <thead>
@@ -485,7 +490,7 @@ function PSAK46View() {
                   <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple-solid)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(DT.oci)} jt</b></div>
                 </div>
                 <div className="tiny muted" style={{ padding: '0 14px 12px', lineHeight: 1.5 }}>
-                  Manfaat L/R <b>Rp {fmt(deferredPL)} jt</b> = beda temporer tahun berjalan (rekonsiliasi fiskal Rp {fmt(canon.FIG.fiscalTempMovement)} jt) × 22%; OCI <b>Rp {fmt(DT.oci)} jt</b> = pengukuran kembali PSAK 24 Rp {fmt(canon.FIG.ociRemeasure)} jt × 22%. Saldo akhir <b>Rp {fmt(DT.closing)} jt</b> = jumlah pajak tangguhan per pos di atas.
+                  Manfaat L/R <b>Rp {fmt(deferredPL)} jt</b> = beda temporer tahun berjalan (rekonsiliasi fiskal Rp {fmt(canon.FIG.fiscalTempMovement)} jt) × {P46_PCT}; OCI <b>Rp {fmt(DT.oci)} jt</b> = pengukuran kembali PSAK 24 Rp {fmt(canon.FIG.ociRemeasure)} jt × {P46_PCT}. Saldo akhir <b>Rp {fmt(DT.closing)} jt</b> = jumlah pajak tangguhan per pos di atas.
                 </div>
               </Panel>
 
@@ -502,7 +507,7 @@ function PSAK46View() {
                   ))}
                 </div>
                 <div className="tiny muted" style={{ padding: '9px 14px 12px', lineHeight: 1.5 }}>
-                  ETR <b>{etrPct == null ? '—' : etrPct.toFixed(1) + '%'}</b> di bawah tarif statutori 22% — selisih terutama dari penghasilan PPh final/dividen yang dikecualikan, sebagian diimbangi beban non-deductible.
+                  ETR <b>{etrPct == null ? '—' : etrPct.toFixed(1) + '%'}</b> di bawah tarif statutori {P46_PCT} — selisih terutama dari penghasilan PPh final/dividen yang dikecualikan, sebagian diimbangi beban non-deductible.
                 </div>
               </Panel>
 
@@ -600,7 +605,7 @@ function PSAK46View() {
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: supp ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}>{supp ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
                       <span style={{ fontSize: 12, lineHeight: 1.5 }}>{supp
-                        ? <>Aset pajak tangguhan neto <b>Rp {fmt(netDT)} jt</b> didukung proyeksi laba kena pajak; tax base, tarif 22% & pengungkapan teruji. Mendukung <b>opini tanpa modifikasi</b> atas pos perpajakan.</>
+                        ? <>Aset pajak tangguhan neto <b>Rp {fmt(netDT)} jt</b> didukung proyeksi laba kena pajak; tax base, tarif {P46_PCT} & pengungkapan teruji. Mendukung <b>opini tanpa modifikasi</b> atas pos perpajakan.</>
                         : <>Bila estimasi independen menunjukkan DTA <b>tidak terpulihkan</b> secara material dan manajemen menolak menurunkannya → pertimbangkan <b>modifikasi opini (SA 705)</b>.</>}</span>
                     </div>
                   </div>

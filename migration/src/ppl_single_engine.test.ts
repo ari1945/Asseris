@@ -272,9 +272,17 @@ describe('gerbang cakupan — satu mesin PPL, nol penjumlah mentah', () => {
 
   it('ambang PPL punya SATU sumber — canon_ppl, bukan CPE_REQ per-view', () => {
     const src = read('view_people.tsx');
-    expect(src).toMatch(/PPL_REQ_PMK186\.annual/);
-    /* CPE_REQ boleh dipakai untuk TAHUN saja, tidak untuk ambang. */
-    expect(src).not.toMatch(/CPE_REQ[\s\S]{0,40}annual\s*[,}]/);
+    /* Tahap A-2 · R1 — sifat yang dijaga TETAP "satu sumber", tetapi CARA
+       membuktikannya berubah: sumbernya bukan lagi konstanta telanjang
+       `PPL_REQ_PMK186` melainkan registry berkunci masa berlaku. Membaca
+       konstanta itu langsung kini justru CACAT: ia menjawab untuk tahun mana
+       pun tanpa pernah memilih. */
+    expect(src).toMatch(/pplReqOn\(/);
+    expect(src).toMatch(/pplReq\.annual/);
+    expect(src, 'view membaca ambang telanjang, melewati registry bermasa berlaku')
+      .not.toMatch(/PPL_REQ_PMK186/);
+    /* CPE_REQ tak lagi menyumbang apa pun — tahun pun kini turunan tanggal. */
+    expect(src).not.toMatch(/CPE_REQ/);
   });
 
   it('formulir Catat SKP merekam materi wajib untuk entri terstruktur', () => {

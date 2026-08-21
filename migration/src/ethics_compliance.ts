@@ -7,6 +7,7 @@
    ============================================================ */
 import { AMS } from './data';
 import { amlState, conductGate } from './canon_conduct';
+import { pplYearOf } from './canon_ppl';
 import type { ConductOverride, HrCase } from './canon_conduct';
 
 export interface EthicsUser { name?: string; email?: string; employeeId?: string }
@@ -27,9 +28,12 @@ export interface EthicsCompliance {
   reason: string;
 }
 
+/* Tahap A-2 · R1 — periode etika DITURUNKAN dari klok (K-02), tak lagi meminjam
+   `CPE_REQ.year` yang diketik plus fallback literal `|| 2026`. Dua tempat yang
+   sama-sama berhenti bergerak pada 1 Januari tahun berikutnya. */
 export function ethicsPeriod(): string {
-  const y = (AMS as unknown as { CPE_REQ?: { year?: number } }).CPE_REQ?.year || 2026;
-  return 'TA ' + y;
+  const y = pplYearOf(String((AMS as unknown as { TODAY?: unknown }).TODAY ?? ''));
+  return 'TA ' + (y == null ? '—' : y);
 }
 
 /* Petakan pengguna sesi → id pegawai (EMP-xxx) via email (SSOT STAFF ∪ FIRM_STAFF), fallback nama.

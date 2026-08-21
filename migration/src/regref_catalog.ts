@@ -22,6 +22,9 @@ import {
 } from './canon_pph21';
 import { BPJS_LABEL } from './canon_bpjs';
 import { FX_LABEL, FX_REGISTRY } from './canon_fx';
+import { CIT_LABEL, CIT_REGISTRY, GLOBE_MIN_LABEL, GLOBE_MIN_REGISTRY } from './canon_cit';
+import { PPL_LABEL, PPL_REGISTRY } from './canon_ppl';
+import { ROTATION_LABEL, ROTATION_REGISTRY } from './canon_rotation';
 import type { BpjsRegistry } from './canon_bpjs';
 import type { HolidayCalendar } from './canon_leave';
 import type { RegRefEnforcement, RegRefSet } from './canon_regref';
@@ -114,8 +117,62 @@ export function regrefCatalog(): RegRefCatalogEntry[] {
       module: 'cashbank',
       sets: FX_REGISTRY as RegRefSet<unknown>[],
     },
+    {
+      id: 'pph-badan',
+      label: CIT_LABEL,
+      enforcement: 'block',
+      cadence: 'Saat UU pajak berubah — 25% (2010–2019) → 22% (2020–2021, Perpu 1/2020) → 22% (2022→, UU HPP)',
+      breaksIfStale:
+        'Pajak kini, pajak tangguhan, rekonsiliasi tarif efektif, kertas kerja konsolidasi dan '
+        + 'informasi proforma seluruhnya dikalikan tarif tahun yang salah — di kertas kerja yang '
+        + 'menopang opini. Karena itu masa yang tak tercakup MENGHENTIKAN perhitungan.',
+      module: 'psak46',
+      sets: CIT_REGISTRY as RegRefSet<unknown>[],
+    },
+    {
+      id: 'globe-min',
+      label: GLOBE_MIN_LABEL,
+      enforcement: 'block',
+      cadence: 'Saat aturan adopsi berubah — Indonesia lewat PMK 136/2024, berlaku Tahun Pajak 2025',
+      breaksIfStale:
+        'Estimasi eksposur top-up tax dihitung terhadap ambang yang tak lagi berlaku, lalu '
+        + 'diungkapkan sebagai angka yang “dapat diestimasi secara wajar”. Masa sebelum adopsi '
+        + 'sengaja tak tercakup: di sana angka itu tak boleh ada sama sekali.',
+      module: 'newdisc',
+      sets: GLOBE_MIN_REGISTRY as RegRefSet<unknown>[],
+    },
+    {
+      id: 'ppl',
+      label: PPL_LABEL,
+      enforcement: 'block',
+      cadence: 'Saat PMK berubah — ambang berlaku sejak PMK 186/PMK.01/2021 Pasal 37',
+      breaksIfStale:
+        'Kepatuhan PPL setiap Akuntan Publik dinilai terhadap ambang tahun yang salah, dan '
+        + 'labelnya tetap menyebut tahun lama. Sebuah verdict kepatuhan tak punya jawaban '
+        + 'separuh, jadi masa yang tak tercakup MENGHENTIKAN penilaian alih-alih menebak.',
+      module: 'cpe',
+      sets: PPL_REGISTRY as RegRefSet<unknown>[],
+    },
+    {
+      id: 'rotasi-ap',
+      label: ROTATION_LABEL,
+      enforcement: 'block',
+      cadence: 'Saat PP/POJK berubah — PP 20/2015 (PIE umum) & POJK 13/POJK.03/2017 (jasa keuangan)',
+      breaksIfStale:
+        'Peringatan “wajib rotasi” dan jendela peringatan dini dihitung terhadap batas rezim '
+        + 'yang tak lagi berlaku, sementara spanduknya tetap mengutip dasar hukum — kutipan yang '
+        + 'benar di atas angka yang salah. Masa yang tak tercakup MENGHENTIKAN penilaian.',
+      module: 'independence',
+      sets: ROTATION_REGISTRY as RegRefSet<unknown>[],
+    },
   ];
 }
 
 /** Id yang WAJIB ada. Gerbang uji memakai ini; menambah registry tanpa mendaftarkannya = merah. */
-export const REGREF_EXPECTED_IDS = ['bpjs', 'ter', 'ptkp', 'biaya-jabatan', 'hari-libur', 'kurs'] as const;
+export const REGREF_EXPECTED_IDS = [
+  'bpjs', 'ter', 'ptkp', 'biaya-jabatan', 'hari-libur',
+  /* #283 — kurs (registry FX), mendarat di master sesudah cabang ini bercabang. */
+  'kurs',
+  /* Tahap A-2 — R1 · R2 · R3, plus besaran keempat (GloBE) yang ditemukan gerbang sensus. */
+  'pph-badan', 'globe-min', 'ppl', 'rotasi-ap',
+] as const;

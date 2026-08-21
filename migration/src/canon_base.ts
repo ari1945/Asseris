@@ -3,9 +3,15 @@
    ============================================================ */
 import type { WTB, WtbAmountField, WtbBasis, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark, AjeTaxEffect, TempBucket } from './canon_types';
 import { AMS } from './data';
+import { citRateRequired } from './canon_cit';
 
-  const RATE = 0.22;
-  const ASOF = { y: 2025, m: 12 };           // 31 Des 2025
+  /* Tanggal pelaporan entitas yang diaudit. `ASOF` DITURUNKAN darinya, bukan
+     sebaliknya — supaya ada satu tanggal ISO yang dapat dipakai memilih tarif. */
+  const ASOF_DATE = '2025-12-31';
+  const ASOF = { y: Number(ASOF_DATE.slice(0, 4)), m: Number(ASOF_DATE.slice(5, 7)) };   // 31 Des 2025
+  /* Tarif PPh Badan DIPILIH menurut tanggal pelaporan (registry `canon_cit`),
+     tidak lagi diketik. Masa yang tak tercakup MELEMPAR — ia menyangkut uang. */
+  const RATE = citRateRequired(ASOF_DATE);
 
   /* ---------- helper: tarik saldo akun dari WTB (by code) ---------- */
   const jt = (n: number) => Math.round((n || 0) / 1e6);                 // rupiah penuh → juta
@@ -529,4 +535,4 @@ import { AMS } from './data';
   }
 
 export type { FiscalReconciliation, AjeLike };
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, reportedBalance, wtbOn, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
+export { RATE, ASOF, ASOF_DATE, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, reportedBalance, wtbOn, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };

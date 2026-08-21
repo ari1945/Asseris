@@ -7,7 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Overlay, Panel, Seg, Stat, Tabs } from './ui';
 import { assertionDef, groupForAccountCode } from './canon_selectors';
-import { ajeEffect, entityFigures } from './canon_base';
+import { RATE as CIT_RATE, ajeEffect, entityFigures } from './canon_base';
 import type { AssertionId } from './canon_selectors';
 import { AJEForm } from './view_execution';
 /* PR-4 — tab Review & Persetujuan adalah TAMPILAN HIDUP dari antrean yang sama:
@@ -35,8 +35,9 @@ import { openCanonicalWp } from './wp_canon';
    ============================================================ */
 const { useState: useStateAJ, useMemo: useMemoAJ } = React;
 
-/* corporate income-tax rate (UU HPP) for deferred/current tax effect */
-const AJE_TAX = 0.22;
+/* Tarif PPh Badan untuk efek pajak kini/tangguhan — DIPILIH menurut tanggal
+   pelaporan lewat registry `canon_cit` (lihat `canon_base.RATE`), tak diketik. */
+const AJE_TAX = CIT_RATE;
 /* PR-A - PBT unadjusted & pos likuiditas DULU konstanta di sini:
    `AJE_PBT_UNADJ = 89_140_000_000` (turunan WTB: 29.690 jt - meleset 3,0x) dan
    `AJE_FS = { equity 160.456, curAssets 112.300, curLiab 81.400 }` (turunan WTB

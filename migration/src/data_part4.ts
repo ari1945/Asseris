@@ -2,6 +2,7 @@
    Asseris — data part4 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1';
+import { SEED_TODAY } from './data_clock';
 import { NONAUDIT } from './data_part2';
 import { componentParaLabel, smm1Ref } from './canon_smm_refs';
 import { objectivesForComponent } from './canon_smm_objectives';
@@ -463,8 +464,9 @@ import { smmEvalPeriod } from './canon_smm_period';
      audittimeline. Konstanta demo (bukan wall-clock — data seed berpusat Mar
      2026). Sapuan app-wide SELESAI: tanggal beku dicabut PR #231, dan jam
      sistem (`new Date()`) menyusul lewat `clock_ssot.ts` — pemakainya dijaga
-     gerbang `clock_ssot.test.ts`. ---- */
-  const TODAY = '2026-03-09';
+     gerbang `clock_ssot.test.ts`. Nilainya kini bersumber dari `data_clock`
+     (`SEED_TODAY`) alih-alih diketik ulang di sini. ---- */
+  const TODAY = SEED_TODAY;
 
   /* ---- Delivery plan: fase + milestone per engagement (Gantt) ---- */
   const DELIVERY_WINDOW = { start: '2025-11-17', end: '2026-06-30', today: TODAY };

@@ -29,6 +29,8 @@
    ============================================================ */
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
+import { ASOF_DATE } from './canon_base';
+import { citRateRequired } from './canon_cit';
 
 (function () {
 
@@ -126,7 +128,9 @@ import { AMS_CANON } from './canon';
     const R = Math.round;
 
     /* ====== KOLOM HISTORIS — ditarik LIVE dari AMS_CANON (SSOT) ====== */
-    const RATE = C ? C.RATE : 0.22;
+    /* Fallback dulu literal 0.22 — tarif statuter yang PERNAH berubah, diam-diam
+       tak dapat kedaluwarsa. Kini ia memilih menurut tanggal & MEMBLOKIR. */
+    const RATE = C ? C.RATE : citRateRequired(ASOF_DATE);
     const k65 = C ? C.psak65() : null;
     const rev = C ? C.revenue() : null;
     const wsCap = (cap: any) => (k65 ? (k65.ws.find(r => r.cap === cap) || { konsol: 0 }).konsol : 0);

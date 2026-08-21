@@ -26,8 +26,23 @@
    terstruktur + 22 tidak terstruktur hanya bernilai 22 + 10 = 32 SKP
    yang dapat diperhitungkan — di bawah 40, meski totalnya tampak lewat.
 
+   TAHAP A-2 (`docs/prd-regref-tahap-a2.md` · R1). Ambang di bawah dulu SATU
+   record tanpa masa berlaku, dan tahun berjalannya diketik terpisah di
+   `CPE_REQ.year: 2026`. Tak satu pun konsumen memilih set menurut tanggal, jadi
+   pada 1 Januari 2027 aplikasi akan menampilkan "PPL 2026 · 40 SKP", menghitung
+   kepatuhan terhadap kewajiban 2026, dan memberi label 2026 — diam. Itu pola
+   `PAYROLL_RATES.period` yang sudah dicabut Tahap A, hidup di tempat lain.
+
+   Kini ambangnya berkunci masa berlaku (`PPL_REGISTRY`) dan tahunnya DITURUNKAN
+   dari tanggal hitung (`pplYearOf`). Ia MEMBLOKIR bila masa tak tercakup: tidak
+   seperti hari kerja cuti yang masih berarti tanpa kalender liburnya, sebuah
+   verdict kepatuhan tidak punya jawaban separuh — "Memenuhi" terhadap kewajiban
+   tahun yang salah adalah nasihat kepatuhan yang keliru, bukan angka kurang teliti.
+
    Murni & deterministik; tanpa React/efek-samping.
    ============================================================ */
+import { regrefFor } from './canon_regref';
+import type { RegRefLookup, RegRefSet } from './canon_regref';
 
 export interface PplRequirement {
   /** Total SKP per tahun. */
@@ -202,4 +217,90 @@ export function pplStatusFromEntries(
   req: PplRequirement = PPL_REQ_PMK186,
 ): PplStatus {
   return pplStatus(pplFromEntries(entries), req);
+}
+
+/* ------------------------------------------------------------------
+   Masa berlaku (PRD `docs/prd-regref-tahap-a2.md` · PR-2 · SC-A1..SC-A3)
+   ------------------------------------------------------------------ */
+
+export const PPL_LABEL = 'Kewajiban PPL Akuntan Publik (SKP)';
+
+/**
+ * Kewajiban PPL menurut masa berlakunya.
+ *
+ * Satu set hari ini, dan itu memang keadaannya — bukan alasan untuk menyimpannya
+ * sebagai record telanjang. Masa SEBELUM PMK 186/2021 sengaja TIDAK tercakup:
+ * aturan sebelumnya berbeda, dan "yang terdekat" bukan jawaban.
+ */
+export const PPL_REGISTRY: RegRefSet<PplRequirement>[] = [{
+  effectiveFrom: '2022-01-01',
+  effectiveTo: null,
+  basis: 'PMK 186/PMK.01/2021 Pasal 37',
+  sourceDoc: '',
+  verified: false,
+  note: 'Ambang 40/30/10 SKP dan materi wajib 4+16 belum dicocokkan baris-per-baris dengan '
+    + 'naskah PMK 186/2021, dan tanggal mulai berlakunya diasumsikan 1 Januari 2022 — '
+    + 'masa sebelum itu karena itu tak tercakup, bukan dihitung dengan ambang ini.',
+  value: PPL_REQ_PMK186,
+}];
+
+/** Kewajiban PPL yang berlaku pada `date`, atau penolakan yang menyebut alasannya. */
+export function pplReqOn(date: string | undefined | null): RegRefLookup<PplRequirement> {
+  return regrefFor(PPL_REGISTRY, String(date ?? ''), { label: PPL_LABEL, enforcement: 'block' });
+}
+
+/** Tahun PPL yang berlaku pada `date` — DITURUNKAN, tak pernah diketik. */
+export function pplYearOf(date: string | undefined | null): number | null {
+  const s = String(date ?? '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  return Number(s.slice(0, 4));
+}
+
+/**
+ * Catatan SKP milik satu tahun PPL.
+ *
+ * Tanpa penyaringan ini, membenarkan LABEL tahunnya justru memperburuk keadaan:
+ * layar akan berkata "PPL 2027" sambil menjumlahkan SKP yang diperoleh 2026.
+ * Entri tanpa tanggal yang terbaca DIBUANG — ia tak dapat diklaim milik tahun
+ * mana pun, dan menghitungnya berarti menebak.
+ */
+export function skpInYear(entries: readonly SkpEntry[] | null | undefined, year: number): SkpEntry[] {
+  return (entries || []).filter((e) => {
+    const d = String((e as { date?: unknown } | null)?.date ?? '');
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) && Number(d.slice(0, 4)) === year;
+  });
+}
+
+export interface PplPeriod {
+  /** Tahun PPL yang dinilai, dari tanggal hitung. */
+  year: number | null;
+  /** Ambang yang berlaku — `null` bila masa itu tak tercakup registry. */
+  req: PplRequirement | null;
+  look: RegRefLookup<PplRequirement>;
+  /** Catatan SKP yang benar-benar milik `year`. */
+  entries: SkpEntry[];
+  /** `null` bila tak dapat dinilai (masa tak tercakup) — BUKAN verdict palsu. */
+  status: PplStatus | null;
+}
+
+/**
+ * Satu pintu bagi seluruh konsumen: tahun, ambang, catatan tahun itu, dan status.
+ *
+ * Bila masa tak tercakup, `status` `null` dan pemanggil WAJIB menampilkan
+ * penolakannya (`look.note`) — bukan menyulapnya jadi "Memenuhi".
+ */
+export function pplPeriod(
+  entries: readonly SkpEntry[] | null | undefined,
+  date: string | undefined | null,
+): PplPeriod {
+  const look = pplReqOn(date);
+  const year = pplYearOf(date);
+  const scoped = year == null ? [] : skpInYear(entries, year);
+  return {
+    year,
+    req: look.value,
+    look,
+    entries: scoped,
+    status: look.value ? pplStatusFromEntries(scoped, look.value) : null,
+  };
 }

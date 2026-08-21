@@ -463,7 +463,9 @@ import type { WTB, WtbBasis } from './canon_types';
     const dividendIncome = 2100;                             // penghasilan dividen dari anak (buku terpisah induk)
 
     /* —— eliminasi investasi (akuisisi · PSAK 22 ¶32) per anak —— */
-    const RATE65 = 0.22;
+    /* Tarif yang sama dengan pajak kini kertas kerja konsolidasi — SATU sumber
+       (`canon_base.RATE` ← registry `canon_cit`), bukan salinan kedua. */
+    const RATE65 = RATE;
     const subs = effSubs.map(s => {
       const equityAcq = s.modal + s.rePre;                  // aset neto teridentifikasi @ akuisisi (proxy)
       const equityNow = s.modal + s.rePre + s.rePost;
