@@ -36,14 +36,17 @@
    HARUS diisi diri sendiri. Yang dipakai ulang adalah aturannya dan bentuk
    kembaliannya (`{ ok, reason }`), bukan fungsinya.
 
-   PENEGAKAN SERVER. Tulisan ke `independence` · `indepAppr` · `indepThreats` ·
-   `indepRotAck` di-gate `HR_MANAGE` (rbac.ts `capForWrite`). Gerbang di modul ini
-   LEBIH KETAT daripada server (lapis 3 menuntut `FIRM_ADMIN`, lapis 1 menuntut
-   identitas), jadi ia tak dapat melahirkan kelas penolakan-senyap yang baru.
-   Pemisahan tugas per-lapis BELUM ada di server — lihat laporan PR.
+   PENEGAKAN SERVER. Berkas ini BUKAN gerbang UI belaka: `server/src/signoff.ts`
+   mengimpornya dan menegakkan aturan yang SAMA atas `state.set` (pola yang sama
+   dengan `rbac`, `wp_chain`, `aje_approval`, `canon_eqr_gate`). Satu definisi,
+   dua sisi — karena gerbang yang hidup di satu sisi saja adalah cara paling andal
+   melahirkan celah: tanpa itu, panggilan tRPC langsung dengan `HR_MANAGE`
+   (`capForWrite`, gate per-DOKUMEN) dapat menulis rantai bertanda tangan siapa pun.
+   Server memakai `indepSignatureAuthority` (posisi dari TANDA TANGAN saja) —
+   alasannya di doc fungsi itu.
    ============================================================ */
 import { CAP, can as rbacCan } from './rbac';
-import { rotTier } from './data_licensing';
+import { rotTier } from './canon_rotation';
 
 /** Periode deklarasi independensi berjalan (tahun audit). Sumber tunggal label
  *  periode untuk register, drawer, dan stempel pada jejak persetujuan. */
@@ -117,6 +120,10 @@ export function indepApprRecord(raw: unknown, period: string = INDEP_PERIOD): In
 }
 
 /** Banyaknya lapis TERATRIBUSI berturut-turut dari awal (tanda tangan bernama). */
+export function indepSignedSteps(steps: Array<IndepStep | undefined>): number {
+  return signedPrefix(steps);
+}
+
 function signedPrefix(steps: Array<IndepStep | undefined>): number {
   let n = 0;
   while (n < INDEP_CHAIN.length) {
@@ -209,6 +216,75 @@ export function indepStepAuthority(args: {
     return { ok: false, reason: `Lapis "${def.role}" memerlukan kapabilitas ${def.cap}; peran ${actor.role || '—'} tidak memilikinya.` };
   }
   return { ok: true, reason: '' };
+}
+
+/** Kelayakan sebuah tanda tangan BARU, dinilai dari TANDA TANGAN SAJA.
+ *
+ *  Dipakai PENEGAKAN SERVER. `declared` hidup di StateDoc `independence` sementara
+ *  rantai hidup di `indepAppr`: dua dokumen yang ditulis TERPISAH, dan urutan
+ *  kedatangannya tak dijamin (keduanya lewat debounce 400 ms yang sama). Posisi
+ *  rantai karena itu tidak boleh bergantung pada dokumen saudara — kalau bergantung,
+ *  menandatangani lapis 1 akan ditolak sebagai "mundur" setiap kali tulisan
+ *  `independence` kebetulan mendarat lebih dulu.
+ *
+ *  Yang berbeda dari `indepStepAuthority` HANYA cara menghitung POSISI. Seluruh
+ *  aturan WEWENANG — identitas nyata, lapis 1 terikat orangnya, tanpa reviu-sendiri,
+ *  satu orang satu lapis, kapabilitas per lapis — identik, karena ini memanggilnya. */
+export function indepSignatureAuthority(args: {
+  stepIndex: number;
+  prevRec: IndepApprRec;
+  rowId: string;
+  actor: IndepActor;
+}): IndepAuthority {
+  return indepStepAuthority({
+    stepIndex: args.stepIndex, rec: args.prevRec, declared: false, rowId: args.rowId, actor: args.actor,
+  });
+}
+
+/* ============================================================
+   TRANSISI RANTAI (dipakai penegakan server)
+   ------------------------------------------------------------
+   Server tak menerima "aksi"; ia menerima DOKUMEN UTUH. Satu-satunya cara
+   mengetahui apa yang sebenarnya terjadi adalah mem-diff tersimpan vs masuk —
+   pola yang sama dengan `guardSignoffWrite` untuk kertas kerja & opini.
+   ============================================================ */
+export type IndepApprChange =
+  /** Tanda tangan BARU pada lapis yang tadinya kosong. */
+  | { kind: 'sign'; personId: string; stepIndex: number; step: IndepStep }
+  /** Tanda tangan yang ADA dihapus (pembatalan rantai). */
+  | { kind: 'clear'; personId: string; stepIndex: number }
+  /** Tanda tangan yang ADA ditulis ulang menjadi tanda tangan LAIN. */
+  | { kind: 'rewrite'; personId: string; stepIndex: number };
+
+function stampKey(s: IndepStep | undefined): string {
+  if (!s || !s.by) return '';
+  return [s.byEmpId || '', s.byUserId || '', s.by, s.at || ''].join('~');
+}
+
+/** Apa yang berubah pada dokumen `indepAppr` antara `prev` dan `next`. */
+export function indepApprTransitions(prev: unknown, next: unknown): IndepApprChange[] {
+  const p = (prev && typeof prev === 'object' ? prev : {}) as Record<string, unknown>;
+  const n = (next && typeof next === 'object' ? next : {}) as Record<string, unknown>;
+  const out: IndepApprChange[] = [];
+  for (const personId of new Set([...Object.keys(p), ...Object.keys(n)])) {
+    const pr = indepApprRecord(p[personId]);
+    const nx = indepApprRecord(n[personId]);
+    for (let i = 0; i < INDEP_CHAIN.length; i++) {
+      const before = stampKey(pr.steps[i]);
+      const after = stampKey(nx.steps[i]);
+      if (before === after) continue;
+      if (!before) out.push({ kind: 'sign', personId, stepIndex: i, step: nx.steps[i] as IndepStep });
+      else if (!after) out.push({ kind: 'clear', personId, stepIndex: i });
+      else out.push({ kind: 'rewrite', personId, stepIndex: i });
+    }
+  }
+  return out;
+}
+
+/** Rekaman `indepAppr` seseorang seperti ADANYA di server sebelum tulisan ini. */
+export function indepApprOf(doc: unknown, personId: string): IndepApprRec {
+  const o = (doc && typeof doc === 'object' ? doc : {}) as Record<string, unknown>;
+  return indepApprRecord(o[personId]);
 }
 
 /** Gerbang tulis modul: seluruh dokumen independensi di-gate `HR_MANAGE` server-side.

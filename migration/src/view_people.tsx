@@ -518,7 +518,7 @@ function Independence() {
     if (!canWrite) return tolak('Menambah ancaman independensi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
     setThreats((list: IndepThreat[]) => [...list, {
       id: nextThreatId(list, personId), personId, type: THREAT_TYPES[0], desc: '',
-      severity: 'Sedang', safeguard: '', status: 'Terbuka', by: '', at: '',
+      severity: 'Sedang', safeguard: '', status: 'Terbuka', by: '', byUserId: undefined, byEmpId: undefined, at: '',
     }]);
   };
   const updateThreat = (id: string, patch: Record<string, string>) => {
@@ -529,7 +529,7 @@ function Independence() {
     if (!canWrite) return tolak('Menandai ancaman sebagai dimitigasi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
     const stamp = indepStamp(actor, indepToday);
     if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — mitigasi tidak ditandatangani.');
-    setThreats((list: IndepThreat[]) => list.map((t) => t.id === id ? { ...t, status: 'Dimitigasi', by: stamp.by, at: stamp.at } : t));
+    setThreats((list: IndepThreat[]) => list.map((t) => t.id === id ? { ...t, status: 'Dimitigasi', by: stamp.by, byUserId: stamp.byUserId, byEmpId: stamp.byEmpId, at: stamp.at } : t));
   };
   /* Q-03c — pengakuan rotasi & cooling-off + tindak lanjut. */
   const [rotAck, setRotAck] = useAmsPersist('indepRotAck', {});
@@ -537,7 +537,7 @@ function Independence() {
     if (!canWrite) return tolak('Mencatat pengakuan rotasi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
     const stamp = indepStamp(actor, indepToday);
     if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — pengakuan tidak dicatat.');
-    setRotAck((m: Record<string, unknown>) => ({ ...m, [id]: { acknowledged: true, action, by: stamp.by, at: stamp.at } }));
+    setRotAck((m: Record<string, unknown>) => ({ ...m, [id]: { acknowledged: true, action, by: stamp.by, byUserId: stamp.byUserId, byEmpId: stamp.byEmpId, at: stamp.at } }));
     setNotice({ ok: true, t: `Pengakuan rotasi dicatat atas nama ${stamp.by}.` });
   };
 
@@ -652,8 +652,11 @@ function Independence() {
 /* Kategori ancaman independensi (IESBA 120) + tingkat keparahan. */
 const THREAT_TYPES = ['Kepentingan pribadi', 'Telaah pribadi', 'Advokasi', 'Kedekatan', 'Intimidasi'];
 const THREAT_SEV = ['Tinggi', 'Sedang', 'Rendah'];
-type IndepThreat = { id: string; personId: string; type: string; desc: string; severity: string; safeguard: string; status: string; by: string; at: string };
-type RotAck = { acknowledged?: boolean; action?: string; by?: string; at?: string };
+/* `byUserId`/`byEmpId` bukan hiasan: server (`signoff.ts`) menuntut jejak yang BARU
+   memperoleh pembubuh menyebut SESI-nya, dan pencocokan nama itu lossy (pelajaran
+   `amsShortName`). Entri seed bertanda `by: ''` — belum beratribusi, belum dituntut. */
+type IndepThreat = { id: string; personId: string; type: string; desc: string; severity: string; safeguard: string; status: string; by: string; byUserId?: string; byEmpId?: string; at: string };
+type RotAck = { acknowledged?: boolean; action?: string; by?: string; byUserId?: string; byEmpId?: string; at?: string };
 const sevVar = (s: string): string => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'green';
 /* Seed register ancaman/pengamanan dari konflik terdeklarasi (INDEPENDENCE). */
 const seedIndepThreats = (rows: Array<{ id: string; conflicts: number; finInterest: string }>) =>
@@ -751,7 +754,7 @@ function IndepDrawer({ d, lvl, rec, period, unattributed, canWrite, canFirmAdmin
                     ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Dimitigasi{t.by ? ' · ' + t.by + ' · ' + indepDateLabel(t.at) : ' · tanpa atribusi'}</span>
                     : <Badge kind="amber">Terbuka</Badge>}
                   {canWrite && (t.status === 'Dimitigasi'
-                    ? <button className="btn sm" onClick={() => onUpdateThreat(t.id, { status: 'Terbuka', by: '', at: '' })}><I.sync size={11} /> Buka</button>
+                    ? <button className="btn sm" onClick={() => onUpdateThreat(t.id, { status: 'Terbuka', by: '', byUserId: '', byEmpId: '', at: '' })}><I.sync size={11} /> Buka</button>
                     : <Btn sm variant={t.safeguard.trim() ? 'primary' : ''} disabled={!t.safeguard.trim()} onClick={() => onSignThreat(t.id)}><I.check size={12} /> Tandai dimitigasi</Btn>)}
                 </div>
               </div>

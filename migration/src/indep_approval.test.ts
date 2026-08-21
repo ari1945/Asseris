@@ -24,7 +24,11 @@ import { join } from 'node:path';
 import {
   INDEP_CHAIN,
   INDEP_PERIOD,
+  indepApprOf,
   indepApprRecord,
+  indepApprTransitions,
+  indepSignatureAuthority,
+  indepSignedSteps,
   indepCanWrite,
   indepDateLabel,
   indepLevel,
@@ -328,5 +332,88 @@ describe('rotasi & tanggal', () => {
     expect(indepDateLabel('2026-03-09')).toBe('09 Mar 2026');
     expect(indepDateLabel('21 Agt 2026')).toBe('21 Agt 2026');
     expect(indepDateLabel(undefined)).toBe('');
+  });
+});
+
+/* ============================================================
+   g · TRANSISI RANTAI — dasar penegakan SERVER
+   ------------------------------------------------------------
+   Server tak menerima "aksi", ia menerima DOKUMEN UTUH; satu-satunya cara
+   mengetahui apa yang terjadi adalah mem-diff tersimpan vs masuk. Kalau
+   detektor ini salah, gerbang di `server/src/signoff.ts` menjaga hal yang keliru.
+   ============================================================ */
+describe('g — indepApprTransitions membaca apa yang SEBENARNYA berubah', () => {
+  const cap = (a: IndepActor): IndepStep => ({ by: a.name as string, byUserId: a.userId, byEmpId: a.empId as string, at: HARI });
+
+  it('tanda tangan baru terdeteksi dengan lapis & pemiliknya', () => {
+    const next = { [ROW]: { level: 1, steps: [cap(DEKLARAN)], period: INDEP_PERIOD } };
+    expect(indepApprTransitions({}, next)).toEqual([
+      { kind: 'sign', personId: ROW, stepIndex: 0, step: cap(DEKLARAN) },
+    ]);
+  });
+
+  it('membedakan HAPUS dari TULIS-ULANG — dua tindakan dengan wewenang berbeda', () => {
+    const prev = { [ROW]: { level: 1, steps: [cap(DEKLARAN)], period: INDEP_PERIOD } };
+    expect(indepApprTransitions(prev, { [ROW]: { level: 0, steps: [], period: INDEP_PERIOD } }))
+      .toEqual([{ kind: 'clear', personId: ROW, stepIndex: 0 }]);
+    expect(indepApprTransitions(prev, { [ROW]: { level: 1, steps: [cap(HRD)], period: INDEP_PERIOD } }))
+      .toEqual([{ kind: 'rewrite', personId: ROW, stepIndex: 0 }]);
+  });
+
+  it('dokumen yang tak berubah menghasilkan NOL transisi (server tak perlu query apa pun)', () => {
+    const doc = { [ROW]: { level: 1, steps: [cap(DEKLARAN)], period: INDEP_PERIOD } };
+    expect(indepApprTransitions(doc, doc)).toEqual([]);
+    /* Mengubah `period` saja bukan tanda tangan. */
+    expect(indepApprTransitions(doc, { [ROW]: { level: 1, steps: [cap(DEKLARAN)], period: 'TA 2027' } })).toEqual([]);
+  });
+
+  it('bentuk lama (level number tanpa steps) tak melahirkan transisi palsu', () => {
+    expect(indepApprTransitions({ [ROW]: 2 }, { [ROW]: 2 })).toEqual([]);
+    expect(indepApprTransitions({ [ROW]: 2 }, {})).toEqual([]);
+  });
+
+  it('indepApprOf & indepSignedSteps membaca rekaman apa adanya', () => {
+    const doc = { [ROW]: { level: 2, steps: [cap(DEKLARAN), cap(HRD)], period: INDEP_PERIOD } };
+    expect(indepSignedSteps(indepApprOf(doc, ROW).steps)).toBe(2);
+    expect(indepSignedSteps(indepApprOf(doc, 'EMP-999').steps)).toBe(0);
+  });
+
+  it('indepSignatureAuthority menghitung POSISI dari tanda tangan, bukan dari `declared`', () => {
+    /* Dua StateDoc, urutan kedatangan tak dijamin: kalau posisi bergantung pada
+       `independence`, menandatangani lapis 1 akan ditolak "mundur" setiap kali
+       tulisan `declared` kebetulan mendarat lebih dulu. */
+    const kosong = indepApprRecord(undefined);
+    expect(indepStepAuthority({ stepIndex: 0, rec: kosong, declared: true, rowId: ROW, actor: DEKLARAN }).ok).toBe(false);
+    expect(indepSignatureAuthority({ stepIndex: 0, prevRec: kosong, rowId: ROW, actor: DEKLARAN }).ok).toBe(true);
+    /* Aturan WEWENANG-nya identik — bukan longgar. */
+    expect(indepSignatureAuthority({ stepIndex: 0, prevRec: kosong, rowId: ROW, actor: HRD }).reason).toContain('hanya yang bersangkutan');
+    expect(indepSignatureAuthority({ stepIndex: 0, prevRec: kosong, rowId: 'EMP-007', actor: MANAJER }).reason).toContain('hr.manage');
+  });
+});
+
+/* ============================================================
+   h · MODUL INI DIBACA SERVER — ia tak boleh menyeret lapisan data browser
+   ============================================================ */
+describe('h — indep_approval tetap dapat diimpor server', () => {
+  /* `server/src/signoff.ts` mengimpor berkas ini. Satu impor ke modul yang
+     (transitif) menyentuh `./data` akan menjalankan lapisan data browser di
+     dalam proses Node — `window` tak ada, dan servernya mati saat boot. Gerbang
+     ini menahan regresi itu pada waktu uji, bukan pada waktu deploy. */
+  const IZIN = ['./rbac', './canon_rotation'];
+  it('hanya mengimpor modul LEAF yang aman untuk Node', () => {
+    const src = readFileSync(join(__dirname, 'indep_approval.ts'), 'utf8');
+    const impor = [...src.matchAll(/from\s+'(\.[^']+)'/g)].map((m) => m[1]);
+    expect(impor.length).toBeGreaterThan(0);
+    impor.forEach((m) => {
+      expect(IZIN, `impor tak terdaftar: ${m} — pastikan ia LEAF sebelum menambahkannya`).toContain(m);
+    });
+  });
+
+  it('modul yang diizinkan itu sendiri bebas dari lapisan data', () => {
+    IZIN.forEach((m) => {
+      const src = readFileSync(join(__dirname, m.replace('./', '') + '.ts'), 'utf8');
+      const impor = [...src.matchAll(/from\s+'(\.[^']+)'/g)].map((x) => x[1]);
+      expect(impor, `${m} mengimpor lapisan data`).not.toContain('./data');
+    });
   });
 });
