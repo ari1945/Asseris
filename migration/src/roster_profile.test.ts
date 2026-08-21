@@ -19,13 +19,15 @@ import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
 import {
   RP_GRADE_PROFILE, RP_JUNIOR, RP_JUNIORS, RP_MANAGER, RP_PARTNER, RP_SENIOR, RP_SENIORS,
-  rpAllocate, rpBuildRoster, rpNames, rpRosterMap, rpScheduleNames, rpSeedHours,
+  rpAllocate, rpBuildRoster, rpNames, rpPickLeast, rpRosterMap, rpScheduleNames, rpSeedHours,
   type RPEngagement, type RPRosterRow, type RPScheduleMember, type RPTimeEntry,
 } from './roster_profile';
 
 const DEMO = 'ENG-' + '2025-014';
+interface CapStaff { name: string; grade: string; forecast: number[] }
 const A = AMS as unknown as {
   ENGAGEMENTS: RPEngagement[]; SCHEDULE: RPScheduleMember[]; TIME_ENTRIES: RPTimeEntry[];
+  CAPACITY: { staff: CapStaff[] };
 };
 const seedHours = (): Record<string, number> => rpSeedHours(A.TIME_ENTRIES);
 const engs = (): RPEngagement[] => A.ENGAGEMENTS;
@@ -60,7 +62,7 @@ describe('RP1 — profil grade direproduksi dari roster demo', () => {
   });
 
   it('profil diterapkan pada angka perikatan demo → komposisi yang SAMA', () => {
-    const r = rpBuildRoster(engById(DEMO), 0, {}, seedHours()[DEMO]);
+    const r = rpBuildRoster(engById(DEMO), rpNames(engById(DEMO)), seedHours()[DEMO]);
     expect(byGrade(r, 'budget')).toEqual(byGrade(demoRoster(), 'budget'));
     expect(byGrade(r, 'base')).toEqual(byGrade(demoRoster(), 'base'));
   });
@@ -140,7 +142,7 @@ describe('RP3 — nol-delta untuk perikatan demo', () => {
 describe('RP4 — nama dari data lebih dulu', () => {
   it('partner & manager selalu dari perikatan itu sendiri', () => {
     engs().forEach((e) => {
-      const n = rpNames(e, 0);
+      const n = rpNames(e);
       expect(n[RP_PARTNER], e.id).toBe(e.partner);
       if (e.manager) expect(n[RP_MANAGER], e.id).toBe(e.manager);
     });
@@ -149,11 +151,11 @@ describe('RP4 — nama dari data lebih dulu', () => {
   it('senior/junior yang disebut SCHEDULE dipakai apa adanya', () => {
     const id40 = 'ENG-' + '2025-040';
     expect(rpScheduleNames(A.SCHEDULE, id40).senior).toBe('Sinta Wulandari');
-    expect(rpNames(engById(id40), 0, rpScheduleNames(A.SCHEDULE, id40))[RP_SENIOR])
+    expect(rpNames(engById(id40), rpScheduleNames(A.SCHEDULE, id40))[RP_SENIOR])
       .toBe('Sinta Wulandari');
   });
 
-  it('tanpa sebutan jadwal, rotasi dipakai — dan hanya dari kolam TEAM', () => {
+  it('tanpa sebutan jadwal, kolam TEAM dipakai — dan hanya itu', () => {
     const m = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE);
     engs().filter((e) => e.id !== DEMO).forEach((e) => {
       const r = m[e.id];
@@ -162,7 +164,7 @@ describe('RP4 — nama dari data lebih dulu', () => {
     });
   });
 
-  it('rotasi memang MEMBAGI — bukan satu orang untuk semua', () => {
+  it('pembagian memang MEMBAGI — bukan satu orang untuk semua', () => {
     const m = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE);
     const senior = engs().filter((e) => e.id !== DEMO)
       .map((e) => m[e.id].find((x) => x.role === RP_SENIOR)!.name);
@@ -194,16 +196,18 @@ describe('RP5 — deterministik', () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 
-  it('menambah roster nyata: yang lebih awal menurut id tak tergeser', () => {
+  it('roster nyata yang disuntikkan dipakai apa adanya', () => {
     const id31 = 'ENG-' + '2025-031';
-    const id22 = 'ENG-' + '2025-022';
-    const dasar = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE, seedHours());
     const tambah = rpRosterMap(
       engs(), { [DEMO]: demoRoster(), [id31]: demoRoster() }, A.SCHEDULE, seedHours());
-    /* …-022 mendahului …-031 secara alfabetis → rotasinya tak berubah */
-    expect(tambah[id22].map((r) => r.name)).toEqual(dasar[id22].map((r) => r.name));
-    /* …-031 kini literal, jadi ia memang memakai roster yang disuntikkan */
     expect(tambah[id31]).toBe(demoRoster());
+  });
+
+  it('pemilih beban-teringan: seri → urutan kolam, bukan acak', () => {
+    expect(rpPickLeast(['a', 'b'], {})).toBe('a');
+    expect(rpPickLeast(['a', 'b'], { a: 10 })).toBe('b');
+    expect(rpPickLeast(['a', 'b'], { a: 10, b: 10 })).toBe('a');
+    expect(rpPickLeast(['a', 'b'], { a: 10, b: 3 })).toBe('b');
   });
 
   it('setiap baris memakai peran yang dikenali kartu tarif FIRMFIN', () => {
@@ -219,5 +223,121 @@ describe('RP5 — deterministik', () => {
   it('peran yang dipakai profil persis empat grade itu', () => {
     expect(RP_GRADE_PROFILE.map((g) => g.role))
       .toEqual([RP_PARTNER, RP_MANAGER, RP_SENIOR, RP_JUNIOR]);
+  });
+});
+
+/* ============================================================
+   e · RP6 — beban antar orang SEGRADE tidak boleh timpang
+   ------------------------------------------------------------
+   Rotasi bergilir membagi JUMLAH perikatan secara merata, bukan JAM. Karena
+   perikatan berbeda jauh ukurannya (…-063 punya 1.588 jam aktual, …-047 hanya
+   48), giliran yang "adil" menghasilkan beban yang sangat timpang: Sinta
+   Wulandari mendapat 1.418 jam sementara Dimas Raharjo — senior lain, satu
+   grade — hanya 815. Selisih 74% tanpa satu pun alasan di data.
+
+   Patokannya BUKAN kalender yang saya karang, melainkan data yang sudah ada:
+   `CAPACITY.staff.forecast` menyatakan utilisasi yang diharapkan tiap orang.
+   Dimas 94% vs Sinta 91% — nyaris sama, jadi porsi jam mereka pun harus nyaris
+   sama. Gerbang di bawah membandingkan PORSI, sehingga ia tak bergantung pada
+   panjang musim audit (yang memang tak dinyatakan di mana pun).
+   ============================================================ */
+describe('RP6 — beban segrade mengikuti forecast CAPACITY', () => {
+  const beban = (): Record<string, number> => {
+    const m = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE, seedHours());
+    const out: Record<string, number> = {};
+    Object.keys(m).forEach((id) => m[id].forEach((r) => {
+      out[r.name] = (out[r.name] || 0) + r.base;
+    }));
+    return out;
+  };
+  const bersih = (n: string): string => n.replace(', CPA', '');
+  const forecastOf = (n: string): number | null => {
+    const s = A.CAPACITY.staff.find((x) => x.name === bersih(n));
+    return s ? s.forecast.reduce((a, b) => a + b, 0) / s.forecast.length : null;
+  };
+
+  /* Hanya kolam yang punya >1 anggota & forecast — di seed: Senior & Junior. */
+  const kolam: [string, readonly string[]][] = [['Senior', RP_SENIORS], ['Junior', RP_JUNIORS]];
+
+  it('premis: forecast CAPACITY untuk tiap kolam nyaris seimbang', () => {
+    kolam.forEach(([grade, pool]) => {
+      const f = pool.map((n) => forecastOf(n));
+      f.forEach((v, i) => {
+        expect(v, grade + ' · ' + pool[i] + ' tak ada di CAPACITY').not.toBeNull();
+      });
+      const max = Math.max(...(f as number[])), min = Math.min(...(f as number[]));
+      expect(max / min, grade).toBeLessThan(1.15);
+    });
+  });
+
+  /* Ambang mutlak yang longgar SENGAJA: perikatan tak dapat dibelah, jadi
+     porsinya melompat sebesar perikatan terbesar (…-063 sendirian = 29% jam
+     junior). Gerbang yang MENGIKAT adalah uji berikutnya — optimalitas lokal —
+     yang tak punya konstanta untuk dilonggarkan diam-diam. */
+  const simpangan = (b: Record<string, number>, pool: readonly string[]): number => {
+    const totJam = pool.reduce((s, n) => s + (b[n] || 0), 0);
+    const totFc = pool.reduce((s, n) => s + (forecastOf(n) || 0), 0);
+    return Math.max(...pool.map((n) =>
+      Math.abs((b[n] || 0) / totJam * 100 - (forecastOf(n) || 0) / totFc * 100)));
+  };
+
+  it('porsi jam tiap orang tidak jauh dari porsi forecast-nya', () => {
+    const b = beban();
+    kolam.forEach(([grade, pool]) => {
+      expect(simpangan(b, pool), grade).toBeLessThanOrEqual(10);
+    });
+  });
+
+  /* GERBANG YANG MENGIKAT. Tak ada satu pun pemindahan SATU perikatan antar
+     anggota kolam yang memperkecil simpangan terhadap forecast. Kalau ada,
+     pembagiannya memang bisa lebih baik dan algoritmanya yang salah — bukan
+     ambangnya yang perlu dilonggarkan.
+
+     Penugasan yang DIPAKU AMS.SCHEDULE dikecualikan: ia bukan pilihan
+     algoritma, jadi memindahkannya bukan perbaikan melainkan pelanggaran data.
+     (Justru di situ letak sisa simpangan junior: SCHEDULE memaku Rina Kusuma
+     pada …-022, dan itulah yang menahan Fajar/Rina di 45,9%/54,1% alih-alih
+     51,2%/48,8%. Data mengalahkan heuristik — sebagaimana mestinya.) */
+  it('tak ada pemindahan satu-perikatan yang memperbaiki pembagian', () => {
+    const m = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE, seedHours());
+    const b = beban();
+    kolam.forEach(([grade, pool]) => {
+      const dasar = simpangan(b, pool);
+      engs().filter((e) => e.id !== DEMO).forEach((e) => {
+        const baris = m[e.id].find((r) => pool.includes(r.name));
+        if (!baris) return;
+        const paku = rpScheduleNames(A.SCHEDULE, e.id);
+        if (paku.senior === baris.name || paku.junior === baris.name) return;
+        pool.filter((n) => n !== baris.name).forEach((lain) => {
+          const coba = { ...b };
+          coba[baris.name] -= baris.base;
+          coba[lain] = (coba[lain] || 0) + baris.base;
+          expect(simpangan(coba, pool),
+            grade + ': memindahkan ' + e.id + ' dari ' + baris.name + ' ke ' + lain
+            + ' memperkecil simpangan ' + dasar.toFixed(2) + ' → ' + simpangan(coba, pool).toFixed(2))
+            .toBeGreaterThanOrEqual(dasar - 1e-9);
+        });
+      });
+    });
+  });
+
+  it('anti-tautologi — kolam memang menerima jam yang berarti', () => {
+    const b = beban();
+    kolam.forEach(([grade, pool]) => {
+      pool.forEach((n) => expect(b[n], grade + ' · ' + n).toBeGreaterThan(0));
+    });
+  });
+
+  it('nama dari SCHEDULE tetap menang meski menimbulkan ketimpangan', () => {
+    const m = rpRosterMap(engs(), { [DEMO]: demoRoster() }, A.SCHEDULE, seedHours());
+    const id40 = 'ENG-' + '2025-040', id22 = 'ENG-' + '2025-022';
+    expect(m[id40].find((r) => r.role === RP_SENIOR)!.name).toBe('Sinta Wulandari');
+    expect(m[id22].find((r) => r.role === RP_JUNIOR)!.name).toBe('Rina Kusuma');
+  });
+
+  it('perbaikan nyata: ketimpangan senior runtuh dari 74% ke sekitar nol', () => {
+    const b = beban();
+    const [a, c] = RP_SENIORS.map((n) => b[n] || 0);
+    expect(Math.abs(a - c) / Math.min(a, c), 'selisih relatif senior').toBeLessThan(0.1);
   });
 });
