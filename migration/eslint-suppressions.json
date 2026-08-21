@@ -736,7 +736,7 @@
   },
   "src/view_pc_hcm.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 30
     }
   },
   "src/view_pc_org.tsx": {

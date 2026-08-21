@@ -7,6 +7,8 @@ import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { leaveLedgerOf } from './canon_leave';
 import { perfPersonOf } from './canon_perf';
+import { tenureOf } from './canon_hcm';
+import { UNKNOWN, profileOf } from './hcm_derive';
 import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
 
 const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as LeaveRequestInput[] : []);
@@ -17,30 +19,15 @@ const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as Leav
    ============================================================ */
 const { useState: usePChcm } = React;
 
-/* default profile when an employee has no enriched record. `profiles` = server-scoped STAFF_PROFILE
- * (personal.get): non-privileged hanya menerima baris miliknya → membuka drawer orang lain hanya
- * memunculkan placeholder ter-masking (NIK/NPWP/kontak '—'), BUKAN PII asli. */
-function profileOf(s: any, profiles: any) {
-  const A: any = AMS;
-  const base = (profiles || {})[s.id] || {};
-  return {
-    phone: base.phone || '0811-•••-' + s.id.slice(-3),
-    location: base.location || 'Jakarta (HQ)',
-    birth: base.birth || '—',
-    gender: base.gender || '—',
-    empType: base.empType || 'Tetap',
-    band: base.band || s.grade[0] + '1',
-    salaryBand: base.salaryBand || '—',
-    nik: base.nik || '3174••••••••',
-    npwp: base.npwp || '—',
-    bpjsKes: base.bpjsKes || 'Aktif',
-    bpjsTk: base.bpjsTk || 'Aktif',
-    emergency: base.emergency || { name: '—', rel: '—', phone: '—' },
-    skills: base.skills || (A.COMPETENCY_ACTUAL[s.id] ? A.COMPETENCIES.map((c: any) => [c.name, A.COMPETENCY_ACTUAL[s.id][c.id] || 2]) : [['Pengujian Substantif', 3], ['Kertas Kerja', 3], ['Komunikasi', 3]]),
-    docs: base.docs || [['Sertifikat ' + (s.cert || 'CA'), 'Valid'], ['KTP & NPWP', 'Lengkap'], ['Kontrak Kerja', 'Aktif']],
-    timeline: base.timeline || [[String(s.joined), 'Bergabung sebagai ' + s.role]],
-  };
-}
+/* `profileOf` PINDAH ke `hcm_derive.ts` (fungsi murni, teruji di node).
+ * `profiles` = server-scoped STAFF_PROFILE (personal.get): non-privileged hanya menerima baris
+ * miliknya → membuka drawer orang lain hanya memunculkan placeholder ter-masking (NIK/kontak),
+ * BUKAN PII asli. Arsitektur isolasi itu TIDAK berubah; yang berubah nilai fallback-nya.
+ *
+ * Dulu ketiadaan baris diisi 'Aktif'/'Aktif'/'Tetap'/'Jakarta (HQ)' dan tiga dokumen
+ * ber-status 'Valid'/'Lengkap'/'Aktif' — klaim kepatuhan atas orang yang justru tak punya
+ * datanya (hanya 3 dari 69 orang punya baris). Sekarang ketidaktahuan tampil sebagai
+ * ketidaktahuan; lihat catatan kepala `hcm_derive.ts`. */
 
 function Profile360Drawer({ s, onClose }: any) {
   const A: any = AMS, fmt = A.fmt;
@@ -57,8 +44,11 @@ function Profile360Drawer({ s, onClose }: any) {
   const [perfGoalsAll] = useAmsPersist('perfGoals', () => (A.PERF_CYCLE.goals || {}));
   const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
   const [ethAll] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
-  const p = profileOf(s, profiles);
-  const tenure = 2026 - s.joined;
+  const p = profileOf(s, profiles, { list: A.COMPETENCIES, actual: A.COMPETENCY_ACTUAL });
+  /* K-02 — masa kerja dari klok SSOT `AMS.TODAY`, bukan tahun literal yang salah
+     satu tahun bagi semua orang mulai 2027. Mesinnya `canon_hcm.tenureOf`. */
+  const tenure = tenureOf(s.joined, String(AMS.TODAY || ''));
+  const tenureTxt = tenure === null ? UNKNOWN : String(tenure);
   const pay = (payAll || {})[s.id];
   /* PRD sdm-kepatuhan PR-1 — saldo cuti DITURUNKAN dari register permintaan
      (canon_leave), bukan dari literal `ent`/`used` yang persetujuan tak pernah
@@ -93,13 +83,13 @@ function Profile360Drawer({ s, onClose }: any) {
       await amsExportPdf({
         kind: 'profile-360', scope: 'firm', scopeId: undefined,
         fileName: `Profil - ${s.name}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
+        firm: A.FIRM?.name || '',
         title: 'Profil 360° — ' + s.name,
         meta: [`${s.name} · ${s.grade || ''} · bergabung ${s.joined || ''}`,
           `Utilisasi ${s.util ?? 0}% · rating ${s.rating ?? 0} · cuti tersisa ${lvLeft} hari · CPE ${cpe} SKP`],
         blocks: [
           { type: 'heading', text: 'Identitas & Posisi' },
-          { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure + ' tahun']] },
+          { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure === null ? UNKNOWN : tenure + ' tahun']] },
           { type: 'heading', text: 'Kompensasi & Pengembangan' },
           { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
         ],
@@ -124,7 +114,7 @@ function Profile360Drawer({ s, onClose }: any) {
             <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{s.name}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{s.role} · {s.id} · {p.location}</div>
             <div className="row gap6 ac" style={{ marginTop: 5 }}>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', fontSize: 11 }}>{s.grade} · Band {p.band}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', fontSize: 11 }}>{s.grade}{p.band === UNKNOWN ? '' : ' · Band ' + p.band}</span>
               <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', fontSize: 11 }}>{s.cert}</span>
             </div>
           </div>
@@ -132,8 +122,16 @@ function Profile360Drawer({ s, onClose }: any) {
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
+          {/* Ketiadaan baris data personal dinyatakan, bukan disamarkan jadi placeholder
+              yang terbaca seperti fakta. */}
+          {p.unrecorded && (
+            <div className="tiny" style={{ marginBottom: 14, padding: '8px 11px', borderRadius: 7, border: '1px dashed var(--line)', background: 'var(--amber-bg)', color: 'var(--ink-2)' }}>
+              Belum ada catatan data personal untuk pegawai ini — kolom di bawah yang berbunyi
+              “{UNKNOWN}” atau “Belum tercatat” berarti <b>tidak ada datanya</b>, bukan tidak memenuhi syarat.
+            </div>
+          )}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 16 }}>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 11, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenureTxt}<span style={{ fontSize: 11, fontWeight: 600 }}>{tenure === null ? '' : 'th'}</span></div><div className="tiny muted">Masa Kerja</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
@@ -147,13 +145,16 @@ function Profile360Drawer({ s, onClose }: any) {
               <Kv l="Tipe" v={p.empType} />
               <Kv l="NIK" v={p.nik} />
               <Kv l="NPWP" v={p.npwp} />
-              <Kv l="BPJS Kesehatan" v={p.bpjsKes} accent="var(--green)" />
-              <Kv l="BPJS TK" v={p.bpjsTk} accent="var(--green)" />
+              {/* Hijau HANYA bila kepesertaannya memang tercatat — mewarnai "Belum
+                  tercatat" hijau adalah cara lain menyatakan kepatuhan tanpa dasar. */}
+              <Kv l="BPJS Kesehatan" v={p.bpjsKes} accent={p.bpjsKes === 'Aktif' ? 'var(--green)' : undefined} />
+              <Kv l="BPJS TK" v={p.bpjsTk} accent={p.bpjsTk === 'Aktif' ? 'var(--green)' : undefined} />
             </div>
           </Section>
 
           <Section title="Keahlian & Kompetensi" action={<button className="btn sm" style={{ height: 22 }} onClick={() => { onClose(); nav('learning'); }}><I.arrowRight size={11} /> Matriks</button>}>
             <div style={{ display: 'grid', gap: 7 }}>
+              {!p.skills.length && <div className="tiny muted" style={{ padding: 12, textAlign: 'center', border: '1px dashed var(--line)', borderRadius: 7 }}>Belum ada penilaian kompetensi tercatat untuk pegawai ini.</div>}
               {p.skills.slice(0, 6).map(([l, v]: any, i: any) => (
                 <div key={i}>
                   <div className="row jb tiny" style={{ marginBottom: 2 }}><span>{l}</span><span className="mono" style={{ fontWeight: 700 }}>{v}/5</span></div>
@@ -165,7 +166,10 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Kinerja & Karier" action={<button className="btn sm" style={{ height: 22 }} onClick={() => { onClose(); nav('performance'); }}><I.arrowRight size={11} /> Kinerja</button>}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Kv l="Skor Kinerja" v={perf && perf.score.score !== null ? perf.score.score.toFixed(2) + ' / 5' : perf ? 'Belum dapat dinilai' : s.rating.toFixed(1) + ' / 5'} accent="var(--blue)" />
+              {/* Tanpa catatan siklus kinerja, kolom ini dulu jatuh ke `s.rating` — angka
+                  roster yang tak pernah dinilai siapa pun, dan yang untuk EMP-021 bahkan
+                  berbeda dari skor KPI-nya (4,5 vs 4,36). Ketiadaan kini dinyatakan. */}
+              <Kv l="Skor Kinerja" v={perf && perf.score.score !== null ? perf.score.score.toFixed(2) + ' / 5' : perf ? 'Belum dapat dinilai' : 'Belum ada siklus kinerja'} accent={perf && perf.score.score !== null ? 'var(--blue)' : undefined} />
               <Kv l="Potensi (9-box)" v={perf && perf.placement.placeable ? perf.placement.label : '—'} />
               <Kv l="Engagement Aktif" v={s.engagements} />
               <Kv l="Rekomendasi" v={perf && perf.promote !== '—' ? perf.promote : 'Pertahankan'} accent={perf && perf.promote !== '—' ? 'var(--purple)' : undefined} />
@@ -192,6 +196,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Dokumen & Sertifikasi">
             <div style={{ display: 'grid', gap: 6 }}>
+              {!p.docs.length && <div className="tiny muted" style={{ padding: 12, textAlign: 'center', border: '1px dashed var(--line)', borderRadius: 7 }}>Tidak ada dokumen kepegawaian tercatat — <b>bukan</b> berarti dokumennya lengkap.</div>}
               {p.docs.map(([l, st]: any, i: any) => (
                 <div key={i} className="row ac jb" style={{ padding: '7px 11px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                   <span className="row ac gap8 tiny" style={{ fontWeight: 500 }}><I.doc size={13} style={{ color: 'var(--ink-4)' }} />{l}</span>
@@ -340,4 +345,4 @@ function HCMAnalytics() {
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { HCMAnalytics, Profile360Drawer, profileOf };
+export { HCMAnalytics, Profile360Drawer };

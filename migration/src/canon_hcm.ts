@@ -47,7 +47,10 @@ export const CERT_BANDS = ['CPA', 'CA', 'Kandidat CPA', 'S.Ak'] as const;
 
 export type Bucket = { k: string; n: number };
 
-const yearOf = (asOf: string): number => {
+/** Tahun kalender dari klok SSOT (`AMS.TODAY`). Diekspor karena bukan hanya
+ *  agregat demografi yang butuh "tahun sekarang" — form karyawan baru pun
+ *  memakainya alih-alih menuliskan tahun literal yang membeku. */
+export const yearOf = (asOf: string): number => {
   const y = Number(String(asOf).slice(0, 4));
   return Number.isFinite(y) && y > 1900 ? y : new Date().getUTCFullYear();
 };

@@ -18,6 +18,10 @@ import {
   indepLevel, indepRotationAckRelevant, indepStamp, indepStepAuthority, indepUnattributed, nextThreatId,
   type IndepActor, type IndepApprRec,
 } from './indep_approval';
+import { tenureOf, yearOf } from './canon_hcm';
+import { appraisalOf, empIdsOf, nextEmpId } from './hcm_derive';
+import type { Appraisal } from './hcm_derive';
+import type { PerfGoal, PerfPersonInput } from './canon_perf';
 import { cpeFromTraining, type TrainingCourse } from './cpe_training';
 import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
 import { amsYear } from './clock_ssot';
@@ -31,6 +35,17 @@ const { useState: useStateE, useMemo: useMemoE } = React;
 const GRADE_ORDER = ['Partner', 'Manager', 'Senior', 'Junior'];
 const GRADE_COLOR = { Partner: '#002C3F', Manager: '#005085', Senior: '#0a6b73', Junior: '#5b3fa6' };
 
+/* Pembaca ber-tipe atas namespace AMS — tanpa `:any` baru (ratchet W15: satu `:any`
+   baru melucuti suppression SELURUH berkas, bukan barisnya saja). */
+type IdRow = { id?: string };
+/* Fallback disamakan dengan idiom yang sudah ada di berkas ini (`firmName`, modul
+   independence) — label kategori, bukan identitas firma yang dikarang. */
+const amsFirmName = (): string => ((AMS.FIRM as unknown as { name?: string } | undefined)?.name) || 'Kantor Akuntan Publik';
+const amsIdRows = (k: 'STAFF' | 'FIRM_STAFF' | 'EXITS'): readonly IdRow[] =>
+  ((AMS as unknown as Record<string, unknown>)[k] as readonly IdRow[] | undefined) || [];
+type PerfCycleDoc = { cycle?: string; people?: Record<string, PerfPersonInput | undefined>; goals?: Record<string, PerfGoal[] | undefined> };
+const amsPerfCycle = (): PerfCycleDoc => ((AMS as unknown as { PERF_CYCLE?: PerfCycleDoc }).PERF_CYCLE) || {};
+
 function HCM() {
   const { fmt } = AMS;
   const nav = useNav();
@@ -43,7 +58,18 @@ function HCM() {
   const [showNew, setShowNew] = useStateE(false);
   const [mode, setMode] = useStateE('direktori');
   const [drawer, setDrawer] = useStateE(null);
-  const addStaff = (s: any) => { setExtra((list: any) => [{ id: 'EMP-' + String(100 + list.length).padStart(3, '0'), engagements: 0, rating: 4.0, util: 0, status: 'Aktif', joined: 2026, ...s }, ...list]); };
+  const today = String(AMS.TODAY || '');
+  /* Id baru diambil dari blok 7xx yang KOSONG, diuji terhadap SELURUH himpunan id yang
+     dikenal — roster audit, roster tambahan, firm-ops, register keluar, dan penambahan
+     lokal. Pola lama `'EMP-' + (100 + list.length)` menabrak EMP-101 (Ayu Prasetya) pada
+     penambahan KEDUA: id ganda berarti profil/payroll/cuti/SKP dua orang bercampur. */
+  const addStaff = (s: any) => {
+    setExtra((list: any) => {
+      const id = nextEmpId(empIdsOf(list, amsIdRows('STAFF'), amsIdRows('FIRM_STAFF'), amsIdRows('EXITS')));
+      if (!id) return list; /* blok habis — menolak menambah lebih baik daripada id milik orang lain */
+      return [{ id, engagements: 0, rating: 4.0, util: 0, status: 'Aktif', joined: yearOf(today), ...s }, ...list];
+    });
+  };
 
   const filtered = staff.filter(s => (grade === 'All' || s.grade === grade) && (q === '' || s.name.toLowerCase().includes(q.toLowerCase())));
   const person = staff.find(s => s.id === sel) || staff[0];
@@ -62,7 +88,9 @@ function HCM() {
       await amsExportXlsx({
         kind: 'hcm-directory', scope: 'firm', scopeId: undefined,
         fileName: 'Direktori SDM.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
+        /* Menyegel identitas firma yang salah memberi otoritas pada isi yang keliru —
+           nama firma dari SSOT `AMS.FIRM`, bukan literal di titik panggil. */
+        firm: amsFirmName(),
         title: 'Direktori Sumber Daya Manusia',
         meta: [`${staff.length} karyawan · ${counts.find(c => c.g === 'Partner')?.n || 0} partner`,
           `Rata-rata utilisasi ${avgUtil}% · ${staff.filter((s: { status: string }) => s.status === 'Cuti').length} cuti`],
@@ -77,14 +105,29 @@ function HCM() {
     }
   };
   const avgUtil = Math.round(staff.reduce((s, p) => s + p.util, 0) / staff.length);
-  const tenure = 2026 - person.joined;
+  /* K-02 — masa kerja dari klok SSOT, bukan `2026 - joined` yang salah satu tahun
+     bagi SETIAP orang mulai 2027, tanpa suara. */
+  const tenure = tenureOf(person.joined, today);
 
-  const apprais = [
-    ['Kualitas teknis audit', Math.min(5, person.rating + 0.1)],
-    ['Kepemimpinan & supervisi', person.rating - 0.2],
-    ['Manajemen waktu & deadline', person.rating],
-    ['Komunikasi klien', person.rating - 0.1],
-  ];
+  /* Penilaian kinerja DITURUNKAN dari siklus kinerja (canon_perf lewat hcm_derive) —
+     mesin yang sama yang dipakai drawer 360° dan modul `performance`.
+
+     Yang dicabut: empat "dimensi" yang seluruhnya satu angka `rating` roster digeser
+     +0,1 / −0,2 / 0 / −0,1. Tak ada penilai, tak ada periode, tak ada dasar — tetapi
+     dirender persis seperti penilaian per-dimensi, sehingga pembaca wajar mengira ada
+     yang menilainya. Untuk orang tanpa catatan kinerja, ketiadaannya kini dinyatakan
+     dan pengguna diarahkan ke modul Siklus Kinerja. */
+  const [perfAllE] = useAmsPersist('perfPeople', () => (amsPerfCycle().people || {}));
+  const [perfGoalsE] = useAmsPersist('perfGoals', () => (amsPerfCycle().goals || {}));
+  const apprais: Appraisal = useMemoE(
+    () => {
+      const recs = (perfAllE || {}) as Record<string, PerfPersonInput | undefined>;
+      const gls = (perfGoalsE || {}) as Record<string, PerfGoal[] | undefined>;
+      return appraisalOf(person.id, recs[person.id], gls[person.id]);
+    },
+    [person.id, perfAllE, perfGoalsE],
+  );
+  const perfCycleLabel = amsPerfCycle().cycle || '';
 
   // 2026-07-06 — Human Capital = direktori & profil detail seluruh staf: kewenangan Partner + HRD (HR_MODULE_VIEW).
   if (!(authHcm && typeof authHcm.can === 'function' && authHcm.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="hcm" /><AccessDenied moduleId="hcm" /></>);
@@ -133,18 +176,31 @@ function HCM() {
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                 <KvBox label="ID Karyawan" v={person.id} />
-                <KvBox label="Masa Kerja" v={tenure + ' tahun (sejak ' + person.joined + ')'} />
+                <KvBox label="Masa Kerja" v={tenure === null ? '—' : tenure + ' tahun (sejak ' + person.joined + ')'} />
                 <KvBox label="Engagement Aktif" v={person.engagements} />
-                <KvBox label="Rating Kinerja" v={person.rating.toFixed(1) + ' / 5'} accent={person.rating >= 4.3 ? 'var(--green)' : 'var(--amber)'} />
+                <KvBox label="Skor Kinerja" v={apprais.score === null ? 'Belum dinilai' : apprais.score.toFixed(2) + ' / 5'} accent={apprais.score === null ? undefined : apprais.score >= 4.3 ? 'var(--green)' : 'var(--amber)'} />
               </div>
-              <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penilaian Kinerja Terakhir</div>
+              <div className="row ac jb" style={{ marginBottom: 8 }}>
+                <span className="tiny muted upper">Penilaian Kinerja{perfCycleLabel ? ' — ' + perfCycleLabel : ''}</span>
+                {apprais.available && apprais.assessorName
+                  ? <span className="tiny muted">Reviu manajer: {apprais.assessorName}{apprais.assessedAt ? ' · ' + apprais.assessedAt : ''}{apprais.seeded ? ' (contoh demo)' : ''}</span>
+                  : apprais.available && <span className="tiny muted">Belum direviu manajer{apprais.nextStage ? ' · menunggu ' + apprais.nextStage : ''}</span>}
+              </div>
               <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
-                {apprais.map(([l, v]) => (
-                  <div key={l}>
-                    <div className="row jb tiny" style={{ marginBottom: 2 }}><span>{l}</span><span className="mono" style={{ fontWeight: 700 }}>{v.toFixed(1)}</span></div>
-                    <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (v / 5 * 100) + '%', height: '100%', borderRadius: 3, background: v >= 4.3 ? 'var(--green)' : v >= 3.5 ? 'var(--blue)' : 'var(--amber)' }} /></div>
+                {!apprais.available && (
+                  <div style={{ padding: '14px 12px', textAlign: 'center', border: '1px dashed var(--line)', borderRadius: 8 }}>
+                    <div className="tiny muted" style={{ marginBottom: 8 }}>{apprais.note}</div>
+                    <Btn sm onClick={() => nav('performance', { from: 'hcm' })}><I.arrowRight size={12} /> Buka Siklus Kinerja</Btn>
+                  </div>
+                )}
+                {apprais.dims.map(d => (
+                  <div key={d.kpi}>
+                    <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="truncate">{d.kpi}</span><span className="mono" style={{ fontWeight: 700 }}>{d.score.toFixed(1)}</span></div>
+                    <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (d.score / 5 * 100) + '%', height: '100%', borderRadius: 3, background: d.score >= 4.3 ? 'var(--green)' : d.score >= 3.5 ? 'var(--blue)' : 'var(--amber)' }} /></div>
+                    <div className="tiny muted" style={{ marginTop: 2 }}>bobot {d.weight}% · target {d.target} · realisasi {d.actual}</div>
                   </div>
                 ))}
+                {apprais.available && apprais.note && <div className="tiny" style={{ color: 'var(--amber)' }}>{apprais.note}</div>}
               </div>
               <div className="row gap8">
                 <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => setDrawer(person)}><I.users size={13} /> Profil 360°</Btn>
