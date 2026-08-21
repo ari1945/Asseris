@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 12 |
+| In Progress | 13 |
 | Implemented | 39 |
 | Superseded | 1 |
 

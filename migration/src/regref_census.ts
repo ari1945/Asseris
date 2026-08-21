@@ -147,9 +147,6 @@ export const REGREF_CENSUS: RegRefCensusEntry[] = [
   },
 ];
 
-/** Id yang WAJIB ada di sensus. Menambah besaran tanpa mendaftarkannya = merah. */
-export const REGREF_CENSUS_EXPECTED_IDS = REGREF_CENSUS.map((e) => e.id);
-
 /* ------------------------------------------------------------------
    2. Detektor A — konstanta yang TAMPAK regulatori
    ------------------------------------------------------------------ */

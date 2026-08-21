@@ -507,6 +507,7 @@ function Independence() {
      dipilih registry untuk baris-baris itu sendiri, bukan dari string yang
      diketik di view. Dulu spanduk menulis "UU 5/2011 & POJK 13/2017" untuk
      siapa pun, termasuk baris yang rezimnya PP 20/2015. */
+  const rotBreached = rows.filter((d) => d.tenure >= d.rotationLimit);
   const basisOf = (list: Array<{ rotationBasis?: string }>) => {
     const uniq = Array.from(new Set(list.map((r) => r.rotationBasis).filter((b): b is string => !!b)));
     return uniq.length ? uniq.join(' · ') : 'dasar rotasi belum tercakup registry';
@@ -667,7 +668,7 @@ function Independence() {
 
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{rows.filter((d) => d.tenure >= d.rotationLimit).map((d) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {rows.find((d) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti ({basisOf(rows.filter((d) => d.tenure >= d.rotationLimit))}).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{rotBreached.map((d) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {rotBreached[0]?.rotationLimit} tahun pada emiten — tunjuk partner pengganti ({basisOf(rotBreached)}).</span></div>
           </div>
         )}
 

@@ -83,9 +83,14 @@ describe('SC-A8 — tarif minimum GloBE terdaftar sebagai data regulatori', () =
   });
 
   it('modul Pengungkapan Baru tak lagi mengetik ambangnya', () => {
-    const src = read('view_newdisc.tsx');
-    expect(src).toContain('globeMinRateRequired');
-    expect(src).not.toMatch(/P2_MIN_RATE\s*=\s*15/);
+    /* Rumahnya BERPINDAH selama pendaratan: literalnya ada di `view_newdisc.tsx`
+       ketika cabang ini ditulis, lalu PR #321 memindahkan seluruh mesin turunan
+       Pilar Dua ke `newdisc_derive.ts`. Gerbang ini ikut pindah — dan sekarang
+       menjaga KEDUANYA, supaya literalnya tak dapat kembali ke rumah lama. */
+    const derive = read('newdisc_derive.ts');
+    expect(derive).toContain('globeMinRateRequired');
+    expect(derive).not.toMatch(/P2_MIN_RATE\s*=\s*15/);
+    expect(read('view_newdisc.tsx')).not.toMatch(/P2_MIN_RATE\s*=\s*15/);
   });
 });
 
@@ -206,6 +211,11 @@ describe('SC-A4..SC-A5 — batas rotasi AP terdaftar sebagai data regulatori', (
     expect(src).toContain('basisOf(');
     expect(src, 'kutipan hukum diketik lagi di view').not.toContain('UU 5/2011 & POJK 13/2017');
     expect(src, 'kutipan hukum diketik lagi di view').not.toContain('POJK 13/2017 · PP 20/2015');
+    /* Modul Lisensi BO menampilkan spanduk yang sama dan dulu mengutip
+       "UU 5/2011 · PMK" untuk baris rezim apa pun. */
+    const bo = read('view_bo3.tsx');
+    expect(bo).toContain('a.rotationBasis');
+    expect(bo, 'kutipan hukum diketik lagi di view_bo3').not.toContain('UU 5/2011');
   });
 
   it('SC-A11 — nol-delta: masa tugas & batas seed tidak bergeser', () => {
