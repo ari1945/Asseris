@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useAuth, useInitialSelection, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useCurrentAuditor, useInitialSelection, useNav } from './contexts';
 import { probError, dueBeforeIssued } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -10,6 +10,11 @@ import { KvBox } from './view_analytical';
 import { amsExportPdf } from './export_pdf';
 import { CAP } from './rbac';
 import { usePipelineRegister } from './use_pipeline';
+import { useInvoiceRegister } from './use_invoices';
+import {
+  defaultDueDate, invoiceTotals, markInvoicePaid, markInvoiceSent, nextInvoiceId,
+} from './canon_invoices';
+import type { InvoiceRecord } from './canon_invoices';
 import {
   PIPE_STAGES, PIPE_STAGE_COLOR, nextOppId, openOpportunities,
   stageSummary, weightedValue, winLoss, wonYtd,
@@ -64,7 +69,10 @@ function SalesPipeline() {
   const nav = useNav();
   const { register: opps, setRegister: setOpps, canEdit } = usePipelineRegister();
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* Jejak menempel pada IDENTITAS SESI (W7), bukan `AMS.USER` dari data seed —
+     dulu setiap entri menunjuk orang yang sama siapa pun yang login. */
+  const { full: sessionName } = useCurrentAuditor();
+  const who = sessionName || 'Pengguna';
   const [dragId, setDragId] = useStateD1(null);
   const [over, setOver] = useStateD1(null);
   /* PR-6 (SC-15) — sheet detail BERALAMAT: `#/pipeline/<OPP-id>` (pola V-9).
@@ -303,7 +311,10 @@ function OppDetail({ o, onClose, onMove }: any) {
      di sini. */
   const [prospects, setProspects] = useAmsPersist('prospects', () => AMS.PROSPECTS) as [ProspectLike[], (u: (p: ProspectLike[]) => ProspectLike[]) => void];
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* Jejak menempel pada IDENTITAS SESI (W7), bukan `AMS.USER` dari data seed —
+     dulu setiap entri menunjuk orang yang sama siapa pun yang login. */
+  const { full: sessionName } = useCurrentAuditor();
+  const who = sessionName || 'Pengguna';
   const [handoff, setHandoff] = useStateD1(null);
 
   /* PR-3 — serah-terima kini MEMUTUSKAN dulu, baru menulis, dan hasilnya selalu
@@ -578,41 +589,48 @@ const INV_STATUS = { Paid: 'green', Partial: 'amber', Sent: 'blue', Overdue: 're
 function Billing() {
   const { fmt } = AMS;
   const nav = useNav();
-  const [invoices, setInvoices] = useAmsPersist('invoices', () => AMS.INVOICES);
+  /* SATU PINTU (`use_invoices.ts`) — dulu modul ini menulis dokumen persist
+     `invoices` sementara AP/AR, dunning, aging & DSO membaca literal seed:
+     "Tandai Lunas" hanya menggerakkan KPI di layar ini. SoD finansial
+     (Program E): buat/kirim/tandai-lunas = FIRMFIN_EDIT, selaras dengan
+     capForWrite('firm','invoices'). */
+  const { register: invoices, setRegister: setInvoices, canEdit } = useInvoiceRegister();
   const [filter, setFilter] = useStateD1('All');
   const [sel, setSel] = useStateD1(null);
-  /* SoD finansial (Program E): pengelolaan faktur (buat/kirim/tandai lunas) =
-     FIRMFIN_EDIT — capForWrite 'invoices' ikut diselaraskan (rbac.ts) supaya
-     peran Finance Firma bisa bekerja tanpa ditolak senyap server. */
-  const auth = useAuth();
-  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* Jejak menempel pada IDENTITAS SESI (W7), bukan `AMS.USER` dari data seed —
+     dulu setiap entri menunjuk orang yang sama siapa pun yang login. */
+  const { full: sessionName } = useCurrentAuditor();
+  const who = sessionName || 'Pengguna';
 
-  const totalBilled = invoices.filter((i: any) => i.status !== 'Draft').reduce((s: any, i: any) => s + i.amount, 0);
-  const collected = invoices.reduce((s: any, i: any) => s + i.paid, 0);
-  const outstanding = totalBilled - collected;
-  const overdue = invoices.filter((i: any) => i.status === 'Overdue').reduce((s: any, i: any) => s + (i.amount - i.paid), 0);
+  /* Headline KPI dari kanon (`invoiceTotals`) — aritmetika piutang tinggal di
+     satu tempat, dipakai bersama modul AP/AR. */
+  const totals = invoiceTotals(invoices);
+  const totalBilled = totals.billed, collected = totals.collected;
+  const outstanding = totals.outstanding, overdue = totals.overdue;
 
-  const shown = filter === 'All' ? invoices : invoices.filter((i: any) => i.status === filter);
-  const markPaid = (id: any) => {
+  const shown = filter === 'All' ? invoices : invoices.filter((i) => i.status === filter);
+  const markPaid = (id: string) => {
     if (!canEdit) return;
-    const i = invoices.find((x: { id: string }) => x.id === id);
-    setInvoices((list: any) => list.map((x: { id: string; amount: number; status: string }) => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
-    logActivity && logActivity({ who, action: 'INV_PAID', detail: `Faktur ${id} ditandai lunas${i ? ' · ' + i.client : ''}` });
+    const i = invoices.find((x) => x.id === id);
+    setInvoices((list: InvoiceRecord[]) => list.map((x) => x.id === id ? markInvoicePaid(x, AMS.TODAY) : x));
+    logActivity && logActivity({ who, action: 'INV_PAID', detail: `Faktur ${id} ditandai lunas ${AMS.TODAY}${i ? ' · ' + i.client : ''}` });
   };
-  const send = (id: any) => {
+  const send = (id: string) => {
     if (!canEdit) return;
-    const i = invoices.find((x: { id: string }) => x.id === id);
-    setInvoices((list: any) => list.map((x: { id: string; status: string }) => x.id === id ? { ...x, status: 'Sent' } : x));
-    logActivity && logActivity({ who, action: 'INV_SENT', detail: `Faktur ${id} dikirim${i ? ' · ' + i.client : ''}` });
+    const i = invoices.find((x) => x.id === id);
+    setInvoices((list: InvoiceRecord[]) => list.map((x) => x.id === id ? markInvoiceSent(x, AMS.TODAY) : x));
+    logActivity && logActivity({ who, action: 'INV_SENT', detail: `Faktur ${id} dikirim ${AMS.TODAY}${i ? ' · ' + i.client : ''}` });
   };
-  const selInv = sel ? invoices.find((i: any) => i.id === sel) : null;
+  const selInv = sel ? invoices.find((i) => i.id === sel) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addInv = (inv: any) => {
+  const addInv = (inv: Omit<InvoiceRecord, 'id' | 'paid' | 'status'>) => {
     if (!canEdit) return;
-    const id = 'INV-2026-0' + (46 + invoices.length);
-    setInvoices((list: any) => [{ id, paid: 0, status: 'Draft', ...inv }, ...list]);
+    /* Nomor dari nomor TERTINGGI pada register + tahun klok SSOT — dulu dari
+       PANJANG ARRAY, sehingga satu faktur hilang = nomor terbit dipakai ulang. */
+    const id = nextInvoiceId(invoices, AMS.TODAY);
+    if (!id) return;   // dokumen keuangan tak boleh lahir tanpa nomor
+    setInvoices((list: InvoiceRecord[]) => [{ paid: 0, status: 'Draft', ...inv, id }, ...list]);
     logActivity && logActivity({ who, action: 'INV_CREATE', detail: `Faktur baru ${id} dibuat${inv.client ? ' · ' + inv.client : ''}` });
   };
 
@@ -669,6 +687,12 @@ function Billing() {
                   <KvBox label="Sisa Tagihan" v={'Rp ' + fmt((selInv.amount - selInv.paid) / 1e6, 0) + ' jt'} accent={selInv.amount - selInv.paid > 0 ? 'var(--amber)' : 'var(--green)'} />
                   <KvBox label="Diterbitkan" v={new Date(selInv.issued).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />
                   <KvBox label="Jatuh Tempo" v={new Date(selInv.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} accent={selInv.status === 'Overdue' ? 'var(--red)' : null} />
+                  {/* Tanggal kirim & pelunasan — dasar aging piutang dan
+                      rekonsiliasi kas. Baris warisan belum membawanya; yang
+                      tak tercatat ditampilkan apa adanya, bukan ditebak. */}
+                  {selInv.sentAt && <KvBox label="Dikirim" v={new Date(selInv.sentAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} />}
+                  {selInv.paidAt && <KvBox label="Dilunasi" v={new Date(selInv.paidAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} accent="var(--green)" />}
+                  {selInv.status === 'Paid' && !selInv.paidAt && <KvBox label="Dilunasi" v="tak tercatat" />}
                 </div>
                 {selInv.status === 'Overdue' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}><div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Faktur melewati jatuh tempo — kirim pengingat / eskalasi collections.</span></div></div>}
                 <div className="row gap8" style={{ flexWrap: 'wrap' }}>
@@ -694,7 +718,7 @@ function Billing() {
                           ['Tanggal Terbit', new Date(selInv.issued).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
                           ['Jatuh Tempo', new Date(selInv.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
                           ['Status', selInv.status],
-                        ] },
+                        ].concat(selInv.paidAt ? [['Tanggal Pelunasan', new Date(selInv.paidAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })]] : []) },
                       ],
                     }).catch(() => {});
                   }}><I.download size={13} /> Cetak</Btn>
@@ -705,18 +729,30 @@ function Billing() {
           )}
         </div>
       </div></div>
-      {showNew && <InvForm onClose={() => setShowNew(false)} onAdd={(i: any) => { addInv(i); setShowNew(false); }} />}
+      {showNew && <InvForm register={invoices} onClose={() => setShowNew(false)} onAdd={(i: any) => { addInv(i); setShowNew(false); }} />}
     </>
   );
 }
 
-const INV_FORM_INIT = { clientId: '', milestone: 'Termin 1 (50%)', amount: 500000000, issued: '2026-03-09', due: '2026-04-15', eng: '' };
+/* Nilai awal form faktur. Tanggal terbit dari klok SSOT (`AMS.TODAY`) dan jatuh
+   tempo dari termin standar yang DIBACA dari register — dulu keduanya literal
+   ('2026-03-09' / '2026-04-15'), sehingga setiap faktur baru lahir bertanggal 9
+   Maret 2026 dengan termin 37 hari yang tak dianut satu pun faktur firma.
+   Bila register belum menyatakan termin tunggal, jatuh tempo dibiarkan KOSONG
+   (tombol terbit terkunci) alih-alih mengarang jumlah hari. */
+function invFormInit(today: string, register: InvoiceRecord[]) {
+  return {
+    clientId: '', milestone: 'Termin 1 (50%)', amount: 500000000,
+    issued: today, due: defaultDueDate(today, register), eng: '',
+  };
+}
 
-function InvForm({ onClose, onAdd }: any) {
+function InvForm({ register, onClose, onAdd }: any) {
   const uid = React.useId();
   const { fmt } = AMS;
   const clients: any = AMS.CLIENTS;
-  const [d, setD] = useStateD1({ ...INV_FORM_INIT, clientId: clients[0].id });
+  const init = useMemoD1(() => ({ ...invFormInit(AMS.TODAY, register || []), clientId: clients[0].id }), [register, clients]);
+  const [d, setD] = useStateD1(init);
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const dueErr = dueBeforeIssued(d.issued, d.due);
   const valid = +d.amount > 0 && !!d.issued && !!d.due && !dueErr;
@@ -726,7 +762,7 @@ function InvForm({ onClose, onAdd }: any) {
       variant="modal"
       size="md"
       onClose={onClose}
-      isDirty={() => JSON.stringify(d) !== JSON.stringify({ ...INV_FORM_INIT, clientId: clients[0].id })}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(init)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>

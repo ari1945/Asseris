@@ -5,7 +5,8 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { AMS } from './data';
-import { CONT_FACTORS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
+import { CONT_FACTORS, INDEPENDENCE, PRIOR_YEAR } from './data_part1';
+import { useInvoiceRegister } from './use_invoices';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmCoa } from './use_firm_coa';
 import { feeConcentration, feeConcentrationMap, FEE_CONCENTRATION_CONFIG } from './fee_concentration';
@@ -210,7 +211,11 @@ function ContinuanceRegister() {
   const firmRevenue: number = (FIRMFIN.pl({ coa: firmCoa }) as { revenue?: number }).revenue || 0;
   const feeConc = feeConcentration(enrichedClients, firmRevenue);
   const concMap = feeConcentrationMap(feeConc);
-  const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR, concMap);
+  /* Pemicu "piutang macet" dulu membaca seed INVOICES: faktur yang benar-benar
+     sudah dilunasi di modul Billing tetap menandai kliennya bermasalah, dan
+     faktur baru yang jatuh tempo tak pernah muncul. Satu pintu register. */
+  const { register: invoices } = useInvoiceRegister();
+  const sum = continuanceFlags(enrichedClients, INDEPENDENCE, invoices, decisions, REF_YEAR, concMap);
   // Deep-link (mis. dari Lini Masa Audit): buka langsung baris klien perikatan
   // terpilih bila valid; jika tidak, jatuh ke default (baris teratas) → nol regresi.
   const seedClient = useInitialSelection('continuance');

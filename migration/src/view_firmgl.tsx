@@ -9,6 +9,8 @@ import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 import { CAP } from './rbac';
 import { accountLedger, currentBalances, mergeSeedJournals, statements, trialBalance } from './firm_ledger';
+import { useInvoiceRegister } from './use_invoices';
+import { arOpenInvoices, arOutstanding as arOutstandingOf, arOverdue as arOverdueOf } from './canon_invoices';
 import type { GlJournal, LedgerRow } from './firm_ledger';
 
 /* ============================================================
@@ -393,7 +395,11 @@ function FirmAPAR() {
   const nav = useNav();
   const [tab, setTab] = useStateF1('ap');
   const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
-  const ar: any = AMS.INVOICES;
+  /* SATU PINTU register faktur (`use_invoices.ts`). Sampai 2026-08-21 baris ini
+     membaca literal seed sementara modul Billing menulis dokumen persist
+     `invoices`: melunasi faktur di sana tak pernah menggeser satu angka pun di
+     layar ini — padahal layar ini berkata "AR tersinkron dari modul Billing". */
+  const { register: ar } = useInvoiceRegister();
   const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
   /* SoD finansial (Program E): pembayaran utang = FIRMFIN_EDIT (server capForWrite
      sudah menegakkan 'firmap'; gate UI mencegah ditolak senyap). */
@@ -404,8 +410,8 @@ function FirmAPAR() {
 
   const apOutstanding = ap.filter((x: any) => x.status !== 'Paid').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const apOverdue = ap.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
-  const arOutstanding = ar.filter((x: any) => x.status !== 'Paid' && x.status !== 'Draft').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
-  const arOverdue = ar.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
+  const arOutstanding = arOutstandingOf(ar);
+  const arOverdue = arOverdueOf(ar);
   const netPosition = arOutstanding - apOutstanding;
   const payAp = (id: any) => {
     if (!canEdit) return;
@@ -427,7 +433,7 @@ function FirmAPAR() {
     return { d, v };
   });
 
-  const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter((x: any) => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: ar.filter((x: any) => x.status !== 'Paid' && x.status !== 'Draft').length }];
+  const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter((x: any) => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: arOpenInvoices(ar).length }];
 
   const apRows = ap.map((x: any) => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
   const arRows = ar.filter((x: any) => x.status !== 'Draft').map((x: any) => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));

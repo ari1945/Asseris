@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { usePipelineRegister } from './use_pipeline';
+import { useInvoiceRegister } from './use_invoices';
 /* PR-2 — rantai AJE punya satu penghasil; antrean ini hanya memanggilnya. */
 import { AJE_SLA_HOURS, ajeApproveOverlay, ajeRejectOverlay, ajeReviseOverlay, applyAjeOverlay, nowStamp, parseStamp, stepAuthority } from './aje_approval';
 
@@ -122,10 +123,17 @@ function Approvals() {
      persetujuannya. Kini register hidup yang dikirim. */
   const { register: pipelineReg } = usePipelineRegister();
 
+  /* Cacat yang sama persis untuk item "Penerbitan faktur": `buildApprovals`
+     menerima `ctx.invoices` (data_platform.ts:120) tetapi tak seorang pemanggil
+     pun mengirimnya, sehingga antrean ini menilai faktur SEED — faktur yang baru
+     diterbitkan di modul Billing tak pernah muncul, dan yang sudah dikirim tetap
+     tampil menunggu otorisasi. Register hidup lewat pintu tunggal. */
+  const { register: invoiceReg } = useInvoiceRegister();
+
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId, wipAdj, pipeline: pipelineReg }),
-    [aje, engagements, clients, activeEngagementId, wipAdj, pipelineReg]);
+    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId, wipAdj, pipeline: pipelineReg, invoices: invoiceReg }),
+    [aje, engagements, clients, activeEngagementId, wipAdj, pipelineReg, invoiceReg]);
   const items = useMemoPF(() => derived.map((d: any) => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
   /* PR-B — kewenangan kini per-ITEM & per-LANGKAH, bukan satu boolean global. */

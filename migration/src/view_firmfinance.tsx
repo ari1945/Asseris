@@ -11,6 +11,7 @@ import { FIRMFIN } from './data_firmfin';
 import { useFirmWip } from './use_firm_wip';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
+import { useInvoiceRegister } from './use_invoices';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -43,7 +44,12 @@ function FirmFinance() {
   /* `reconLines` disalurkan supaya pencocokan di modul Rekonsiliasi Bank benar-benar
      menggeser residual Kas & gerbang ekspor di layar ini (PRD cash-bank-recon). */
   const { lines: reconLines } = useBankRecon();
-  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines }), [engagements, clients, coa, reconLines]);
+  /* Aging piutang (`FIRMFIN.arAging`) dulu jatuh ke seed `AMS.INVOICES` karena
+     ctx ini tak memuat `invoices` — melunasi faktur di modul Billing tak
+     menggeser satu bucket pun di sini. Register faktur kini disalurkan lewat
+     pintu tunggal, sejajar dengan `coa` (#241) dan `reconLines`. */
+  const { register: invoices } = useInvoiceRegister();
+  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines, invoices }), [engagements, clients, coa, reconLines, invoices]);
   /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
      WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
   const { wip: wipLive } = useFirmWip();
