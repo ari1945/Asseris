@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useFirm } from './contexts';
+import { useInvoiceRegister } from './use_invoices';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
@@ -18,7 +19,10 @@ const { useState: useStateRV } = React;
 function FirmRevenue() {
   const { fmt } = AMS;
   const { engagements, clients } = useFirm();
-  const invoices: any = AMS.INVOICES;
+  /* SATU PINTU register faktur (`use_invoices.ts`) — tertagih (PSAK 72) dan
+     antrean dunning dulu membaca literal seed, jadi faktur yang baru dikirim
+     atau baru lunas di modul Billing tak pernah sampai ke layar ini. */
+  const { register: invoices } = useInvoiceRegister();
   const [tab, setTab] = useStateRV('recognition');
   const [sel, setSel] = useStateRV(null);
   const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */

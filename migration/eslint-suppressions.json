@@ -506,7 +506,7 @@
   },
   "src/view_firmgl.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 76
+      "count": 68
     }
   },
   "src/view_firmops.tsx": {
@@ -521,7 +521,7 @@
   },
   "src/view_firmrevenue.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 34
     }
   },
   "src/view_firmtax.tsx": {
@@ -781,7 +781,7 @@
   },
   "src/view_pipeline.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 54
+      "count": 38
     }
   },
   "src/view_platform.tsx": {
