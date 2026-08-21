@@ -30,11 +30,40 @@ export const api: any = createTRPCClient({
   })],
 });
 
+/* ============================================================
+   KLASIFIKASI KEGAGALAN TULIS.
+   ------------------------------------------------------------
+   `useServerState.flush()` dulu hanya mengenali SATU kegagalan — kalah balapan
+   CAS (409) — dan MEMPERTAHANKAN nilai lokal untuk semua sisanya dengan alasan
+   "offline; suntingan berikutnya mencoba lagi". Penolakan otorisasi (403
+   FORBIDDEN dari `capForWrite`) jatuh ke cabang yang sama: layar menampilkan
+   perubahan yang server tak pernah simpan, tanpa satu pun pesan, sampai
+   pengguna me-reload. Untuk artefak kepatuhan (deklarasi independensi, sign-off,
+   persetujuan) itu bukan gangguan kosmetik — pengguna mengira tindakannya
+   tercatat.
+
+   Tiga hasil yang benar-benar berbeda penanganannya:
+     · 'conflict' → dokumen berubah dari sesi lain; tawarkan adopsi/timpa.
+     · 'rejected' → server MENOLAK (otorisasi/sesi). Nilai lokal HARUS ditarik
+                    kembali dan penolakannya ditampilkan.
+     · 'offline'  → tak sampai ke server; cache menyimpan, coba lagi nanti.
+   ============================================================ */
+export type WriteFailure = 'conflict' | 'rejected' | 'offline';
+
+type TrpcErrData = { code?: string; httpStatus?: number };
+export function writeFailureKind(err: unknown): WriteFailure {
+  const e = (err || null) as { data?: TrpcErrData; shape?: { data?: TrpcErrData } } | null;
+  const code = e && (e.data?.code || e.shape?.data?.code);
+  const status = e && (e.data?.httpStatus || e.shape?.data?.httpStatus);
+  if (code === 'CONFLICT' || status === 409) return 'conflict';
+  if (code === 'FORBIDDEN' || status === 403) return 'rejected';
+  if (code === 'UNAUTHORIZED' || status === 401) return 'rejected';
+  return 'offline';
+}
+
 /* True when a mutation lost an optimistic-concurrency race (server returned 409). */
 export function isConflict(err: any) {
-  const code = err && (err.data?.code || err.shape?.data?.code);
-  const status = err && (err.data?.httpStatus || err.shape?.data?.httpStatus);
-  return code === 'CONFLICT' || status === 409;
+  return writeFailureKind(err) === 'conflict';
 }
 
 (window as any).AMS_API = api;

@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { api, isConflict, hydrateCoreFromApi } from './api';
+import { api, isConflict, writeFailureKind, hydrateCoreFromApi } from './api';
 import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
@@ -615,6 +615,11 @@ function conflictLabel(key: any) { return (CONFLICT_LABELS as any)[key] || key; 
 function emitConflict(detail: any) {
   try { window.dispatchEvent(new CustomEvent('ams:conflict', { detail })); } catch (e) {}
 }
+/* Penolakan server (403/401). Dipisah dari konflik karena tak ada pilihan untuk
+   ditawarkan — nilainya sudah ditarik kembali; yang tersisa adalah memberitahu. */
+function emitWriteRejected(detail: unknown) {
+  try { window.dispatchEvent(new CustomEvent('ams:write-rejected', { detail })); } catch (e) {}
+}
 
 function cacheRead(cacheKey: any, legacyKey: any, initial: any) {
   try { const s = localStorage.getItem(cacheKey); if (s != null) return JSON.parse(s); } catch (e) {}
@@ -715,6 +720,9 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
      `targetRef`/`versionRef` di sini. `versionRef` hanya boleh maju bila hook MASIH
      menunjuk target yang barusan ditulis — sesudah pindah perikatan, versi milik target
      lama tak berarti apa-apa bagi target baru dan menuliskannya akan merusak CAS. */
+  /* Baca-ulang dokumen yang barusan gagal ditulis. Satu titik `as any` (klien tRPC
+     tak bertipe di sisi ini) dipakai bersama kedua cabang kegagalan. */
+  const readTarget = React.useCallback((t: WriteTarget) => (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }), []);
   const flush = React.useCallback((pending: PendingWrite) => {
     const t = pending.target;
     const value = pending.value;
@@ -730,7 +738,7 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
         // surface a conflict toast that lets the user adopt latest or overwrite.
         if (isConflict(err)) {
           const attempted = value;
-          (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then((res: any) => {
+          readTarget(t).then((res: any) => {
             /* R-1 — versi ini milik `t`. Diadopsi ke `versionRef`/`val` HANYA bila hook
                masih menunjuk `t`; untuk target yang sudah ditinggalkan versinya disimpan
                lokal saja, supaya "pertahankan milik saya" tetap punya baseVersion sah
@@ -753,9 +761,23 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
             });
           }).catch(() => {});
         }
+        /* PENOLAKAN SERVER (403 FORBIDDEN dari capForWrite / 401 sesi habis).
+           Bentuk lama menjatuhkannya ke cabang "offline" di bawah: nilai lokal
+           dipertahankan, tak ada pesan, dan layar terus mengklaim perubahan yang
+           tak pernah tersimpan. Di sini nilainya DITARIK KEMBALI ke apa yang
+           benar-benar ada di server, lalu penolakannya ditampilkan. */
+        else if (writeFailureKind(err) === 'rejected') {
+          readTarget(t)
+            .then((res: { version: number; value: unknown }) => {
+              if (stillCurrent()) { versionRef.current = res.version; if (res.version > 0) setValRaw(res.value); }
+              if (res.version > 0) cacheWrite(t.cacheKey, res.value);
+            })
+            .catch(() => {})
+            .then(() => emitWriteRejected({ scope: t.scope, key: t.key, label: conflictLabel(t.key) }));
+        }
         /* other errors (offline): cache already holds the value; the next edit retries */
       });
-  }, []);
+  }, [readTarget]);
 
   /* Kirim tulisan tertunda SEKARANG (timer dibatalkan). Dipanggil oleh debounce dan oleh
      cleanup efek di bawah saat target berpindah / hook di-unmount. */
@@ -826,16 +848,22 @@ function ConflictToaster() {
   const dismiss = React.useCallback((id: any) => setItems((list: any) => list.filter((t: any) => t.id !== id)), []);
 
   React.useEffect(() => {
-    const onConflict = (ev: any) => {
+    const push = (kind: string) => (ev: any) => {
       const d = (ev && ev.detail) || {};
       const id = (d.scope || '') + ':' + (d.key || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
       setItems((list: any) => {
         const rest = list.filter((t: any) => !(t.key === d.key && t.scope === d.scope)); // one toast per target
-        return [...rest, { id, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
+        return [...rest, { id, kind, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
       });
     };
+    const onConflict = push('conflict');
+    const onRejected = push('rejected');
     window.addEventListener('ams:conflict', onConflict);
-    return () => window.removeEventListener('ams:conflict', onConflict);
+    window.addEventListener('ams:write-rejected', onRejected);
+    return () => {
+      window.removeEventListener('ams:conflict', onConflict);
+      window.removeEventListener('ams:write-rejected', onRejected);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -847,6 +875,7 @@ function ConflictToaster() {
   if (!items.length) return null;
   const wrap = { position: 'fixed', right: 18, bottom: 18, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 360 };
   const card = { background: 'var(--surface,#fff)', border: '1px solid var(--line,#e3e6ea)', borderLeft: '3px solid var(--amber,#d98a00)', borderRadius: 10, boxShadow: '0 8px 28px rgba(15,23,42,.16)', padding: '12px 14px', font: '13px/1.45 inherit', color: 'var(--ink,#1f2733)' };
+  const cardRejected = { ...card, borderLeft: '3px solid var(--red,#c0392b)' };
   const head = { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 };
   const row = { display: 'flex', gap: 8, marginTop: 10 };
   const btn = { cursor: 'pointer', border: '1px solid var(--line,#e3e6ea)', borderRadius: 7, padding: '5px 10px', font: '12px inherit', background: '#fff', color: 'var(--ink,#1f2733)' };
@@ -855,16 +884,20 @@ function ConflictToaster() {
   return (
     <div style={wrap} role="status" aria-live="polite" data-testid="conflict-toaster">
       {items.map((t: any) => (
-        <div key={t.id} style={card} data-conflict-key={t.key}>
+        <div key={t.id} style={t.kind === 'rejected' ? cardRejected : card} data-conflict-key={t.key} data-toast-kind={t.kind || 'conflict'}>
           <div style={head}>
-            <span>⚠︎ Konflik penyimpanan</span>
+            <span>{t.kind === 'rejected' ? '⛔ Perubahan ditolak server' : '⚠︎ Konflik penyimpanan'}</span>
             <button style={x} title="Tutup" onClick={() => dismiss(t.id)}>×</button>
           </div>
-          <div><b>{t.label}</b> diubah dari sesi/peramban lain. Perubahan Anda belum tersimpan.</div>
-          <div style={row}>
-            <button style={btnPrimary} onClick={() => { try { t.adopt && t.adopt(); } finally { dismiss(t.id); } }}>Muat versi terbaru</button>
-            <button style={btn} onClick={() => { try { t.keepMine && t.keepMine(); } finally { dismiss(t.id); } }}>Timpa dengan perubahan saya</button>
-          </div>
+          {t.kind === 'rejected'
+            ? <div><b>{t.label}</b> tidak tersimpan: peran Anda tidak berwenang menulis dokumen ini (atau sesi Anda telah berakhir). Tampilan sudah dikembalikan ke data server.</div>
+            : <div><b>{t.label}</b> diubah dari sesi/peramban lain. Perubahan Anda belum tersimpan.</div>}
+          {t.kind !== 'rejected' && (
+            <div style={row}>
+              <button style={btnPrimary} onClick={() => { try { t.adopt && t.adopt(); } finally { dismiss(t.id); } }}>Muat versi terbaru</button>
+              <button style={btn} onClick={() => { try { t.keepMine && t.keepMine(); } finally { dismiss(t.id); } }}>Timpa dengan perubahan saya</button>
+            </div>
+          )}
         </div>
       ))}
     </div>

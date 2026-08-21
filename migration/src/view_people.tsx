@@ -12,6 +12,12 @@ import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 import { rotTier } from './data_licensing';
+import { resolveEmpId } from './ethics_compliance';
+import {
+  INDEP_CHAIN, INDEP_LEVEL_LABEL, INDEP_PERIOD, indepApprRecord, indepCanWrite, indepDateLabel,
+  indepLevel, indepRotationAckRelevant, indepStamp, indepStepAuthority, indepUnattributed, nextThreatId,
+  type IndepActor, type IndepApprRec,
+} from './indep_approval';
 import { cpeFromTraining, type TrainingCourse } from './cpe_training';
 import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
 
@@ -365,32 +371,79 @@ function SkpForm({ staff, onClose, onAdd }: any) {
 }
 
 /* ---------------- Independence & Rotation ---------------- */
+/* Baris register independensi. Sumbernya `AMS.INDEPENDENCE`, tetapi di runtime
+   ia datang TER-FILTER dari server (`personal.get`, PERSONAL_STATE_KEYS):
+   pengguna non-privileged hanya menerima BARISNYA sendiri. */
+type IndepRow = {
+  id: string; name: string; declared?: boolean; conflicts: number; finInterest?: string;
+  role?: string; rotationClient?: string; rotationLimit: number; tenure: number;
+  cooloff?: number; listed?: boolean;
+  requested?: boolean; requestedAt?: string; requestedBy?: string;
+};
+/* Pesan yang TERLIHAT. Modul ini dulu menawarkan aksi yang server pasti tolak
+   dan penolakannya tak pernah sampai ke pengguna: `flush()` di contexts.tsx
+   hanya menangani CONFLICT, sedangkan FORBIDDEN jatuh ke cabang "offline" yang
+   MEMPERTAHANKAN nilai lokal tanpa toast. Layar berkata "Disetujui", server
+   tidak menyimpan apa pun, dan selisihnya baru terlihat saat reload. */
+type IndepNotice = { ok: boolean; t: string } | null;
+
 function Independence() {
   const nav = useNav();
   const auth = useAuth();
-  const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
+  /* I5 — pelaku jejak = identitas SESI (W7) yang dipetakan ke roster firma.
+     Bentuk lama `(auth && auth.user && auth.user.name) || 'Auditor'` menandatangani
+     persetujuan, mitigasi ancaman, dan pengakuan rotasi atas nama "Auditor" begitu
+     sesi tak terbaca. Jejak auditable yang pelakunya bernama "Auditor" bukan jejak;
+     bila identitas tak tersedia, aksi tulis TIDAK dilakukan (lihat indepStamp). */
+  const actor: IndepActor = useMemoE(() => ({
+    userId: auth && auth.user ? auth.user.id : undefined,
+    name: auth && auth.user ? auth.user.name : undefined,
+    role: auth && auth.user ? auth.user.role : undefined,
+    empId: resolveEmpId(auth && auth.user),
+  }), [auth]);
+  /* I1 — kapabilitas ditegakkan SEBELUM aksi ditawarkan. Keempat dokumen modul ini
+     (`independence` · `indepAppr` · `indepThreats` · `indepRotAck`) di-gate HR_MANAGE
+     di server (rbac.ts capForWrite); FIRM_ADMIN dituntut tambahan untuk lapis partner
+     dan untuk membatalkan rantai. Modul TIDAK ditutup penuh seperti HCM: baris di sini
+     ter-filter per-pengguna oleh server, jadi setiap orang berhak MELIHAT deklarasinya
+     sendiri — pola yang sama dengan Payroll, Cuti, Kinerja, Kode Etik & CPE. */
+  const canWrite = indepCanWrite(actor);
+  const canFirmAdmin = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRM_ADMIN));
+  /* Argumen tipe generik TIDAK bisa dipakai pada hook React di repo ini (tak ada
+     @types/react → TS2347); tipe dinyatakan lewat `as` di titik baca. */
+  const [notice, setNotice] = useStateE(null);
+  const pesan = notice as IndepNotice;
+  const tolak = (t: string) => setNotice({ ok: false, t });
+
   const [data, setData] = useAmsPersist('independence', () => AMS.INDEPENDENCE);
-  const declared = data.filter((d: any) => d.declared).length;
-  const conflicts = data.reduce((s: any, d: any) => s + d.conflicts, 0);
-  const rotationDue = data.filter((d: any) => d.tenure >= d.rotationLimit).length;
-  const rotationWarn = data.filter((d: any) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
+  const rows: IndepRow[] = data as IndepRow[];
+  const declared = rows.filter((d) => d.declared).length;
+  const conflicts = rows.reduce((s: number, d) => s + (d.conflicts || 0), 0);
+  const rotationDue = rows.filter((d) => d.tenure >= d.rotationLimit).length;
+  const rotationWarn = rows.filter((d) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
   /* jendela peringatan dini ≤6 bulan sebelum batas (SSOT rotTier) */
-  type RotRow = { name: string; rotationClient?: string; tenure: number; rotationLimit: number };
-  const rotationAlertList = (data as RotRow[]).filter((d) => d.rotationClient !== '—' && rotTier(d.tenure, d.rotationLimit) === 'alert');
-  const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
+  const rotationAlertList = rows.filter((d) => d.rotationClient !== '—' && rotTier(d.tenure, d.rotationLimit) === 'alert');
   const [sel, setSel] = useStateE(null);
 
-  /* K-06 lanjutan — wire tombol "Unduh Deklarasi" (dulu mati): ekspor PDF tersegel
-     deklarasi independensi per orang (SA 220 · Kode Etik IAPI). */
+  /* Klok SSOT (K-02). Bentuk lama memakai `new Date()` — jam sistem nyata —
+     sementara data di sekitarnya berada di periode audit, sehingga jejak
+     persetujuan tak dapat direkonsiliasi dengan apa pun di aplikasi ini. */
+  const indepToday = String(AMS.TODAY || '');
+  /* I7 — identitas firma pada artefak TERSEGEL diturunkan, tidak diketik. Menyegel
+     nama firma yang salah memberi otoritas pada dokumen yang keliru. */
+  const firmName = (AMS.FIRM as { name?: string } | undefined)?.name || 'Kantor Akuntan Publik';
+
+  /* K-06 lanjutan — tombol "Unduh Deklarasi": ekspor PDF tersegel deklarasi
+     independensi per orang (SA 220 · Kode Etik IAPI). */
   const [declExporting, setDeclExporting] = useStateE(false);
-  const onExportDecl = async (d: { name: string; role?: string; declared: boolean; conflicts: number; tenure: number; rotationLimit: number; rotationClient?: string }) => {
+  const onExportDecl = async (d: IndepRow) => {
     if (declExporting) return;
     setDeclExporting(true);
     try {
       await amsExportPdf({
         kind: 'independence-decl', scope: 'firm', scopeId: undefined,
         fileName: `Deklarasi Independensi - ${d.name}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
+        firm: firmName,
         title: 'Deklarasi Independensi Tahunan',
         meta: [`${d.name}${d.role ? ' · ' + d.role : ''} · ${INDEP_PERIOD}`,
           `Status: ${d.declared ? 'DIDEKLARASIKAN' : 'BELUM'} · konflik ${d.conflicts} · masa tugas ${d.tenure}/${d.rotationLimit} th (${d.rotationClient || '—'})`],
@@ -407,57 +460,118 @@ function Independence() {
       setDeclExporting(false);
     }
   };
+
   /* indepAppr: per-orang jejak persetujuan. Bentuk lama = number (level saja);
-     bentuk baru = { level, steps:[{by,at}], period } agar AUDITABLE (siapa &
-     kapan tiap lapis: self → reviu manajer etika → persetujuan partner). */
+     bentuk baru = { level, steps:[{by,byUserId,byEmpId,at}], period } agar AUDITABLE.
+     Normalisasi + derivasi level hidup di `indep_approval` (modul murni, teruji). */
   const [appr, setAppr] = useAmsPersist('indepAppr', {});
-  const indepToday = (() => { try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return ''; } })();
-  const lvlOf = (d: { id: string; declared: boolean }): number => {
-    const a = (appr as Record<string, unknown>)[d.id];
-    if (a == null) return d.declared ? 3 : 0;
-    return typeof a === 'number' ? a : (((a as { level?: number }).level) ?? 0);
+  const recOf = (id: string) => indepApprRecord((appr as Record<string, unknown>)[id], INDEP_PERIOD);
+  const lvlOf = (d: IndepRow) => indepLevel(recOf(d.id), !!d.declared);
+  const authorityFor = (d: IndepRow, stepIndex: number) =>
+    indepStepAuthority({ stepIndex, rec: recOf(d.id), declared: !!d.declared, rowId: d.id, actor });
+
+  /* I2 — PEMISAHAN TUGAS. Bentuk lama menulis `steps[n - 1] = { by: me }` untuk `n`
+     berapa pun tanpa memeriksa siapa `me`: satu orang dapat mengisi ketiga lapis
+     berturut-turut, dan yang tercatat hanya bahwa seseorang menekan tombol tiga kali.
+     Kelayakannya kini diputuskan `indepStepAuthority` (aturan sejajar rantai AJE),
+     bukan oleh tombol yang kebetulan terlihat. */
+  const approveStep = (d: IndepRow, stepIndex: number) => {
+    if (!canWrite) return tolak('Pencatatan deklarasi independensi memerlukan kewenangan SDM & Kepatuhan (hr.manage). Tanda tangan Anda sendiri dibubuhkan di modul Data Personal Saya.');
+    const verdict = authorityFor(d, stepIndex);
+    if (!verdict.ok) return tolak(verdict.reason);
+    const stamp = indepStamp(actor, indepToday);
+    if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — tanda tangan tidak dibubuhkan.');
+    setAppr((a: Record<string, unknown>) => {
+      const steps = indepApprRecord(a[d.id], INDEP_PERIOD).steps.slice();
+      steps[stepIndex] = stamp;
+      return { ...a, [d.id]: { level: stepIndex + 1, steps, period: INDEP_PERIOD } };
+    });
+    if (stepIndex === 0 && !d.declared) setData((list: IndepRow[]) => list.map((x) => x.id === d.id ? { ...x, declared: true } : x));
+    setNotice({ ok: true, t: `Lapis "${INDEP_CHAIN[stepIndex].role}" ditandatangani ${stamp.by} · ${indepDateLabel(stamp.at)}.` });
   };
-  const recOf = (id: string): { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string } => {
-    const a = (appr as Record<string, unknown>)[id];
-    if (a && typeof a === 'object') return a as { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string };
-    return { level: typeof a === 'number' ? a : 0, steps: [], period: INDEP_PERIOD };
+  /* Membatalkan rantai yang sudah berjalan = tindakan otoritatif (menghapus tanda
+     tangan orang lain). Sejajar pengecualian etik: kewenangan rekan (FIRM_ADMIN). */
+  const resetChain = (d: IndepRow) => {
+    if (!canFirmAdmin) return tolak('Membatalkan rantai persetujuan yang sudah ditandatangani memerlukan kewenangan rekan (firm.admin).');
+    setAppr((a: Record<string, unknown>) => ({ ...a, [d.id]: { level: 0, steps: [], period: INDEP_PERIOD } }));
+    setData((list: IndepRow[]) => list.map((x) => x.id === d.id ? { ...x, declared: false } : x));
+    setNotice({ ok: true, t: `Rantai persetujuan ${d.name} dibatalkan — deklarasi harus ditandatangani ulang.` });
   };
-  const setApprove = (id: string, n: number) => setAppr((a: Record<string, unknown>) => {
-    const cur = a[id] as { steps?: Array<{ by: string; at: string } | undefined> } | number | undefined;
-    if (n === 0) return { ...a, [id]: { level: 0, steps: [], period: INDEP_PERIOD } };
-    const steps = (cur && typeof cur === 'object' && Array.isArray(cur.steps)) ? cur.steps.slice() : [];
-    steps[n - 1] = { by: me, at: indepToday };
-    return { ...a, [id]: { level: n, steps, period: INDEP_PERIOD } };
-  });
+
+  /* I3 — "Minta Deklarasi" HIDUP. Permintaan tercatat pada baris orang yang belum
+     berdeklarasi (`requested`/`requestedAt`) dan tampil sebagai chip "Diminta" di
+     register — alur yang sama persis dengan Deklarasi Kode Etik (view_pc_conduct),
+     bukan alur baru. Tanda tangannya sendiri tetap dibubuhkan yang bersangkutan. */
+  const requestDecl = () => {
+    if (!canWrite) return tolak('Mengirim permintaan deklarasi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
+    const stamp = indepStamp(actor, indepToday);
+    if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — permintaan tidak dikirim.');
+    const target = rows.filter((d) => !d.declared);
+    if (!target.length) return setNotice({ ok: true, t: 'Seluruh deklarasi tahunan sudah diterima — tidak ada permintaan yang perlu dikirim.' });
+    setData((list: IndepRow[]) => list.map((d) => d.declared ? d : ({ ...d, requested: true, requestedAt: indepToday, requestedBy: stamp.by })));
+    setNotice({ ok: true, t: `Permintaan deklarasi dicatat untuk ${target.length} personel yang belum menandatangani.` });
+  };
+
   /* Q-03b — register ancaman & pengamanan (editable + jejak mitigasi). */
   const [threats, setThreats] = useAmsPersist('indepThreats', () => seedIndepThreats(AMS.INDEPENDENCE as Array<{ id: string; conflicts: number; finInterest: string }>));
-  const addThreat = (personId: string) => setThreats((list: Array<{ id: string }>) => [...list, {
-    id: 'TH-' + personId + '-' + (list.length + 1), personId, type: THREAT_TYPES[0], desc: '',
-    severity: 'Sedang', safeguard: '', status: 'Terbuka', by: '', at: '',
-  }]);
-  const updateThreat = (id: string, patch: Record<string, string>) =>
-    setThreats((list: Array<{ id: string }>) => list.map((t) => t.id === id ? { ...t, ...patch } : t));
-  const signThreat = (id: string) =>
-    setThreats((list: Array<{ id: string }>) => list.map((t) => t.id === id ? { ...t, status: 'Dimitigasi', by: me, at: indepToday } : t));
+  const addThreat = (personId: string) => {
+    if (!canWrite) return tolak('Menambah ancaman independensi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
+    setThreats((list: IndepThreat[]) => [...list, {
+      id: nextThreatId(list, personId), personId, type: THREAT_TYPES[0], desc: '',
+      severity: 'Sedang', safeguard: '', status: 'Terbuka', by: '', at: '',
+    }]);
+  };
+  const updateThreat = (id: string, patch: Record<string, string>) => {
+    if (!canWrite) return tolak('Menyunting register ancaman memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
+    setThreats((list: IndepThreat[]) => list.map((t) => t.id === id ? { ...t, ...patch } : t));
+  };
+  const signThreat = (id: string) => {
+    if (!canWrite) return tolak('Menandai ancaman sebagai dimitigasi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
+    const stamp = indepStamp(actor, indepToday);
+    if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — mitigasi tidak ditandatangani.');
+    setThreats((list: IndepThreat[]) => list.map((t) => t.id === id ? { ...t, status: 'Dimitigasi', by: stamp.by, at: stamp.at } : t));
+  };
   /* Q-03c — pengakuan rotasi & cooling-off + tindak lanjut. */
   const [rotAck, setRotAck] = useAmsPersist('indepRotAck', {});
-  const ackRotation = (id: string, action: string) =>
-    setRotAck((m: Record<string, unknown>) => ({ ...m, [id]: { acknowledged: true, action, by: me, at: indepToday } }));
-  const curr = sel ? data.find((d: any) => d.id === sel) : null;
+  const ackRotation = (id: string, action: string) => {
+    if (!canWrite) return tolak('Mencatat pengakuan rotasi memerlukan kewenangan SDM & Kepatuhan (hr.manage).');
+    const stamp = indepStamp(actor, indepToday);
+    if (!stamp) return tolak('Identitas sesi tidak terpetakan ke personel firma — pengakuan tidak dicatat.');
+    setRotAck((m: Record<string, unknown>) => ({ ...m, [id]: { acknowledged: true, action, by: stamp.by, at: stamp.at } }));
+    setNotice({ ok: true, t: `Pengakuan rotasi dicatat atas nama ${stamp.by}.` });
+  };
+
+  const curr = sel ? rows.find((d) => d.id === sel) : null;
   const [itab, setItab] = useStateE('rotasi');
   const itabs = [{ id: 'rotasi', label: 'Deklarasi & Rotasi' }, { id: 'fee', label: 'Ketergantungan Imbalan' }, { id: 'nas', label: 'Pra-Persetujuan NAS' }, { id: 'longassoc', label: 'Asosiasi Jangka Panjang' }];
 
   return (
     <>
-      <SubBar moduleId="independence" right={<div className="row gap8 ac"><Badge kind="blue">Kode Etik IAPI · IESBA</Badge><Btn sm><I.send size={13} /> Minta Deklarasi</Btn></div>} />
+      <SubBar moduleId="independence" right={<div className="row gap8 ac"><Badge kind="blue">Kode Etik IAPI · IESBA</Badge>{canWrite && <Btn sm onClick={requestDecl} title="Catat permintaan deklarasi untuk seluruh personel yang belum menandatangani"><I.send size={13} /> Minta Deklarasi</Btn>}</div>} />
       <div className="view-scroll"><div className="view-pad">
         <div style={{ marginBottom: 12 }}><Tabs tabs={itabs} active={itab} onChange={setItab} /></div>
         {itab === 'fee' && <FeeDependencyTab />}
         {itab === 'nas' && <NASPreApprovalTab />}
         {itab === 'longassoc' && <LongAssociationTab />}
         {itab === 'rotasi' && (<>
+        {pesan && (
+          <div className="panel" style={{ padding: '9px 12px', marginBottom: 12, boxShadow: 'none', background: pesan.ok ? 'var(--green-bg)' : 'var(--red-bg)', borderColor: 'transparent' }}>
+            <div className="row ac jb gap8">
+              <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>{pesan.ok ? <I.check size={12} /> : <I.alert size={12} />} {pesan.t}</span>
+              <button aria-label="Tutup pesan" className="btn sm" onClick={() => setNotice(null)}><I.x size={12} /></button>
+            </div>
+          </div>
+        )}
+        {!canWrite && (
+          <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, boxShadow: 'none', background: 'var(--surface-2)' }}>
+            <div className="row ac gap8"><span className="muted"><I.lock size={14} /></span><span className="tiny" style={{ lineHeight: 1.5 }}><b>Hanya-baca.</b> Pencatatan deklarasi, reviu, persetujuan, register ancaman, dan pengakuan rotasi adalah kewenangan SDM &amp; Kepatuhan (hr.manage) — tombolnya tidak ditampilkan agar tak ada tindakan yang tampak berhasil lalu ditolak server. Tanda tangan deklarasi <b>Anda sendiri</b> dibubuhkan di <button className="btn sm" onClick={() => nav('personal', { from: 'independence' })}>Data Personal Saya</button>.</span></div>
+          </div>
+        )}
+        {rows.length === 0 ? (
+          <Panel><div style={{ padding: 28, textAlign: 'center' }} className="tiny muted">Belum ada baris deklarasi independensi yang dapat Anda lihat. Deklarasi Anda sendiri ada di modul <b>Data Personal Saya</b>.</div></Panel>
+        ) : (<>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${declared}/${data.length}`} label="Deklarasi Diterima" accent={declared === data.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${declared}/${rows.length}`} label="Deklarasi Diterima" accent={declared === rows.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={conflicts} label="Konflik Teridentifikasi" accent={conflicts ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={rotationDue} label="Rotasi Wajib" accent={rotationDue ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={rotationWarn} label="Rotasi Tahun Depan" accent="var(--amber)" /></div></Panel>
@@ -465,33 +579,45 @@ function Independence() {
 
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{rows.filter((d) => d.tenure >= d.rotationLimit).map((d) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {rows.find((d) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 &amp; POJK 13/2017).</span></div>
           </div>
         )}
 
         {rotationAlertList.length > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi & cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi &amp; cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
           </div>
         )}
 
         <Panel noBody>
-          <div className="panel-h"><h3>Register Independensi & Rotasi Partner</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik baris untuk alur persetujuan</span></div>
+          <div className="panel-h"><h3>Register Independensi &amp; Rotasi Partner</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik baris untuk alur persetujuan</span></div>
           <table className="dtbl">
             <thead><tr><th>Partner / Staf</th><th>Deklarasi Tahunan</th><th>Alur Persetujuan</th><th className="num">Konflik</th><th>Klien (rotasi)</th><th className="num" style={{ width: 130 }}>Masa Tugas</th></tr></thead>
             <tbody>
-              {data.map((d: any) => {
+              {rows.map((d) => {
                 const rotPct = d.tenure / d.rotationLimit * 100;
                 const rotCol = d.tenure >= d.rotationLimit ? 'var(--red)' : d.tenure >= d.rotationLimit - 1 ? 'var(--amber)' : 'var(--green)';
                 const lvl = lvlOf(d);
-                const STEPS = ['Belum', 'Diajukan', 'Direviu', 'Disetujui'];
+                const belumTeratribusi = indepUnattributed(recOf(d.id), !!d.declared);
+                /* Deklarasi = pernyataan PRIBADI: hanya yang bersangkutan yang dapat
+                   membubuhkannya (semantik `personalSelfService.declareSelf` & Kode Etik).
+                   Bentuk lama memakai <span onClick> — kontrol palsu yang juga menyalahi §3.7. */
+                const bolehTandaTangan = authorityFor(d, 0).ok && canWrite;
                 return (
                   <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
                     <td><div className="row ac gap8"><Avatar name={d.name} size={24} /><span style={{ fontWeight: 600 }}>{d.name}</span></div></td>
-                    <td><span onClick={(e: any) => { e.stopPropagation(); toggle(d.id); }} style={{ cursor: 'pointer' }}>{d.declared ? <Badge kind="green"><I.check size={10} /> Diterima</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
-                    <td><div className="row ac gap4">{[1, 2, 3].map(i => <span key={i} title={STEPS[i]} style={{ width: 22, height: 5, borderRadius: 3, background: i <= lvl ? 'var(--green)' : 'var(--surface-3)' }} />)}<span className="tiny muted" style={{ marginLeft: 4 }}>{STEPS[lvl]}</span></div></td>
+                    <td>
+                      {d.declared ? <Badge kind="green"><I.check size={10} /> Diterima</Badge> : (
+                        <span className="row ac gap6">
+                          <Badge kind="red">Belum</Badge>
+                          {d.requested && <span className="chip tiny" style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} title={`Deklarasi diminta ${indepDateLabel(d.requestedAt)}${d.requestedBy ? ' oleh ' + d.requestedBy : ''}`}><I.send size={10} /> Diminta</span>}
+                          {bolehTandaTangan && <button className="btn sm" style={{ height: 22, color: 'var(--blue)' }} onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); approveStep(d, 0); }}><I.check size={12} /> Tandatangani</button>}
+                        </span>
+                      )}
+                    </td>
+                    <td><div className="row ac gap4">{[1, 2, 3].map((i) => <span key={i} title={INDEP_LEVEL_LABEL[i]} style={{ width: 22, height: 5, borderRadius: 3, background: i <= lvl ? (belumTeratribusi ? 'var(--amber)' : 'var(--green)') : 'var(--surface-3)' }} />)}<span className="tiny muted" style={{ marginLeft: 4 }} title={belumTeratribusi ? 'Sebagian lapis tercatat tanpa penanda tangan (rekaman bentuk lama / deklarasi mandiri)' : undefined}>{INDEP_LEVEL_LABEL[lvl]}{belumTeratribusi ? ' *' : ''}</span></div></td>
                     <td className="num">{d.conflicts ? <Badge kind="amber">{d.conflicts}</Badge> : <span className="muted">0</span>}</td>
-                    <td className="tiny">{d.rotationClient === '—' ? <span className="muted">—</span> : <span className="row ac gap4">{d.rotationClient.replace('PT ', '')}{d.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px' }}>IDX</span>}</span>}</td>
+                    <td className="tiny">{d.rotationClient === '—' ? <span className="muted">—</span> : <span className="row ac gap4">{(d.rotationClient || '').replace('PT ', '')}{d.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px' }}>IDX</span>}</span>}</td>
                     <td>
                       {d.rotationClient === '—' ? <span className="muted tiny">n/a</span> : (
                         <div className="row ac gap8">
@@ -506,22 +632,23 @@ function Independence() {
             </tbody>
           </table>
         </Panel>
-        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Ambang rotasi AP terdiferensiasi per rezim: <b>5 tahun</b> berturut-turut untuk entitas kepentingan publik (PIE) umum (PP 20/2015 Ps. 11) dan <b>3 tahun</b> untuk entitas <b>sektor jasa keuangan</b> — bank, asuransi, pembiayaan (POJK 13/POJK.03/2017). Cooling-off minimal <b>2 tahun</b>; KAP tidak dibatasi. Dimensi etika lain (ketergantungan imbalan, pra-persetujuan NAS, asosiasi jangka panjang) dipantau pada tab terpisah.</div>
+        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Ambang rotasi AP terdiferensiasi per rezim: <b>5 tahun</b> berturut-turut untuk entitas kepentingan publik (PIE) umum (PP 20/2015 Ps. 11) dan <b>3 tahun</b> untuk entitas <b>sektor jasa keuangan</b> — bank, asuransi, pembiayaan (POJK 13/POJK.03/2017). Cooling-off minimal <b>2 tahun</b>; KAP tidak dibatasi. Tanda <b>*</b> pada alur persetujuan berarti lapisnya tercatat <b>tanpa penanda tangan</b> — deklarasi mandiri atau rekaman bentuk lama; ia tidak diklaim terverifikasi. Dimensi etika lain (ketergantungan imbalan, pra-persetujuan NAS, asosiasi jangka panjang) dipantau pada tab terpisah.</div>
+        </>)}
         </>)}
       </div></div>
       {curr && <IndepDrawer d={curr} lvl={lvlOf(curr)} rec={recOf(curr.id)} period={INDEP_PERIOD}
+        unattributed={indepUnattributed(recOf(curr.id), !!curr.declared)}
+        canWrite={canWrite} canFirmAdmin={canFirmAdmin}
+        authorityFor={(i: number) => authorityFor(curr, i)}
         threats={(threats as IndepThreat[]).filter((t) => t.personId === curr.id)}
         onAddThreat={() => addThreat(curr.id)} onUpdateThreat={updateThreat} onSignThreat={signThreat}
         rotAck={(rotAck as Record<string, RotAck>)[curr.id]} onAckRotation={(action: string) => ackRotation(curr.id, action)}
-        onApprove={(n: number) => setApprove(curr.id, n)} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)}
+        onApprove={(i: number) => approveStep(curr, i)} onReset={() => resetChain(curr)} onClose={() => setSel(null)}
         onExportDecl={onExportDecl} declExporting={declExporting} />}
     </>
   );
 }
 
-/* Periode deklarasi independensi berjalan (tahun audit). Sumber tunggal label
-   periode untuk register & drawer; jejak persetujuan distempel periode ini. */
-const INDEP_PERIOD = 'TA 2026';
 /* Kategori ancaman independensi (IESBA 120) + tingkat keparahan. */
 const THREAT_TYPES = ['Kepentingan pribadi', 'Telaah pribadi', 'Advokasi', 'Kedekatan', 'Intimidasi'];
 const THREAT_SEV = ['Tinggi', 'Sedang', 'Rendah'];
@@ -543,17 +670,23 @@ const INDEP_Q = [
   'Imbalan tidak bergantung pada hasil (contingent fee).',
   'Tidak ada ancaman kedekatan/intimidasi yang tidak dapat dimitigasi.',
 ];
-const INDEP_CHAIN = [
-  { role: 'Personel — Deklarasi mandiri', who: 'Diri sendiri' },
-  { role: 'Reviu Manajer Etika', who: 'Anindya Pramesti' },
-  { role: 'Persetujuan Ethics & Independence Partner', who: 'Sari Dewanti, CPA' },
-];
 
-function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat, onSignThreat, rotAck, onAckRotation, onApprove, onDeclare, onClose, onExportDecl, declExporting }: any) {
+type IndepDrawerProps = {
+  d: IndepRow; lvl: number; rec: IndepApprRec; period: string; unattributed: boolean;
+  canWrite: boolean; canFirmAdmin: boolean;
+  authorityFor: (stepIndex: number) => { ok: boolean; reason: string };
+  threats: IndepThreat[];
+  onAddThreat: () => void; onUpdateThreat: (id: string, patch: Record<string, string>) => void; onSignThreat: (id: string) => void;
+  rotAck?: RotAck; onAckRotation: (action: string) => void;
+  onApprove: (stepIndex: number) => void; onReset: () => void; onClose: () => void;
+  onExportDecl: (d: IndepRow) => void; declExporting: boolean;
+};
+
+function IndepDrawer({ d, lvl, rec, period, unattributed, canWrite, canFirmAdmin, authorityFor, threats, onAddThreat, onUpdateThreat, onSignThreat, rotAck, onAckRotation, onApprove, onReset, onClose, onExportDecl, declExporting }: IndepDrawerProps) {
   const steps = (rec && rec.steps) || [];
   const per = period || INDEP_PERIOD;
   const tlist: IndepThreat[] = threats || [];
-  const rotRelevant = d.rotationClient !== '—' && d.tenure >= d.rotationLimit - 1;
+  const rotRelevant = indepRotationAckRelevant(d);
   const [rotDraft, setRotDraft] = useStateE('');
   return (
     <Overlay
@@ -572,7 +705,7 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
       )}
       footer={(
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
-          {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}
+          {lvl > 0 && canFirmAdmin && <Btn style={{ flex: 1 }} onClick={onReset}><I.sync size={13} /> Reset</Btn>}
           <Btn variant="primary" style={{ flex: 1 }} onClick={() => onExportDecl(d)} disabled={declExporting}><I.download size={13} /> {declExporting ? 'Menyiapkan…' : 'Unduh Deklarasi'}</Btn>
         </div>
       )}
@@ -590,30 +723,36 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
 
           {/* Q-03b — Register ancaman & pengamanan (IESBA 120): editable + jejak mitigasi */}
           <div className="row jb ac" style={{ marginBottom: 8 }}>
-            <span className="tiny muted upper">Ancaman & Pengamanan (IESBA 120)</span>
-            <button className="btn sm" onClick={onAddThreat}><I.plus size={12} /> Tambah</button>
+            <span className="tiny muted upper">Ancaman &amp; Pengamanan (IESBA 120)</span>
+            {canWrite && <button className="btn sm" onClick={onAddThreat}><I.plus size={12} /> Tambah</button>}
           </div>
           <div style={{ display: 'grid', gap: 8, marginBottom: 18 }}>
             {tlist.length === 0 && <div className="tiny muted">Tidak ada ancaman tercatat untuk personel ini.</div>}
             {tlist.map((t) => (
               <div key={t.id} className="panel" style={{ padding: '10px 12px', boxShadow: 'none', borderLeft: '3px solid var(--' + sevVar(t.severity) + ')' }}>
-                <div className="row gap6" style={{ marginBottom: 6 }}>
-                  <select className="select" value={t.type} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { type: e.target.value })} style={{ flex: 1 }}>
-                    {THREAT_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
-                  </select>
-                  <select className="select" value={t.severity} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { severity: e.target.value })} style={{ width: 104 }}>
-                    {THREAT_SEV.map(x => <option key={x} value={x}>{x}</option>)}
-                  </select>
-                </div>
-                <input className="input" value={t.desc} placeholder="Uraian ancaman" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { desc: e.target.value })} style={{ width: '100%', marginBottom: 6 }} />
-                <textarea className="input" value={t.safeguard} placeholder="Pengamanan yang diterapkan" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { safeguard: e.target.value })} style={{ width: '100%', height: 44, resize: 'vertical', marginBottom: 6 }} />
+                {canWrite ? (<>
+                  <div className="row gap6" style={{ marginBottom: 6 }}>
+                    <select aria-label="Kategori ancaman" className="select" value={t.type} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { type: e.target.value })} style={{ flex: 1 }}>
+                      {THREAT_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <select aria-label="Tingkat keparahan" className="select" value={t.severity} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { severity: e.target.value })} style={{ width: 104 }}>
+                      {THREAT_SEV.map(x => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                  </div>
+                  <input aria-label="Uraian ancaman" className="input" value={t.desc} placeholder="Uraian ancaman" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { desc: e.target.value })} style={{ width: '100%', marginBottom: 6 }} />
+                  <textarea aria-label="Pengamanan yang diterapkan" className="input" value={t.safeguard} placeholder="Pengamanan yang diterapkan" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { safeguard: e.target.value })} style={{ width: '100%', height: 44, resize: 'vertical', marginBottom: 6 }} />
+                </>) : (<>
+                  <div className="row gap6 ac" style={{ marginBottom: 6 }}><b style={{ fontSize: 12 }}>{t.type}</b><Badge kind={sevVar(t.severity)}>{t.severity}</Badge></div>
+                  <div className="tiny" style={{ marginBottom: 4, lineHeight: 1.45 }}>{t.desc || <span className="muted">Tanpa uraian.</span>}</div>
+                  <div className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.45 }}>{t.safeguard || 'Pengamanan belum dicatat.'}</div>
+                </>)}
                 <div className="row jb ac">
                   {t.status === 'Dimitigasi'
-                    ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Dimitigasi{t.by ? ' · ' + t.by + ' · ' + t.at : ''}</span>
+                    ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Dimitigasi{t.by ? ' · ' + t.by + ' · ' + indepDateLabel(t.at) : ' · tanpa atribusi'}</span>
                     : <Badge kind="amber">Terbuka</Badge>}
-                  {t.status === 'Dimitigasi'
+                  {canWrite && (t.status === 'Dimitigasi'
                     ? <button className="btn sm" onClick={() => onUpdateThreat(t.id, { status: 'Terbuka', by: '', at: '' })}><I.sync size={11} /> Buka</button>
-                    : <Btn sm variant={t.safeguard.trim() ? 'primary' : ''} disabled={!t.safeguard.trim()} onClick={() => onSignThreat(t.id)}><I.check size={12} /> Tandai dimitigasi</Btn>}
+                    : <Btn sm variant={t.safeguard.trim() ? 'primary' : ''} disabled={!t.safeguard.trim()} onClick={() => onSignThreat(t.id)}><I.check size={12} /> Tandai dimitigasi</Btn>)}
                 </div>
               </div>
             ))}
@@ -624,14 +763,14 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
             <div className="tiny muted upper" style={{ marginBottom: 8 }}>Rotasi &amp; Cooling-off (PP 20/2015 · POJK 13/2017)</div>
             <div className="panel" style={{ padding: '10px 12px', marginBottom: 18, boxShadow: 'none', background: d.tenure >= d.rotationLimit ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="tiny" style={{ fontWeight: 600, marginBottom: 6, lineHeight: 1.45 }}>
-                {d.tenure}/{d.rotationLimit} th pada {d.rotationClient.replace('PT ', '')}{d.listed ? ' (IDX)' : ''} · cooling-off {d.cooloff} th — {d.tenure >= d.rotationLimit ? 'WAJIB ROTASI.' : 'tahun terakhir sebelum batas.'}
+                {d.tenure}/{d.rotationLimit} th pada {(d.rotationClient || '').replace('PT ', '')}{d.listed ? ' (IDX)' : ''} · cooling-off {d.cooloff} th — {d.tenure >= d.rotationLimit ? 'WAJIB ROTASI.' : 'tahun terakhir sebelum batas.'}
               </div>
               {rotAck && rotAck.acknowledged
-                ? <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Diakui: {rotAck.by} · {rotAck.at}{rotAck.action ? ' — ' + rotAck.action : ''}</div>
-                : (<>
-                  <textarea className="input" value={rotDraft} onChange={(e: { target: { value: string } }) => setRotDraft(e.target.value)} placeholder="Tindak lanjut (mis. tunjuk partner pengganti FY2026)" style={{ width: '100%', height: 40, resize: 'vertical', marginBottom: 6 }} />
+                ? <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Diakui: {rotAck.by} · {indepDateLabel(rotAck.at)}{rotAck.action ? ' — ' + rotAck.action : ''}</div>
+                : canWrite ? (<>
+                  <textarea aria-label="Tindak lanjut rotasi" className="input" value={rotDraft} onChange={(e: { target: { value: string } }) => setRotDraft(e.target.value)} placeholder="Tindak lanjut (mis. tunjuk partner pengganti FY2026)" style={{ width: '100%', height: 40, resize: 'vertical', marginBottom: 6 }} />
                   <Btn sm variant={rotDraft.trim() ? 'primary' : ''} disabled={!rotDraft.trim()} onClick={() => onAckRotation(rotDraft.trim())}><I.check size={12} /> Akui &amp; catat tindak lanjut</Btn>
-                </>)}
+                </>) : <div className="tiny muted">Belum diakui. Pencatatan tindak lanjut adalah kewenangan SDM &amp; Kepatuhan.</div>}
             </div>
           </>)}
 
@@ -640,8 +779,9 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
             {INDEP_CHAIN.map((c, i) => {
               const done = lvl >= i + 1;
               const active = lvl === i;
+              const verdict = authorityFor(i);
               return (
-                <div key={i} className="row gap10" style={{ paddingBottom: i < INDEP_CHAIN.length - 1 ? 14 : 0 }}>
+                <div key={c.key} className="row gap10" style={{ paddingBottom: i < INDEP_CHAIN.length - 1 ? 14 : 0 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
                     <span style={{ width: 22, height: 22, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{done ? <I.check size={13} /> : i + 1}</span>
                     {i < INDEP_CHAIN.length - 1 && <span style={{ width: 1.5, flex: 1, minHeight: 24, background: done ? 'var(--green)' : 'var(--line)' }} />}
@@ -649,18 +789,22 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
                   <div style={{ minWidth: 0, paddingBottom: 4, flex: 1 }}>
                     <div style={{ fontSize: 12, fontWeight: 600 }}>{c.role}</div>
                     <div className="tiny muted">{c.who}</div>
-                    {active && (
-                      <Btn sm variant="primary" style={{ marginTop: 6 }} onClick={() => { if (i === 0 && !d.declared) onDeclare(); onApprove(i + 1); }}>
+                    {active && canWrite && verdict.ok && (
+                      <Btn sm variant="primary" style={{ marginTop: 6 }} onClick={() => onApprove(i)}>
                         <I.check size={12} /> {i === 0 ? 'Tandatangani & Ajukan' : i === 1 ? 'Reviu & Teruskan' : 'Setujui Final'}
                       </Btn>
                     )}
-                    {done && <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}>✓ {steps[i] ? steps[i].by + ' · ' + steps[i].at : 'Selesai'}</div>}
+                    {active && !verdict.ok && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 4, lineHeight: 1.45 }}><I.lock size={10} /> {verdict.reason}</div>}
+                    {done && (steps[i]
+                      ? <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}><I.check size={11} /> {steps[i].by} · {indepDateLabel(steps[i].at)}</div>
+                      : <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginTop: 2 }}><I.alert size={11} /> Tercatat tanpa penanda tangan — tidak dapat diklaim terverifikasi.</div>)}
                   </div>
                 </div>
               );
             })}
           </div>
-          {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk {per}.</div></div>}
+          {lvl >= 3 && !unattributed && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh &amp; terarsip untuk {per} — tiga lapis, tiga penanda tangan.</div></div>}
+          {lvl >= 3 && unattributed && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}><I.alert size={12} /> Level rantai tercatat lengkap untuk {per}, tetapi sebagian lapis tanpa penanda tangan — pemisahan tugas <b>tidak dapat dibuktikan</b> dari rekaman ini.</div></div>}
         </div>
     </Overlay>
   );
