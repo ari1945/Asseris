@@ -21,9 +21,49 @@
    diberi label demikian di UI, mengikuti pola `PHASE_BUDGET_WEIGHT` di
    cockpit_progress.ts. Lihat catatan di profil itu: sumber bobotnya masih
    pertanyaan terbuka.
+
+   ------------------------------------------------------------
+   Dua angka karangan berikutnya, dicabut di sini (temuan §12 PRD metode
+   masukan PSAK 72 — dilaporkan di sana, di luar lingkupnya):
+
+   TB5  `TB_FEE_FALLBACK = 1_520_000_000` — fee KARANGAN untuk perikatan yang
+        kliennya tak ber-fee. Kelas cacat yang persis sama dengan
+        `materialitas × 0,4` yang dicabut dari skedul pendapatan (#277), dan
+        sama-sama DORMAN pada seed: kedelapan klien seed ber-fee, jadi tak ada
+        uji NILAI atas seed yang dapat menangkapnya — ujinya harus MEMBANGUN
+        keadaan pemicunya. Nilai kontrak kini datang dari `contractValueOf`,
+        fungsi yang sama yang dipakai skedul PSAK 72, dan `null` diteruskan apa
+        adanya.
+
+        Perhatikan: sesudah #278, `revRecognized` sudah boleh null karena
+        KEMAJUAN belum terukur. Sekarang ia juga boleh null karena NILAI
+        KONTRAK belum ditetapkan — dua lubang data yang berbeda, dan layar
+        menyebut yang mana. `marginCompletion` dan `realization` ikut nullable
+        karena keduanya murni bergantung pada fee.
+
+        Operatornya juga salah: `?.fee || TB_FEE_FALLBACK` menjatuhkan fee 0
+        — perikatan pro bono — ke fallback, sehingga pekerjaan cuma-cuma muncul
+        sebagai kontrak Rp 1.520 jt. `contractValueOf` menerima 0 sebagai angka
+        yang sah dan hanya menolak yang bukan angka berhingga non-negatif.
+
+   TB6  Panel "Penagihan & WIP" menyintesis penagihan dari fee: "Sudah ditagih
+        (2 termin)" = `fee × 0,5`, "Sisa nilai kontrak" = `fee × 0,5`, "Termin
+        ke-3" = `fee × 0,3` — padahal register faktur NYATA sudah ada dan sudah
+        berpintu tunggal (`useInvoiceRegister`, #275). Cacat ini TIDAK dorman:
+        pada seed, perikatan demo sudah menerbitkan dua faktur senilai 1.480 jt
+        terhadap fee 1.850 jt, jadi `fee × 0,5` = 925 jt salah hari ini juga,
+        dan sisa kontraknya 370 jt bukan 925 jt. `tbBilling` di bawah membacanya
+        dari register.
+
+        "Termin ke-3" DICABUT tanpa pengganti karangan: tak ada termin ketiga
+        di register mana pun (yang dilabelinya justru faktur Termin 2 milik
+        perikatan demo), dan tanggal jatuh temponya pun tak pernah diturunkan
+        dari data. Yang menggantikannya adalah faktur yang BENAR-BENAR terbit
+        dan belum lunas — dengan tanggal jatuh tempo miliknya sendiri — atau
+        pernyataan bahwa register tak memuat satu pun.
    ============================================================ */
 import { FIRMFIN } from './data_firmfin';
-import { progressOf } from './revenue_psak72';
+import { UNBILLED_STATUS, contractValueOf, progressOf, type RevenueGap } from './revenue_psak72';
 
 export interface TBTimeEntry { id: string; member: string; date: string; phase: string; task: string; hours: number }
 export interface TBRosterRow {
@@ -33,7 +73,9 @@ export interface TBRosterRow {
 }
 export interface TBWip { roster: TBRosterRow[]; actualHrs: number; budgetHrs: number; stdValue: number; costValue: number }
 export interface TBEngagement { id: string; clientId?: string; progress?: number; status?: string | null }
-export interface TBClient { id: string; fee?: number }
+/** Klien — subset yang dipakai model. `fee` opsional karena hidrasi API boleh
+    datang tanpa kolom itu; ketiadaannya adalah lubang data, bukan izin menaksir. */
+export interface TBClient { id: string; fee?: number | null }
 export type TBWipOf = (timeEntries: TBTimeEntry[], engId: string) => TBWip | null;
 
 export interface TBPhaseRow {
@@ -59,15 +101,24 @@ export interface TBModel {
   recogPct: number | null;
   /** `null` bila kemajuan belum terukur — tak ada taksiran penggantinya. */
   revRecognized: number | null;
-  fee: number;
+  /* --- besaran RUPIAH yang bergantung pada NILAI KONTRAK ---
+     `null` = nilai kontrak perikatan ini belum ditetapkan. Bukan nol: nol
+     berarti "sudah diukur, hasilnya nihil", dan itu pernyataan yang berbeda. */
+  /** Nilai kontrak = fee klien. */
+  fee: number | null;
   /** `null` mengikuti `revRecognized`. */
   marginNow: number | null;
-  marginCompletion: number; realization: number;
+  marginCompletion: number | null;
+  /** Recovery rate = fee ÷ nilai standar anggaran. `null` juga ketika nilai
+      standar anggarannya nol — rasio tak terdefinisi bukan 0%. */
+  realization: number | null;
+  /** Lubang NILAI KONTRAK. Kosakatanya dibagi dengan skedul pendapatan supaya
+      dua layar menamai keadaan yang sama dengan satu nama; lubang KEMAJUAN
+      punya salurannya sendiri (`recogPct == null`), jadi hari ini medan ini
+      hanya pernah membawa 'contract-unknown'. */
+  feeGap: RevenueGap | null;
   blendedBill: number; blendedCost: number;
 }
-
-/* Fee cadangan untuk baris klien lama tanpa `fee` — bukan angka perikatan lain. */
-export const TB_FEE_FALLBACK = 1_520_000_000;
 
 /* ------------------------------------------------------------------
    PROFIL FASE — BOBOT, bukan jam.
@@ -178,6 +229,100 @@ export function tbWeekly(timeEntries: readonly TBTimeEntry[]): TBWeeklySeries {
   };
 }
 
+/* ------------------------------------------------------------------
+   TB6 · PENAGIHAN — fakta register faktur, bukan pecahan fee.
+   ------------------------------------------------------------------ */
+
+/** Faktur — subset yang dipakai panel penagihan. `InvoiceRecord` masuk secara
+    struktural, jadi register `useInvoiceRegister()` langsung cocok. */
+export interface TBInvoice {
+  id: string; eng?: string; status?: string;
+  amount?: number; paid?: number; due?: string; milestone?: string;
+}
+
+/** Faktur terbit yang masih menyisakan tagihan. */
+export interface TBInvoiceDue {
+  id: string; milestone: string; due: string; outstanding: number;
+}
+
+export interface TBBilling {
+  /** Σ nilai faktur perikatan ini yang SUDAH terbit. Fakta register. */
+  billed: number;
+  /** Banyaknya faktur terbit yang menyusun `billed` — angka untuk label,
+      menggantikan "(2 termin)" yang dipaku. */
+  issued: number;
+  /** Faktur yang masih draf: ada di register, belum menagih apa pun. Dilaporkan
+      supaya "belum ada tagihan" tak tertukar dengan "ada draf belum terbit". */
+  drafts: number;
+  /** Sisa nilai kontrak = nilai kontrak − tertagih. `null` bila nilai
+      kontraknya belum ditetapkan. Boleh NEGATIF: penagihan yang melampaui
+      nilai kontrak adalah keadaan yang harus terbaca, bukan dijepit ke nol. */
+  remainingContract: number | null;
+  /**
+   * Aset kontrak — pendapatan diakui MELAMPAUI yang ditagih (WIP belum
+   * ditagih). `null` bila pendapatan diakui belum terukur.
+   *
+   * Dilaporkan BERPASANGAN dengan `contractLiab`, bukan sebagai satu angka
+   * berlantai nol: panel lama hanya punya baris "WIP belum ditagih" dengan
+   * `Math.max(0, …)`, sehingga perikatan yang menagih DI MUKA — keadaan
+   * perikatan demo hari ini — menampilkan Rp 0 dan liabilitas kontraknya
+   * hilang tanpa suara. Kosakatanya sama dengan skedul PSAK 72
+   * (`asset`/`liab`) supaya kedua layar dapat dibandingkan tanpa penerjemahan.
+   */
+  contractAsset: number | null;
+  /** Liabilitas kontrak — ditagih melampaui yang diakui. */
+  contractLiab: number | null;
+  /**
+   * Faktur terbit belum lunas yang paling dekat jatuh tempo — atau `null`.
+   *
+   * Ini yang menggantikan kalimat "Termin ke-3 (fee × 0,3) jatuh tempo saat
+   * fieldwork selesai (31 Mar)": termin ketiga itu tak ada di register mana
+   * pun, dan tanggalnya tak pernah diturunkan dari data. Faktur yang
+   * benar-benar terbit membawa tanggal jatuh temponya sendiri.
+   */
+  nextDue: TBInvoiceDue | null;
+}
+
+const angka = (v: number | undefined | null): number =>
+  typeof v === 'number' && Number.isFinite(v) ? v : 0;
+
+/**
+ * Penagihan perikatan ini menurut register faktur.
+ *
+ * Aturan "apa yang dihitung tertagih" DIPINJAM dari skedul pendapatan
+ * (`UNBILLED_STATUS`) alih-alih ditulis ulang: dua aturan status yang
+ * menyimpang akan membuat dua layar melaporkan tertagih yang berbeda untuk
+ * perikatan yang sama.
+ */
+export function tbBilling(
+  register: readonly TBInvoice[],
+  engId: string,
+  fee: number | null,
+  revRecognized: number | null,
+): TBBilling {
+  const milik = (register || []).filter((i) => i.eng === engId);
+  const terbit = milik.filter((i) => i.status !== UNBILLED_STATUS);
+  const billed = terbit.reduce((s, i) => s + angka(i.amount), 0);
+
+  const belumLunas = terbit
+    .filter((i) => angka(i.amount) - angka(i.paid) > 0 && !!i.due)
+    .sort((a, b) => String(a.due).localeCompare(String(b.due)));
+  const n = belumLunas[0];
+
+  return {
+    billed,
+    issued: terbit.length,
+    drafts: milik.length - terbit.length,
+    remainingContract: fee == null ? null : fee - billed,
+    contractAsset: revRecognized == null ? null : Math.max(0, revRecognized - billed),
+    contractLiab: revRecognized == null ? null : Math.max(0, billed - revRecognized),
+    nextDue: n
+      ? { id: n.id, milestone: n.milestone || '', due: String(n.due),
+          outstanding: angka(n.amount) - angka(n.paid) }
+      : null,
+  };
+}
+
 /**
  * Model Time & Budget untuk perikatan aktif.
  * `null` = perikatan ini tak punya roster/timesheet. Pemanggil WAJIB merender
@@ -227,7 +372,11 @@ export function tbModel(
      sebagai dasar pengakuan pendapatan. */
   const prog = (e.progress || 0) / 100;
   const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
-  const fee = clients.find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
+  /* Nilai kontrak: SATU sumber (`contractValueOf`), nol proksi. `find` yang
+     gagal menghasilkan `undefined` → null, sama seperti klien yang ada tapi tak
+     ber-fee. Perhatikan fee 0 (pro bono) LOLOS sebagai 0 — itulah yang dulu
+     ditelan operator `||`. */
+  const fee = contractValueOf(clients.find((c) => c.id === e.clientId));
   /* SC-5 (PRD metode masukan): SATU ukuran kemajuan untuk pengakuan pendapatan.
      Sampai 2026-08-22 baris "Pendapatan diakui (% completion)" di layar ini
      memakai `fee × e.progress`, sementara modul Pendapatan Firma memakai
@@ -237,7 +386,10 @@ export function tbModel(
     { id: e.id, clientId: e.clientId || '', status: e.status },
     { actualHrs: actualTotal, budgetHrs: budgetTotal },
   );
-  const revRecognized = recog.pct == null ? null : Math.round(fee * recog.pct);
+  /* DUA lubang data yang berbeda menghasilkan null yang sama di sini:
+     kemajuan belum terukur (#278) ATAU nilai kontrak belum ditetapkan (TB5).
+     Layar menyebut yang mana — `recogPct` dan `feeGap` terpisah. */
+  const revRecognized = recog.pct == null || fee == null ? null : Math.round(fee * recog.pct);
   return {
     roster, phases, weekly: tbWeekly(timeEntries),
     actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
@@ -246,7 +398,9 @@ export function tbModel(
     eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal),
     recogPct: recog.pct, revRecognized,
     fee, marginNow: revRecognized == null ? null : revRecognized - costActual,
-    marginCompletion: fee - costBudget, realization: stdValueBudget ? fee / stdValueBudget : 0,
+    marginCompletion: fee == null ? null : fee - costBudget,
+    realization: fee == null || !stdValueBudget ? null : fee / stdValueBudget,
+    feeGap: fee == null ? 'contract-unknown' : null,
     blendedBill: actualTotal ? stdValue / actualTotal : 0,
     blendedCost: actualTotal ? costActual / actualTotal : 0,
   };

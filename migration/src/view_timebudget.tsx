@@ -6,7 +6,11 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
-import { tbModel, tbEntryValue, tbLabelMinggu, tbTanggalPanjang, type TBModel, type TBTimeEntry, type TBWeeklySeries } from './timebudget_model';
+import { useInvoiceRegister } from './use_invoices';
+import {
+  tbModel, tbBilling, tbEntryValue, tbLabelMinggu, tbTanggalPanjang,
+  type TBBilling, type TBClient, type TBModel, type TBTimeEntry, type TBWeeklySeries,
+} from './timebudget_model';
 
 /* ============================================================
    Asseris — Time & Budget (expanded module)
@@ -22,13 +26,29 @@ const TB_ROLE_COLOR = { 'Engagement Partner': '#5b3fa6', 'Audit Manager': '#0050
 const tbJt = (n: any) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
 const tbM  = (n: any) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 
+/* Besaran rupiah yang bergantung pada NILAI KONTRAK boleh tak terukur. '—'
+   bukan 'Rp 0 jt': nol berarti "sudah diukur, hasilnya nihil", dan itu
+   pernyataan yang berbeda. Lihat TB5 di `timebudget_model.ts`. */
+const TB_KOSONG = '—';
+const tbJtN = (n: number | null) => (n == null ? TB_KOSONG : tbJt(n));
+const tbMN  = (n: number | null) => (n == null ? TB_KOSONG : tbM(n));
+/* Rasio yang pembilang/penyebutnya tak terukur — atau penyebutnya nol —
+   menghasilkan null, bukan 0% dan bukan NaN%. */
+const tbRatio = (num: number | null, den: number | null): number | null =>
+  num == null || den == null || den === 0 ? null : num / den;
+const tbPct = (r: number | null) => (r == null ? TB_KOSONG : Math.round(r * 100) + '%');
+
 /* ----- shared derived model (reactive to live timesheet) -----
    Seluruh derivasi ada di `timebudget_model.ts` (murni, diuji di node oleh
    `timebudget_isolation.test.ts`). `null` = perikatan aktif tak punya
    roster/timesheet — dan itu dirender sebagai keadaan kosong, BUKAN ditambal
    dengan angka perikatan lain. */
-function useTBModel(timeEntries: TBTimeEntry[], e: { id: string; clientId?: string; progress?: number }): TBModel | null {
-  return useTBMemo(() => tbModel(timeEntries, e, AMS.CLIENTS as { id: string; fee?: number }[]), [timeEntries, e]);
+function useTBModel(
+  timeEntries: TBTimeEntry[],
+  e: { id: string; clientId?: string; progress?: number },
+  clients: readonly TBClient[],
+): TBModel | null {
+  return useTBMemo(() => tbModel(timeEntries, e, clients), [timeEntries, e, clients]);
 }
 
 /* small horizontal budget/actual bar */
@@ -45,11 +65,23 @@ function TBBar({ budget, actual, pct, max }: any) {
 }
 
 function TimeBudget() {
-  const { activeEngagement, activeClient, locked } = useFirm();
+  /* `clients` DARI KONTEKS FIRMA, bukan `AMS.CLIENTS`. Register klien hidup di
+     server-state (`useServerState('clients', …)`) dan dapat disunting; membaca
+     literal seed di sini berarti fee yang baru diperbarui tak pernah sampai ke
+     ekonomi perikatan — sementara `activeClient` di komponen yang SAMA sudah
+     membaca register yang hidup. Dua sumber untuk satu angka. */
+  const { activeEngagement, activeClient, clients, locked } = useFirm();
   const { timeEntries, addTimeEntry, team } = useAuditHeavy(['timeEntries']);
+  /* SATU PINTU register faktur (`use_invoices.ts`, #275) — penagihan perikatan
+     ini dulu disintesis dari fee (TB6). */
+  const { register: invoices } = useInvoiceRegister();
   const [tab, setTab] = useTB('overview');
   const e = activeEngagement;
-  const m = useTBModel(timeEntries, e);
+  const m = useTBModel(timeEntries, e, clients);
+  const billing = useTBMemo(
+    () => tbBilling(invoices, e?.id, m ? m.fee : null, m ? m.revRecognized : null),
+    [invoices, e, m],
+  );
   const [exporting, setExporting] = useTB(false);
 
   /* K-06 lanjutan — wire tombol "Export Timesheet" (dulu mati): ekspor XLSX tersegel
@@ -76,7 +108,7 @@ function TimeBudget() {
         fileName: `Timesheet & Anggaran - ${namaKlien}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Timesheet & Anggaran Perikatan',
-        meta: [`${e?.id || ''} · ${e?.fy || ''} · fee Rp ${Math.round(m.fee / 1e6)} jt`,
+        meta: [`${e?.id || ''} · ${e?.fy || ''} · ${m.fee == null ? 'nilai kontrak belum ditetapkan' : 'fee ' + tbJt(m.fee)}`,
           `Jam aktual ${m.actualTotal}/${m.budgetTotal} · burn ${(m.burn * 100).toFixed(0)}% — jam`],
         sheets: [
           { name: 'Timesheet', heading: 'Timesheet (jam)',
@@ -114,11 +146,11 @@ function TimeBudget() {
         {!m ? <TBNoRoster engId={e.id} klien={namaKlien} /> : (
           <>
             <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
-            {tab === 'overview' && <TBOverview m={m} e={e} />}
+            {tab === 'overview' && <TBOverview m={m} e={e} klien={namaKlien} />}
             {tab === 'phase' && <TBPhase m={m} e={e} />}
             {tab === 'timesheet' && <TBTimesheet m={m} timeEntries={timeEntries} addTimeEntry={addTimeEntry} team={team} locked={locked} />}
             {tab === 'team' && <TBTeam m={m} />}
-            {tab === 'econ' && <TBEconomics m={m} e={e} />}
+            {tab === 'econ' && <TBEconomics m={m} billing={billing} klien={namaKlien} />}
           </>
         )}
       </div></div>
@@ -162,21 +194,43 @@ function TBNoRoster({ engId, klien }: { engId: string; klien: string }) {
   );
 }
 
+/* =================== LUBANG DATA: NILAI KONTRAK ===================
+   TB5 — keadaan yang dulu ditambal diam-diam oleh `TB_FEE_FALLBACK`. Sekarang
+   ia berbunyi, dan menyebut apa yang TETAP terukur supaya pembaca tak mengira
+   seluruh halaman ini tak dapat dipakai. */
+function TBFeeGap({ klien }: { klien: string }) {
+  return (
+    <div className="panel" style={{ padding: '9px 11px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+      <div className="row ac gap8">
+        <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>
+        <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>
+          Nilai kontrak <strong>{klien}</strong> belum ditetapkan: register klien tidak
+          membawa fee untuk perikatan ini. Fee disepakati, pendapatan diakui, margin, dan
+          realisasi karena itu <em>tidak terukur</em> dan ditandai “{TB_KOSONG}” — bukan
+          ditaksir. Jam, nilai standar (WIP), dan biaya waktu di bawah tetap terukur.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* =================== RINGKASAN =================== */
-function TBOverview({ m, e }: any) {
+function TBOverview({ m, e, klien }: { m: TBModel; e: any; klien: string }) {
   const { fmt } = AMS;
   const burnPct = Math.round(m.burn * 100);
   const onTrack = m.burn <= e.progress / 100 + 0.05;
   const eacVar = m.budgetTotal - m.eacHrs; // + = di bawah anggaran
+  const marginRatio = tbRatio(m.marginCompletion, m.fee);
   return (
     <>
+      {m.feeGap && <TBFeeGap klien={klien} />}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.actualTotal)} label="Jam Aktual" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.budgetTotal)} label="Anggaran Jam" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.remaining)} label="Sisa Jam" accent={m.remaining < 120 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={burnPct + '%'} label="Budget Burn" accent={burnPct > 95 ? 'var(--red)' : burnPct > 85 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(Math.round(m.eacHrs))} label="Proyeksi (EAC)" accent={eacVar < 0 ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(m.marginCompletion / m.fee * 100) + '%'} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbPct(marginRatio)} label="Margin Proyeksi" accent={marginRatio == null ? undefined : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -209,7 +263,7 @@ function TBOverview({ m, e }: any) {
             <EacRow label="Estimate at Completion" v={fmt(Math.round(m.eacHrs)) + ' jam'} strong />
             <EacRow label="Varians vs anggaran" v={(eacVar >= 0 ? '+' : '−') + fmt(Math.abs(Math.round(eacVar))) + ' jam'} accent={eacVar >= 0 ? 'var(--green)' : 'var(--red)'} />
             <EacRow label="Biaya pada penyelesaian" v={tbJt(m.costBudget)} />
-            <EacRow label="Recovery rate (realisasi)" v={Math.round(m.realization * 100) + '%'} accent={m.realization >= 1 ? 'var(--green)' : 'var(--amber)'} />
+            <EacRow label="Recovery rate (realisasi)" v={tbPct(m.realization)} accent={m.realization == null ? undefined : m.realization >= 1 ? 'var(--green)' : 'var(--amber)'} />
           </div>
         </Panel>
       </div>
@@ -532,68 +586,110 @@ function TBTeam({ m }: any) {
 }
 
 /* =================== EKONOMI =================== */
-function TBEconomics({ m, e }: any) {
+function TBEconomics({ m, billing, klien }: { m: TBModel; billing: TBBilling; klien: string }) {
   const { fmt } = AMS;
-  const wd = m.fee - m.stdValueBudget; // + = write-up, - = write-down
-  const marginPct = Math.round(m.marginCompletion / m.fee * 100);
+  /* Write-up/-down = fee − nilai standar anggaran; tak bermakna tanpa fee. */
+  const wd = m.fee == null ? null : m.fee - m.stdValueBudget;
+  const marginRatio = tbRatio(m.marginCompletion, m.fee);
+  const marginNowRatio = tbRatio(m.marginNow, m.revRecognized);
   return (
     <>
+      {m.feeGap && <TBFeeGap klien={klien} />}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.fee)} label="Fee Disepakati" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbMN(m.fee)} label="Fee Disepakati" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.costBudget)} label="Biaya pd Penyelesaian" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.marginCompletion)} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={marginPct + '%'} label="Margin %" accent={marginPct >= 40 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbMN(m.marginCompletion)} label="Margin Proyeksi" accent={m.marginCompletion == null ? undefined : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbPct(marginRatio)} label="Margin %" accent={marginRatio == null ? undefined : marginRatio >= 0.4 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Ekonomi Engagement" sub="saat ini vs proyeksi penyelesaian">
           <table className="dtbl">
-            <thead><tr><th>Komponen</th><th className="num">Saat ini ({m.recogPct == null ? '—' : Math.round(m.recogPct * 100) + '%'})</th><th className="num">Penyelesaian (100%)</th></tr></thead>
+            <thead><tr><th>Komponen</th><th className="num">Saat ini ({tbPct(m.recogPct)})</th><th className="num">Penyelesaian (100%)</th></tr></thead>
             <tbody>
               <tr><td>Jam tercatat</td><td className="num mono">{fmt(m.actualTotal, 0)} j</td><td className="num mono">{fmt(Math.round(m.eacHrs))} j</td></tr>
               <tr><td>Nilai standar (WIP @ charge-out)</td><td className="num mono">{tbJt(m.stdValue)}</td><td className="num mono">{tbJt(m.stdValueBudget)}</td></tr>
               <tr><td>Biaya langsung (fully-loaded)</td><td className="num mono">{tbJt(m.costActual)}</td><td className="num mono">{tbJt(m.costBudget)}</td></tr>
-              <tr><td>Pendapatan diakui (metode masukan)</td><td className="num mono">{m.revRecognized == null ? '—' : tbJt(m.revRecognized)}</td><td className="num mono">{tbJt(m.fee)}</td></tr>
-              <tr style={{ background: 'var(--surface-2)' }}><td style={{ fontWeight: 700 }}>Margin kotor</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{m.marginNow == null ? '—' : tbJt(m.marginNow)}</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{tbJt(m.marginCompletion)}</td></tr>
-              <tr><td>Margin %</td><td className="num mono">{m.marginNow == null || !m.revRecognized ? '—' : Math.round(m.marginNow / m.revRecognized * 100) + '%'}</td><td className="num mono">{marginPct}%</td></tr>
+              <tr><td>Pendapatan diakui (metode masukan)</td><td className="num mono">{tbJtN(m.revRecognized)}</td><td className="num mono">{tbJtN(m.fee)}</td></tr>
+              <tr style={{ background: 'var(--surface-2)' }}><td style={{ fontWeight: 700 }}>Margin kotor</td><td className="num mono" style={{ fontWeight: 700, color: m.marginNow == null ? 'var(--ink-2)' : 'var(--green)' }}>{tbJtN(m.marginNow)}</td><td className="num mono" style={{ fontWeight: 700, color: m.marginCompletion == null ? 'var(--ink-2)' : 'var(--green)' }}>{tbJtN(m.marginCompletion)}</td></tr>
+              <tr><td>Margin %</td><td className="num mono">{tbPct(marginNowRatio)}</td><td className="num mono">{tbPct(marginRatio)}</td></tr>
               <tr><td>Tarif efektif blended</td><td className="num mono">{tbJt(m.blendedBill)}/j</td><td className="num mono">{tbJt(m.stdValueBudget / m.budgetTotal)}/j</td></tr>
             </tbody>
           </table>
-          <div className="tiny muted" style={{ marginTop: 8 }}>WIP = work-in-progress dinilai pada tarif standar. Pendapatan diakui mengikuti metode persentase penyelesaian sesuai progress audit.</div>
+          {/* Catatan kaki ini masih berbunyi "persentase penyelesaian sesuai
+              progress audit" sesudah #278 mengganti dasarnya menjadi metode
+              masukan berpagar — label kolomnya sudah benar, kalimatnya belum.
+              Diselaraskan di sini karena ia menjelaskan baris yang sama. */}
+          <div className="tiny muted" style={{ marginTop: 8 }}>WIP = work-in-progress dinilai pada tarif standar. Pendapatan diakui mengikuti metode <b>masukan berpagar</b> (jam aktual ÷ jam anggaran, dijepit 100%; perikatan yang kewajiban pelaksanaannya tuntas diakui penuh) — bukan persentase penyelesaian yang dilaporkan perikatan.</div>
         </Panel>
 
         <div style={{ display: 'grid', gap: 12 }}>
           <Panel title="Realisasi (Recovery Rate)">
-            <div className="row gap8 ac" style={{ gap: 18 }}>
-              <Donut
-                segments={wd >= 0
-                  ? [{ value: m.stdValueBudget, color: 'var(--blue)' }, { value: wd, color: 'var(--green)' }]
-                  : [{ value: m.fee, color: 'var(--blue)' }, { value: -wd, color: 'var(--red)' }]}
-                size={120} thickness={18}
-                center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 19, color: m.realization >= 1 ? 'var(--green)' : 'var(--amber)' }}>{Math.round(m.realization * 100)}%</div><div className="tiny muted">realisasi</div></div>}
-              />
-              <div style={{ flex: 1, display: 'grid', gap: 8 }}>
-                <EacRow label="Nilai standar (budget)" v={tbJt(m.stdValueBudget)} />
-                <EacRow label="Fee disepakati" v={tbJt(m.fee)} />
-                <div className="divider" />
-                <EacRow label={wd >= 0 ? 'Write-up' : 'Write-down'} v={(wd >= 0 ? '+' : '−') + tbJt(Math.abs(wd)).replace('Rp ', '')} accent={wd >= 0 ? 'var(--green)' : 'var(--red)'} strong />
+            {wd == null || m.realization == null ? (
+              <div className="tiny muted" style={{ lineHeight: 1.55 }}>
+                Realisasi = fee disepakati ÷ nilai standar anggaran ({tbJt(m.stdValueBudget)}).
+                Tanpa nilai kontrak, rasio itu <em>tidak terukur</em> — dan tidak digantikan taksiran.
               </div>
-            </div>
-          </Panel>
-          <Panel title="Penagihan & WIP" sub="status faktur">
-            <div style={{ display: 'grid', gap: 9 }}>
-              <EacRow label="Sudah ditagih (2 termin)" v={tbJt(m.fee * 0.5)} />
-              <EacRow label="WIP belum ditagih" v={m.revRecognized == null ? '—' : tbJt(Math.max(0, m.revRecognized - m.fee * 0.5))} accent="var(--amber)" />
-              <EacRow label="Sisa nilai kontrak" v={tbJt(m.fee * 0.5)} />
-              <div className="divider" />
-              <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.receipt size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Termin ke-3 ({tbJt(m.fee * 0.3)}) jatuh tempo saat fieldwork selesai (31 Mar).</span></div>
+            ) : (
+              <div className="row gap8 ac" style={{ gap: 18 }}>
+                <Donut
+                  segments={wd >= 0
+                    ? [{ value: m.stdValueBudget, color: 'var(--blue)' }, { value: wd, color: 'var(--green)' }]
+                    : [{ value: m.fee, color: 'var(--blue)' }, { value: -wd, color: 'var(--red)' }]}
+                  size={120} thickness={18}
+                  center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 19, color: m.realization >= 1 ? 'var(--green)' : 'var(--amber)' }}>{tbPct(m.realization)}</div><div className="tiny muted">realisasi</div></div>}
+                />
+                <div style={{ flex: 1, display: 'grid', gap: 8 }}>
+                  <EacRow label="Nilai standar (budget)" v={tbJt(m.stdValueBudget)} />
+                  <EacRow label="Fee disepakati" v={tbJtN(m.fee)} />
+                  <div className="divider" />
+                  <EacRow label={wd >= 0 ? 'Write-up' : 'Write-down'} v={(wd >= 0 ? '+' : '−') + tbJt(Math.abs(wd)).replace('Rp ', '')} accent={wd >= 0 ? 'var(--green)' : 'var(--red)'} strong />
+                </div>
               </div>
-            </div>
+            )}
           </Panel>
+          <TBBillingPanel m={m} billing={billing} />
         </div>
       </div>
     </>
+  );
+}
+
+/* --- TB6 · PENAGIHAN: register faktur, bukan pecahan fee ---
+   Panel ini dulu berbunyi "Sudah ditagih (2 termin)" = fee × 0,5, "Sisa nilai
+   kontrak" = fee × 0,5, dan "Termin ke-3 (fee × 0,3) jatuh tempo saat fieldwork
+   selesai (31 Mar)". Ketiganya disintesis, dan yang pertama SALAH bahkan pada
+   seed: perikatan demo sudah menerbitkan dua faktur senilai 1.480 jt terhadap
+   fee 1.850 jt, bukan 925 jt. Termin ketiga itu tak ada di register mana pun —
+   yang dilabelinya justru faktur Termin 2 milik perikatan demo — jadi klaimnya
+   DICABUT tanpa pengganti karangan. Yang ditampilkan kini adalah faktur yang
+   benar-benar terbit dan belum lunas, dengan tanggal jatuh tempo miliknya. */
+function TBBillingPanel({ m, billing }: { m: TBModel; billing: TBBilling }) {
+  const b = billing;
+  const kabar = b.nextDue
+    ? `Faktur ${b.nextDue.id}${b.nextDue.milestone ? ' · ' + b.nextDue.milestone : ''} — ${tbJt(b.nextDue.outstanding)} belum lunas, jatuh tempo ${tbTanggalPanjang(b.nextDue.due)}.`
+    : b.drafts > 0
+      ? `Tidak ada faktur terbit yang menyisakan tagihan. ${b.drafts} faktur masih berstatus draf — belum menagih apa pun.`
+      : b.issued > 0
+        ? 'Seluruh faktur perikatan ini sudah lunas menurut register.'
+        : 'Register faktur belum memuat satu pun faktur untuk perikatan ini.';
+  return (
+    <Panel title="Penagihan & WIP" sub="dari register faktur">
+      <div style={{ display: 'grid', gap: 9 }}>
+        <EacRow label={`Sudah ditagih (${b.issued} faktur terbit)`} v={tbJt(b.billed)} />
+        <EacRow label="Aset kontrak (diakui > ditagih)" v={tbJtN(b.contractAsset)} accent={b.contractAsset ? 'var(--amber)' : undefined} />
+        <EacRow label="Liabilitas kontrak (ditagih > diakui)" v={tbJtN(b.contractLiab)} accent={b.contractLiab ? 'var(--amber)' : undefined} />
+        <EacRow label="Sisa nilai kontrak" v={tbJtN(b.remainingContract)} accent={b.remainingContract != null && b.remainingContract < 0 ? 'var(--num-neg)' : undefined} />
+        <div className="divider" />
+        <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
+          <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.receipt size={15} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{kabar}</span></div>
+        </div>
+      </div>
+      <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)', lineHeight: 1.5 }}>
+        <b>Ditagih</b> adalah fakta register faktur (status ≠ draf), bukan pecahan fee.
+        Aset & liabilitas kontrak membandingkannya dengan pendapatan diakui{m.revRecognized == null ? ' — yang belum terukur' : ''}.
+      </div>
+    </Panel>
   );
 }
 

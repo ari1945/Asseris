@@ -210,13 +210,29 @@ export interface RevenueScheduleInput {
   hoursOf: RevHoursOf;
 }
 
-/** Faktur yang belum terbit tidak menagih apa pun. */
-const UNBILLED_STATUS = 'Draft';
+/**
+ * Faktur yang belum terbit tidak menagih apa pun.
+ *
+ * DIEKSPOR supaya "apa yang dihitung tertagih" punya SATU definisi: panel
+ * "Penagihan & WIP" di Time & Budget (`tbBilling`) membaca register faktur yang
+ * sama, dan dua aturan status yang menyimpang akan membuat dua layar melaporkan
+ * tertagih yang berbeda untuk perikatan yang sama.
+ */
+export const UNBILLED_STATUS = 'Draft';
 
 /** Pengukuran baris yang kemajuannya diukur dari masukan. */
 export const MEASURE_INPUT_HOURS = 'Over-time · masukan (jam/anggaran)';
 /** Pengukuran baris yang ditetapkan Pagar 1. */
 export const MEASURE_COMPLETED = 'Over-time · kewajiban tuntas (100%)';
+
+/**
+ * Bentuk MINIMUM yang dibaca `contractValueOf`: apa pun yang mengaku membawa
+ * harga kontrak. `RevClient` (skedul pendapatan) dan `TBClient`
+ * (`timebudget_model.ts`) keduanya masuk secara struktural — sengaja, supaya
+ * kedua modul menurunkan nilai kontrak dari SATU fungsi alih-alih masing-masing
+ * menumbuhkan fallback sendiri.
+ */
+export interface RevPriced { fee?: number | null }
 
 /**
  * Nilai kontrak sebuah perikatan.
@@ -226,7 +242,7 @@ export const MEASURE_COMPLETED = 'Over-time · kewajiban tuntas (100%)';
  * berhingga non-negatif, jawabannya `null` dan pemanggil WAJIB memperlakukan
  * barisnya sebagai lubang data.
  */
-export function contractValueOf(client: RevClient | null | undefined): number | null {
+export function contractValueOf(client: RevPriced | null | undefined): number | null {
   if (!client) return null;
   const fee = client.fee;
   if (typeof fee !== 'number' || !Number.isFinite(fee) || fee < 0) return null;
