@@ -340,3 +340,9 @@
   .hc-kpi { grid-template-columns: repeat(3, 1fr) !important; }
   .hc-grid { grid-template-columns: 1fr; }
 }
+
+/* Baris anggaran (modul `treasury`) — drill-down dibuka <button> di dalam sel,
+   bukan `<tr onClick>`. Cincin fokus WAJIB terlihat: tanpa itu pengguna papan-ketik
+   tak tahu baris mana yang akan terbuka saat menekan Enter. */
+.bud-line-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 3px; }
+.bud-line-btn:hover { color: var(--blue); }

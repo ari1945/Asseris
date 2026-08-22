@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { BO } from './data_backoffice';
-import { FIRMFIN } from './data_firmfin';
+import { FIRMFIN, cashWatchFloorJt } from './data_firmfin';
+import { CASH_SCENARIOS, cashForecast, scenarioByKey, type ForecastRow, type ForecastSeedRow } from './treasury_forecast';
 import { assetsAt, activeAssets, duplicateCandidates, rollForward, type AssetComputed, type AssetRegister, type DisposalRef, type RollForward } from './data_fixedassets';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
@@ -29,16 +30,35 @@ const CCY_SYMBOL = { IDR: 'Rp', USD: 'US$', SGD: 'S$', EUR: '€' };
 
 /* ============================================================
    Anggaran, Forecast & Arus Kas
+   Skenario, deret berjalan, zona perhatian & pelabelan periode kini hidup di
+   `treasury_forecast.ts` (murni, dapat diuji) — bukan di dalam JSX ini.
    ============================================================ */
-const CASH_SCENARIOS = {
-  base: { label: 'Basis', inF: 1.0, outF: 1.0 },
-  opt: { label: 'Optimis', inF: 1.12, outF: 0.97 },
-  cons: { label: 'Konservatif', inF: 0.85, outF: 1.06 },
+/* PENGUNGKAPAN BASIS FORECAST (prompt 31-treasury TR1).
+
+   Catatan kaki lama menjelaskan mekanika skenario (×inF/×outF) dan ambang zona
+   perhatian — teliti, dan justru karena itu menyesatkan: pembacanya menyimpulkan
+   bahwa yang disintesis hanyalah faktor skenarionya. Yang tidak disebut sama
+   sekali adalah hal yang paling mendasar — seluruh deret dasarnya angka seed.
+
+   Kalimat ini ikut masuk payload ekspor, bukan hanya tampil di layar. */
+const FORECAST_BASIS_NOTE =
+  'Seluruh deret di bawah — saldo awal, arus masuk, dan arus keluar enam bulan — adalah ANGKA SEED demo '
+  + '(AMS.CASH_FORECAST), BUKAN turunan jatuh tempo piutang, utang usaha, dan kewajiban pajak yang '
+  + 'sebenarnya sudah ada di aplikasi ini. Skenario mengalikan deret itu; ia tidak membuatnya menjadi '
+  + 'turunan. Penggantinya sudah disetujui: forecast berbasis register (PRD firm-erp-deepening PR-6) — '
+  + 'basis = akun kontrol kas, arus masuk/keluar dari jatuh tempo AR/AP/pajak, dan skenario menjadi '
+  + 'asumsi bernama atas komponen alih-alih pengali datar.';
+
+/** Tombol baris anggaran: tampil sebagai teks, berperilaku sebagai tombol. */
+const budLineBtnStyle: Record<string, string | number> = {
+  background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer',
+  color: 'var(--ink)', fontWeight: 600, textAlign: 'left', width: '100%',
 };
 
 function FirmTreasury() {
   const { fmt } = AMS;
-  const F: any = AMS.CASH_FORECAST;
+  const F = AMS.CASH_FORECAST as unknown as ForecastSeedRow[];
+  const fy = AMS.FIRM_BUDGET_FY as unknown as number;
   const [tab, setTab] = useStateTR('budget');
   const [scenario, setScenario] = useStateTR('base');
   const [selLine, setSelLine] = useStateTR(null);
@@ -51,24 +71,29 @@ function FirmTreasury() {
   const { coa } = useFirmCoa();
   const bud: any = FIRMFIN.budget({ coa });
   const B: any = bud.lines;
+  /* Identitas penerbit segel dari SSOT — bukan literal. Tanpa identitas, kertas
+     kerja tidak disegel (pola yang sama dipakai ekspor rekonsiliasi di berkas ini). */
+  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
+  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
+  /* Angka pembanding untuk pengungkapan basis: saldo akun kontrol kas menurut buku
+     besar. Ia BUKAN dipakai menghitung forecast — ia dipakai memperlihatkan bahwa
+     saldo awal seed tidak berasal dari sana. */
+  const kasKontrol = (FIRMFIN.cash({ coa }) as { control: number }).control;
   const rev = B.filter((b: any) => b.type === 'rev');
   const cost = B.filter((b: any) => b.type === 'cost');
   const budRev = bud.budRev, actRev = bud.actRev;
   const budCost = bud.budCost, actCost = bud.actCost;
   const budProfit = bud.budProfit, actProfit = bud.actProfit;
 
-  const sc = (CASH_SCENARIOS as any)[scenario];
-  const fc = F.map((r: any) => {
-    const inflow = Math.round(r.inflow * sc.inF), outflow = Math.round(r.outflow * sc.outF);
-    return { ...r, inflow, outflow, net: inflow - outflow };
-  });
-  // rebuild running closing under scenario
-  let prev: any = null;
-  fc.forEach((r: any, i: any) => { r.open = i === 0 ? F[0].open : prev; r.close = r.open + r.net; prev = r.close; });
-  const minClose = Math.min(...fc.map((r: any) => r.close));
-  const avgOut = fc.reduce((s: any, r: any) => s + r.outflow, 0) / fc.length;
-  const runway = (fc[0].open / avgOut); // months of cover at current cash vs avg burn
-  const netGen = fc.reduce((s: any, r: any) => s + r.net, 0);
+  /* Seluruh derivasi arus kas datang dari satu fungsi murni: skenario, deret
+     berjalan, penanda zona perhatian, dan label periode. Ambangnya adalah
+     KEBIJAKAN firma (`FIRM_CASH_POLICY`), bukan angka di dalam JSX. */
+  const sc = scenarioByKey(scenario);
+  const fcast = cashForecast(F, sc, { today: String(AMS.TODAY), watchFloor: cashWatchFloorJt() });
+  const fc = fcast.rows;
+  const minClose = fcast.minClose;
+  const runway = fcast.runway;
+  const netGen = fcast.netGen;
 
   const tabs = [{ id: 'budget', label: 'Anggaran vs Aktual' }, { id: 'cash', label: 'Forecast Arus Kas' }];
 
@@ -78,13 +103,19 @@ function FirmTreasury() {
     for (const b of B) budRows.push([b.line, b.type === 'rev' ? 'Pendapatan' : 'Beban', rp(b.budget), rp(b.actual), rp(b.actual - b.budget), (b.actual / b.budget * 100).toFixed(0) + '%']);
     budRows.push(['LABA OPERASI', '', rp(budProfit), rp(actProfit), rp(actProfit - budProfit), '']);
     const cashRows: (string | number)[][] = [];
-    for (const r of fc) cashRows.push([r.m + ' 2026', r.open, r.inflow, r.outflow, r.net, r.close]);
+    for (const r of fc) cashRows.push([r.period, r.open, r.inflow, r.outflow, r.net, r.close]);
     await amsExportXlsx({
       kind: 'firm-treasury', scope: 'firm',
       fileName: 'Anggaran & Arus Kas Firma.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
+      firm: firmName,
       title: 'Anggaran vs Aktual & Forecast Arus Kas',
-      meta: [`FY2025 · laba operasi aktual Rp ${fmt(actProfit / 1e9, 1)} M · cash runway ${runway.toFixed(1)} bln · skenario ${sc.label}`],
+      meta: [
+        `FY${fy} · laba operasi aktual Rp ${fmt(actProfit / 1e9, 1)} M · cash runway ${runway.toFixed(1)} bln · skenario ${sc.label}`,
+        /* Pengungkapan ikut keluar bersama angkanya — kertas kerja yang beredar
+           tanpa basisnya adalah bentuk yang paling mudah disalahbaca. */
+        FORECAST_BASIS_NOTE,
+        fcast.aligned ? `Periode mengikuti klok ${String(AMS.TODAY)}.` : fcast.note,
+      ],
       sheets: [
         { name: 'Anggaran vs Aktual', columns: ['Pos Anggaran', 'Jenis', 'Anggaran', 'Aktual', 'Varians', 'Realisasi'], rows: budRows, colWidths: [30, 12, 20, 20, 20, 11] },
         { name: 'Forecast Arus Kas (Rp jt)', columns: ['Bulan', 'Saldo Awal', 'Arus Masuk', 'Arus Keluar', 'Arus Bersih', 'Saldo Akhir'], rows: cashRows, colWidths: [14, 14, 14, 14, 14, 14] },
@@ -98,12 +129,12 @@ function FirmTreasury() {
 
   return (
     <>
-      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">FY2025</Badge><Btn sm onClick={onExport}><I.download size={13} /> Export</Btn></div>} />
+      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">{'FY' + fy}</Badge><Btn sm disabled={!firmName} onClick={onExport} title={firmName ? 'Ekspor anggaran & arus kas (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}><I.download size={13} /> Export</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actProfit / 1e9, 1) + ' M'} label="Laba Operasi Aktual" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(minClose / 1e3, 1) + ' M'} label="Proyeksi Kas Terendah (6 bln)" accent={minClose < 7000 ? 'var(--amber)' : 'var(--blue)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(minClose / 1e3, 1) + ' M'} label="Proyeksi Kas Terendah (6 bln)" accent={fcast.minCloseWatch ? 'var(--amber)' : 'var(--blue)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={runway.toFixed(1) + ' bln'} label="Cash Runway (kas ÷ beban bln)" accent="var(--green)" /></div></Panel>
         </div>
 
@@ -118,27 +149,42 @@ function FirmTreasury() {
                   <tbody>
                     <tr className="group-row"><td colSpan={5}>Pendapatan</td></tr>
                     {rev.map((b: any) => (
-                      <tr key={b.line} className={selLine === b.line ? 'sel' : ''} onClick={() => setSelLine(selLine === b.line ? null : b.line)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 600 }}>{b.line}</td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} /></td>
+                      <tr key={b.line} className={selLine === b.line ? 'sel' : ''}><td><button type="button" className="bud-line-btn" style={budLineBtnStyle} aria-expanded={selLine === b.line}
+                        title={selLine === b.line ? 'Tutup fasing & pendorong varians ' + b.line : 'Buka fasing & pendorong varians ' + b.line}
+                        onClick={() => setSelLine(selLine === b.line ? null : b.line)}>{b.line}</button></td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} /></td>
                         <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green-solid)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
                     ))}
                     <tr className="group-row"><td colSpan={5}>Beban</td></tr>
                     {cost.map((b: any) => (
-                      <tr key={b.line} className={selLine === b.line ? 'sel' : ''} onClick={() => setSelLine(selLine === b.line ? null : b.line)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 600 }}>{b.line}</td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} cost /></td>
+                      <tr key={b.line} className={selLine === b.line ? 'sel' : ''}><td><button type="button" className="bud-line-btn" style={budLineBtnStyle} aria-expanded={selLine === b.line}
+                        title={selLine === b.line ? 'Tutup fasing & pendorong varians ' + b.line : 'Buka fasing & pendorong varians ' + b.line}
+                        onClick={() => setSelLine(selLine === b.line ? null : b.line)}>{b.line}</button></td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} cost /></td>
                         <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: b.actual > b.budget ? 'var(--red)' : 'var(--amber)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
                     ))}
                   </tbody>
                   <tfoot><tr><td>LABA OPERASI</td><td className="num">{fmt(budProfit / 1e6, 0)}</td><td className="num">{fmt(actProfit / 1e6, 0)}</td><td className="num"><VarCell b={budProfit} a={actProfit} /></td><td></td></tr></tfoot>
                 </table>
-                <div className="tiny muted" style={{ padding: '8px 12px' }}>Klik pos anggaran untuk melihat fasing triwulanan & pendorong varians · Rp jt</div>
+                <div className="tiny muted" style={{ padding: '8px 12px' }}>Pilih pos anggaran (klik atau Enter) untuk melihat fasing triwulanan & pendorong varians · Rp jt</div>
               </div>
-              {selLine && <BudgetLineDrill b={B.find((x: any) => x.line === selLine)} onClose={() => setSelLine(null)} />}
+              {selLine && <BudgetLineDrill b={B.find((x: any) => x.line === selLine)} fy={fy} onClose={() => setSelLine(null)} />}
             </div>
           )}
 
           {tab === 'cash' && (
             <div style={{ padding: 14 }}>
+              {/* TR1 — yang paling mendasar disebut LEBIH DULU. Catatan kaki di bawah
+                  tetap menjelaskan mekanika skenario & ambang zona perhatian; yang
+                  ditambahkan di sini adalah basis deretnya sendiri. */}
+              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}>
+                <I.alert size={12} /> {FORECAST_BASIS_NOTE} Tandanya dapat dilihat langsung: saldo awal deret ini <b>Rp {fmt(fc.length ? fc[0].open / 1e3 : 0, 2)} M</b>, sementara akun kontrol kas di buku besar (1-101…1-106) menyatakan <b>Rp {fmt(kasKontrol / 1e9, 2)} M</b>.
+              </div>
+              {!fcast.aligned && (
+                <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--red-bg)', borderRadius: 4, color: 'var(--red)', fontWeight: 600, lineHeight: 1.5 }}>
+                  <I.alert size={12} /> {fcast.note}
+                </div>
+              )}
               <div className="row jb ac" style={{ marginBottom: 12 }}>
-                <div className="row gap8 ac"><span className="tiny muted upper">Skenario</span><Seg options={Object.entries(CASH_SCENARIOS).map(([k, v]) => ({ value: k, label: v.label }))} value={scenario} onChange={setScenario} /></div>
+                <div className="row gap8 ac"><span className="tiny muted upper">Skenario</span><Seg options={CASH_SCENARIOS.map((v) => ({ value: v.key, label: v.label }))} value={scenario} onChange={setScenario} /></div>
                 <span className="tiny" style={{ color: netGen >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>Arus kas bersih 6 bln: {netGen >= 0 ? '+' : '−'}Rp {fmt(Math.abs(netGen) / 1e3, 1)} M</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, height: 160, padding: '0 8px 8px', borderBottom: '1px solid var(--line)', marginBottom: 12 }}>
@@ -146,9 +192,9 @@ function FirmTreasury() {
                   const max = Math.max(...fc.map((x: any) => x.close)) * 1.1;
                   return (
                     <div key={r.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                      <span className="mono tiny" style={{ fontWeight: 700, color: r.close < 7000 ? 'var(--amber)' : 'var(--navy)' }}>{fmt(r.close / 1e3, 1)}M</span>
+                      <span className="mono tiny" style={{ fontWeight: 700, color: r.watch ? 'var(--amber)' : 'var(--navy)' }}>{fmt(r.close / 1e3, 1)}M</span>
                       <div style={{ width: '100%', maxWidth: 46, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 100 }}>
-                        <div style={{ height: (r.close / max * 100) + '%', background: r.close < 7000 ? 'linear-gradient(180deg,#d99000,#9a6a00)' : 'linear-gradient(180deg,#0a6b8a,#005085)', borderRadius: '4px 4px 0 0' }} />
+                        <div style={{ height: (r.close / max * 100) + '%', background: r.watch ? 'var(--amber-solid)' : 'var(--blue-solid)', borderRadius: '4px 4px 0 0' }} />
                       </div>
                       <span className="tiny muted">{r.m}</span>
                     </div>
@@ -159,11 +205,11 @@ function FirmTreasury() {
                 <thead><tr><th>Bulan</th><th className="num">Saldo Awal</th><th className="num">Arus Masuk</th><th className="num">Arus Keluar</th><th className="num">Arus Bersih</th><th className="num">Saldo Akhir</th></tr></thead>
                 <tbody>
                   {fc.map((r: any) => (
-                    <tr key={r.m}><td style={{ fontWeight: 600 }}>{r.m} 2026</td><td className="num muted">{fmt(r.open, 0)}</td><td className="num" style={{ color: 'var(--green)' }}>+{fmt(r.inflow, 0)}</td><td className="num" style={{ color: 'var(--red)' }}>({fmt(r.outflow, 0)})</td><td className="num" style={{ fontWeight: 600, color: r.net >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.net >= 0 ? '+' : '−'}{fmt(Math.abs(r.net), 0)}</td><td className="num" style={{ fontWeight: 700, color: r.close < 7000 ? 'var(--amber)' : 'inherit' }}>{fmt(r.close, 0)}</td></tr>
+                    <tr key={r.m}><td style={{ fontWeight: 600 }}>{r.period}</td><td className="num muted">{fmt(r.open, 0)}</td><td className="num" style={{ color: 'var(--green)' }}>+{fmt(r.inflow, 0)}</td><td className="num" style={{ color: 'var(--red)' }}>({fmt(r.outflow, 0)})</td><td className="num" style={{ fontWeight: 600, color: r.net >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.net >= 0 ? '+' : '−'}{fmt(Math.abs(r.net), 0)}</td><td className="num" style={{ fontWeight: 700, color: r.watch ? 'var(--amber)' : 'inherit' }}>{fmt(r.close, 0)}</td></tr>
                   ))}
                 </tbody>
               </table>
-              <div className="tiny muted" style={{ marginTop: 8 }}>Nilai dalam jutaan Rupiah · forecast bergulir 6 bulan · skenario <b>{sc.label}</b> menyesuaikan arus masuk ×{sc.inF} & arus keluar ×{sc.outF}. Saldo &lt; Rp 7 M ditandai sebagai zona perhatian.</div>
+              <div className="tiny muted" style={{ marginTop: 8 }}>Nilai dalam jutaan Rupiah · forecast bergulir 6 bulan · skenario <b>{sc.label}</b> menyesuaikan arus masuk ×{sc.inF} & arus keluar ×{sc.outF}. Saldo &lt; Rp {fmt(fcast.watchFloor / 1e3, 0)} M ditandai sebagai zona perhatian — ambang <b>kebijakan</b> firma (FIRM_CASH_POLICY), dasar penetapannya belum dinyatakan.</div>
             </div>
           )}
         </Panel>
@@ -172,7 +218,7 @@ function FirmTreasury() {
   );
 }
 
-function BudgetLineDrill({ b, onClose }: any) {
+function BudgetLineDrill({ b, fy, onClose }: any) {
   const { fmt } = AMS;
   const isCost = b.type === 'cost';
   // synthesize quarterly phasing
@@ -203,7 +249,7 @@ function BudgetLineDrill({ b, onClose }: any) {
           <tbody>
             {quarters.map((q: any) => {
               const v = q.act - q.bud; const adv = isCost ? v > 0 : v < 0;
-              return <tr key={q.q}><td style={{ fontWeight: 600 }}>{q.q} 2025</td><td className="num">{fmt(q.bud / 1e6, 0)}</td><td className="num">{fmt(q.act / 1e6, 0)}</td><td className="num mono" style={{ color: adv ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</td></tr>;
+              return <tr key={q.q}><td style={{ fontWeight: 600 }}>{q.q + ' ' + fy}</td><td className="num">{fmt(q.bud / 1e6, 0)}</td><td className="num">{fmt(q.act / 1e6, 0)}</td><td className="num mono" style={{ color: adv ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</td></tr>;
             })}
           </tbody>
         </table>

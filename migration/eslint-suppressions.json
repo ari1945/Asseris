@@ -531,7 +531,7 @@
   },
   "src/view_firmtreasury.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 50
+      "count": 39
     }
   },
   "src/view_forensic.tsx": {
