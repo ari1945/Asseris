@@ -548,14 +548,14 @@ function TBEconomics({ m, e }: any) {
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Ekonomi Engagement" sub="saat ini vs proyeksi penyelesaian">
           <table className="dtbl">
-            <thead><tr><th>Komponen</th><th className="num">Saat ini ({e.progress}%)</th><th className="num">Penyelesaian (100%)</th></tr></thead>
+            <thead><tr><th>Komponen</th><th className="num">Saat ini ({m.recogPct == null ? '—' : Math.round(m.recogPct * 100) + '%'})</th><th className="num">Penyelesaian (100%)</th></tr></thead>
             <tbody>
               <tr><td>Jam tercatat</td><td className="num mono">{fmt(m.actualTotal, 0)} j</td><td className="num mono">{fmt(Math.round(m.eacHrs))} j</td></tr>
               <tr><td>Nilai standar (WIP @ charge-out)</td><td className="num mono">{tbJt(m.stdValue)}</td><td className="num mono">{tbJt(m.stdValueBudget)}</td></tr>
               <tr><td>Biaya langsung (fully-loaded)</td><td className="num mono">{tbJt(m.costActual)}</td><td className="num mono">{tbJt(m.costBudget)}</td></tr>
-              <tr><td>Pendapatan diakui (% completion)</td><td className="num mono">{tbJt(m.revRecognized)}</td><td className="num mono">{tbJt(m.fee)}</td></tr>
-              <tr style={{ background: 'var(--surface-2)' }}><td style={{ fontWeight: 700 }}>Margin kotor</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{tbJt(m.marginNow)}</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{tbJt(m.marginCompletion)}</td></tr>
-              <tr><td>Margin %</td><td className="num mono">{Math.round(m.marginNow / m.revRecognized * 100)}%</td><td className="num mono">{marginPct}%</td></tr>
+              <tr><td>Pendapatan diakui (metode masukan)</td><td className="num mono">{m.revRecognized == null ? '—' : tbJt(m.revRecognized)}</td><td className="num mono">{tbJt(m.fee)}</td></tr>
+              <tr style={{ background: 'var(--surface-2)' }}><td style={{ fontWeight: 700 }}>Margin kotor</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{m.marginNow == null ? '—' : tbJt(m.marginNow)}</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{tbJt(m.marginCompletion)}</td></tr>
+              <tr><td>Margin %</td><td className="num mono">{m.marginNow == null || !m.revRecognized ? '—' : Math.round(m.marginNow / m.revRecognized * 100) + '%'}</td><td className="num mono">{marginPct}%</td></tr>
               <tr><td>Tarif efektif blended</td><td className="num mono">{tbJt(m.blendedBill)}/j</td><td className="num mono">{tbJt(m.stdValueBudget / m.budgetTotal)}/j</td></tr>
             </tbody>
           </table>
@@ -583,7 +583,7 @@ function TBEconomics({ m, e }: any) {
           <Panel title="Penagihan & WIP" sub="status faktur">
             <div style={{ display: 'grid', gap: 9 }}>
               <EacRow label="Sudah ditagih (2 termin)" v={tbJt(m.fee * 0.5)} />
-              <EacRow label="WIP belum ditagih" v={tbJt(Math.max(0, m.revRecognized - m.fee * 0.5))} accent="var(--amber)" />
+              <EacRow label="WIP belum ditagih" v={m.revRecognized == null ? '—' : tbJt(Math.max(0, m.revRecognized - m.fee * 0.5))} accent="var(--amber)" />
               <EacRow label="Sisa nilai kontrak" v={tbJt(m.fee * 0.5)} />
               <div className="divider" />
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent' }}>

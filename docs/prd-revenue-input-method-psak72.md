@@ -1,12 +1,14 @@
 # PRD — Pengakuan pendapatan firma dengan metode masukan berpagar (PSAK 72)
 
-> Implementasi TIDAK dimulai sebelum sign-off (**"Proceed."**).
+> **"Proceed." diberikan Ari 2026-08-22.** SC-1..SC-8 tertutup & terverifikasi;
+> rinciannya di §12. Q3 (klasifikasi perikatan non-audit) TETAP TERBUKA dan
+> dikerjakan menurut asumsi yang dinyatakan di sana — ia dapat mengubah angka.
 
 | Field | Isi |
 |---|---|
 | Tanggal | 2026-08-22 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | Implemented |
 | Modul | `revenue` (Pendapatan Firma) · `view_firmrevenue.tsx` · `revenue_psak72.ts` |
 | Asal | [`usulan-R3-metode-pengukuran-psak72.md`](usulan-R3-metode-pengukuran-psak72.md) — **Opsi A dipilih** (2026-08-22) |
 | Prasyarat | PR #277 (`9a4158c`) sudah mendarat: nilai kontrak berhenti dikarang, label berhenti menjamin lebih dari yang diukur |
@@ -181,5 +183,64 @@ Tiap PR mandiri-hijau (`master` selalu hijau, R-7).
    write-down ikut menggerakkan pendapatan**. *(Usulan saya: fase berikutnya,
    setelah Q1 dijawab.)*
 
+## 12. Hasil — apa yang benar-benar dikerjakan (2026-08-22)
+
+SC-1..SC-8 tertutup; `npm run verify` hijau. Empat hal MENYIMPANG dari rencana di
+atas atau melampauinya, dan masing-masing punya alasan yang harus dibaca:
+
+**(a) Sumber jam bukan `engagementWip` langsung, melainkan `hoursOfEngagements`.**
+§4 menyebut `FIRMFIN.engagementWip(timeEntries, engId)`. Itu pintu yang benar untuk
+layar SATU perikatan, tetapi salah untuk tabel LINTAS perikatan: timesheet live
+ber-scope perikatan AKTIF, sehingga enam perikatan lain akan dinilai dari jam
+pembuka roster saja — dan angka pendapatan firma berubah hanya karena pengguna
+membuka perikatan yang berbeda. Cacat sekeluarga sudah pernah mendarat (#269) dan
+dicabut (#274). Yang dipakai adalah bentuk yang sudah diselesaikan `profit_model`:
+
+    jam(perikatan) = e.actualHrs + extraHours[e.id]        (extraHours = pmExtraHours)
+
+Ini **bukan ukuran yang berbeda**: invarian `Σbase + timesheet === actualHrs`
+(roster_profile.ts) membuat keduanya identik untuk perikatan aktif — dipaku uji
+SC-5 — sementara bentuk ini juga benar untuk enam lainnya.
+
+**(b) Predikat Pagar 1 dipinjam, bukan dibuat.** §8 menulis
+`status ∈ {Completed, Arsip}`. Kanon `isCompletedEngagement` (SMM 1 ¶38,
+`canon_smm_monitoring.ts`) sudah menyatakan hal yang sama — lengkap dengan varian
+`selesai`/`archived` dan pelipatan huruf. Membuat daftar kedua berarti dua definisi
+"selesai" yang lambat laun menyimpang, jadi yang ada dipakai ulang.
+
+**(c) SC-5 ternyata menuntut perbaikan di modul lain.** `timebudget_model.ts:216`
+menghitung `revRecognized = fee × e.progress` dan layarnya menampilkannya sebagai
+"Pendapatan diakui (% completion)". Tanpa disentuh, PR ini justru akan MELAHIRKAN
+persis cacat yang hendak ditutupnya: dua angka "pendapatan diakui" untuk satu
+perikatan, berselisih 5,2 jt pada perikatan demo. Keduanya kini lewat `progressOf`,
+dan sebuah uji membandingkan hasil kedua modul secara langsung.
+
+**(d) EAC SENGAJA tetap memakai `e.progress`.** `eacHrs = actualTotal / prog`.
+Bila `prog` menjadi kemajuan metode-masukan, EAC menjadi tautologis:
+`actual / (actual/budget) === budget`, untuk perikatan apa pun, selamanya — sebuah
+proyeksi yang tak pernah memproyeksikan apa pun. Proyeksi jam-pada-penyelesaian
+memang membutuhkan taksiran kemajuan yang BEBAS dari jam. Karena itu `progress`
+tidak dihapus dari aplikasi: ia berhenti mengakui pendapatan, dan tetap dipakai di
+tempat sebuah pertimbangan memang yang diminta. Gerbang cakupan SC-1 karena itu
+dibatasi pada mesin & view pendapatan, bukan seluruh repo.
+
+### Asumsi yang saya ambil karena Q3 belum dijawab
+
+Perikatan non-audit (`ENG-2025-047` AUP, `ENG-2025-022` Review SPR 2400) tetap
+diperlakukan **over-time**, persis seperti sebelum PR ini, dan tanda "klasifikasi
+terbuka" dipertahankan. Ini pilihan yang TIDAK mengubah apa pun bagi kedua baris itu
+selain dasar pengukurannya. Bila jawabannya *point-in-time*, keduanya harus diakui
+**0 sampai penyerahan** — perubahan angka yang nyata, dan pekerjaan tersendiri.
+
+### Temuan di luar lingkup (dilaporkan, tidak dikerjakan)
+
+- `timebudget_model.ts:61` `TB_FEE_FALLBACK = 1_520_000_000` — fee karangan untuk
+  perikatan yang kliennya tak ber-fee. Kelas cacat yang SAMA dengan
+  `materiality × 0,4` yang dicabut #277, dan sama-sama **dorman** pada seed.
+- `view_timebudget.tsx` — "Sudah ditagih (2 termin)" = `fee × 0,5` dan "Termin ke-3"
+  = `fee × 0,3`: angka penagihan yang disintesis, padahal register faktur nyata
+  sudah ada (`useInvoiceRegister`, #275).
+
 ---
-**Sign-off:** ditandai dengan balasan **"Proceed."**
+**Sign-off:** **"Proceed."** diberikan Ari 2026-08-22. Q1/Q2/Q4 mengikuti
+rekomendasi §11; **Q3 belum dijawab** — asumsinya dinyatakan di §12.

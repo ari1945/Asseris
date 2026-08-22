@@ -23,6 +23,7 @@
    pertanyaan terbuka.
    ============================================================ */
 import { FIRMFIN } from './data_firmfin';
+import { progressOf } from './revenue_psak72';
 
 export interface TBTimeEntry { id: string; member: string; date: string; phase: string; task: string; hours: number }
 export interface TBRosterRow {
@@ -31,7 +32,7 @@ export interface TBRosterRow {
   variance: number; util: number;
 }
 export interface TBWip { roster: TBRosterRow[]; actualHrs: number; budgetHrs: number; stdValue: number; costValue: number }
-export interface TBEngagement { id: string; clientId?: string; progress?: number }
+export interface TBEngagement { id: string; clientId?: string; progress?: number; status?: string | null }
 export interface TBClient { id: string; fee?: number }
 export type TBWipOf = (timeEntries: TBTimeEntry[], engId: string) => TBWip | null;
 
@@ -52,8 +53,16 @@ export interface TBModel {
   roster: TBRosterRow[]; phases: TBPhaseRow[]; weekly: TBWeeklySeries;
   actualTotal: number; budgetTotal: number; remaining: number; burn: number;
   stdValue: number; costActual: number; stdValueBudget: number; costBudget: number;
-  eacHrs: number; etcHrs: number; revRecognized: number;
-  fee: number; marginNow: number; marginCompletion: number; realization: number;
+  eacHrs: number; etcHrs: number;
+  /** Kemajuan yang MENGAKUI pendapatan — kanon `revenue_psak72.progressOf`.
+      `null` = belum terukur. BUKAN `e.progress`; lihat catatan di `tbModel`. */
+  recogPct: number | null;
+  /** `null` bila kemajuan belum terukur — tak ada taksiran penggantinya. */
+  revRecognized: number | null;
+  fee: number;
+  /** `null` mengikuti `revRecognized`. */
+  marginNow: number | null;
+  marginCompletion: number; realization: number;
   blendedBill: number; blendedCost: number;
 }
 
@@ -210,17 +219,33 @@ export function tbModel(
   const costActual = ew.costValue;
   const stdValueBudget = roster.reduce((s, r) => s + r.budget * r.bill, 0);
   const costBudget = roster.reduce((s, r) => s + r.budget * r.cost, 0);
+  /* EAC memakai `e.progress` DENGAN SENGAJA, dan itu bukan kelalaian.
+     Proyeksi jam-pada-penyelesaian butuh taksiran kemajuan yang BEBAS dari jam;
+     memakai kemajuan metode-masukan membuatnya tautologis:
+     actual / (actual/budget) === budget, untuk perikatan apa pun, selamanya.
+     `progress` tetap berguna justru di sini — sebagai pertimbangan, bukan
+     sebagai dasar pengakuan pendapatan. */
   const prog = (e.progress || 0) / 100;
   const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
   const fee = clients.find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
-  const revRecognized = fee * prog;
+  /* SC-5 (PRD metode masukan): SATU ukuran kemajuan untuk pengakuan pendapatan.
+     Sampai 2026-08-22 baris "Pendapatan diakui (% completion)" di layar ini
+     memakai `fee × e.progress`, sementara modul Pendapatan Firma memakai
+     rumusnya sendiri — dua angka "pendapatan diakui" untuk satu perikatan.
+     Keduanya kini lewat kanon yang sama, berikut kedua pagarnya. */
+  const recog = progressOf(
+    { id: e.id, clientId: e.clientId || '', status: e.status },
+    { actualHrs: actualTotal, budgetHrs: budgetTotal },
+  );
+  const revRecognized = recog.pct == null ? null : Math.round(fee * recog.pct);
   return {
     roster, phases, weekly: tbWeekly(timeEntries),
     actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
     burn: budgetTotal ? actualTotal / budgetTotal : 0,
     stdValue, costActual, stdValueBudget, costBudget,
-    eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal), revRecognized,
-    fee, marginNow: revRecognized - costActual,
+    eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal),
+    recogPct: recog.pct, revRecognized,
+    fee, marginNow: revRecognized == null ? null : revRecognized - costActual,
     marginCompletion: fee - costBudget, realization: stdValueBudget ? fee / stdValueBudget : 0,
     blendedBill: actualTotal ? stdValue / actualTotal : 0,
     blendedCost: actualTotal ? costActual / actualTotal : 0,
