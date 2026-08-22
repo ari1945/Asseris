@@ -11,6 +11,8 @@ import { amsExportPdf } from './export_pdf';
 /* Tahap 8 — helper WP dibaca via ESM dari wp_canon (eager), bukan window.*
    yang hanya terisi setelah chunk view_wp dimuat. */
 import { WP_REFS, deriveWpStatus, collectWpNotes, openCanonicalWp } from './wp_canon';
+/* Siklus hidup arsip perikatan — adapter atas lapisan Arsip kanonik (data_records). */
+import { sa230ArchiveState, SA230_STAGE_LABEL, type Sa230ArchiveState } from './sa230_archive';
 
 /* ============================================================
    Asseris — SA 230 · Dokumentasi Audit
@@ -30,26 +32,26 @@ const { useState: useStateD2, useMemo: useMemoD2 } = React;
 
 /* REF "hari ini" — selaras dengan modul DMS (sumber perakitan) */
 const D2_REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
-/* F2/PR-F — konstanta perikatan (tgl laporan/perakitan/retensi) & atestasi kelengkapan
-   kini TERSIMPAN di sa230Doc.v1 (bukan hardcode modul-level). Rollup kelengkapan tetap
-   turunan dari WP kanonik (useDocCanon). Nilai di bawah = seed default (¶A21 · SMM 1). */
-const DEFAULT_REPORT_DATE = '2026-03-20';   // tanggal laporan terencana (kanonik di DMS DOC-0623)
-const DEFAULT_RETENTION_YEARS = 10;         // SMM 1 / kebijakan firma (Pengaturan)
-const DEFAULT_ASSEMBLY_DAYS = 60;           // SA 230 ¶A21
+/* Siklus hidup arsip (tanggal laporan · tenggat perakitan ¶A21 · masa simpan ·
+   akhir retensi · legal hold) TIDAK lagi dihitung di sini — seluruhnya ditarik
+   dari lapisan Arsip kanonik lewat `sa230ArchiveState()` (lihat sa230_archive.ts).
+
+   Yang TERSISA di sa230Doc.v1 hanyalah dua hal yang memang milik modul ini:
+   · reportDate — tanggal laporan TERENCANA, dipakai HANYA bila kanon belum punya
+     tanggal laporan untuk perikatan ini. Seed kosong: sebelumnya seed berisi
+     '2026-03-20' (tanggal laporan PT Sentosa Makmur), sehingga SETIAP perikatan
+     mewarisi tanggal laporan perikatan lain.
+   · attestation — atestasi kelengkapan dokumentasi ¶8 oleh penanggung jawab. */
 interface Sa230Attest { signed: boolean; signer: string; date: string; memo: string }
-interface Sa230Doc { reportDate: string; assemblyDays: number; retentionYears: number; attestation: Sa230Attest }
+interface Sa230Doc { reportDate: string; attestation: Sa230Attest }
 type Patch230 = (p: Partial<Sa230Doc>) => void;
 const DEFAULT_SA230DOC: Sa230Doc = {
-  reportDate: DEFAULT_REPORT_DATE, assemblyDays: DEFAULT_ASSEMBLY_DAYS, retentionYears: DEFAULT_RETENTION_YEARS,
+  reportDate: '',
   attestation: { signed: false, signer: '', date: '', memo: '' },
 };
-/* 'YYYY-MM-DD' → Date lokal (tengah hari, hindari geser zona waktu). */
-const d2parseDate = (s: string): Date => { const [y, m, d] = (s || DEFAULT_REPORT_DATE).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1, 12); };
 const D2_REF_ISO = AMS.TODAY;
 
 const d2fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-const d2addDays = (d: any, n: any) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const d2addYears = (d: any, n: any) => { const x = new Date(d); x.setFullYear(x.getFullYear() + n); return x; };
 
 /* ---- baca seluruh status WP kanonik sekali, untuk semua tab ---- */
 function useDocCanon() {
@@ -106,10 +108,17 @@ function useDocCanon() {
 /* ============================================================ */
 function SA230View() {
   const firm = useFirm();
-  const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const eng = firm?.activeEngagement?.id || 'ENG-2025-014';
+  /* Identitas dari konteks sesi — TANPA fallback ke entitas seed. Fallback lama
+     ('PT Sentosa Makmur Tbk' / 'ENG-2025-014') menempelkan identitas perikatan
+     lain pada payload ekspor TERSEGEL ketika konteks belum siap (pola yang sama
+     dicabut dari cockpit oleh #265). */
+  const client = firm?.activeClient?.name || '—';
+  const eng = firm?.activeEngagement?.id || '';
+  const engFy = firm?.activeEngagement?.fy || '—';
   const [tab, setTab] = useStateD2('ikhtisar');
   const C = useDocCanon();
+  /* Siklus hidup arsip perikatan ini — SSOT lapisan Arsip (window.RETENTION). */
+  const arc: Sa230ArchiveState = useMemoD2(() => sa230ArchiveState(eng), [eng]);
   /* engagement-scope (AMS_PERSIST_SCOPE: 'sa230Doc.v1' → engagement) — isolasi W7.5.
      Konstanta perikatan + atestasi; rollup kelengkapan tetap dari useDocCanon. */
   const [doc, setDoc] = useAmsPersist('sa230Doc.v1', () => DEFAULT_SA230DOC) as [Sa230Doc, (u: (d: Sa230Doc) => Sa230Doc) => void];
@@ -134,18 +143,25 @@ function SA230View() {
       await amsExportPdf({
         kind: 'sa230-memo', scope: 'engagement', scopeId: eng,
         fileName: `Memo SA 230 - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
+        firm: (AMS.FIRM as { name?: string } | undefined)?.name || 'KAP',
         title: 'Memo — Dokumentasi Audit (SA 230)',
-        meta: [`${client} · ${eng} · FY2025 · SA 230 (Revisi)`,
+        meta: [`${client} · ${eng || '—'} · ${engFy} · SA 230 (Revisi)`,
           `Kelengkapan ${C.agg.docPct}% · ${C.agg.blocking ? 'ada item menghalangi finalisasi' : 'lengkap'}`],
         blocks: [
           { type: 'heading', text: '1. Status Kelengkapan' },
+          /* Tiga baris tabel ini dulu mencetak `C.agg.signifPct` / `devPct` /
+             `retPct` — TIGA properti yang tidak pernah didefinisikan di mana pun
+             (grep: hanya muncul di tiga situs pemakaian ini). Memo TERSEGEL ini
+             karenanya mencetak "undefined%" pada tiga dari empat barisnya. Diganti
+             besaran yang benar-benar ada di SSOT. */
           { type: 'table', head: ['Kelompok', 'Status', 'Acuan'],
             body: [
               ['Identifikasi & atribut WP', C.agg.docPct + '%', '¶8(a)'],
-              ['Hal signifikan & pertimbangan', C.agg.signifPct + '%', '¶8(c)'],
-              ['Penyimpangan dari standar', C.agg.devPct + '%', '¶11'],
-              ['Perakitan & retensi final', C.agg.retPct + '%', '¶14–16'],
+              ['Hal signifikan terdokumentasi', `${C.agg.reviewed}/${C.agg.total} KK ter-review`, '¶8(c)'],
+              ['Pengecualian prosedur (¶11)', String(C.agg.exc), '¶11'],
+              ['Perakitan berkas final', arc.hasBox
+                ? `${SA230_STAGE_LABEL[arc.stage]} · tenggat ${d2fmtDate(arc.assembleBy)}`
+                : 'Belum ada berkas terdaftar', '¶14–16'],
             ] },
           { type: 'para', text: 'Dokumentasi memungkinkan auditor berpengalaman yang tidak memiliki kaitan dengan perikatan memahami: sifat/saat/luas prosedur, hasilnya & bukti yang diperoleh, serta hal signifikan yang timbul (SA 230.¶8).' },
         ],
@@ -196,8 +212,8 @@ function SA230View() {
         {tab === 'ikhtisar' && <D2Ikhtisar C={C} />}
         {tab === 'atribut' && <D2Atribut C={C} />}
         {tab === 'signifikan' && <D2Signifikan C={C} />}
-        {tab === 'penyimpangan' && <D2Penyimpangan C={C} doc={doc} />}
-        {tab === 'perakitan' && <D2Perakitan C={C} doc={doc} patch={patch230} />}
+        {tab === 'penyimpangan' && <D2Penyimpangan C={C} arc={arc} />}
+        {tab === 'perakitan' && <D2Perakitan C={C} arc={arc} doc={doc} patch={patch230} />}
         {tab === 'keterkaitan' && <D2Keterkaitan C={C} />}
 
       </div></div>
@@ -592,9 +608,11 @@ function D2Signifikan({ C }: any) {
 /* ============================================================
    TAB 4 — Penyimpangan & Inkonsistensi (¶11–¶13)
    ============================================================ */
-function D2Penyimpangan({ C, doc }: { C: any; doc: Sa230Doc }) {
+function D2Penyimpangan({ C, arc }: { C: any; arc: Sa230ArchiveState }) {
   const { rows, nav } = C;
-  const reportDate = d2parseDate(doc.reportDate);
+  /* Tanggal laporan dari kanon Arsip — bukan konstanta modul. Sebelumnya SETIAP
+     perikatan memakai '2026-03-20' (tanggal laporan PT Sentosa Makmur). */
+  const reportDate = arc.reportDate;
   const excRows = rows.filter((r: any) => r.exc > 0);
 
   // ¶11 — inkonsistensi: pengecualian prosedur yang perlu rekonsiliasi dengan kesimpulan
@@ -620,7 +638,14 @@ function D2Penyimpangan({ C, doc }: { C: any; doc: Sa230Doc }) {
     {
       ref: '¶13 / A20', icon: 'clock', title: 'Hal yang Timbul Setelah Tanggal Laporan',
       desc: 'Prosedur audit baru/bukti baru/kesimpulan baru setelah tanggal laporan auditor harus didokumentasikan: kapan, oleh & direviu siapa, serta alasannya.',
-      body: <D2Empty text={`Belum berlaku — tanggal laporan terencana ${d2fmtDate(reportDate)} belum tercapai. Kanal perubahan setelah tanggal laporan aktif setelah opini ditandatangani.`} />,
+      /* Kondisional terhadap kanon: kalimat "belum tercapai" dulu dicetak tanpa
+         syarat, jadi ia tetap muncul pada perikatan yang tanggal laporannya sudah
+         lewat — bahkan pada berkas yang sudah dirakit & dikunci. */
+      body: !arc.reportDate
+        ? <D2Empty text="Tanggal laporan auditor belum tercatat pada berkas perikatan ini (kanon Arsip). Kanal ¶13 aktif setelah opini ditandatangani." />
+        : (arc.daysToReport != null && arc.daysToReport > 0)
+          ? <D2Empty text={`Belum berlaku — tanggal laporan ${d2fmtDate(reportDate)} belum tercapai. Kanal perubahan setelah tanggal laporan aktif setelah opini ditandatangani.`} />
+          : <D2Empty text={`Kanal ¶13 AKTIF sejak tanggal laporan ${d2fmtDate(reportDate)}. Setiap prosedur, bukti, atau kesimpulan baru sejak tanggal itu wajib didokumentasikan: kapan, oleh & direviu siapa, serta alasannya.`} />,
     },
   ];
 
@@ -705,22 +730,22 @@ function D2Empty({ text, ok }: any) {
 /* ============================================================
    TAB 5 — Perakitan Berkas Final & Retensi (¶14–¶16)
    ============================================================ */
-function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230 }) {
+function D2Perakitan({ C, arc, doc, patch }: { C: any; arc: Sa230ArchiveState; doc: Sa230Doc; patch: Patch230 }) {
   const { agg, nav } = C;
-  const reportDate = d2parseDate(doc.reportDate);
-  const assemblyDue = d2addDays(reportDate, doc.assemblyDays);
-  const retentionUntil = d2addYears(reportDate, doc.retentionYears);
-  const daysToReport = Math.round((+reportDate - +D2_REF) / 864e5);
-  const daysToAssembly = Math.round((+assemblyDue - +D2_REF) / 864e5);
-  const preReport = daysToReport > 0;
-  // kelengkapan berkas = % atribut dokumentasi (SSOT)
-  const filePct = agg.docPct;
+  /* SELURUH siklus hidup arsip berasal dari `arc` (lapisan Arsip kanonik):
+     tanggal laporan, tenggat perakitan ¶A21, kelas & masa simpan, akhir retensi,
+     legal hold, dan status. Modul ini tidak menghitung satu pun dari itu lagi. */
+  const cls = arc.klass;
+  const filePct = agg.docPct;                     // kelengkapan berkas = atribut dokumentasi (SSOT)
   const att = doc.attestation;
   const setAttest = (p: Partial<Sa230Attest>) => patch({ attestation: { ...att, ...p } });
   const signAttest = () => setAttest({ signed: true, date: D2_REF_ISO, signer: att.signer.trim() || (AMS.USER && AMS.USER.name) || 'Auditor' });
 
-  // ¶16 — perubahan setelah perakitan (kanonik di DMS; periode berjalan: belum dirakit)
-  const postAssembly: never[] = []; // belum ada — berkas belum dirakit
+  const stageTone = arc.stage === 'legal-hold' ? 'var(--red)'
+    : arc.stage === 'lewat-tenggat' || arc.stage === 'jatuh-tempo' ? 'var(--red)'
+    : arc.stage === 'terarsip' ? 'var(--green)'
+    : arc.stage === 'dalam-jendela' ? 'var(--amber)'
+    : 'var(--blue)';
 
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
@@ -729,46 +754,68 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
         <Panel noBody>
           <div className="panel-h"><h3>Lini Masa Perakitan Berkas Final</h3><div style={{ flex: 1 }} /><Badge kind="blue">SA 230 ¶14 · ¶A21</Badge></div>
           <div style={{ padding: '16px 18px' }}>
-            <D2Timeline
-              points={[
-                { lbl: 'Tanggal Laporan', date: reportDate, k: 'navy', sub: 'Opini ditandatangani' },
-                { lbl: 'Batas Perakitan', date: assemblyDue, k: 'amber', sub: `≤ ${doc.assemblyDays} hari (¶A21)` },
-                { lbl: 'Akhir Retensi', date: retentionUntil, k: 'green', sub: `${doc.retentionYears} tahun` },
-              ]}
-            />
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 18 }}>
-              <D2Mini label="Status Perakitan" value={preReport ? 'Pra-laporan' : daysToAssembly >= 0 ? 'Dalam Jendela' : 'Lewat Tenggat'} accent={preReport ? 'var(--blue)' : daysToAssembly >= 0 ? 'var(--amber)' : 'var(--red)'} />
-              <D2Mini label="Tenggat Perakitan" value={d2fmtDate(assemblyDue)} />
-              <D2Mini label={preReport ? 'Menuju Tgl Laporan' : 'Sisa Hari Perakitan'} value={(preReport ? daysToReport : daysToAssembly) + ' hari'} accent={!preReport && daysToAssembly < 14 ? 'var(--red)' : 'var(--ink)'} />
-            </div>
-            <div className="panel" style={{ marginTop: 14, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'var(--line)', boxShadow: 'none' }}>
-              <div className="row jb ac" style={{ marginBottom: 6 }}>
-                <span className="tiny" style={{ fontWeight: 600 }}>Kelengkapan berkas untuk perakitan</span>
-                <span className="mono tiny" style={{ fontWeight: 700, color: filePct === 100 ? 'var(--green)' : 'var(--amber)' }}>{filePct}%</span>
-              </div>
-              <div className="pbar"><span style={{ width: filePct + '%', background: filePct === 100 ? 'var(--green)' : 'var(--blue)' }} /></div>
-              <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>Perakitan bersifat administratif (tanpa prosedur audit baru). {agg.blocking > 0 ? <span style={{ color: 'var(--amber)' }}>{agg.blocking} hal masih menghambat finalisasi — selesaikan sebelum mengunci berkas.</span> : 'Tidak ada hal yang menghambat — berkas siap dirakit & dikunci.'}</div>
-            </div>
+            {!arc.hasBox ? (
+              <D2Empty text="Perikatan ini belum punya berkas terdaftar di Manajemen Dokumen, sehingga tenggat perakitan & masa simpan belum dapat dihitung. Daftarkan dokumen perikatan lebih dulu — angka di layar ini ditarik dari berkas nyata, bukan dari tanggal terencana." />
+            ) : (
+              <>
+                <D2Timeline
+                  points={[
+                    { lbl: 'Tanggal Laporan', date: arc.reportDate, k: 'navy', sub: 'Opini ditandatangani' },
+                    { lbl: 'Batas Perakitan', date: arc.assembleBy, k: 'amber', sub: arc.assemblyDays != null ? `≤ ${arc.assemblyDays} hari (¶A21)` : '¶A21' },
+                    /* Akhir retensi TIDAK ADA selama berkas belum dikunci — jam retensi
+                       mulai saat pengarsipan, bukan saat tanggal laporan. */
+                    { lbl: 'Akhir Retensi', date: arc.retentionUntil, k: 'green', sub: arc.retentionUntil ? `${arc.retentionYears} tahun sejak diarsipkan` : 'mulai setelah berkas dikunci' },
+                  ]}
+                />
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 18 }}>
+                  <D2Mini label="Status Perakitan" value={SA230_STAGE_LABEL[arc.stage]} accent={stageTone} />
+                  <D2Mini label="Tenggat Perakitan" value={d2fmtDate(arc.assembleBy)} />
+                  <D2Mini
+                    label={arc.assembled ? 'Diarsipkan' : arc.stage === 'pra-laporan' ? 'Menuju Tgl Laporan' : 'Sisa Hari Perakitan'}
+                    value={arc.assembled ? d2fmtDate(arc.archivedOn)
+                      : arc.stage === 'pra-laporan' ? (arc.daysToReport ?? 0) + ' hari'
+                      : (arc.daysToAssembly ?? 0) + ' hari'}
+                    accent={!arc.assembled && arc.daysToAssembly != null && arc.daysToAssembly < 14 ? 'var(--red)' : 'var(--ink)'}
+                  />
+                </div>
+                <div className="panel" style={{ marginTop: 14, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'var(--line)', boxShadow: 'none' }}>
+                  <div className="row jb ac" style={{ marginBottom: 6 }}>
+                    <span className="tiny" style={{ fontWeight: 600 }}>Kelengkapan berkas untuk perakitan</span>
+                    <span className="mono tiny" style={{ fontWeight: 700, color: filePct === 100 ? 'var(--green)' : 'var(--amber)' }}>{filePct}%</span>
+                  </div>
+                  <div className="pbar"><span style={{ width: filePct + '%', background: filePct === 100 ? 'var(--green)' : 'var(--blue)' }} /></div>
+                  <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>Perakitan bersifat administratif (tanpa prosedur audit baru). {agg.blocking > 0 ? <span style={{ color: 'var(--amber)' }}>{agg.blocking} hal masih menghambat finalisasi — selesaikan sebelum mengunci berkas.</span> : 'Tidak ada hal yang menghambat — berkas siap dirakit & dikunci.'}</div>
+                </div>
+              </>
+            )}
           </div>
         </Panel>
 
-        {/* parameter perikatan tersimpan (F2/PR-F) */}
-        <Panel title="Parameter Perikatan (tersimpan)" sub="Menggerakkan lini masa perakitan & retensi — tersimpan per-perikatan">
+        {/* parameter perikatan — hanya yang benar-benar milik modul ini */}
+        <Panel title="Parameter Perikatan" sub="Masa simpan & jendela ¶A21 adalah kebijakan firma — ditarik dari kelas retensi, bukan diketik di sini">
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Tanggal Laporan</div>
-              <input type="date" className="input" style={{ width: '100%' }} value={doc.reportDate} onChange={(e: { target: { value: string } }) => patch({ reportDate: e.target.value })} />
+              {arc.reportDate ? (
+                <div className="mono" style={{ fontWeight: 700, fontSize: 13, paddingTop: 6 }}>{d2fmtDate(arc.reportDate)}</div>
+              ) : (
+                <input type="date" className="input" style={{ width: '100%' }} aria-label="Tanggal laporan terencana"
+                  value={doc.reportDate} onChange={(e: { target: { value: string } }) => patch({ reportDate: e.target.value })} />
+              )}
+              <div className="tiny muted" style={{ marginTop: 4 }}>{arc.reportDate ? 'Dari berkas perikatan (DMS)' : 'Terencana — kanon belum punya tanggal laporan'}</div>
             </div>
             <div>
-              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Batas Perakitan (hari)</div>
-              <input type="number" min={1} className="input" style={{ width: '100%' }} value={doc.assemblyDays} onChange={(e: { target: { value: string } }) => patch({ assemblyDays: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Batas Perakitan</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 13, paddingTop: 6 }}>{arc.assemblyDays != null ? arc.assemblyDays + ' hari' : '—'}</div>
+              <div className="tiny muted" style={{ marginTop: 4 }}>SA 230 ¶A21</div>
             </div>
             <div>
-              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Retensi (tahun)</div>
-              <input type="number" min={1} className="input" style={{ width: '100%' }} value={doc.retentionYears} onChange={(e: { target: { value: string } }) => patch({ retentionYears: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Masa Simpan</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 13, paddingTop: 6 }}>{arc.retentionYears} tahun</div>
+              <div className="tiny muted" style={{ marginTop: 4 }}>{cls.jenis}</div>
             </div>
           </div>
-          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>SA 230 ¶A21 — perakitan berkas final umumnya ≤ 60 hari setelah tanggal laporan; retensi mengikuti SMM 1 / kebijakan firma.</div>
+          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Dasar kebijakan: {cls.dasar}. {cls.note}</div>
         </Panel>
 
         {/* atestasi kelengkapan dokumentasi (F2/PR-F) */}
@@ -796,11 +843,11 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
               <div className="grid" style={{ gap: 10 }}>
                 <div>
                   <div className="tiny muted upper" style={{ marginBottom: 4 }}>Penanda Tangan</div>
-                  <input className="input" style={{ width: '100%' }} placeholder={(AMS.USER && AMS.USER.name) || 'Nama auditor penanggung jawab'} value={att.signer} onChange={(e: { target: { value: string } }) => setAttest({ signer: e.target.value })} />
+                  <input className="input" style={{ width: '100%' }} aria-label="Nama penanda tangan atestasi" placeholder={(AMS.USER && AMS.USER.name) || 'Nama auditor penanggung jawab'} value={att.signer} onChange={(e: { target: { value: string } }) => setAttest({ signer: e.target.value })} />
                 </div>
                 <div>
                   <div className="tiny muted upper" style={{ marginBottom: 4 }}>Memo Atestasi</div>
-                  <textarea className="input" value={att.memo} placeholder="Catatan kelengkapan dokumentasi / hal yang perlu ditegaskan sebelum perakitan." onChange={(e: { target: { value: string } }) => setAttest({ memo: e.target.value })} style={{ width: '100%', height: 60, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
+                  <textarea className="input" aria-label="Memo atestasi kelengkapan" value={att.memo} placeholder="Catatan kelengkapan dokumentasi / hal yang perlu ditegaskan sebelum perakitan." onChange={(e: { target: { value: string } }) => setAttest({ memo: e.target.value })} style={{ width: '100%', height: 60, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
                 </div>
                 <Btn variant="primary" onClick={signAttest}><I.check size={14} /> Tandatangani Atestasi Kelengkapan</Btn>
               </div>
@@ -812,9 +859,13 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
         <Panel noBody>
           <div className="panel-h"><span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.lock size={14} /></span><h3 style={{ margin: 0 }}>Perubahan Setelah Perakitan (¶16)</h3></span><div style={{ flex: 1 }} /><Btn sm onClick={() => nav('dms', { from: 'sa230' })}><I.arrowRight size={13} /> Riwayat di DMS</Btn></div>
           <div style={{ padding: '15px 18px' }}>
-            {postAssembly.length === 0
+            {/* Dulu: `const postAssembly: never[] = []` — larik bertipe `never[]` yang
+                tak akan pernah bisa berisi apa pun, sehingga panel ini SELALU berkata
+                "belum dirakit", termasuk untuk berkas yang sudah dikunci. Sekarang
+                keadaannya dibaca dari kanon. */}
+            {!arc.assembled
               ? <D2Empty text="Berkas final perikatan ini belum dirakit — belum ada perubahan pasca-perakitan. Setelah berkas dikunci, setiap penambahan/perubahan dicatat dengan siapa, kapan & alasannya, serta tidak ada dokumentasi yang dihapus sebelum akhir retensi (¶15)." />
-              : null}
+              : <D2Empty ok text={`Berkas final dirakit & dikunci ${d2fmtDate(arc.archivedOn)} (${arc.docCount} dokumen · ${(arc.sizeMB / 1024).toFixed(1)} GB). Sejak tanggal itu berkas bersifat read-only: setiap penambahan atau perubahan wajib tercatat beserta siapa, kapan & alasannya, dan tidak ada dokumentasi yang boleh dihapus sebelum ${d2fmtDate(arc.retentionUntil)} (¶15).`} />}
             <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>Riwayat versi & log akses berkas final dikelola di modul <b>Manajemen Dokumen (DMS)</b> sebagai sumber kanonik — termasuk checksum SHA-256 & imutabilitas WORM.</div>
           </div>
         </Panel>
@@ -823,17 +874,30 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
       {/* kanan — retensi, kepemilikan, kerahasiaan */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
-            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>s.d. {d2fmtDate(retentionUntil)}</div>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-solid),var(--blue-solid))', color: '#fff', padding: '16px 18px' }}>
+            <div className="tiny" style={{ opacity: .78, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{arc.retentionYears} tahun</div>
+            <div className="tiny" style={{ opacity: .7, marginTop: 5 }}>{arc.retentionUntil ? `s.d. ${d2fmtDate(arc.retentionUntil)}` : 'jam retensi mulai setelah berkas dikunci'}</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
-            <D2KV label="Mulai retensi" v={d2fmtDate(reportDate)} />
-            <D2KV label="Dasar kebijakan" v="SMM 1 / Pengaturan Firma" />
-            <D2KV label="Format arsip" v="Elektronik · AES-256" />
+            <D2KV label="Kelas retensi" v={cls.jenis} />
+            <D2KV label="Mulai retensi" v={arc.archivedOn ? d2fmtDate(arc.archivedOn) : 'Belum diarsipkan'} />
+            <D2KV label="Format arsip" v={cls.format} />
           </div>
         </Panel>
+
+        {arc.hold && (
+          <Panel noBody>
+            <div className="panel-h"><span className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.gavel size={14} /></span><h3 style={{ margin: 0 }}>Legal Hold Aktif</h3></span><div style={{ flex: 1 }} /><Badge kind="red" dot>{arc.hold.id}</Badge></div>
+            <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
+              <div className="tiny" style={{ lineHeight: 1.5 }}>{arc.hold.reason}</div>
+              <D2KV label="Sejak" v={d2fmtDate(arc.hold.since)} />
+              <D2KV label="Ditetapkan oleh" v={arc.hold.by} />
+              <div className="tiny muted" style={{ lineHeight: 1.45 }}>Disposal ditangguhkan: berkas TIDAK dimusnahkan pada akhir masa simpan selama hold berlaku.</div>
+              <Btn sm onClick={() => nav('records', { from: 'sa230' })}><I.arrowRight size={13} /> Registri hold di Retensi & Arsip</Btn>
+            </div>
+          </Panel>
+        )}
 
         <Panel title="Kepemilikan & Kerahasiaan" sub="SMM 1 / SA 230 ¶A23">
           <div style={{ display: 'grid', gap: 8 }}>
