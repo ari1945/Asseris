@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Service Organization / Organisasi Jasa (SA 402)
@@ -89,7 +90,7 @@ function applySocSync(list: ServiceOrgRow[]): ServiceOrgRow[] {
 const SOC_SYNCED_ID = 'SO-01'; // field SO-01 tersinkron socEngine → read-only di form
 
 function soToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextSoId(list: ServiceOrgRow[]) {

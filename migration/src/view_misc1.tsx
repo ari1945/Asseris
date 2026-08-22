@@ -11,6 +11,7 @@ import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
 import { amsExportPdf } from './export_pdf';
 import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
 import type { ApproachId, PlanRow, PlanResult, RiskInput } from './canon_audit_plan';
+import { amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — Strategy Memo (SA 300), Working Papers index, Governance
@@ -74,7 +75,7 @@ function StrategyMemo() {
   const auth = useAuth();
   const canApprove = typeof auth?.can === 'function' ? auth.can(CAP.SIGNOFF_REVIEWER) : false;
   const [approved, setApproved] = window.useAmsPersist('strategyApproved.v1', null);
-  const approve = () => setApproved({ by: auth.user?.name || auth.user?.initials || 'Auditor', at: new Date().toISOString() });
+  const approve = () => setApproved({ by: auth.user?.name || auth.user?.initials || 'Auditor', at: amsIsoTs() });
 
   const right = (
     <div className="row gap8 ac">

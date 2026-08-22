@@ -9,6 +9,7 @@ import { SubBar } from './shell';
 import { Btn, Check, Panel, Tabs } from './ui';
 import { useWpSignoff } from './wp_signoff';
 import { amsExportPdf } from './export_pdf';
+import { amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — ISAK 35 · Entitas Berorientasi Nonlaba
@@ -146,7 +147,7 @@ function ISAK35View() {
           <Btn sm onClick={() => nav('fsgen', { from: 'isak35' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm variant="primary" onClick={() => {
             amsExportPdf({
-              kind: 'isak35-fs', scope: 'engagement', fileName: `Laporan Keuangan ISAK 35 - ${new Date().getFullYear()}.pdf`,
+              kind: 'isak35-fs', scope: 'engagement', fileName: `Laporan Keuangan ISAK 35 - ${amsYear()}.pdf`,
               firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
               title: 'Laporan Keuangan Entitas Berorientasi Nonlaba (ISAK 35)',
               refNo: 'ISAK 35 · ' + (I35_TITLES as Record<string, string>)[tab],

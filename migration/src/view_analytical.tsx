@@ -11,6 +11,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Switch } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2';
+import { amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — Analytical Review (SA 520)
@@ -387,11 +388,11 @@ function FluxTab({ der, pm, fmt }: any) {
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 0)}</span>;
   const actor = () => (auth && auth.user) ? { name: auth.user.name, role: auth.user.role } : null;
   const setStatus = (code: string, status: FluxStatus) =>
-    setFluxState((s: FluxState) => upsertFlux(s, code, { status, note: noteOf(s, code) }, actor(), new Date().toISOString()));
+    setFluxState((s: FluxState) => upsertFlux(s, code, { status, note: noteOf(s, code) }, actor(), amsIsoTs()));
   const setNote = (code: string, note: string) =>
-    setFluxState((s: FluxState) => upsertFlux(s, code, { status: statusOf(s, code) || 'followup', note }, actor(), new Date().toISOString()));
+    setFluxState((s: FluxState) => upsertFlux(s, code, { status: statusOf(s, code) || 'followup', note }, actor(), amsIsoTs()));
   const setExpectation = (code: string, patch: { exp?: number; tol?: number }) =>
-    setFluxState((s: FluxState) => setFluxExpectation(s, code, patch, actor(), new Date().toISOString()));
+    setFluxState((s: FluxState) => setFluxExpectation(s, code, patch, actor(), amsIsoTs()));
 
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>

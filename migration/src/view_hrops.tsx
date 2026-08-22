@@ -17,6 +17,7 @@ import {
   leaveLedger, leaveStateOn, onLeaveOn,
 } from './canon_leave';
 import type { HolidayCalendar, LeaveRequestInput, LeaveRow } from './canon_leave';
+import { amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — HCM: Cuti & Kehadiran  ·  Siklus Kinerja
@@ -58,7 +59,7 @@ function LeaveAttendance() {
   const list = (Array.isArray(reqs) ? reqs : []) as LeaveRequestInput[];
   const today = String(AMS.TODAY || '');
   const cal = AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar;
-  const coverage = holidayCoverage(cal, Number(today.slice(0, 4)) || new Date().getUTCFullYear());
+  const coverage = holidayCoverage(cal, Number(today.slice(0, 4)) || amsYear());
   /* Baris yang boleh dilihat caller = yang punya entri saldo (server sudah menyaring). */
   const visible = roster.filter((s) => !!carry[s.id]);
   const ledgers = leaveLedger(visible, list, carry, today, cal, LEAVE_POLICY);

@@ -5,6 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Jasa Non-Audit (SPAP): Portofolio + Reviu SPR 2400
@@ -233,7 +234,7 @@ function Review2400() {
                   <p style={{ margin: '0 0 10px' }}>Reviu kami dilaksanakan sesuai SPR 2400. Suatu reviu terutama terdiri dari permintaan keterangan (inquiry) dan prosedur analitis, serta <b>memberikan keyakinan terbatas</b> — jauh lebih sempit lingkupnya dibanding audit, sehingga kami tidak menyatakan opini audit.</p>
                   <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 4px' }}>Simpulan ({c.l})</div>
                   <p style={{ margin: 0 }}>{c.txt}</p>
-                  <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>{R.client.includes('Cahaya') ? 'Sari Dewanti, CPA' : 'Partner'}</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span></div>
+                  <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>{R.client.includes('Cahaya') ? 'Sari Dewanti, CPA' : 'Partner'}</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {amsDateLongId()}</span></div>
                 </div>
               </div>
             </div>

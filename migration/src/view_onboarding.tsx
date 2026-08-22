@@ -15,6 +15,7 @@ import { amsExportPdf } from './export_pdf';
 import { amsExportXlsx } from './export_xlsx';
 import { exportVerifySeal } from './api';
 import { buildMemoBlocks, buildMemoSheets, memoMeta, memoRefNo, memoTitle, type MemoInput } from './acceptance_continuance_memo';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Front-office: Client & Engagement Onboarding
@@ -282,7 +283,7 @@ function StepAcceptance({ p, onPatch }: any) {
   const auth = useAuth();
   const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
   const canApprove: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.FIRM_ADMIN);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = amsDateIso();
   const trail: AccTrail[] = (a.trail || []);
 
   // Ekspor memo penerimaan tersegel (SA 230) — generator bersama dgn keberlanjutan.

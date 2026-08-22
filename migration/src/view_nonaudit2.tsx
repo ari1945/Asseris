@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
 import { amsExportPdf } from './export_pdf';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Jasa Non-Audit (lanjutan)
@@ -17,7 +18,7 @@ const { useState: useNA2 } = React;
 function NAReport({ kind, engId, onClose }: any) {
   const { fmt } = AMS;
   const FIRM: any = AMS.FIRM;
-  const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  const today = amsDateLongId();
   const Paper = ({ title, std, children, signer }: any) => (
     <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
       <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 16, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>

@@ -9,6 +9,7 @@ import { OKv } from './view_onboarding';
 import { amsExportPdf } from './export_pdf';
 import { buildLetterPayload } from './letter_payload';
 import { exportVerifySeal } from './api';
+import { amsDateIso, amsDateLongId, amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — Onboarding steps 2 & 3
@@ -148,7 +149,7 @@ function StepLetter({ p, onPatch }: any) {
   const FIRM: any = AMS.FIRM;
   const L = p.letter;
   const setL = (patch: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, ...patch } }));
-  const today = new Date().toISOString().slice(0, 10);
+  const today = amsDateIso();
   const pushEvent = (t: any, who: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, esign: [...(pr.letter.esign || []), { t, who, date: today }] } }));
   /* SA-01: otorisasi internal (KAP) ber-jejak user login + RBAC FIRM_ADMIN
      (selaras gate server 'prospects'). Tanda tangan KLIEN (Direksi) + TTE/Meterai
@@ -229,7 +230,7 @@ function StepLetter({ p, onPatch }: any) {
           <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.65, color: '#283b46' }}>
             <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 18, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
               <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>{FIRM.license}</div></div>
-              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>No. {p.id}/EL/{new Date().getFullYear()}</div><div className="tiny" style={{ color: '#7a8893' }}>v{L.version} · {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</div></div>
+              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>No. {p.id}/EL/{amsYear()}</div><div className="tiny" style={{ color: '#7a8893' }}>v{L.version} · {amsDateLongId()}</div></div>
             </div>
 
             <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 13, color: '#0c2430', marginBottom: 16, letterSpacing: '.02em' }}>SURAT PERIKATAN AUDIT</div>

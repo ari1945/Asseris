@@ -24,6 +24,7 @@ import { amsAttachEvidence, FileDropField } from './evidence';
 import { EXPERT_DOC_MAX_MB, isLegacyDocUid, uploadExpertDoc, useExpertDocs, type DropMeta, type ExpertDoc } from './expert_docs';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SA 540 · Audit atas Estimasi Akuntansi
@@ -50,7 +51,7 @@ const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', EST_APPROACH
 const BIAS_FLAG = ['amber', 'green'];
 
 function estToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextEId(list: Estimate[]) {

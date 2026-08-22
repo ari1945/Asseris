@@ -16,6 +16,7 @@ import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTE
 /* PRD prd-wp-signoff-integrity — aturan rantai tanda tangan (dipakai bersama server). */
 import { WP_SLOT_ORDER, WP_SLOT_LABEL, wpChainSelfReviewBy, wpChainLinks, wpContentHash, wpSignatureStamp, wpFormatSignedAt, signedByActor } from './wp_chain';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Working Papers (audit file workspace)
@@ -654,7 +655,7 @@ function AssertionRollup({ ref_, defs, procState, st, setWp, locked, leadRows, r
 
   const setConcl = (id: string, patch: AssertionConclInput) => {
     const prev = (st.asrConcl || {})[id] || {};
-    setWp(ref_, { asrConcl: { ...(st.asrConcl || {}), [id]: { ...prev, ...patch, by: me || 'Auditor', at: new Date().toISOString().slice(0, 10) } } });
+    setWp(ref_, { asrConcl: { ...(st.asrConcl || {}), [id]: { ...prev, ...patch, by: me || 'Auditor', at: amsDateIso() } } });
   };
 
   return (
@@ -731,7 +732,7 @@ function EvidenceRegister({ ref_, st, setWp, locked }: {
   const nextId = () => 'EV' + (evidence.reduce((m: number, e: EvRec) => Math.max(m, parseInt(String(e.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
   const add = () => {
     if (!name.trim()) return;
-    const rec: EvRec = { id: nextId(), name: name.trim(), source, tier: evSource(source).tier, type, asr, by: me || 'Auditor', at: new Date().toISOString().slice(0, 10) };
+    const rec: EvRec = { id: nextId(), name: name.trim(), source, tier: evSource(source).tier, type, asr, by: me || 'Auditor', at: amsDateIso() };
     setWp(ref_, { evidence: [...evidence, rec] });
     setName(''); setAsr([]);
   };

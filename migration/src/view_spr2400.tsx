@@ -6,6 +6,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SPR 2400 · Perikatan Reviu atas LK Historis
@@ -318,7 +319,7 @@ function F2400Concl() {
               : sel === 2
               ? 'Berdasarkan reviu kami, karena signifikansi hal yang diuraikan, laporan keuangan tidak menyajikan secara wajar sesuai dengan SAK.'
               : 'Karena signifikansi hal yang diuraikan, kami tidak memperoleh bukti yang cukup sebagai dasar simpulan reviu; oleh karena itu kami tidak menyatakan simpulan.'}</p>
-            <div style={{ marginTop: 22, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Sari Dewanti, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span></div>
+            <div style={{ marginTop: 22, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Sari Dewanti, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {amsDateLongId()}</span></div>
           </div>
         </div>
       </Panel>

@@ -10,6 +10,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Spark, Switch } from './ui';
 import { RowKv } from './view_calc';
 import { WpPanel } from './wp_signoff';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Going Concern (SA 570)
@@ -136,7 +137,7 @@ function nextScId(list: GCScenario[]) {
 }
 
 function gcToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextCovId(list: Covenant[]) {

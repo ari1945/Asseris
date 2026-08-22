@@ -8,6 +8,7 @@ import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat, Switch } from './ui';
 /* Tahap 8 — helper preferensi pindah ke modul eager (app.tsx memakainya saat boot
    tanpa menunggu chunk settings). Di-re-export dari sini agar API lama tetap sama. */
 import { amsApplyPrefs as amsApplyPrefsEager, SETTINGS_ACCENTS } from './prefs';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Pengaturan (full settings workspace)
@@ -312,7 +313,7 @@ function SecProfil({ auth, flash }: any) {
   const fileRef = React.useRef(null);
   const [drag, setDrag] = useStateSet(false);
   const onFile = (file: any) => readAvatarFile(file, 256, (data: any) => { up({ photo: data }); flash('Foto profil diperbarui'); });
-  const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  const today = amsDateShortId();
   const cpeTarget = u.cpeTarget || 40;
   const cpePct = Math.max(0, Math.min(100, Math.round(((u.cpeHours || 0) / cpeTarget) * 100)));
   const cpeOk = (u.cpeHours || 0) >= cpeTarget;

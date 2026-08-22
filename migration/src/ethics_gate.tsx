@@ -17,6 +17,7 @@ import { AMS } from './data';
 import type { ConductOverride, HrCase } from './canon_conduct';
 import { useAmsPersist, useAuth } from './contexts';
 import { CAP } from './rbac';
+import { amsDateShortId } from './clock_ssot';
 import {
   ethicsPeriod, resolveEmpId, ethicsComplianceOf,
   type EthicsUser, type EthicsDeclRec, type AmlRec, type OverrideRec, type EthicsCompliance,
@@ -51,7 +52,7 @@ export function useEthicsOverrides() {
   const canGrant = !auth || typeof auth.can !== 'function' || auth.can(CAP.FIRM_ADMIN);
   const me = (auth && auth.user && auth.user.name) || 'Partner';
   const period = ethicsPeriod();
-  const today = (() => { try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return ''; } })();
+  const today = (() => { try { return amsDateShortId(); } catch (e) { return ''; } })();
   const grant = (empId: string, reason: string) =>
     setOverrides((o: Record<string, OverrideRec>) => ({ ...o, [empId]: { by: me, at: today, reason: reason || 'Pengecualian sementara', period } }));
   const revoke = (empId: string) =>

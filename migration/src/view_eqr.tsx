@@ -10,6 +10,7 @@ import { assessReviewerEligibility, eqrClearGate, impairmentAction,
   type EligibilityDefect, type ClearBlocker, type PartnerTenureRow } from './canon_eqr_eligibility';
 import { auditEqrDocumentation, EQR_DOC_DEFECT_LABEL, type EqrDocDefect } from './canon_smm_documentation';
 import { eqrCoverage } from './canon_eqr_coverage';
+import { amsDateIso, amsIsoTs, amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — EQR Workflow (SMM 2)  ·  Pelaporan PPPK
@@ -78,7 +79,7 @@ function EQRWorkflow() {
     { reviewer: r.reviewer, appointedBy: meta.appointedBy, ...(meta.eligibility || {}) },
     eng ? { partner: eng.partner || null, manager: eng.manager || null } : null,
     r.eng, eng ? (eng.clientId || null) : null,
-    A.EQR_PARTNER_HISTORY || [], new Date().getFullYear(),
+    A.EQR_PARTNER_HISTORY || [], amsYear(),
   );
   const reviewStarted = r.status !== 'Belum Mulai';
   const impaired = impairmentAction(!!(meta.eligibility || {}).impaired, reviewStarted);
@@ -94,11 +95,11 @@ function EQRWorkflow() {
 
   const toggleCheck = (i: any) => setReview(r.id, (pr: any) => ({ ...pr, checklist: pr.checklist.map((c: any, j: any) => j === i ? { ...c, ok: !c.ok } : c), status: 'Berjalan' }));
   /* PR-6 — pengakuan eligibilitas ber-atestasi: identitas SESI, bukan nama baris. */
-  const ackElig = () => setReview(r.id, (pr: { eligAck?: { by?: string } | null; reviewer?: string }) => ({ ...pr, eligAck: pr.eligAck ? null : { by: (AMS.USER && AMS.USER.name) || pr.reviewer || '', at: new Date().toISOString() } }));
+  const ackElig = () => setReview(r.id, (pr: { eligAck?: { by?: string } | null; reviewer?: string }) => ({ ...pr, eligAck: pr.eligAck ? null : { by: (AMS.USER && AMS.USER.name) || pr.reviewer || '', at: amsIsoTs() } }));
   /* PR-6 — temuan DAPAT DITULIS (dulu read-only dari seed): tambah + tutup/buka. */
   const addFinding = (f: { t: string; sev: string; status: string }) => setReview(r.id, (pr: { findings?: unknown[]; status?: string }) => ({ ...pr, findings: [...(pr.findings || []), f], status: 'Berjalan' }));
   const toggleFinding = (i: number) => setReview(r.id, (pr: { findings: Array<{ status: string }> }) => ({ ...pr, findings: pr.findings.map((f: { status: string }, j: number) => j === i ? { ...f, status: f.status === 'Terbuka' ? 'Selesai' : 'Terbuka' } : f) }));
-  const clearGate = () => setReview(r.id, (pr: { reviewer?: string }) => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: (AMS.USER && AMS.USER.name) || pr.reviewer || '', clearedDate: new Date().toISOString().slice(0, 10) }));
+  const clearGate = () => setReview(r.id, (pr: { reviewer?: string }) => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: (AMS.USER && AMS.USER.name) || pr.reviewer || '', clearedDate: amsDateIso() }));
 
   return (
     <>

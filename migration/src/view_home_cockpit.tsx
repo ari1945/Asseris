@@ -6,6 +6,7 @@ import type { CapacitySeed } from './canon_capacity';
 import { useFirmWip } from './use_firm_wip';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Spark, Stat } from './ui';
+import { amsTodayDate } from './clock_ssot';
 
 /* ============================================================
    Asseris — Beranda·Kokpit Eksekutif (Partner/Manager)
@@ -72,7 +73,11 @@ function hcLoadOrder(): string[] {
 const hcRpM = (v: number) => 'Rp ' + AMS.fmt(v / 1e9, v >= 1e10 ? 1 : 2) + ' M';
 const hcRpJt = (v: number) => AMS.fmt(Math.round(v / 1e6)) + ' jt';
 const hcInitials = (name: string) => (name || '').split(/[ ,]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-const hcDaysTo = (iso: string) => { const d = new Date(iso); const t = new Date(); return Math.round((d.getTime() - t.getTime()) / 86400000); };
+/* K-02: "hari ini" = klok SSOT AMS.TODAY. Dengan jam mesin, seluruh hitungan
+   mundur tenggat di kokpit bergeser tiap hari tanpa satu berkas pun berubah —
+   dan pada dataset demo (klok 9 Mar 2026) ia melaporkan tenggat Maret sebagai
+   "lewat ratusan hari". */
+const hcDaysTo = (iso: string) => { const d = new Date(iso); const t = amsTodayDate(); return Math.round((d.getTime() - t.getTime()) / 86400000); };
 const HC_PHASE_KIND: Record<string, string> = { Perencanaan: 'purple', Eksekusi: 'blue', Finalisasi: 'amber', Arsip: 'green' };
 
 /* ---- KPI strip (6 metrik SSOT) ---- */

@@ -9,6 +9,7 @@ import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 import { LEVELS, LEVEL_KIND, COMMS, DEF_SEED, DEFAULT_DEF_A, classifyDeficiency as classifyDef } from './canon_deficiency';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Internal Control (ICFR)
@@ -134,7 +135,7 @@ const ITGC_LABEL = { access: 'Akses ke Program & Data', change: 'Manajemen Perub
 type ICControl = { id: string; desc: string; type: string; nature: string; freq: string; asr: string[]; wt: boolean; design: string; oper: string; itgc?: string };
 type ICCycle = { id: string; name: string; amt: string; sig: boolean; controls: ICControl[] };
 function icfrToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 
