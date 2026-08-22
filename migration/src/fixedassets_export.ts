@@ -27,7 +27,8 @@
    menguncinya justru mencabut dokumen yang menjelaskan selisih itu.
    ============================================================ */
 import { fmt, rp } from './data_base';
-import type { AssetRegister, DupCandidate, RollForward } from './data_fixedassets';
+import type { AssetRegister, RollForward } from './data_fixedassets';
+import { DUP_VERDICT_LABEL, type DupBoard } from './fixedassets_dup_decisions';
 
 /* Kontrak `amsExportXlsx`. Dideklarasikan lokal — tiap kertas kerja berdiri
    sendiri; menautkannya ke modul kertas kerja lain hanya demi satu interface
@@ -56,8 +57,9 @@ export interface AssetExportInput {
   register: AssetRegister;
   /** Hasil `rollForward(ref, disposals)` — TIDAK dihitung ulang di sini. */
   rollFwd: RollForward;
-  /** Hasil `duplicateCandidates()`. Kosong = lembarnya tidak dipaksa ada. */
-  dups: readonly DupCandidate[];
+  /** Hasil `dupBoard(duplicateCandidates(), decisions)` — kandidat BESERTA
+      keputusan firma atasnya (FA2). Kosong = lembarnya tidak dipaksa ada. */
+  board: DupBoard;
   /** Akun kontrol aset tetap di `FIRM_COA` (`1-400` pada PR-1). */
   glCode: string;
   glBalance: number;
@@ -86,7 +88,11 @@ export function fixedAssetsExportModel(input: AssetExportInput): AssetExportMode
   if (!firm) {
     throw new Error('fixedAssetsExportModel: nama firma kosong — kertas kerja tidak disegel tanpa identitas penerbit.');
   }
-  const { register: reg, rollFwd: rf, dups } = input;
+  const { register: reg, rollFwd: rf, board } = input;
+  const dups = board.rows;
+  /* Baris usang ikut dicetak, tetapi TIDAK dihitung sebagai kandidat: ia tak lagi
+     menggambarkan register. */
+  const terdeteksi = dups.filter((d) => d.detected).length;
   const glGap = input.glBalance - reg.totNbv;
   const glTied = Math.abs(glGap) < 1_000_000;
 
@@ -153,17 +159,34 @@ export function fixedAssetsExportModel(input: AssetExportInput): AssetExportMode
     colWidths: [14, 14, 14, 28],
   };
 
-  /* ---- 5 · Kandidat pencatatan ganda (bila ada) ---- */
+  /* ---- 5 · Kandidat pencatatan ganda + KEPUTUSAN firma (FA2) ----
+     Keputusan ikut ke berkas dengan pelaku, peran, tanggal dan alasannya. Baris
+     yang keputusannya sudah usang (mesin tak lagi memunculkan pasangannya) TETAP
+     tercetak dan ditandai — menghapusnya berarti mengoreksi satu tanggal
+     perolehan diam-diam membatalkan pemeriksaan manusia. */
   const dupSheet: ExportSheet | null = dups.length ? {
     name: 'Kandidat Pencatatan Ganda',
-    heading: 'Sekelas dan diperoleh berdekatan dari DUA register yang tak pernah didamaikan — sistem tidak memutuskan; firma yang memutuskan',
-    columns: ['Kelas', 'Kode (Keuangan)', 'Aset (Keuangan)', 'Kode (GA)', 'Aset (GA)', 'Selisih Hari', 'Nilai Gabungan'],
-    rows: dups.map((d) => {
-      const fin = d.a.src === 'finance' ? d.a : d.b;
-      const ga = d.a.src === 'finance' ? d.b : d.a;
-      return [d.cat, fin.id, fin.name, ga.id, ga.name, d.daysApart, rp(d.combinedCost)];
-    }),
-    colWidths: [26, 12, 34, 12, 34, 12, 22],
+    heading: 'Sekelas dan diperoleh berdekatan dari DUA register yang tak pernah didamaikan — sistem tidak memutuskan; firma yang memutuskan. '
+      + 'Verdict "duplikat dikonfirmasi" adalah PENGUNGKAPAN: register belum dikoreksi.',
+    columns: ['Kelas', 'Kode (Keuangan)', 'Aset (Keuangan)', 'Kode (GA)', 'Aset (GA)', 'Selisih Hari', 'Nilai Gabungan', 'Deteksi', 'Keputusan', 'Oleh', 'Peran', 'Tanggal', 'Alasan'],
+    rows: dups.map((d) => [
+      d.cat, d.finId, d.finName, d.gaId, d.gaName, d.daysApart, rp(d.combinedCost),
+      d.detected ? 'Terdeteksi' : 'Tak lagi terdeteksi',
+      d.decision ? DUP_VERDICT_LABEL[d.decision.verdict] : 'Belum diputuskan',
+      d.decision ? d.decision.who : '',
+      d.decision ? d.decision.role : '',
+      d.decision ? d.decision.when : '',
+      d.decision ? d.decision.reason : '',
+    ]),
+    totals: [
+      'TOTAL', '', '', '', '', `${terdeteksi} terdeteksi`, rp(dups.reduce((s, d) => s + d.combinedCost, 0)),
+      board.stale ? `${board.stale} usang` : '', `${board.open} belum diputuskan`,
+      '', '', '',
+      board.confirmed
+        ? `${board.confirmed} dikonfirmasi duplikat — ${rp(board.confirmedCost)} harga perolehan diakui tercatat dua kali; register BELUM dikoreksi`
+        : 'Tidak ada pasangan yang dikonfirmasi duplikat',
+    ],
+    colWidths: [26, 12, 34, 12, 34, 12, 22, 20, 22, 20, 18, 14, 60],
   } : null;
 
   const sheets: ExportSheet[] = [registerSheet, kelasSheet, rollSheet, pelepasanSheet];
@@ -179,8 +202,14 @@ export function fixedAssetsExportModel(input: AssetExportInput): AssetExportMode
       : `Roll-forward TIDAK MENUTUP — selisih ${rp(rf.residual)}. Komponennya dienumerasi dari register `
         + `(perolehan, penyusutan periode, pelepasan), bukan diturunkan dari saldo akhir; karena itu ia dapat gagal, dan kali ini gagal.`,
     dups.length
-      ? `${dups.length} pasangan kandidat pencatatan ganda lintas-register — belum ada keputusan firma yang tercatat.`
+      ? `${terdeteksi} pasangan kandidat pencatatan ganda lintas-register · ${board.open} belum diputuskan`
+        + `${board.stale ? ` · ${board.stale} keputusan atas pasangan yang tak lagi terdeteksi` : ''}.`
       : 'Tidak ada kandidat pencatatan ganda lintas-register.',
+    board.confirmed
+      ? `${board.confirmed} pasangan DIKONFIRMASI duplikat oleh firma — ${rp(board.confirmedCost)} harga perolehan diakui tercatat dua kali. `
+        + 'Register BELUM dikoreksi: penghentian pengakuan menggeser saldo dan merupakan pekerjaan tersendiri (PR-2). '
+        + 'Sampai itu selesai, angka harga perolehan & nilai buku di kertas kerja ini LEBIH TINGGI dari aset fisik yang ada.'
+      : 'Tidak ada pasangan yang dikonfirmasi duplikat oleh firma.',
     `Disusun ${input.preparedOn}${input.preparedBy ? ' oleh ' + input.preparedBy : ''}`,
   ];
 

@@ -4,7 +4,8 @@ import { AMS } from './data';
 import { BO } from './data_backoffice';
 import { FIRMFIN, cashWatchFloorJt } from './data_firmfin';
 import { CASH_SCENARIOS, cashForecast, scenarioByKey, type ForecastRow, type ForecastSeedRow } from './treasury_forecast';
-import { assetsAt, activeAssets, duplicateCandidates, rollForward, type AssetComputed, type AssetRegister, type DisposalRef, type RollForward } from './data_fixedassets';
+import { assetsAt, activeAssets, depreciationSchedule, duplicateCandidates, rollForward, type AssetComputed, type AssetRegister, type DisposalRef, type DupCandidate, type RollForward } from './data_fixedassets';
+import { DUP_VERDICT_LABEL, dupBoard, dupDecisionRecord, dupPairKey, type DupBoard, type DupBoardRow, type DupDecisionMap, type DupVerdict } from './fixedassets_dup_decisions';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
 import { fxRevaluation, type FxPosition, type FxRevalRow } from './canon_fx';
@@ -584,7 +585,16 @@ function FixedAssets() {
   const totNbv = reg.totNbv;
   const totAnnual = reg.totAnnualDep;
   const cats = reg.byClass;
-  const dups = useMemoTR(() => duplicateCandidates(), []);
+  const dups: DupCandidate[] = useMemoTR(() => duplicateCandidates(), []);
+
+  /* FA2 — jalur keputusan kandidat pencatatan ganda (usulan-FA2 disetujui).
+     Lingkup FIRMA: kunci `assetDupDecisions.v1` tak terdaftar di
+     `AMS_PERSIST_SCOPE`, jadi ia scope `firm` — register aset milik firma, bukan
+     perikatan. Kewenangannya `FIRMFIN_EDIT`, DIDAFTARKAN eksplisit di
+     `capForWrite` (rbac.ts); tanpa itu kunci firm-scope jatuh ke FIRM_ADMIN dan
+     peran 'Finance Firma' ditolak server atas dokumennya sendiri. */
+  const [dupDecisions, setDupDecisions] = useAmsPersist('assetDupDecisions.v1', () => ({}));
+  const board = useMemoTR(() => dupBoard(dups, (dupDecisions || {}) as DupDecisionMap), [dups, dupDecisions]);
 
   /* --- Roll-forward NBV: DIENUMERASI, bukan plug ---
      Dulu panel ini menulis `NBV awal = totNbv + totAnnual` dengan capex dan
@@ -607,11 +617,39 @@ function FixedAssets() {
 
   /* FA4 — identitas penerbit dari SSOT. Register aset tetap adalah dokumen firma
      yang DISEGEL; nama firma yang salah pada dokumen bersegel memberi otoritas
-     pada isi yang keliru, jadi tanpa identitas ekspor tidak keluar sama sekali. */
+     pada isi yang keliru, jadi tanpa identitas ekspor tidak keluar sama sekali.
+
+     Dibaca dari `useAuth().firm` — kunci yang BENAR-BENAR diterbitkan
+     AuthProvider (`firm: D.FIRM`, contexts.tsx). Tetangga di berkas ini membaca
+     `useFirm().firm.name`; FirmContext TIDAK PERNAH menerbitkan kunci `firm`,
+     sehingga tombol-tombol ekspor itu berdiri permanen `disabled` — cacat yang
+     sedang ditutup terpisah. Menirunya di sini akan mengulang cacat yang sama
+     dengan baju baru. */
   const auth = useAuth();
   const sessionName = String((auth && auth.user && auth.user.name) || '');
-  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
-  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
+  const sessionRole = String((auth && auth.user && auth.user.role) || '');
+  const firmName = String((auth && auth.firm && auth.firm.name) || '');
+
+  /* Gate UI = gate server. `can(FIRMFIN_EDIT)` adalah peta yang SAMA dengan
+     `capForWrite('firm','assetDupDecisions.v1')`, jadi tombol yang hidup di sini
+     tidak dapat berakhir sebagai tulisan yang ditolak. Identitas sesi juga
+     wajib: keputusan tanpa penanggung jawab bukan catatan. */
+  const canDecideDup = !!(auth && auth.can && auth.can(CAP.FIRMFIN_EDIT)) && !!sessionName;
+  const dupGateNote = !sessionName
+    ? 'Identitas sesi tak tersedia — keputusan tidak dapat diatribusikan.'
+    : 'Perlu kewenangan Keuangan Firma (firmfin.edit) untuk memutuskan.';
+  const { logActivity } = useAudit();
+  const decideDup = (row: DupBoardRow, verdict: DupVerdict, reason: string) => {
+    const d = dups.find((x) => dupPairKey(x) === row.key);
+    if (!d) return;   /* pasangan usang: keputusannya disimpan, tak dapat diubah lagi */
+    const rec = dupDecisionRecord(d, { verdict, who: sessionName, role: sessionRole, when: String(AMS.TODAY), reason });
+    setDupDecisions((m: DupDecisionMap) => ({ ...(m || {}), [row.key]: rec }));
+    if (logActivity) logActivity({
+      who: sessionName,
+      what: `${DUP_VERDICT_LABEL[verdict].toLowerCase()} — kandidat pencatatan ganda ${row.finId} ⟷ ${row.gaId} · ${reason}`,
+      mod: 'fixedassets', icon: verdict === 'duplikat' ? 'flag' : 'check',
+    });
+  };
 
   /* FA1 — kertas kerja disusun modul MURNI dari HASIL MESIN yang sama dengan
      yang dirender (`reg` & `rollFwd` di atas). Tidak ada hitungan kedua di sini:
@@ -619,7 +657,7 @@ function FixedAssets() {
      berbohong — ia akan berselisih dengan layar dan gerbangnya memerah. */
   const onExportAssets = async () => {
     await amsExportXlsx(fixedAssetsExportModel({
-      register: reg, rollFwd, dups,
+      register: reg, rollFwd, board,
       glCode: GL_ASET_TETAP, glBalance: glNbv,
       firmName, preparedOn: String(AMS.TODAY), preparedBy: sessionName,
     }));
@@ -692,32 +730,8 @@ function FixedAssets() {
           </Panel>
         </div>
 
-        {dups.length > 0 && (
-          <Panel title="Kandidat Pencatatan Ganda" sub={`${dups.length} pasangan lintas-register — perlu keputusan firma`}>
-            <div className="tiny" style={{ marginBottom: 9, lineHeight: 1.55 }}>
-              Register ini adalah penggabungan dua daftar yang tak pernah didamaikan (Keuangan &amp; GA/Fasilitas).
-              Pasangan berikut sekelas dan diperoleh berdekatan, sehingga mungkin aset FISIK yang sama tercatat dua kali.
-              Sistem <b>tidak</b> menghapusnya sendiri — menebak pasangan mana yang duplikat berarti mengarang.
-            </div>
-            <table className="dtbl">
-              <thead><tr><th>Kelas</th><th>Aset — register Keuangan</th><th>Aset — register GA</th><th className="num">Selisih hari</th><th className="num">Nilai gabungan</th></tr></thead>
-              <tbody>
-                {dups.map((d: { a: { id: string; name: string; src: string }; b: { id: string; name: string; src: string }; cat: string; daysApart: number; combinedCost: number }) => {
-                  const fin = d.a.src === 'finance' ? d.a : d.b;
-                  const ga = d.a.src === 'finance' ? d.b : d.a;
-                  return (
-                    <tr key={fin.id + '|' + ga.id}>
-                      <td className="tiny">{d.cat}</td>
-                      <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{fin.id}</span> <span style={{ fontWeight: 600 }}>{fin.name}</span></td>
-                      <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{ga.id}</span> <span style={{ fontWeight: 600 }}>{ga.name}</span></td>
-                      <td className="num mono">{d.daysApart}</td>
-                      <td className="num" style={{ fontWeight: 600 }}>{fmt(d.combinedCost / 1e6, 0)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Panel>
+        {board.rows.length > 0 && (
+          <DupCandidatesPanel board={board} canDecide={canDecideDup} gateNote={dupGateNote} onDecide={decideDup} />
         )}
 
         <Panel noBody>
@@ -753,17 +767,144 @@ function FixedAssets() {
   );
 }
 
-function DepreciationSchedule({ a, onClose }: any) {
+/* ============================================================
+   FA2 — Kandidat Pencatatan Ganda: panel yang akhirnya punya jalur keputusan.
+   ------------------------------------------------------------
+   Panel ini dulu menyatakan sendiri "perlu keputusan firma" tanpa satu pun cara
+   merekamnya. Sekarang keputusannya ter-persist FIRM-scope
+   (`assetDupDecisions.v1`, kewenangan `FIRMFIN_EDIT`), membawa pelaku, peran,
+   tanggal (klok SSOT) dan alasan, dan ikut ke kertas kerja tersegel.
+
+   Yang diputuskan TIDAK hilang dari daftar — register aset tetap adalah dokumen
+   yang diaudit, dan keputusan yang tak terlihat lagi tak dapat ditinjau.
+   `duplikat` adalah PENGUNGKAPAN, bukan koreksi: ia tidak menghentikan pengakuan
+   baris mana pun (itu PR-2, dan ia menggeser saldo).
+   ============================================================ */
+function DupCandidatesPanel({ board, canDecide, gateNote, onDecide }: {
+  board: DupBoard;
+  canDecide: boolean;
+  gateNote: string;
+  onDecide: (row: DupBoardRow, verdict: DupVerdict, reason: string) => void;
+}) {
   const { fmt } = AMS;
-  const startYear = new Date(a.acq).getFullYear();
-  const annual = a.cost / a.life;
-  const curYear = 2026;
-  let acc = 0;
-  const sched = Array.from({ length: a.life }, (_, i) => {
-    const yr = startYear + i;
-    acc += annual;
-    return { yr, dep: annual, acc, nbv: a.cost - acc, current: yr === curYear };
-  });
+  const [draft, setDraft] = useStateTR(null);
+  const [reason, setReason] = useStateTR('');
+  const [showDecided, setShowDecided] = useStateTR(false);
+  const draftKey = draft ? String(draft.key) : '';
+  const terdeteksi = board.rows.filter((r) => r.detected).length;
+  const list: DupBoardRow[] = showDecided ? board.rows : board.rows.filter((r) => !r.decision);
+  const batal = () => { setDraft(null); setReason(''); };
+  const buka = (r: DupBoardRow, verdict: DupVerdict) => { setDraft({ key: r.key, verdict }); setReason(''); };
+
+  return (
+    <Panel title="Kandidat Pencatatan Ganda"
+      sub={`${terdeteksi} pasangan lintas-register · ${board.open} belum diputuskan${board.stale ? ` · ${board.stale} keputusan atas pasangan yang tak lagi terdeteksi` : ''}`}>
+      <div className="tiny" style={{ marginBottom: 9, lineHeight: 1.55 }}>
+        Register ini adalah penggabungan dua daftar yang tak pernah didamaikan (Keuangan &amp; GA/Fasilitas).
+        Pasangan berikut sekelas dan diperoleh berdekatan, sehingga mungkin aset FISIK yang sama tercatat dua kali.
+        Sistem <b>tidak</b> menghapusnya sendiri — menebak pasangan mana yang duplikat berarti mengarang.
+        Keputusan firma dicatat di sini beserta pelaku dan alasannya, berlaku untuk seluruh firma, dan ikut ke kertas kerja.
+        Menandai sebuah pasangan <b>duplikat</b> adalah pengungkapan: ia <b>tidak</b> mengeluarkan aset dari register.
+      </div>
+
+      {board.confirmed > 0 && (
+        <div className="tiny" style={{ marginBottom: 9, padding: '8px 11px', background: 'var(--red-bg)', borderRadius: 4, color: 'var(--red)', fontWeight: 600, lineHeight: 1.55 }}>
+          <I.alert size={12} /> Firma menyatakan {board.confirmed} pasangan benar-benar duplikat — Rp {fmt(board.confirmedCost / 1e6, 0)} jt harga perolehan
+          diakui tercatat dua kali. Register <b>belum</b> dikoreksi: penghentian pengakuan menggeser harga perolehan, nilai buku,
+          roll-forward dan saldo yang dibandingkan dengan kontrol GL — pekerjaan tersendiri (PR-2). Sampai itu selesai,
+          angka aset tetap firma <b>lebih tinggi</b> dari aset fisik yang ada.
+        </div>
+      )}
+
+      {board.decided > 0 && (
+        <div className="row ac" style={{ marginBottom: 8 }}>
+          <button type="button" className="btn sm" aria-pressed={!!showDecided} onClick={() => setShowDecided((s: boolean) => !s)}>
+            {showDecided ? 'Sembunyikan yang sudah diputuskan' : `Tampilkan ${board.decided} yang sudah diputuskan`}
+          </button>
+        </div>
+      )}
+
+      {list.length === 0 ? (
+        <div className="tiny muted" style={{ lineHeight: 1.55 }}>
+          Seluruh {board.decided} pasangan sudah diputuskan firma. Keputusannya tidak dihapus — tekan tombol di atas untuk meninjaunya.
+        </div>
+      ) : (
+        <table className="dtbl">
+          <thead><tr><th>Kelas</th><th>Aset — register Keuangan</th><th>Aset — register GA</th><th className="num">Selisih hari</th><th className="num">Nilai gabungan</th><th style={{ width: 260 }}>Keputusan firma</th></tr></thead>
+          <tbody>
+            {list.map((r) => (
+              <React.Fragment key={r.key}>
+                <tr>
+                  <td className="tiny">
+                    {r.cat}
+                    {!r.detected && <div style={{ marginTop: 3 }}><Badge kind="gray">tak lagi terdeteksi</Badge></div>}
+                  </td>
+                  <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.finId}</span> <span style={{ fontWeight: 600 }}>{r.finName}</span></td>
+                  <td><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.gaId}</span> <span style={{ fontWeight: 600 }}>{r.gaName}</span></td>
+                  <td className="num mono">{r.daysApart}</td>
+                  <td className="num" style={{ fontWeight: 600 }}>{fmt(r.combinedCost / 1e6, 0)}</td>
+                  <td>
+                    {r.decision ? (
+                      <div className="tiny" style={{ lineHeight: 1.5 }}>
+                        <Badge kind={r.decision.verdict === 'duplikat' ? 'amber' : 'green'}>{DUP_VERDICT_LABEL[r.decision.verdict]}</Badge>
+                        <div className="muted" style={{ marginTop: 2 }}>{r.decision.who}{r.decision.role ? ' · ' + r.decision.role : ''} · {r.decision.when}</div>
+                        <div className="muted" style={{ marginTop: 2, fontStyle: 'italic' }}>“{r.decision.reason}”</div>
+                        {r.detected && canDecide && (
+                          <button type="button" className="btn sm" style={{ marginTop: 5 }}
+                            onClick={() => buka(r, r.decision && r.decision.verdict === 'bukan' ? 'duplikat' : 'bukan')}>
+                            Ubah keputusan
+                          </button>
+                        )}
+                      </div>
+                    ) : canDecide ? (
+                      <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
+                        <button type="button" className="btn sm" onClick={() => buka(r, 'bukan')}>Bukan duplikat</button>
+                        <button type="button" className="btn sm" onClick={() => buka(r, 'duplikat')}>Duplikat</button>
+                      </div>
+                    ) : (
+                      <span className="tiny muted"><I.lock size={11} /> {gateNote}</span>
+                    )}
+                  </td>
+                </tr>
+                {draftKey === r.key && (
+                  <tr>
+                    <td colSpan={6} style={{ background: 'var(--surface-2)' }}>
+                      <div style={{ display: 'grid', gap: 6, padding: '8px 2px' }}>
+                        <label className="tiny" htmlFor={'dup-reason-' + r.key} style={{ fontWeight: 600 }}>
+                          Alasan — {DUP_VERDICT_LABEL[draft.verdict as DupVerdict]}: {r.finId} ⟷ {r.gaId} (wajib dicatat)
+                        </label>
+                        <textarea id={'dup-reason-' + r.key} className="input" rows={2} value={reason}
+                          onChange={(e: { target: { value: string } }) => setReason(e.target.value)}
+                          placeholder="Dasar keputusan: pemeriksaan fisik, nomor seri, dokumen perolehan…"
+                          style={{ width: '100%', padding: 8, fontFamily: 'var(--ui)', lineHeight: 1.4, resize: 'vertical' }} />
+                        <div className="row ac gap6">
+                          <button type="button" className="btn sm" onClick={batal}>Batal</button>
+                          <Btn sm variant="primary" disabled={!String(reason).trim()}
+                            onClick={() => { onDecide(r, draft.verdict as DupVerdict, String(reason).trim()); batal(); }}>
+                            <I.check size={12} /> Catat keputusan
+                          </Btn>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Panel>
+  );
+}
+
+/* Mesin penyusutan LOKAL yang lolos dari PR-1 dicabut di sini. Panel ini dulu
+   menghitung `a.cost / a.life` (mengabaikan `residu`) dengan tahun berjalan
+   sebagai literal `2026` — dua angka untuk satu aset, di dua panel bersebelahan.
+   Skedulnya kini `depreciationSchedule()`, yang MEMBACA `depreciate()`. */
+function DepreciationSchedule({ a, onClose }: { a: AssetComputed; onClose: () => void }) {
+  const { fmt } = AMS;
+  const curYear = new Date(AMS.TODAY).getFullYear();
+  const sched = depreciationSchedule(a);
   return (
     <div style={{ minWidth: 0 }}>
       <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -774,24 +915,27 @@ function DepreciationSchedule({ a, onClose }: any) {
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
           <KvBox label="Harga perolehan" v={'Rp ' + fmt(a.cost / 1e6, 0) + ' jt'} />
           <KvBox label="Masa manfaat" v={a.life + ' tahun'} />
-          <KvBox label="Penyusutan / tahun" v={'Rp ' + fmt(annual / 1e6, 0) + ' jt'} />
+          <KvBox label="Penyusutan / tahun" v={'Rp ' + fmt(a.annualDep / 1e6, 0) + ' jt'} />
           <KvBox label="Nilai buku kini" v={'Rp ' + fmt(a.nbv / 1e6, 0) + ' jt'} accent="var(--green)" />
         </div>
         <div className="tiny muted upper" style={{ marginBottom: 8 }}>Skedul Penyusutan (garis lurus)</div>
         <table className="dtbl">
           <thead><tr><th>Tahun</th><th className="num">Penyusutan</th><th className="num">Akumulasi</th><th className="num">Nilai Buku</th></tr></thead>
           <tbody>
-            {sched.map((s: any) => (
-              <tr key={s.yr} style={{ background: s.current ? 'var(--blue-050)' : 'transparent', fontWeight: s.current ? 700 : 400 }}>
-                <td style={{ fontWeight: 600 }}>{s.yr}{s.current && <span className="tiny" style={{ color: 'var(--blue)' }}> · kini</span>}</td>
+            {sched.map((s) => (
+              <tr key={s.yr} style={{ background: s.yr === curYear ? 'var(--blue-050)' : 'transparent', fontWeight: s.yr === curYear ? 700 : 400 }}>
+                <td style={{ fontWeight: 600 }}>{s.yr}{s.yr === curYear && <span className="tiny" style={{ color: 'var(--blue)' }}> · kini</span>}</td>
                 <td className="num">{fmt(s.dep / 1e6, 0)}</td>
                 <td className="num muted">{fmt(s.acc / 1e6, 0)}</td>
-                <td className="num" style={{ fontWeight: 600 }}>{fmt(Math.max(0, s.nbv) / 1e6, 0)}</td>
+                <td className="num" style={{ fontWeight: 600 }}>{fmt(s.nbv / 1e6, 0)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ marginTop: 8 }}>Nilai residu Rp 0 · metode garis lurus · Rp jt</div>
+        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
+          Nilai residu Rp {fmt(a.residu / 1e6, 0)} jt · garis lurus, diprorata bulanan sejak bulan perolehan
+          (karena itu tahun perolehan &amp; tahun terakhir tidak penuh) · Rp jt
+        </div>
       </div>
     </div>
   );

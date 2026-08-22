@@ -1,9 +1,19 @@
 # Usulan FA2 — kandidat pencatatan ganda aset tetap: jalur keputusan
 
-> Status: **USULAN — menunggu keputusan Ari. Belum dikerjakan.**
+> Status: **DISETUJUI 2026-08-23 & DIKERJAKAN** — Ari memilih rekomendasi di tiap
+> pertanyaan (lingkup **firm** · kewenangan **`FIRMFIN_EDIT` eksplisit** · nasib
+> pasangan yang diputuskan **opsi B**). Dokumen ini dipertahankan sebagai catatan
+> keputusan, bukan sebagai usulan terbuka.
 > Dibuat 2026-08-22 menjawab FA2 di [`prompts-perbaikan/33-fixedassets.md`](prompts-perbaikan/33-fixedassets.md).
 > Bukan PRD (nama berkas sengaja tak berawalan `prd` agar tak masuk registri status §7).
-> FA1 · FA3 · FA4 dari prompt yang sama SUDAH dikerjakan dan tidak menunggu keputusan ini.
+> FA1 · FA3 · FA4 dari prompt yang sama sudah dikerjakan lebih dulu.
+>
+> **Yang dibangun:** `migration/src/fixedassets_dup_decisions.ts` (murni) ·
+> panel `DupCandidatesPanel` di `view_firmtreasury.tsx` · cabang
+> `assetDupDecisions.v1` di `capForWrite` (`migration/src/rbac.ts`) · kolom
+> keputusan di lembar 'Kandidat Pencatatan Ganda' kertas kerja. Gerbang:
+> `fixedassets_dup_decisions.test.ts` · `fixedassets_render.test.ts` ·
+> `fixedassets_export.test.ts` · `rbac.test.ts`.
 
 ## Cacat yang terverifikasi
 
@@ -110,8 +120,29 @@ sama dengan yang baru saja dicabut dari tiga modul lain: kontrol yang tampak bek
 tulisan yang ditolak, atau keputusan yang tersimpan di tempat yang tak seorang pun
 cari. Itu sebabnya saya berhenti di sini alih-alih menebak.
 
-## Yang saya butuhkan untuk melanjutkan
+## Keputusan Ari (2026-08-23) — dan apa yang dibangun atasnya
 
-1. Lingkup: **firm** atau **engagement**?
-2. Kewenangan: **`FIRMFIN_EDIT`** cukup, atau perlu rantai dua-lapis?
-3. Nasib pasangan yang diputuskan: **B** (usul saya), atau **A**, atau **C** (= PR-2)?
+1. **Lingkup: firm.** Kunci `assetDupDecisions.v1` tak didaftarkan di
+   `AMS_PERSIST_SCOPE`, jadi `useAmsPersist` menempatkannya di scope `firm`
+   (`PR4_ENGAGEMENT_KEY_RE` tak mencocokkannya). Satu keputusan berlaku untuk
+   seluruh firma.
+2. **Kewenangan: `FIRMFIN_EDIT`, didaftarkan eksplisit.** `capForWrite` di
+   `migration/src/rbac.ts` — satu peta yang sama yang diimpor
+   `server/src/rbac.ts`, jadi gate UI dan penegakan server tak dapat berbeda.
+   Gerbang perilakunya menguji bahwa peran 'Finance Firma' benar-benar lolos,
+   bukan sekadar bahwa namanya `FIRMFIN_EDIT`.
+   **Rantai dua-lapis TIDAK dibangun** — pertanyaan itu hanya relevan bila
+   keputusan mengubah register, dan opsi B memastikan ia tidak.
+3. **Opsi B.** Pasangan yang diputuskan tetap tampil dengan statusnya, di balik
+   penyaring "Tampilkan N yang sudah diputuskan". Verdict `duplikat` adalah
+   PENGUNGKAPAN: layar dan kertas kerja menyatakan berapa harga perolehan yang
+   firma akui tercatat dua kali, **dan** bahwa register belum dikoreksi.
+   Keputusan atas pasangan yang tak lagi dihitung mesin **disimpan** dan ditandai
+   *tak lagi terdeteksi*; ia tidak ikut dijumlahkan sebagai duplikat aktif, karena
+   ia tak lagi menggambarkan register.
+
+Tiga penjaga yang ditambahkan di luar tiga jawaban itu, karena tanpanya catatannya
+tidak berguna: **pelaku, alasan, dan tanggal WAJIB** (`dupDecisionRecord` melempar
+bila salah satunya kosong); stempel diambil dari **klok SSOT** (`AMS.TODAY`), bukan
+jam mesin; dan keputusan ikut ke **jejak audit** lewat `logActivity`, bukan hanya ke
+dokumennya.

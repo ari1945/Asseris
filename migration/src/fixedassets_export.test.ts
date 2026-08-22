@@ -17,6 +17,7 @@ import {
   FIXED_ASSETS, assetsAt, activeAssets, duplicateCandidates, rollForward,
   type AssetSeed, type DisposalRef,
 } from './data_fixedassets';
+import { dupBoard, dupDecisionRecord, dupPairKey, type DupDecisionMap } from './fixedassets_dup_decisions';
 import { fixedAssetsExportModel, type AssetExportModel } from './fixedassets_export';
 
 const REF = new Date('2026-03-09');
@@ -30,11 +31,11 @@ const SEED_DISPOSALS: DisposalRef[] = [
   { id: 'DSP-00', assetId: 'AST-0512', date: '2025-11-10', status: 'Selesai' },
 ];
 
-function model(disposals: DisposalRef[], seed: AssetSeed[] = FIXED_ASSETS): AssetExportModel {
+function model(disposals: DisposalRef[], seed: AssetSeed[] = FIXED_ASSETS, decisions: DupDecisionMap = {}): AssetExportModel {
   return fixedAssetsExportModel({
     register: assetsAt(REF, activeAssets(disposals, seed)),
     rollFwd: rollForward(REF, disposals, seed),
-    dups: duplicateCandidates(seed),
+    board: dupBoard(duplicateCandidates(seed), decisions),
     glCode: GL_CODE,
     glBalance: GL_BAL,
     firmName: 'KAP Uji & Rekan',
@@ -141,7 +142,7 @@ describe('FA1b — angka di berkas identik dengan hasil `rollForward()`', () => 
     };
     const m = fixedAssetsExportModel({
       register: assetsAt(REF, activeAssets(SEED_DISPOSALS)),
-      rollFwd: palsu, dups: [], glCode: GL_CODE, glBalance: GL_BAL,
+      rollFwd: palsu, board: dupBoard([], {}), glCode: GL_CODE, glBalance: GL_BAL,
       firmName: 'KAP Uji & Rekan', preparedOn: '2026-03-09',
     });
     expect(komponen(m, 'NBV awal periode')).toBe(rp(111_111_111));
@@ -152,7 +153,7 @@ describe('FA1b — angka di berkas identik dengan hasil `rollForward()`', () => 
   it('kertas kerja tanpa identitas penerbit DITOLAK', () => {
     expect(() => fixedAssetsExportModel({
       register: assetsAt(REF, activeAssets(SEED_DISPOSALS)),
-      rollFwd: rollForward(REF, SEED_DISPOSALS), dups: [],
+      rollFwd: rollForward(REF, SEED_DISPOSALS), board: dupBoard([], {}),
       glCode: GL_CODE, glBalance: GL_BAL, firmName: '  ', preparedOn: '2026-03-09',
     })).toThrow(/nama firma/i);
   });
@@ -219,5 +220,54 @@ describe('FA1d — kandidat pencatatan ganda ikut ke berkas', () => {
     const m = model(SEED_DISPOSALS, seed);
     expect(m.sheets.some((s) => s.name === 'Kandidat Pencatatan Ganda')).toBe(false);
     expect(m.meta.join(' ')).toContain('Tidak ada kandidat pencatatan ganda');
+  });
+});
+
+/* ------------------------------------------------------------------
+   FA2 — keputusan firma ikut ke kertas kerja
+   ------------------------------------------------------------------ */
+
+describe('FA2 — keputusan atas kandidat pencatatan ganda ikut ke berkas', () => {
+  const putusan = (verdict: 'bukan' | 'duplikat', reason: string): DupDecisionMap => {
+    const d = duplicateCandidates()[0];
+    return {
+      [dupPairKey(d)]: dupDecisionRecord(d, {
+        verdict, who: 'Bayu Santoso', role: 'Finance Firma', when: '2026-03-09', reason,
+      }),
+    };
+  };
+
+  it('pelaku, peran, tanggal dan alasan tercetak — bukan hanya verdictnya', () => {
+    const m = model(SEED_DISPOSALS, FIXED_ASSETS, putusan('bukan', 'Nomor seri tak beririsan.'));
+    const s = sheet(m, 'Kandidat Pencatatan Ganda');
+    const baris = s.rows.find((r) => String(r[8]) !== 'Belum diputuskan');
+    expect(baris, 'keputusan tak ikut ke berkas').toBeTruthy();
+    expect(String(baris![8])).toBe('Bukan duplikat');
+    expect(String(baris![9])).toBe('Bayu Santoso');
+    expect(String(baris![10])).toBe('Finance Firma');
+    expect(String(baris![11])).toBe('2026-03-09');
+    expect(String(baris![12])).toContain('Nomor seri');
+  });
+
+  it('"duplikat dikonfirmasi" menyatakan nilainya DAN bahwa register belum dikoreksi', () => {
+    const d = duplicateCandidates()[0];
+    const m = model(SEED_DISPOSALS, FIXED_ASSETS, putusan('duplikat', 'Satu server fisik, dua nomor aset.'));
+    const meta = m.meta.join(' \n ');
+    expect(meta).toContain('DIKONFIRMASI duplikat');
+    expect(meta, 'nilainya tak disebut').toContain(rp(d.combinedCost));
+    expect(meta, 'berkas tak mengatakan registernya belum dikoreksi').toContain('BELUM dikoreksi');
+    expect(String(sheet(m, 'Kandidat Pencatatan Ganda').totals?.[12])).toContain('BELUM dikoreksi');
+    /* Dan register di berkasnya memang TIDAK berubah — FA2 bukan PR-2. */
+    expect(sheet(m, 'Register Aset').rows.length).toBe(FIXED_ASSETS.length);
+  });
+
+  it('tanpa keputusan, berkas menyatakan itu apa adanya', () => {
+    const m = model(SEED_DISPOSALS);
+    const meta = m.meta.join(' \n ');
+    expect(meta).toContain('belum diputuskan');
+    expect(meta).toContain('Tidak ada pasangan yang dikonfirmasi duplikat');
+    const s = sheet(m, 'Kandidat Pencatatan Ganda');
+    expect(s.rows.every((r) => String(r[8]) === 'Belum diputuskan')).toBe(true);
+    expect(s.rows.every((r) => String(r[7]) === 'Terdeteksi')).toBe(true);
   });
 });
