@@ -1,14 +1,15 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm } from './contexts';
+import { useAuditHeavy, useFirm } from './contexts';
 import { useInvoiceRegister } from './use_invoices';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
-import { recognitionSchedule, type RevenueRow } from './revenue_psak72';
+import { pmExtraHours } from './profit_model';
+import { hoursOfEngagements, recognitionSchedule, type RevenueGap, type RevenueRow } from './revenue_psak72';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Pendapatan & Penagihan
@@ -20,6 +21,16 @@ const { useState: useStateRV, useMemo: useMemoRV } = React;
 /* Sel nomor perikatan = KONTROL, bukan `<tr onClick>`: memilih baris dulu
    mustahil tanpa tetikus (tak ada fokus, tak ada Enter/Spasi, tak ada nama
    yang dibacakan). Gaya di sini supaya tombol tetap terlihat seperti sel. */
+/** Kunci state berat yang dihidrasi modul ini. Konstanta modul supaya
+    identitas array-nya stabil (useAuditHeavy menyimpannya di deps). */
+const HEAVY_TIME = ['timeEntries'];
+
+/** Nama manusiawi tiap lubang data — supaya banner menyebut SEBABNYA,
+    bukan sekadar "ada yang kurang". */
+const gapLabel = (g: RevenueGap): string => (g === 'contract-unknown'
+  ? 'nilai kontrak belum ditetapkan'
+  : 'kemajuan belum terukur (jam/anggaran tak lengkap)');
+
 const revIdBtnStyle: Record<string, string | number> = {
   background: 'none', border: 0, padding: '0', font: 'inherit', cursor: 'pointer',
   color: 'var(--blue)', fontWeight: 700, textAlign: 'left', width: '100%',
@@ -27,7 +38,7 @@ const revIdBtnStyle: Record<string, string | number> = {
 
 function FirmRevenue() {
   const { fmt } = AMS;
-  const { engagements, clients } = useFirm();
+  const { engagements, clients, activeEngagementId } = useFirm();
   /* SATU PINTU register faktur (`use_invoices.ts`) — tertagih (PSAK 72) dan
      antrean dunning dulu membaca literal seed, jadi faktur yang baru dikirim
      atau baru lunas di modul Billing tak pernah sampai ke layar ini. */
@@ -36,17 +47,29 @@ function FirmRevenue() {
   const [sel, setSel] = useStateRV(null);
   const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 
-  /* PSAK 72 — skedul pengakuan. Aritmetikanya tinggal di `revenue_psak72.ts`
-     (murni & teruji, modul ini dulu punya nol uji). Dua hal yang berubah bagi
-     layar: nilai kontrak HANYA berasal dari fee klien — perikatan yang tak
-     menemukan kliennya membawa lubang data yang TERBACA alih-alih proksi
-     `materialitas × 0,4`; dan kolom metode berhenti mengarang klasifikasi
-     PSAK 72, karena setiap baris di sini diukur dengan cara yang sama. */
-  const schedule = useMemoRV(
-    () => recognitionSchedule({ engagements, clients, invoices }),
-    [engagements, clients, invoices],
+  /* Timesheet perikatan AKTIF (hidrasi ditunda, Tahap 8). Dipakai HANYA lewat
+     `pmExtraHours`, yang mengkreditkan jam melebihi baseline seed kepada
+     perikatan aktif saja — enam perikatan lain tetap memakai jam aktualnya
+     sendiri. Tanpa disiplin itu, angka pendapatan firma akan berubah hanya
+     karena pengguna membuka perikatan yang berbeda (#269, dicabut #274). */
+  const { timeEntries } = useAuditHeavy(HEAVY_TIME);
+  const extraHours = useMemoRV(
+    () => pmExtraHours(timeEntries, AMS.TIME_ENTRIES, activeEngagementId),
+    [timeEntries, activeEngagementId],
   );
-  const { rows: sched, gaps, totRecognized, totBilled, totAsset, totLiab, backlog } = schedule;
+
+  /* PSAK 72 — skedul pengakuan. Aritmetikanya tinggal di `revenue_psak72.ts`
+     (murni & teruji, modul ini dulu punya nol uji). Yang berubah bagi layar:
+     nilai kontrak HANYA dari fee klien; kemajuan METODE MASUKAN berpagar
+     (jam/anggaran, kewajiban tuntas ⇒ 100%) menggantikan `progress` yang
+     diketik; dan kolom metode berhenti mengarang klasifikasi PSAK 72. */
+  const schedule = useMemoRV(
+    () => recognitionSchedule({
+      engagements, clients, invoices, hoursOf: hoursOfEngagements(engagements, extraHours),
+    }),
+    [engagements, clients, invoices, extraHours],
+  );
+  const { rows: sched, gapRows, totRecognized, totBilled, totAsset, totLiab, backlog } = schedule;
 
   /* Dunning — overdue / due invoices */
   const dun = invoices.filter((i: any) => i.status !== 'Paid' && i.status !== 'Draft').map((i: any) => {
@@ -86,13 +109,13 @@ function FirmRevenue() {
           {tab === 'recognition' && (
             <div className="grid" style={{ gridTemplateColumns: selRow ? '1fr 340px' : '1fr', gap: 0, alignItems: 'stretch' }}>
               <div style={{ minWidth: 0, borderRight: selRow ? '1px solid var(--line)' : 'none' }}>
-                {gaps.length > 0 && (
+                {gapRows.length > 0 && (
                   <div className="tiny" style={{ margin: '10px 12px 0', padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}>
-                    <I.alert size={12} /> {gaps.length} perikatan tanpa nilai kontrak yang dinyatakan ({gaps.map((g: RevenueRow) => g.id).join(' · ')}) — klien tak ditemukan atau fee belum diisi. Barisnya TETAP tampil tetapi pendapatan diakui, aset & liabilitas kontraknya kosong dan tak ikut total; tagihannya tetap dihitung. Lengkapi fee klien di Registry untuk memasukkannya.
+                    <I.alert size={12} /> {gapRows.length} perikatan belum dapat diakui ({gapRows.map((g: RevenueRow) => g.id + ' — ' + g.gaps.map(gapLabel).join(' & ')).join(' · ')}). Barisnya TETAP tampil tetapi pendapatan diakui, aset & liabilitas kontraknya kosong dan tak ikut total; tagihannya tetap dihitung. Tak ada taksiran yang dipasang menggantikannya.
                   </div>
                 )}
                 <table className="dtbl">
-                  <thead><tr><th>Engagement</th><th>Klien</th><th>Pengukuran</th><th className="num">Nilai Kontrak</th><th className="num">% Dilaporkan</th><th className="num">Diakui</th><th className="num">Ditagih</th><th className="num">Aset/(Liab) Kontrak</th></tr></thead>
+                  <thead><tr><th>Engagement</th><th>Klien</th><th>Pengukuran</th><th className="num">Nilai Kontrak</th><th className="num">% Terukur</th><th className="num">Diakui</th><th className="num">Ditagih</th><th className="num">Aset/(Liab) Kontrak</th></tr></thead>
                   <tbody>
                     {sched.map((r: RevenueRow) => {
                       const net = r.asset == null || r.liab == null ? null : r.asset - r.liab;
@@ -105,9 +128,11 @@ function FirmRevenue() {
                               onClick={() => setSel(open ? null : r.id)}>{r.id}</button>
                           </td>
                           <td className="truncate" style={{ maxWidth: 140, fontWeight: 600 }}>{r.client.replace('PT ', '')}</td>
-                          <td className="tiny muted">{r.measure}{r.classificationOpen && <> <Badge kind="amber">klasifikasi terbuka</Badge></>}</td>
+                          <td className="tiny muted">{r.measure}{r.capped && <> <Badge kind="amber">jam melewati anggaran</Badge></>}{r.classificationOpen && <> <Badge kind="amber">klasifikasi terbuka</Badge></>}</td>
                           <td className="num">{r.contract == null ? <span className="muted">belum ditetapkan</span> : fmt(r.contract / 1e6, 0)}</td>
-                          <td className="num"><div className="row ac gap6" style={{ justifyContent: 'flex-end' }}><div style={{ width: 38, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.pct * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green-solid)' }} /></div><span className="tiny mono" style={{ width: 28 }}>{(r.pct * 100).toFixed(0)}%</span></div></td>
+                          <td className="num">{r.pct == null ? <span className="muted">belum terukur</span> : (
+                            <div className="row ac gap6" style={{ justifyContent: 'flex-end' }} title={r.actualHrs == null || r.budgetHrs == null ? undefined : fmt(r.actualHrs) + ' / ' + fmt(r.budgetHrs) + ' jam'}><div style={{ width: 38, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.pct * 100) + '%', height: '100%', borderRadius: 3, background: r.completed ? 'var(--blue-solid)' : 'var(--green-solid)' }} /></div><span className="tiny mono" style={{ width: 28 }}>{(r.pct * 100).toFixed(0)}%</span></div>
+                          )}</td>
                           <td className="num" style={{ fontWeight: 600 }}>{r.recognized == null ? <span className="muted">—</span> : fmt(r.recognized / 1e6, 0)}</td>
                           <td className="num muted">{fmt(r.billed / 1e6, 0)}</td>
                           <td className="num" style={{ fontWeight: 600, color: net == null ? 'var(--ink-4)' : net > 0 ? 'var(--blue)' : net < 0 ? 'var(--amber)' : 'var(--ink-3)' }}>{net == null || net === 0 ? '—' : net > 0 ? fmt(net / 1e6, 0) : '(' + fmt(-net / 1e6, 0) + ')'}</td>
@@ -117,7 +142,7 @@ function FirmRevenue() {
                   </tbody>
                   <tfoot><tr><td colSpan={5}>TOTAL (Rp jt)</td><td className="num">{fmt(totRecognized / 1e6, 0)}</td><td className="num">{fmt(totBilled / 1e6, 0)}</td><td className="num">{fmt((totAsset - totLiab) / 1e6, 0)}</td></tr></tfoot>
                 </table>
-                <div className="tiny muted" style={{ padding: '8px 12px' }}>Pendapatan diakui = nilai kontrak (fee klien) × <b>% penyelesaian yang dilaporkan</b> perikatan — bukan pengukuran masukan (jam yang dikeluarkan) maupun keluaran yang diserahkan; usulan penggantinya ada di <span className="mono">docs/usulan-R3-metode-pengukuran-psak72.md</span>. Kolom <b>Ditagih</b> dibaca dari register faktur. Tanda <b>klasifikasi terbuka</b> menandai perikatan non-audit: kewajiban pelaksanaannya mungkin diselesaikan pada satu titik waktu, sehingga persentase penyelesaian belum tentu ukuran yang tepat baginya — klasifikasinya belum ditetapkan. Pilih nomor perikatan untuk skedul pengakuan rinci.</div>
+                <div className="tiny muted" style={{ padding: '8px 12px' }}>Pendapatan diakui = nilai kontrak (fee klien) × kemajuan <b>metode masukan</b> — jam aktual terhadap jam anggaran (PSAK 72 ¶B18) — dengan dua pagar: perikatan yang kewajiban pelaksanaannya <b>tuntas</b> diakui 100% tanpa memandang jam, dan jam yang <b>melewati anggaran</b> tidak menambah pendapatan. Sampai 2026-08-22 kolom ini memakai persentase yang dilaporkan perikatan — angka yang diketik, tanpa jejak dan tanpa dasar terdokumentasi; dasar barunya adalah timesheet, sehingga angkanya bergerak ketika jam dicatat (<span className="mono">docs/prd-revenue-input-method-psak72.md</span>). Kolom <b>Ditagih</b> dibaca dari register faktur. Tanda <b>klasifikasi terbuka</b> menandai perikatan non-audit: kewajiban pelaksanaannya mungkin diselesaikan pada satu titik waktu, sehingga ukuran kemajuan apa pun belum tentu tepat baginya — klasifikasinya belum ditetapkan. Pilih nomor perikatan untuk skedul pengakuan rinci.</div>
               </div>
               {selRow && <RecognitionDrill r={selRow} onClose={() => setSel(null)} />}
             </div>
@@ -125,7 +150,7 @@ function FirmRevenue() {
 
           {tab === 'rollfwd' && (
             <div style={{ padding: 14 }}>
-              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Saldo awal (1 Jan) & komponen pergerakan berikut ILUSTRASI demo — faktor pembagi (×0,74/×0,32/…) disintesis agar menutup ke saldo akhir, BUKAN diturunkan dari buku besar (roadmap Ledger-based Reporting, Program E). Pada tabel di bawah, hanya <b>Ditagih</b> yang merupakan fakta: ia dibaca dari register faktur. <b>Diakui</b> adalah TURUNAN — fee klien × persentase penyelesaian yang <b>dilaporkan</b> perikatan, bukan hasil pengukuran masukan atau keluaran — sehingga aset & liabilitas kontrak yang diturunkan darinya ikut memikul ketidakpastian persentase itu.</div>
+              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Saldo awal (1 Jan) & komponen pergerakan berikut ILUSTRASI demo — faktor pembagi (×0,74/×0,32/…) disintesis agar menutup ke saldo akhir, BUKAN diturunkan dari buku besar (roadmap Ledger-based Reporting, Program E). Pada tabel di bawah, hanya <b>Ditagih</b> yang merupakan fakta: ia dibaca dari register faktur. <b>Diakui</b> adalah TURUNAN — fee klien × kemajuan yang diukur dari jam aktual terhadap anggaran (PSAK 72 ¶B18, berpagar) — sehingga aset & liabilitas kontrak yang diturunkan darinya ikut bergantung pada kelengkapan timesheet dan pada anggaran jam yang dipakai sebagai penyebut.</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <Panel title="Aset Kontrak — Roll-Forward" sub="unbilled receivable · PSAK 72">
                   <div style={{ display: 'grid', gap: 7 }}>
@@ -174,7 +199,7 @@ function FirmRevenue() {
                   </tbody>
                   <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totRecognized / 1e6, 0)}</td><td className="num">{fmt(totBilled / 1e6, 0)}</td><td className="num">{fmt(totAsset / 1e6, 0)}</td><td className="num">{fmt(totLiab / 1e6, 0)}</td><td></td></tr></tfoot>
                 </table>
-                <div className="row gap14 tiny muted" style={{ padding: '8px 12px' }}><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--green-solid)', display: 'inline-block' }} /> Pendapatan diakui</span><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--blue-solid)', display: 'inline-block' }} /> Telah ditagih</span>{gaps.length > 0 && <span style={{ color: 'var(--amber)', fontWeight: 600 }}>{gaps.length} perikatan tanpa nilai kontrak tak dapat diposisikan di sini (lihat tab Pengakuan Pendapatan).</span>}</div>
+                <div className="row gap14 tiny muted" style={{ padding: '8px 12px' }}><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--green-solid)', display: 'inline-block' }} /> Pendapatan diakui</span><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--blue-solid)', display: 'inline-block' }} /> Telah ditagih</span>{gapRows.length > 0 && <span style={{ color: 'var(--amber)', fontWeight: 600 }}>{gapRows.length} perikatan belum dapat diakui, jadi tak dapat diposisikan di sini (lihat tab Pengakuan Pendapatan).</span>}</div>
               </Panel>
             </div>
           )}
@@ -231,26 +256,27 @@ function RecognitionDrill({ r, onClose }: { r: RevenueRow; onClose: () => void }
       <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={16} /></button>
     </div>
   );
-  /* Tanpa nilai kontrak tak ada satu pun angka di panel ini yang punya dasar —
-     jadi panelnya berkata begitu alih-alih menggambar kurva dari NaN. */
-  if (r.contract == null || r.recognized == null) {
+  /* Tanpa nilai kontrak ATAU tanpa kemajuan terukur, tak ada satu pun angka di
+     panel ini yang punya dasar — jadi panelnya berkata begitu alih-alih
+     menggambar kurva dari NaN. */
+  if (r.contract == null || r.recognized == null || r.pct == null) {
     return (
       <div style={{ minWidth: 0 }}>
         {head}
         <div style={{ padding: 14 }}>
           <div className="tiny" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}>
-            <I.alert size={12} /> Nilai kontrak perikatan ini belum ditetapkan — kliennya tak ditemukan atau fee-nya belum diisi. Pendapatan diakui, aset & liabilitas kontrak tak dapat dihitung. Telah ditagih: Rp {fmt(r.billed / 1e6, 0)} jt.
+            <I.alert size={12} /> {r.gaps.map(gapLabel).join(' · ')}. Pendapatan diakui, aset & liabilitas kontrak tak dapat dihitung untuk perikatan ini, dan tak ada taksiran yang dipasang menggantikannya. Telah ditagih: Rp {fmt(r.billed / 1e6, 0)} jt.
           </div>
         </div>
       </div>
     );
   }
-  const contract = r.contract, recognized = r.recognized;
+  const contract = r.contract, recognized = r.recognized, pct = r.pct;
   const net = (r.asset || 0) - (r.liab || 0);
   // ILUSTRASI: pemecahan bulanan disintesis linear — tak ada jurnal per bulan.
   const months = ['Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar'];
   const cum = months.map((m, i) => {
-    const frac = Math.min(r.pct, r.pct * (i + 1) / months.length);
+    const frac = Math.min(pct, pct * (i + 1) / months.length);
     return { m, recog: Math.round(contract * frac) };
   });
   const waterfall: [string, number, string][] = [
@@ -263,8 +289,8 @@ function RecognitionDrill({ r, onClose }: { r: RevenueRow; onClose: () => void }
       {head}
       <div style={{ padding: 14 }}>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-          <KvBox label="% Dilaporkan" v={(r.pct * 100).toFixed(0) + '%'} accent="var(--green)" />
-          <KvBox label="Jam aktual / anggaran" v={r.hrs == null || r.budgetHrs == null ? '—' : fmt(r.hrs) + ' / ' + fmt(r.budgetHrs)} />
+          <KvBox label="% Terukur" v={(pct * 100).toFixed(0) + '%'} accent={r.completed ? 'var(--blue)' : 'var(--green)'} />
+          <KvBox label="Jam aktual / anggaran" v={r.actualHrs == null || r.budgetHrs == null ? '—' : fmt(r.actualHrs) + ' / ' + fmt(r.budgetHrs)} />
           <KvBox label="Aset Kontrak" v={r.asset ? 'Rp ' + fmt(r.asset / 1e6, 0) + ' jt' : '—'} accent="var(--blue)" />
           <KvBox label="Liab. Kontrak" v={r.liab ? 'Rp ' + fmt(r.liab / 1e6, 0) + ' jt' : '—'} accent="var(--amber)" />
         </div>
@@ -289,7 +315,7 @@ function RecognitionDrill({ r, onClose }: { r: RevenueRow; onClose: () => void }
             );
           })}
         </div>
-        <div className="tiny muted" style={{ lineHeight: 1.5 }}>Pemecahan bulanan di atas <b>disintesis linear</b> dari persentase yang dilaporkan — tak ada jurnal pengakuan per bulan yang mendasarinya. Hanya titik akhirnya (diakui s.d. kini) yang setara angka tabel.</div>
+        <div className="tiny muted" style={{ lineHeight: 1.5 }}>Pemecahan bulanan di atas <b>disintesis linear</b> dari kemajuan terukur — tak ada jurnal pengakuan per bulan yang mendasarinya. Hanya titik akhirnya (diakui s.d. kini) yang setara angka tabel.</div>
         <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: net > 0 ? 'var(--blue-050)' : net < 0 ? 'var(--amber-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="tiny" style={{ lineHeight: 1.5 }}>{net > 0
             ? <>Pendapatan diakui <b>melebihi</b> tagihan sebesar Rp {fmt(net / 1e6, 0)} jt — diakui sebagai <b>aset kontrak</b>. Terbitkan faktur termin untuk menagih.</>

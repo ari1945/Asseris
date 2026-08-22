@@ -1,6 +1,10 @@
 # Usulan R3 — pengukuran kemajuan PSAK 72: apa yang boleh menggerakkan pendapatan firma?
 
-> Status: **USULAN — menunggu keputusan Ari. Belum dikerjakan.**
+> Status: **TERJAWAB — Ari memilih Opsi A (2026-08-22).** Rinciannya, termasuk kedua
+> pagarnya dan empat pertanyaan yang masih terbuka, pindah ke
+> [`prd-revenue-input-method-psak72.md`](prd-revenue-input-method-psak72.md);
+> implementasi menunggu sign-off ("Proceed.") di sana. Dokumen ini tetap sebagai
+> catatan analisis yang mendasari pilihan itu — jangan diedit lagi.
 > Dibuat 2026-08-22 menjawab V3 pada prompt perbaikan modul `revenue`
 > (Pendapatan & Penagihan, [`view_firmrevenue.tsx`](../migration/src/view_firmrevenue.tsx)).
 > Bukan PRD (nama berkas sengaja tak berawalan `prd` agar tak masuk registri status §7).

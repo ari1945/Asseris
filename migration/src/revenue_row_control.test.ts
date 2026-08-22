@@ -17,15 +17,21 @@ import { createRoot } from 'react-dom/client';
 
 /* Konteks & register di-mock: FirmProvider asli menarik state dari server. */
 const ENGAGEMENTS = [
-  { id: 'ENG-A', clientId: 'C-1', type: 'Audit Laporan Keuangan', progress: 60, partner: 'Uji Partner, CPA', actualHrs: 100, budgetHrs: 200 },
-  { id: 'ENG-B', clientId: 'C-HILANG', type: 'Agreed-Upon Procedures', progress: 20, partner: 'Uji Partner, CPA', actualHrs: 10, budgetHrs: 100 },
+  { id: 'ENG-A', clientId: 'C-1', type: 'Audit Laporan Keuangan', status: 'Fieldwork', partner: 'Uji Partner, CPA', actualHrs: 100, budgetHrs: 200 },
+  { id: 'ENG-B', clientId: 'C-HILANG', type: 'Agreed-Upon Procedures', status: 'Planning', partner: 'Uji Partner, CPA', actualHrs: 10, budgetHrs: 100 },
+  { id: 'ENG-C', clientId: 'C-1', type: 'Audit Laporan Keuangan', status: 'Completed', partner: 'Uji Partner, CPA', actualHrs: 945, budgetHrs: 980 },
 ];
 const CLIENTS = [{ id: 'C-1', name: 'PT Uji Sentosa', fee: 1_000_000_000 }];
 const INVOICES = [{ id: 'INV-1', eng: 'ENG-A', client: 'PT Uji Sentosa', status: 'Sent', amount: 200_000_000, paid: 0, due: '2026-01-31' }];
 
 vi.mock('./contexts', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('./contexts');
-  return { ...actual, useFirm: () => ({ engagements: ENGAGEMENTS, clients: CLIENTS }) };
+  return {
+    ...actual,
+    useFirm: () => ({ engagements: ENGAGEMENTS, clients: CLIENTS, activeEngagementId: 'ENG-A' }),
+    /* Hidrasi berat dilewati: yang diuji halamannya, bukan pengambilan datanya. */
+    useAuditHeavy: () => ({ timeEntries: [] }),
+  };
 });
 vi.mock('./use_invoices', () => ({
   useInvoiceRegister: () => ({ register: INVOICES, setRegister: () => {}, canEdit: false }),
@@ -58,7 +64,7 @@ describe('V5 — pemilihan perikatan tanpa tetikus', () => {
   it('halaman merender, dan nomor perikatan adalah <button> native', () => {
     mount();
     const btns = idButtons();
-    expect(btns.map((b) => b.textContent)).toEqual(['ENG-A', 'ENG-B']);
+    expect(btns.map((b) => b.textContent)).toEqual(['ENG-A', 'ENG-B', 'ENG-C']);
     /* Native ⇒ ikut urutan tab tanpa tabIndex buatan, dan punya nama. */
     btns.forEach((b) => {
       expect(b.tagName).toBe('BUTTON');
@@ -97,7 +103,8 @@ describe('V5 — pemilihan perikatan tanpa tetikus', () => {
     mount();
     React.act(() => { idButtons()[1].click(); });
     const text = document.body.textContent || '';
-    expect(text).toContain('Nilai kontrak perikatan ini belum ditetapkan');
+    expect(text).toContain('nilai kontrak belum ditetapkan');
+    expect(text).toContain('tak ada taksiran yang dipasang menggantikannya');
     expect(text).not.toContain('NaN');
     expect(text).not.toContain('Kurva Pengakuan');
   });
@@ -110,6 +117,16 @@ describe('V2/V4 — apa yang dinyatakan layar', () => {
     expect(text).toContain('belum ditetapkan');
     expect(text).toContain('ENG-B');
     expect(text).not.toContain('NaN');
+  });
+
+  it('kemajuan yang tampil datang dari jam, dan Pagar 1 terlihat di layar', () => {
+    mount();
+    const text = document.body.textContent || '';
+    /* ENG-A 100/200 jam ⇒ 50%; ENG-C `Completed` ⇒ 100% meski jamnya 96%. */
+    expect(text).toContain('50%');
+    expect(text).toContain('kewajiban tuntas (100%)');
+    expect(text).toContain('masukan (jam/anggaran)');
+    expect(text).not.toContain('96%');
   });
 
   it('pita ilustrasi tak menjamin kolom "diakui" sebagai data nyata', () => {
