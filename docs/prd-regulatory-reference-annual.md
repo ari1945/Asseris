@@ -270,3 +270,33 @@ TER digeser ke 2000 (2 uji merah) · registry tak terdaftar ditambahkan (1 uji m
 **Yang masih menunggu DATA dari Ari** (Q-1 · Q-4 · Q-5) — mekanismenya kini membuat
 ketiganya terlihat setiap hari di halaman `regref`, bukan terlupakan:
 Lampiran PMK 168 · cuti bersama 2026 · pencocokan batas upah BPJS 2026.
+
+---
+
+## Adendum 2026-08-22 — set keenam masuk katalog: KURS
+
+Tahap A menutup lima set (BPJS · TER · PTKP · biaya jabatan · kalender libur). Set
+**keenam** menyusul dari arc lain (prompt `docs/prompts-perbaikan/32-cashbank.md`, CB1),
+dan ia justru yang paling langsung menyentuh pembukuan firma:
+
+| Set | Sebelumnya | Sekarang |
+|---|---|---|
+| Kurs valas (`FX_RATES`/`FX_BOOK`) | dua record di `data_part2.ts` tanpa tanggal, tanpa dasar, tanpa masa | satu `RegRefSet` di `canon_fx.ts` (kurs tercatat + kurs penutup berpasangan), `enforcement: 'block'`, masa **2026-03-01 – 2026-03-31** |
+
+Mengapa memblokir: selisih kurs yang dihitung modul `cashbank` **dibukukan** ke
+`GL 5-600` lewat JV-0319/JV-0320 (#249). Kurs yang kedaluwarsa karena itu tidak
+menghasilkan angka layar yang salah saja — ia menghasilkan **jurnal** yang salah.
+
+Yang sengaja **tidak** dilakukan: memperpanjang masa ke April 2026 dan seterusnya.
+Aplikasi ini hanya mengetahui kurs SATU periode; menyalinnya ke periode berikutnya
+mengembalikan persis cacat yang dicabut. April dan seterusnya **tak tercakup**, dan
+tab Revaluasi Valas berhenti sambil mengatakan sebabnya.
+
+`verified: false` — angkanya adalah yang sudah dipakai pembukuan, tetapi **dasar
+kutipannya belum dicocokkan**: belum ditetapkan apakah kurs tengah BI atau kurs KMK.
+Ini masuk daftar "menunggu DATA dari Ari" bersama Lampiran PMK 168, cuti bersama 2026,
+dan batas upah BPJS 2026.
+
+Tabel live-verified di atas karena itu bertambah satu baris: pada **2027-01-01** yang
+berhenti adalah **BPJS *dan* kurs**; pada **2026-03-01** kurs bertanda *belum dicocokkan*
+bersama BPJS & TER.

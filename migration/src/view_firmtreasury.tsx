@@ -6,7 +6,10 @@ import { FIRMFIN } from './data_firmfin';
 import { assetsAt, activeAssets, duplicateCandidates, rollForward, type AssetComputed, type AssetRegister, type DisposalRef, type RollForward } from './data_fixedassets';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
-import { useAmsPersist, useAudit, useAuth } from './contexts';
+import { fxRevaluation, type FxPosition, type FxRevalRow } from './canon_fx';
+import { bankReconExportModel, type ReconExportAccount } from './bank_recon_export';
+import { reconMatchTrail } from './bank_recon_actor';
+import { useAmsPersist, useAudit, useAuth, useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
@@ -226,8 +229,6 @@ function BudgetLineDrill({ b, onClose }: any) {
 
 function CashBank() {
   const { fmt } = AMS;
-  const FX: any = AMS.FX_RATES;
-  const FX_BOOK: any = AMS.FX_BOOK;
   const accts: any = AMS.BANK_ACCOUNTS;
   const [tab, setTab] = useStateTR('positions');
   /* Rekonsiliasi PER REKENING (PRD cash-bank-reconciliation-register). Dulu satu objek
@@ -244,16 +245,25 @@ function CashBank() {
   const auth = useAuth();
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* Identitas sesi NYATA (W7) — dibaca langsung, bukan lewat `useCurrentAuditor()`
+     yang sendiri jatuh ke `AMS.USER.name` (data seed, sama untuk siapa pun yang
+     login). Tanpa identitas, pencocokan TIDAK dicatat; lihat `bank_recon_actor`. */
+  const sessionName = String((auth && auth.user && auth.user.name) || '');
+  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
+  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
 
-  const idrOf = (a: any) => a.balance * FX[a.ccy];
-  const totalIDR = accts.reduce((s: any, a: any) => s + idrOf(a), 0);
+  /* Ekuivalen IDR TIDAK dihitung ulang di sini: `bankIDR` sudah datang dari
+     `FIRMFIN.bankRecon()` pada kurs penutup periode yang direkonsiliasi, dan itu
+     angka yang sama yang dipakai baris Kas di Sumber Kebenaran. */
+  const totalIDR = per.reduce((s: number, p: any) => s + p.bankIDR, 0);
+  const totalKnown = Number.isFinite(totalIDR);
 
   const toggleMatch = (id: any) => {
     if (!canEdit) return;
     const l = lines.find((x: { id: string }) => x.id === id);
     setLines((list: any) => list.map((x: { id: string; matched: boolean }) => x.id === id ? { ...x, matched: !x.matched } : x));
-    logActivity && logActivity({ who, action: 'RECON_TOGGLE', detail: `${id} ${l && l.desc ? '· ' + l.desc.slice(0, 40) : ''} → ${l && l.matched ? 'belum cocok' : 'cocok'}` });
+    const trail = reconMatchTrail(sessionName, l, !(l && l.matched));
+    if (trail && logActivity) logActivity({ who: trail.who, action: trail.action, detail: trail.detail });
   };
   /* Aritmetikanya TIDAK dihitung ulang di sini — seluruhnya datang dari
      `FIRMFIN.bankRecon()`, supaya layar ini dan baris Kas di Firm Finance mustahil
@@ -265,14 +275,22 @@ function CashBank() {
   const reconciled = !!R && R.reconciled;
   const belumSeimbang = per.filter((p: any) => !p.reconciled).length;
 
-  // FX revaluation — kurs buku kini dari SSOT (AMS.FX_BOOK), bukan konstanta privat view
+  /* REVALUASI VALAS pada KLOK SSOT — kurs dipilih dari registry bermasa berlaku
+     (`canon_fx`, terdaftar di katalog regref dengan enforcement `block`). Bila
+     tanggal itu tak tercakup, `covered` false dan `total` NULL: perhitungan
+     BERHENTI dan menyatakan sebabnya, alih-alih merevaluasi pada kurs Maret 2026
+     selamanya — dan sejak #249 hasilnya benar-benar dibukukan (JV-0319/0320). */
   const valas = accts.filter((a: any) => a.ccy !== 'IDR');
-  const reval = valas.map((a: any) => {
-    const bookIDR = a.balance * FX_BOOK[a.ccy];
-    const mktIDR = a.balance * FX[a.ccy];
-    return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: FX_BOOK[a.ccy] };
-  });
-  const totReval = reval.reduce((s: any, r: any) => s + r.gain, 0);
+  const fxrv = fxRevaluation(accts as FxPosition[], String(AMS.TODAY));
+  const reval = fxrv.rows;
+  const totReval = fxrv.total;
+  const revalKnown = fxrv.covered && totReval != null;
+
+  const exportRecon = async (rows: ReconExportAccount[]) => {
+    await amsExportXlsx(bankReconExportModel({
+      accounts: rows, firmName, preparedOn: String(AMS.TODAY), preparedBy: sessionName,
+    }));
+  };
 
   const tabs = [{ id: 'positions', label: 'Posisi Kas & Bank' }, { id: 'recon', label: 'Rekonsiliasi Bank', count: unrec }, { id: 'fx', label: 'Revaluasi Valas', count: valas.length }];
 
@@ -284,9 +302,9 @@ function CashBank() {
       <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny muted" title="Read-only — entri transaksi kas/bank dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }} title={totalKnown ? 'Σ saldo menurut bank pada kurs penutup periode yang direkonsiliasi' : 'Tak dapat dinyatakan: kurs periode ini tak tercakup registry'}><Stat value={totalKnown ? 'Rp ' + fmt(totalIDR / 1e9, 2) + ' M' : '—'} label="Total Kas (ekuivalen IDR)" accent={totalKnown ? undefined : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={accts.length} label="Rekening Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Diakui (GL 5-600)" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }} title={revalKnown ? '' : fxrv.note}><Stat value={revalKnown ? (totReval! >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval!) / 1e6, 0) + ' jt' : '—'} label="Selisih Kurs Diakui (GL 5-600)" accent={!revalKnown ? 'var(--red)' : totReval! >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={unrec} label="Item Belum Direkonsiliasi" accent={unrec ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         </div>
 
@@ -297,19 +315,19 @@ function CashBank() {
             <table className="dtbl">
               <thead><tr><th>Rekening</th><th>No.</th><th>Mata Uang</th><th className="num">Saldo</th><th className="num">Kurs</th><th className="num">Ekuivalen IDR</th><th style={{ width: 90 }}>Porsi</th></tr></thead>
               <tbody>
-                {accts.map((a: any) => (
+                {per.map((a: any) => (
                   <tr key={a.id}>
                     <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
                     <td className="mono tiny muted">{a.no}</td>
                     <td><span className="chip tiny">{a.ccy}</span></td>
                     <td className="num" style={{ fontWeight: 600 }}>{(CCY_SYMBOL as any)[a.ccy]} {fmt(a.balance, 0)}</td>
-                    <td className="num tiny muted">{a.ccy === 'IDR' ? '—' : fmt(FX[a.ccy], 0)}</td>
-                    <td className="num">{fmt(idrOf(a) / 1e6, 0)} jt</td>
-                    <td><div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (idrOf(a) / totalIDR * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div></td>
+                    <td className="num tiny muted" title={a.fxCovered ? 'Kurs penutup ' + a.period : a.fxNote}>{a.ccy === 'IDR' ? '—' : a.fxCovered ? fmt(a.closingRate, 0) : 'tak tercakup'}</td>
+                    <td className="num">{a.fxCovered ? fmt(a.bankIDR / 1e6, 0) + ' jt' : '—'}</td>
+                    <td><div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}>{totalKnown && a.fxCovered && <div style={{ width: (a.bankIDR / totalIDR * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} />}</div></td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot><tr><td colSpan={5}>TOTAL EKUIVALEN IDR</td><td className="num">{fmt(totalIDR / 1e6, 0)} jt</td><td></td></tr></tfoot>
+              <tfoot><tr><td colSpan={5}>TOTAL EKUIVALEN IDR</td><td className="num">{totalKnown ? fmt(totalIDR / 1e6, 0) + ' jt' : '—'}</td><td></td></tr></tfoot>
             </table>
           )}
 
@@ -329,6 +347,19 @@ function CashBank() {
                 <span className="tiny muted" style={{ marginLeft: 'auto' }}>
                   {belumSeimbang === 0 ? 'Seluruh rekening menutup' : belumSeimbang + ' rekening belum menutup'} · {unrec} item terbuka
                 </span>
+                {/* Kertas kerja rekonsiliasi TIDAK tunduk gerbang Q-2: yang dikunci selisih
+                    akun kontrol adalah PERNYATAAN POSISI (Neraca Saldo & LK). Rekonsiliasi
+                    adalah alat penelusuran selisih itu — menguncinya mencabut satu-satunya
+                    dokumen yang menjelaskan mengapa penguncian terjadi. Keadaannya dinyatakan
+                    DI DALAM payload, bukan ditolak keluar. */}
+                <Btn sm variant="ghost" disabled={!R || !firmName} onClick={() => R && exportRecon([R])}
+                  title={firmName ? 'Ekspor kertas kerja rekonsiliasi rekening ini (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}>
+                  <I.download size={12} /> Ekspor rekening ini
+                </Btn>
+                <Btn sm variant="ghost" disabled={!per.length || !firmName} onClick={() => exportRecon(per)}
+                  title={firmName ? 'Ekspor kertas kerja seluruh rekening (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}>
+                  <I.download size={12} /> Seluruh rekening
+                </Btn>
               </div>
               <div className="row jb ac" style={{ marginBottom: 12 }}>
                 <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {R ? R.name : '—'} <span className="tiny muted">({R ? R.id : '—'} · GL {R ? R.acct : '—'})</span></div><div className="tiny muted">{canEdit ? 'Periode ' + (R ? R.period : '—') + ' · klik baris untuk tandai cocok/belum' : 'Periode ' + (R ? R.period : '—') + ' · tampilan read-only — pencocokan dibatasi peran Finance Firma / Partner'}</div></div>
@@ -367,33 +398,54 @@ function CashBank() {
             </div>
           )}
 
-          {tab === 'fx' && (
+          {tab === 'fx' && !revalKnown && (
+            <div style={{ padding: 14 }}>
+              {/* TAK TERCAKUP — dan karena itu TIDAK DIHITUNG. Bukan "0", bukan kurs
+                  periode terakhir: hasil revaluasi masuk buku besar firma, jadi masa
+                  yang tak terdaftar menghentikannya. */}
+              <div className="panel" style={{ padding: '14px 16px', borderLeft: '3px solid var(--red)' }}>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}>
+                  <Badge kind="red">Revaluasi dihentikan</Badge>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>Kurs untuk {String(AMS.TODAY)} tidak terdaftar</span>
+                </div>
+                <p className="tiny" style={{ margin: '0 0 8px', lineHeight: 1.6, color: 'var(--ink-2)', maxWidth: 820 }}>{fxrv.note}</p>
+                <p className="tiny" style={{ margin: 0, lineHeight: 1.6, color: 'var(--ink-2)', maxWidth: 820 }}>
+                  Masa berlaku yang terdaftar berakhir {fxrv.effective && fxrv.effective.to ? fxrv.effective.to : '—'}.
+                  Selisih kurs diakui di <b>GL 5-600</b> dan dibukukan lewat jurnal revaluasi, sehingga menghitungnya
+                  dengan kurs masa lain berarti memposting angka yang dasarnya sudah tidak berlaku. Daftarkan kurs
+                  periode berjalan di <b>Data Referensi Regulatori</b> lebih dulu.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {tab === 'fx' && revalKnown && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">diakui di laba rugi · JV-0319 &amp; JV-0320</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: number, r: FxRevalRow) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs penutup)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: number, r: FxRevalRow) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12, background: totReval! >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: totReval! >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval! >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval!) / 1e6, 0)} jt</div><div className="tiny muted">diakui di laba rugi · JV-0319 &amp; JV-0320</div></div>
               </div>
               <table className="dtbl">
-                <thead><tr><th>Rekening</th><th>Mata Uang</th><th className="num">Saldo Valas</th><th className="num">Kurs Perolehan</th><th className="num">Kurs Kini</th><th className="num">Nilai Tercatat</th><th className="num">Nilai Pasar</th><th className="num">Selisih Kurs</th></tr></thead>
+                <thead><tr><th>Rekening</th><th>Mata Uang</th><th className="num">Saldo Valas</th><th className="num">Kurs Perolehan</th><th className="num">Kurs Penutup</th><th className="num">Nilai Tercatat</th><th className="num">Nilai Pasar</th><th className="num">Selisih Kurs</th></tr></thead>
                 <tbody>
-                  {reval.map((r: any) => (
+                  {reval.map((r: FxRevalRow) => (
                     <tr key={r.id}>
                       <td style={{ fontWeight: 600 }}>{r.name} <span className="tiny muted">· {r.bank}</span></td>
                       <td><span className="chip tiny">{r.ccy}</span></td>
                       <td className="num">{(CCY_SYMBOL as any)[r.ccy]} {fmt(r.balance, 0)}</td>
                       <td className="num tiny muted">{fmt(r.bookRate, 0)}</td>
-                      <td className="num tiny">{fmt((AMS.FX_RATES as any)[r.ccy], 0)}</td>
+                      <td className="num tiny">{fmt(r.closingRate, 0)}</td>
                       <td className="num muted">{fmt(r.bookIDR / 1e6, 0)} jt</td>
                       <td className="num">{fmt(r.mktIDR / 1e6, 0)} jt</td>
                       <td className="num" style={{ fontWeight: 600, color: r.gain >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.gain >= 0 ? '+' : '−'}{fmt(Math.abs(r.gain) / 1e6, 0)} jt</td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={7}>TOTAL SELISIH KURS DIAKUI (GL 5-600)</td><td className="num" style={{ color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}{fmt(Math.abs(totReval) / 1e6, 0)} jt</td></tr></tfoot>
+                <tfoot><tr><td colSpan={7}>TOTAL SELISIH KURS DIAKUI (GL 5-600)</td><td className="num" style={{ color: totReval! >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval! >= 0 ? '+' : '−'}{fmt(Math.abs(totReval!) / 1e6, 0)} jt</td></tr></tfoot>
               </table>
               <div className="panel" style={{ marginTop: 12, padding: '10px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="tiny" style={{ lineHeight: 1.55 }}>Revaluasi pada tanggal pelaporan (PSAK 10). Angka ini <b>sudah dibukukan</b>, bukan sekadar ditampilkan: <b>JV-0319</b> (BCA Valas USD) &amp; <b>JV-0320</b> (DBS SGD) mendebit akun kas valas lawan <b>5-600 Laba (Rugi) Selisih Kurs</b> sebesar Rp {fmt(Math.abs(totReval) / 1e6, 1)} jt. Membatalkan posting keduanya mengembalikan buku ke kurs perolehan — dan rekonsiliasi rekening valas tidak lagi menutup.</div>
+                <div className="tiny" style={{ lineHeight: 1.55 }}>Revaluasi pada tanggal pelaporan (PSAK 10), memakai kurs yang berlaku {fxrv.effective ? fxrv.effective.from + ' – ' + (fxrv.effective.to || 'terbuka') : '—'}. Angka ini <b>sudah dibukukan</b>, bukan sekadar ditampilkan: <b>JV-0319</b> (BCA Valas USD) &amp; <b>JV-0320</b> (DBS SGD) mendebit akun kas valas lawan <b>5-600 Laba (Rugi) Selisih Kurs</b> sebesar Rp {fmt(Math.abs(totReval!) / 1e6, 1)} jt. Membatalkan posting keduanya mengembalikan buku ke kurs perolehan — dan rekonsiliasi rekening valas tidak lagi menutup.{fxrv.status === 'unverified' ? ' Dasar kutipan kurs belum dicocokkan dengan dokumen resminya (lihat Data Referensi Regulatori).' : ''}</div>
               </div>
             </div>
           )}
