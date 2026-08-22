@@ -7,6 +7,8 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { useInvoiceRegister } from './use_invoices';
+import { PHASE_ORDER, PHASE_LABEL } from './phase_canon';
+import { wpModuleStatuses, WP_MODULE_MAP } from './wp_signoff';
 import {
   tbModel, tbBilling, tbEntryValue, tbLabelMinggu, tbTanggalPanjang,
   type TBBilling, type TBClient, type TBModel, type TBTimeEntry, type TBWeeklySeries,
@@ -47,8 +49,15 @@ function useTBModel(
   timeEntries: TBTimeEntry[],
   e: { id: string; clientId?: string; progress?: number },
   clients: readonly TBClient[],
+  wpState: unknown,
 ): TBModel | null {
-  return useTBMemo(() => tbModel(timeEntries, e, clients), [timeEntries, e, clients]);
+  return useTBMemo(() => {
+    /* Kelengkapan terbukti per fase dari kertas kerja — kanon yang sama yang
+       dipakai cockpit (`phaseRollups`). Dulu `% Selesai` di tab ini adalah
+       literal 100/65/30/20 untuk setiap perikatan. */
+    const wpStatuses = wpModuleStatuses({ wpState } as never, Object.keys(WP_MODULE_MAP));
+    return tbModel(timeEntries, e, clients, undefined, wpStatuses);
+  }, [timeEntries, e, clients, wpState]);
 }
 
 /* small horizontal budget/actual bar */
@@ -59,7 +68,9 @@ function TBBar({ budget, actual, pct, max }: any) {
     <div style={{ position: 'relative', height: 18 }}>
       <div style={{ position: 'absolute', inset: 0, width: bw + '%', background: 'var(--surface-3)', borderRadius: 4 }} />
       <div style={{ position: 'absolute', top: 3, bottom: 3, width: aw + '%', background: over ? 'var(--red)' : 'var(--blue)', borderRadius: 3 }} />
-      {pct != null && <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(${(pct / 100) * bw}% - 1px)`, width: 2, background: 'var(--navy-solid)' }} title={'Earned ' + pct + '%'} />}
+      {/* pct null = TAK TERUKUR ⇒ tak ada penanda. Penanda di 0% akan terbaca
+          sebagai "nol persen terbukti", yang pernyataannya berbeda. */}
+      {pct != null && <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(${(pct / 100) * bw}% - 1px)`, width: 2, background: 'var(--navy-solid)' }} title={'Terbukti ' + Math.round(pct) + '%'} />}
     </div>
   );
 }
@@ -71,13 +82,13 @@ function TimeBudget() {
      ekonomi perikatan — sementara `activeClient` di komponen yang SAMA sudah
      membaca register yang hidup. Dua sumber untuk satu angka. */
   const { activeEngagement, activeClient, clients, locked } = useFirm();
-  const { timeEntries, addTimeEntry, team } = useAuditHeavy(['timeEntries']);
+  const { timeEntries, addTimeEntry, team, wpState } = useAuditHeavy(['timeEntries']);
   /* SATU PINTU register faktur (`use_invoices.ts`, #275) — penagihan perikatan
      ini dulu disintesis dari fee (TB6). */
   const { register: invoices } = useInvoiceRegister();
   const [tab, setTab] = useTB('overview');
   const e = activeEngagement;
-  const m = useTBModel(timeEntries, e, clients);
+  const m = useTBModel(timeEntries, e, clients, wpState);
   const billing = useTBMemo(
     () => tbBilling(invoices, e?.id, m ? m.fee : null, m ? m.revRecognized : null),
     [invoices, e, m],
@@ -97,9 +108,13 @@ function TimeBudget() {
       const tsRows = timeEntries.map((t: { date: string; member: string; task: string; phase: string; hours: number }) => [
         t.date, t.member.split(',')[0], t.task, t.phase, t.hours.toFixed(1),
       ]);
-      const phaseRows = m.phases.map((p: { id: string; label: string; budget: number; actual: number; eac: number; variance: number }) => [
-        p.id, p.label, Math.round(p.budget), Math.round(p.actual), Math.round(p.eac), Math.round(p.variance),
+      const phaseRows = m.phases.map((p) => [
+        p.id, p.label, Math.round(p.budget), Math.round(p.actual),
+        p.provenPct == null ? '—' : Math.round(p.provenPct) + '%', Math.round(p.variance),
       ]);
+      /* Jam yang tak dapat diatribusikan ke fase ikut diekspor sebagai barisnya
+         sendiri — kalau tidak, jumlah kolom Aktual takkan menutup ke perikatan. */
+      phaseRows.push(['—', 'Tanpa fase (jam pembuka roster)', '', Math.round(m.untaggedHrs), '—', '']);
       const rosterRows = m.roster.map((r: { name: string; role: string; budget: number; actual: number }) => [
         r.name.split(',')[0], r.role, Math.round(r.budget), r.actual.toFixed(1),
       ]);
@@ -114,7 +129,7 @@ function TimeBudget() {
           { name: 'Timesheet', heading: 'Timesheet (jam)',
             columns: ['Tanggal', 'Anggota', 'Tugas', 'Fase', 'Jam'], rows: tsRows, colWidths: [12, 20, 34, 14, 8] },
           { name: 'Anggaran Fase', heading: 'Anggaran vs aktual per fase (jam)',
-            columns: ['Fase', 'Label', 'Anggaran', 'Aktual', 'EAC', 'Varians'], rows: phaseRows, colWidths: [8, 30, 12, 12, 12, 12] },
+            columns: ['Fase', 'Label', 'Anggaran', 'Aktual', '% terbukti', 'Varians'], rows: phaseRows, colWidths: [12, 32, 12, 12, 12, 12] },
           { name: 'Roster', heading: 'Roster tim (jam)',
             columns: ['Anggota', 'Peran', 'Anggaran', 'Aktual'], rows: rosterRows, colWidths: [22, 22, 12, 12] },
         ],
@@ -271,15 +286,15 @@ function TBOverview({ m, e, klien }: { m: TBModel; e: any; klien: string }) {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Anggaran vs Aktual per Fase">
           <div style={{ display: 'grid', gap: 11 }}>
-            {m.phases.map((p: any) => {
-              const maxB = Math.max(...m.phases.map((x: any) => Math.max(x.budget, x.actual)));
+            {m.phases.map((p) => {
+              const maxB = Math.max(...m.phases.map((x) => Math.max(x.budget, x.actual)));
               return (
                 <div key={p.id}>
                   <div className="row jb tiny" style={{ marginBottom: 4 }}>
                     <span style={{ fontWeight: 600 }}>{p.label}</span>
-                    <span className="mono muted">{fmt(p.actual)} / {fmt(p.budget)} jam · {p.pct}%</span>
+                    <span className="mono muted">{fmt(p.actual, 1)} / {fmt(Math.round(p.budget))} jam · {p.provenPct == null ? '—' : Math.round(p.provenPct) + '%'}</span>
                   </div>
-                  <TBBar budget={p.budget} actual={p.actual} pct={p.pct} max={maxB} />
+                  <TBBar budget={p.budget} actual={p.actual} pct={p.provenPct} max={maxB} />
                 </div>
               );
             })}
@@ -287,7 +302,7 @@ function TBOverview({ m, e, klien }: { m: TBModel; e: any; klien: string }) {
           <div className="row gap8 ac tiny muted" style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
             <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue-solid)' }} /> Aktual</span>
             <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--surface-3)' }} /> Anggaran</span>
-            <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy-solid)' }} /> % selesai (earned)</span>
+            <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy-solid)' }} /> % terbukti (kertas kerja)</span>
           </div>
         </Panel>
 
@@ -349,63 +364,76 @@ function EacRow({ label, v, strong, accent }: any) {
 }
 
 /* =================== ANGGARAN PER FASE =================== */
-function TBPhase({ m, e }: any) {
+/* =================== ANGGARAN PER FASE ===================
+   TB7 — tab ini dulu menampilkan lima besaran karangan sekaligus: anggaran
+   fase dari bobot KEDUA (cockpit punya sendiri, angkanya berbeda), `% Selesai`
+   literal, EAC per fase yang diturunkan dari literal itu, kolom `Periode`
+   berisi kalender perikatan demo, dan panel "Timeline Fase" yang menggambar
+   Gantt dari geometri yang dipaku (`left=[4,30,67,86]`, `width=[24,36,16,12]`)
+   — posisi yang tak berasal dari tanggal mana pun karena tanggal per-fase tak
+   ada di data mana pun. Semuanya dicabut; yang tersisa punya sumber. */
+function TBPhase({ m, e }: { m: TBModel; e: any }) {
   const { fmt } = AMS;
-  /* Tenggat DARI perikatan aktif. Dulu kalimat ini berbunyi "31 Mar 2026" literal —
-     benar hanya untuk satu perikatan, dan diam-diam salah untuk semua yang lain. */
+  /* Tenggat DARI perikatan aktif — satu-satunya tanggal yang benar-benar ada. */
   const tenggat = tbTanggalPanjang(e?.deadline);
-  const totB = m.phases.reduce((s: any, p: any) => s + p.budget, 0);
-  const totA = m.phases.reduce((s: any, p: any) => s + p.actual, 0);
-  const totEac = m.phases.reduce((s: any, p: any) => s + p.eac, 0);
+  const totB = m.phases.reduce((s, p) => s + p.budget, 0);
+  const totA = m.phases.reduce((s, p) => s + p.actual, 0);
+  const terukur = m.phases.some((p) => p.provenPct != null);
   return (
     <>
-      <Panel noBody className="" >
-        <div className="panel-h"><h3>Anggaran Jam per Fase Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted" title="Total anggaran & jam pembuka menutup ke perikatan aktif; pembagian antar-fase memakai profil alokasi tetap, bukan pengukuran per fase">metode earned-value · pembagian antar-fase = model alokasi</span></div>
+      <Panel noBody className="">
+        <div className="panel-h">
+          <h3>Anggaran Jam per Fase Audit</h3>
+          <div style={{ flex: 1 }} />
+          <span className="tiny muted" title="Pembagian anggaran antar-fase memakai bobot alokasi kanon (phase_canon) — model, bukan pengukuran per fase. Kolom aktual & % terbukti adalah pengukuran.">
+            anggaran = model alokasi · aktual &amp; % terbukti = pengukuran
+          </span>
+        </div>
         <table className="dtbl">
-          <thead><tr><th>Fase</th><th>Periode</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">% Selesai</th><th className="num">Proyeksi (EAC)</th><th className="num">Varians</th><th>Status</th></tr></thead>
+          <thead><tr><th>Fase</th><th className="num">Anggaran</th><th className="num">Aktual (timesheet)</th><th className="num">% terbukti</th><th className="num">Varians</th><th>Status</th></tr></thead>
           <tbody>
-            {m.phases.map((p: any) => {
-              const eacVar = p.budget - p.eac;
-              const st = p.pct >= 100 ? 'Selesai' : eacVar < -10 ? 'Over-budget' : p.pct > 0 ? 'Berjalan' : 'Belum mulai';
-              const stKind = st === 'Selesai' ? 'green' : st === 'Over-budget' ? 'red' : st === 'Berjalan' ? 'blue' : 'gray';
+            {m.phases.map((p) => {
+              const pp = p.provenPct;
+              const st = pp == null ? 'Tak terukur' : pp >= 99.5 ? 'Selesai' : pp > 0 ? 'Berjalan' : 'Belum mulai';
+              const stKind = st === 'Selesai' ? 'green' : st === 'Berjalan' ? 'blue' : 'gray';
+              const v = p.variance;
               return (
                 <tr key={p.id}>
                   <td style={{ fontWeight: 600 }}>{p.label}</td>
-                  <td className="tiny muted mono">{p.period}</td>
-                  <td className="num mono">{fmt(p.budget)}</td>
-                  <td className="num mono" style={{ fontWeight: 600 }}>{fmt(p.actual)}</td>
-                  <td className="num mono">{p.pct}%</td>
-                  <td className="num mono">{fmt(Math.round(p.eac))}</td>
-                  <td className="num mono" style={{ color: eacVar < 0 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{eacVar >= 0 ? '+' : '−'}{fmt(Math.abs(Math.round(eacVar)))}</td>
+                  <td className="num mono">{fmt(Math.round(p.budget))}</td>
+                  <td className="num mono" style={{ fontWeight: 600 }}>{fmt(p.actual, 1)}</td>
+                  <td className="num mono">{pp == null ? '—' : Math.round(pp) + '%'}</td>
+                  <td className="num mono" style={{ color: v < 0 ? 'var(--red)' : 'var(--ink-2)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(Math.round(v)))}</td>
                   <td><Badge kind={stKind}>{st}</Badge></td>
                 </tr>
               );
             })}
+            {/* Jam yang tak dapat diatribusikan ke fase DINYATAKAN, tidak
+                disebar menurut bobot anggaran — pola `untaggedHrs` cockpit. */}
+            <tr>
+              <td className="muted" style={{ fontStyle: 'italic' }}>Tanpa fase — jam pembuka roster</td>
+              <td className="num mono muted">—</td>
+              <td className="num mono muted" style={{ fontWeight: 600 }}>{fmt(m.untaggedHrs, 1)}</td>
+              <td className="num mono muted">—</td>
+              <td className="num mono muted">—</td>
+              <td><Badge kind="gray">Tak berfase</Badge></td>
+            </tr>
           </tbody>
-          <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totB)}</td><td className="num">{fmt(totA)}</td><td className="num">{Math.round(totA / totEac * 100)}%</td><td className="num">{fmt(Math.round(totEac))}</td><td className="num" style={{ color: totB - totEac < 0 ? 'var(--red)' : 'var(--green)' }}>{totB - totEac >= 0 ? '+' : '−'}{fmt(Math.abs(Math.round(totB - totEac)))}</td><td></td></tr></tfoot>
+          <tfoot><tr><td>TOTAL</td><td className="num">{fmt(Math.round(totB))}</td><td className="num">{fmt(totA + m.untaggedHrs, 1)}</td><td className="num">—</td><td className="num">{fmt(Math.round(totB - totA - m.untaggedHrs))}</td><td></td></tr></tfoot>
         </table>
       </Panel>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12, alignItems: 'start' }}>
-        <Panel title="Timeline Fase" sub={`profil alokasi · tenggat ${tenggat || '—'}`}>
-          <div style={{ display: 'grid', gap: 10 }}>
-            {m.phases.map((p: any, i: any) => {
-              const seg = [[0, 18], [22, 25], [50, 8], [82, 4]][i]; // [leftStart%, span ticks≈]
-              const left = [4, 30, 67, 86][i];
-              const width = [24, 36, 16, 12][i];
-              return (
-                <div key={p.id}>
-                  <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{p.label}</span><span className="muted mono">{p.period}</span></div>
-                  <div style={{ position: 'relative', height: 16, background: 'var(--surface-3)', borderRadius: 4 }}>
-                    <div style={{ position: 'absolute', top: 2, bottom: 2, left: left + '%', width: width + '%', borderRadius: 3, background: p.pct >= 100 ? 'var(--green)' : 'var(--blue)', overflow: 'hidden' }}>
-                      <div style={{ width: p.pct + '%', height: '100%', background: 'rgba(255,255,255,.28)' }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        <Panel title="Apa yang diukur di tab ini" sub={tenggat ? `tenggat perikatan ${tenggat}` : 'tenggat perikatan belum ditetapkan'}>
+          <div className="tiny muted" style={{ display: 'grid', gap: 9, lineHeight: 1.55 }}>
+            <div><b>Anggaran per fase</b> adalah <b>model alokasi</b>: jam anggaran perikatan dibagi menurut bobot kanon (<span className="mono">phase_canon</span>) — bobot yang sama yang dipakai Engagement Cockpit, sehingga kedua layar tak lagi menjawab berbeda untuk perikatan yang sama.</div>
+            <div><b>Aktual per fase</b> adalah <b>fakta</b>: jam timesheet bertanggal, dikelompokkan menurut fase yang dicatat pada entrinya.</div>
+            <div><b>% terbukti</b> {terukur
+              ? <>adalah <b>pengukuran</b>: kelengkapan kertas kerja fase itu (bukti · kesimpulan · sign-off), kanon yang sama dengan pipeline fase di Cockpit. Ia menjawab “berapa yang <i>terdokumentasi</i>”, bukan “berapa yang manajer nyatakan selesai”.</>
+              : <>belum terukur pada perikatan ini — status kertas kerjanya belum tersedia, dan itu ditandai “—”, bukan 0%.</>}</div>
+            <div><b>Tidak ada kolom periode & tidak ada lini masa fase</b>: tanggal mulai/selesai per fase tidak ada di data mana pun. Yang bertanggal hanyalah tenggat perikatan, tenggat opini, dan batas arsip — semuanya di Engagement Cockpit.</div>
+            <div><b>Tidak ada EAC per fase</b>: memproyeksikannya dari kelengkapan dokumentasi akan mencampur jam yang dikonsumsi dengan ketertinggalan dokumentasi. Proyeksi jam tingkat perikatan ada di tab Ringkasan.</div>
           </div>
-          <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>Bilah terang = porsi terselesaikan.{tenggat && ` Tenggat perikatan ${tenggat}.`}</div>
         </Panel>
 
         <Panel title="Komposisi Jam per Peran" sub="aktual berjalan">
@@ -454,7 +482,10 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
     addTimeEntry({ member: form.member, phase: form.phase, task: form.task, hours: +form.hours, date: AMS.TODAY });
     setForm((f: any) => ({ ...f, task: '', hours: '' }));
   };
-  const phaseOpts = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Pelaporan'];
+  /* Dari kanon. Daftar literal di sini adalah daftar fase KEEMPAT di aplikasi,
+     dan ia yang menulis 'Pelaporan' ke data — ejaan yang cockpit tak kenal,
+     sehingga jamnya jatuh ke "jam tak bertanda" di layar itu. */
+  const phaseOpts = PHASE_ORDER;
 
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>

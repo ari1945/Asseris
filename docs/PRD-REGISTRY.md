@@ -11,7 +11,7 @@
 | Draft | 53 |
 | Approved | 5 |
 | In Progress | 11 |
-| Implemented | 38 |
+| Implemented | 39 |
 | Superseded | 1 |
 
 ## Daftar
@@ -120,6 +120,7 @@
 | docs/prd-smm-toolkit-map.md | Draft — PR-8 arc SMM (Fase 5). Q-1 = Opsi B (kanon + panel) & Q-2 = risiko ilustratif dirumuskan ulang (Ari 2026-08-13); menunggu sign-off ("Proceed.") |
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-timebudget-phase-profile.md | Implemented — Opsi B + peta bobot direkomendasikan (keputusan Ari 2026-08-22). SC-1..SC-7 tertutup: taksonomi fase disatukan ke taksonomi DATA (Perencanaan · Eksekusi · Finalisasi · Arsip) di `phase_canon.ts`, dengan pelipatan TERDAFTAR 'Specifics'→Eksekusi (bobot 0,413+0,196=0,609) dan 'Review & Arsip'→Arsip. Empat daftar fase → satu; bobot anggaran fase KEDUA dicabut (cockpit & T&B dulu membagi jam anggaran yang SAMA dengan bobot berbeda: 280/760/361/340/99 vs 320/1080/320/120 atas 1840 jam). `TB_PHASE_PROFILE` dicabut seluruhnya: `pct` literal → kelengkapan TERBUKTI dari kertas kerja (`phaseRollups`), `period` (kalender perikatan demo) dicabut mengikuti preseden `engagementMilestones`, `eac` per fase dicabut (memproyeksikan jam dari kelengkapan dokumentasi = mencampur dua masalah), `base` dicabut — jam pembuka roster tak lagi disebar menurut bobot melainkan dinyatakan sebagai `untaggedHrs`. Panel "Timeline Fase" (Gantt bergeometri dipaku `left=[4,30,67,86]`) dicabut. TEMUAN BARU: `progressBridge` atas himpunan kosong mengembalikan 0% — tak terbedakan dari "semua kertas kerja belum disentuh" — terlihat begitu 'Arsip' jadi fase tersendiri tanpa satu pun kertas kerja kanonik; `phaseRollups` kini `null` untuk fase kosong. **TERBUKA:** apakah `sa230` (+`sa580`/`sa710`/`sa720`) seharusnya pindah dari Finalisasi ke Arsip — pertanyaan metodologi audit; keadaannya didaftarkan di `PHASES_WITHOUT_WP` agar fase yang kosong karena KELALAIAN tetap memerahkan gerbang cakupan |
 | docs/prd-w9-coretax-connector.md | Implemented — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven |
 | docs/prd-wip-rollforward-falsifiable.md | Implemented — SELESAI 2026-08-15 (Q-1=WIP saja · Q-2=blokir ekspor · Q-3=seed menutup). Empat angka plug dicabut; SC-1..SC-11 tertutup; live-verified DUA keadaan (menutup & TIDAK menutup) |
 | docs/prd-wip-merge-valuasi-realisasi.md | Implemented — SELESAI 2026-08-15. "Proceed." (Q-1=`wip` · Q-2=Operasi Praktik · Q-3=Opsi A). SC-1..SC-9 tertutup; verify hijau + live-verified (propagasi write-down ke 5 surface + Approvals) |
