@@ -9,6 +9,7 @@ import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
 import { fxRevaluation, type FxPosition, type FxRevalRow } from './canon_fx';
 import { bankReconExportModel, type ReconExportAccount } from './bank_recon_export';
+import { fixedAssetsExportModel } from './fixedassets_export';
 import { reconMatchTrail } from './bank_recon_actor';
 import { useAmsPersist, useAudit, useAuth, useFirm } from './contexts';
 import { I } from './icons';
@@ -54,6 +55,17 @@ const budLineBtnStyle: Record<string, string | number> = {
   background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer',
   color: 'var(--ink)', fontWeight: 600, textAlign: 'left', width: '100%',
 };
+
+/* FA3 — kode aset adalah KONTROL, bukan sel yang kebetulan diklik. `font:inherit`
+   mewarisi `mono tiny` dari <td> induknya, jadi tampilannya tak bergeser. */
+const assetRowBtnStyle: Record<string, string | number> = {
+  background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer',
+  color: 'var(--blue)', fontWeight: 700, textAlign: 'left',
+};
+
+/* Akun kontrol aset tetap di `FIRM_COA`. Satu tempat: dibaca layar DAN dibawa ke
+   kertas kerja, supaya keduanya tak dapat menyebut akun yang berbeda. */
+const GL_ASET_TETAP = '1-400';
 
 function FirmTreasury() {
   const { fmt } = AMS;
@@ -539,37 +551,36 @@ function FixedAssets() {
 
   /* Kontrol GL `1-400`. PR-1 hanya MENAMPILKAN selisihnya dengan jujur;
      penutupan (dan blokir ekspor, Q-2) adalah PR-2. */
-  const glAset = (AMS.FIRM_COA as Array<{ code: string; bal: number }>).find((a) => a.code === '1-400');
+  const glAset = (AMS.FIRM_COA as Array<{ code: string; bal: number }>).find((a) => a.code === GL_ASET_TETAP);
   const glNbv = glAset ? glAset.bal : 0;
   const glGap = glNbv - totNbv;
   const glTied = Math.abs(glGap) < 1_000_000;
 
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
-  const { rp } = AMS;
+  /* FA4 — identitas penerbit dari SSOT. Register aset tetap adalah dokumen firma
+     yang DISEGEL; nama firma yang salah pada dokumen bersegel memberi otoritas
+     pada isi yang keliru, jadi tanpa identitas ekspor tidak keluar sama sekali. */
+  const auth = useAuth();
+  const sessionName = String((auth && auth.user && auth.user.name) || '');
+  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
+  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
+
+  /* FA1 — kertas kerja disusun modul MURNI dari HASIL MESIN yang sama dengan
+     yang dirender (`reg` & `rollFwd` di atas). Tidak ada hitungan kedua di sini:
+     kalau layar suatu hari menghitung ulang sendiri, berkasnya tidak ikut
+     berbohong — ia akan berselisih dengan layar dan gerbangnya memerah. */
   const onExportAssets = async () => {
-    const assetRows: (string | number)[][] = [];
-    for (const r of rows) assetRows.push([r.id, r.name, r.cat, r.standar, r.src === 'finance' ? 'Keuangan' : 'GA/Fasilitas', new Date(r.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), r.life + 'th', rp(r.cost), rp(r.accDep), rp(r.nbv), (r.pct * 100).toFixed(0) + '%']);
-    assetRows.push(['TOTAL', '', '', '', '', '', '', rp(totCost), rp(totAcc), rp(totNbv), '']);
-    const catRows: (string | number)[][] = [];
-    for (const c of cats) catRows.push([c.cat, c.standar, c.n, rp(c.cost), rp(c.nbv)]);
-    await amsExportXlsx({
-      kind: 'firm-fixed-assets', scope: 'firm',
-      fileName: 'Register Aset Tetap Kantor.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
-      title: 'Register Aset Tetap Kantor',
-      meta: [`per ${REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · ${rows.length} aset · NBV Rp ${fmt(totNbv / 1e9, 2)} M · penyusutan Rp ${fmt(totAnnual / 1e6, 0)} jt/th · metode garis lurus`,
-             glTied ? `Menutup ke kontrol GL 1-400.` : `TIDAK menutup ke kontrol GL 1-400 — selisih Rp ${fmt(glGap / 1e6, 0)} jt belum dijelaskan.`],
-      sheets: [
-        { name: 'Register Aset', columns: ['Kode', 'Aset', 'Kelas', 'Standar', 'Register Asal', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'Nilai Buku', 'Terpakai'], rows: assetRows, colWidths: [10, 30, 26, 10, 14, 12, 8, 20, 20, 20, 10] },
-        { name: 'Ringkasan Kelas', columns: ['Kelas Aset', 'Standar', 'Jumlah', 'Harga Perolehan', 'Nilai Buku'], rows: catRows, colWidths: [26, 10, 10, 20, 20] },
-      ],
-    });
+    await amsExportXlsx(fixedAssetsExportModel({
+      register: reg, rollFwd, dups,
+      glCode: GL_ASET_TETAP, glBalance: glNbv,
+      firmName, preparedOn: String(AMS.TODAY), preparedBy: sessionName,
+    }));
   };
 
   return (
     <>
-      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm onClick={onExportAssets}><I.download size={13} /> Daftar Aset</Btn><span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
+      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm disabled={!firmName} onClick={onExportAssets} title={firmName ? 'Ekspor kertas kerja aset tetap — register, roll-forward NBV, pelepasan & kandidat pencatatan ganda (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}><I.download size={13} /> Kertas Kerja</Btn><span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totCost / 1e9, 2) + ' M'} label="Harga Perolehan" /></div></Panel>
@@ -663,15 +674,17 @@ function FixedAssets() {
         )}
 
         <Panel noBody>
-          <div className="panel-h"><h3>Register Aset Tetap Kantor</h3><div style={{ flex: 1 }} /><span className="tiny muted">per {REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · klik baris untuk skedul penyusutan · Rp jt</span></div>
+          <div className="panel-h"><h3>Register Aset Tetap Kantor</h3><div style={{ flex: 1 }} /><span className="tiny muted">per {REF.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · pilih kode aset (klik atau Enter) untuk skedul penyusutan · Rp jt</span></div>
           <div className="grid" style={{ gridTemplateColumns: selRow ? '1fr 330px' : '1fr', gap: 0, alignItems: 'stretch' }}>
             <div style={{ minWidth: 0, borderRight: selRow ? '1px solid var(--line)' : 'none' }}>
               <table className="dtbl">
                 <thead><tr><th>Kode</th><th>Aset</th><th>Kategori</th><th>Perolehan</th><th className="num">Perolehan</th><th className="num">Ak. Penyusutan</th><th className="num">Nilai Buku</th><th style={{ width: 120 }}>Umur Terpakai</th></tr></thead>
                 <tbody>
                   {rows.map((r: any) => (
-                    <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id === sel ? null : r.id)} style={{ cursor: 'pointer' }}>
-                      <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
+                    <tr key={r.id} className={r.id === sel ? 'sel' : ''}>
+                      <td className="mono tiny"><button type="button" className="asset-row-btn" style={assetRowBtnStyle} aria-expanded={r.id === sel}
+                        title={r.id === sel ? `Tutup skedul penyusutan ${r.id}` : `Buka skedul penyusutan ${r.id}`}
+                        onClick={() => setSel(r.id === sel ? null : r.id)}>{r.id}</button></td>
                       <td style={{ fontWeight: 600 }} className="truncate">{r.name}</td>
                       <td className="tiny muted">{r.cat}</td>
                       <td className="mono tiny muted">{new Date(r.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })} · {r.life}th</td>
