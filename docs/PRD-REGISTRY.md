@@ -8,7 +8,7 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 53 |
+| Draft | 54 |
 | Approved | 5 |
 | In Progress | 11 |
 | Implemented | 37 |
@@ -108,6 +108,7 @@
 | docs/prd-program-tahap-0-9.md | In Progress — retrospektif: Tahap 0–9 terkirim (`18d6e69`); Fase R disetujui ("Proceed." 2026-08-12, Q-1=a), R-0 selesai (#179), R-1..R-7 dieksekusi |
 | docs/prd-rbac-admin-console.md | Draft — Open Questions terjawab — menunggu "Proceed." |
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-revenue-input-method-psak72.md | Draft — Opsi A dipilih (usulan-R3, 2026-08-22); menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-regulatory-reference-annual.md | In Progress — Proceed. 2026-08-19 untuk **Tahap A** (mekanisme; Tahap B admin-editable dinilai ulang kemudian). Q-3 = blokir yang menyangkut uang. **TAHAP A TUNTAS** — PR-1 — `canon_regref.ts` (registry berkunci masa berlaku, tanpa "yang terdekat") + kalender hari libur dimigrasi NOL-DELTA (60 uji cuti lama hijau tanpa disentuh). PR-2 BPJS (batas upah berkunci masa; Januari 2027 BERHENTI, bukan memakai batas 2026) · PR-3 TER/PTKP/biaya jabatan (TER baru ada sejak 1 Jan 2024 — masa pra-2024 berhenti) · PR-4 halaman `regref` + gerbang katalog. SC-1..SC-10 tertutup, live-verified 3 tanggal. Q-1·Q-4·Q-5 menunggu DATA dari Ari (Lampiran PMK 168 · cuti bersama · batas upah BPJS 2026) |
