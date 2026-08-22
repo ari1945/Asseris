@@ -84,14 +84,15 @@ describe('FA4 — nama firma pada payload tersegel dari SSOT', () => {
     expect(hit, `literal nama firma: ${hit.join(', ')}`).toEqual([]);
   });
 
-  it('nama firma dibaca dari kunci konteks yang BENAR-BENAR ada', () => {
+  it('nama firma lewat SATU pintu bersama, bukan pembacaan konteks sendiri', () => {
     /* `AuthProvider` menerbitkan `firm: D.FIRM`; `FirmProvider` TIDAK menerbitkan
        kunci `firm` sama sekali (contexts.tsx). Membaca `useFirm().firm.name`
        karena itu selalu '' — dan tombol ekspornya berdiri permanen `disabled`,
-       kegagalan yang tak terlihat sampai ada yang menekannya. */
+       kegagalan yang tak terlihat sampai ada yang menekannya (#290). Rentang ini
+       memakai pintu bersama `useFirmName()`; gerbang repo-lebar atas bentuk
+       konteks ada di `firm_identity.test.ts`. */
     const t = kodeAset();
-    expect(t, 'identitas firma tak dibaca dari sesi').toMatch(/useAuth\(\)/);
-    expect(t).toMatch(/auth\.firm/);
+    expect(t, 'identitas firma tak lewat `useFirmName()`').toMatch(/useFirmName\(\)/);
     expect(t, 'membaca `firm` dari FirmContext — kunci yang tak pernah diterbitkan').not.toMatch(/useFirm\(\)\s*(as[^;]*)?[\s\S]{0,80}\.firm\b/);
   });
 });

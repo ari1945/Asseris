@@ -619,16 +619,15 @@ function FixedAssets() {
      yang DISEGEL; nama firma yang salah pada dokumen bersegel memberi otoritas
      pada isi yang keliru, jadi tanpa identitas ekspor tidak keluar sama sekali.
 
-     Dibaca dari `useAuth().firm` — kunci yang BENAR-BENAR diterbitkan
-     AuthProvider (`firm: D.FIRM`, contexts.tsx). Tetangga di berkas ini membaca
-     `useFirm().firm.name`; FirmContext TIDAK PERNAH menerbitkan kunci `firm`,
-     sehingga tombol-tombol ekspor itu berdiri permanen `disabled` — cacat yang
-     sedang ditutup terpisah. Menirunya di sini akan mengulang cacat yang sama
-     dengan baju baru. */
+     Lewat `useFirmName()` — satu pintu bersama dengan `treasury` & `cashbank`
+     (#290). Ia membaca `useAuth().firm`, kunci yang BENAR-BENAR diterbitkan
+     AuthProvider; `useFirm().firm.name` yang pernah dipakai ketiga modul ini
+     tidak pernah ada di FirmContext, dan membuat tombol ekspornya permanen
+     `disabled`. */
   const auth = useAuth();
   const sessionName = String((auth && auth.user && auth.user.name) || '');
   const sessionRole = String((auth && auth.user && auth.user.role) || '');
-  const firmName = String((auth && auth.firm && auth.firm.name) || '');
+  const firmName = useFirmName();
 
   /* Gate UI = gate server. `can(FIRMFIN_EDIT)` adalah peta yang SAMA dengan
      `capForWrite('firm','assetDupDecisions.v1')`, jadi tombol yang hidup di sini
