@@ -118,11 +118,15 @@ describe('utang konvensi di `cashbank` & `fixedassets` (lingkup prompt lain)', (
      MERAH — dan yang benar adalah menurunkan angkanya di sini, bukan melonggarkan
      gerbang di atas. */
   it('keadaan yang diketahui pada 2026-08-22', () => {
+    /* Turun dari dua ke satu, dan dari satu ke nol: prompt 33-fixedassets
+       membereskan baris aset & literal nama firma di rentang `FixedAssets`
+       (gerbangnya: `fixedassets_conventions.test.ts`). Yang tersisa milik
+       `cashbank`, yang belum dikerjakan siapa pun. */
     const t = kodeTetangga();
     expect([...t.matchAll(/<tr\b[^>]*\sonClick=/g)].length,
-      'dua baris-kontrol palsu: baris item rekonsiliasi (cashbank) & baris aset (fixedassets)').toBe(2);
+      'satu baris-kontrol palsu: baris item rekonsiliasi (cashbank)').toBe(1);
     expect([...t.matchAll(/KAP\s+Wijaya/g)].length,
-      'satu literal nama firma pada payload ekspor fixedassets').toBe(1);
+      'nol literal nama firma — treasury (#287) & fixedassets sudah memakai SSOT').toBe(0);
     expect([...t.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => m[0]),
       "satu hex mentah: color '#fff' pada avatar bank (cashbank)").toEqual(['#fff']);
   });
