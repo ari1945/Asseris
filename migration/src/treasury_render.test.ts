@@ -31,10 +31,23 @@ const stage = { firmName: 'KAP Uji & Rekan' };
 
 vi.mock('./contexts', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('./contexts');
-  return { ...actual, useFirm: () => ({ firm: { name: stage.firmName } }) };
+  /* `firm` = kunci AuthContext yang NYATA. Dulu digantung di `useFirm()`, konteks
+     yang tak punya kunci itu sama sekali — mock yang mengarang bentuk konteks. */
+  return { ...actual, useAuth: () => ({ firm: stage.firmName ? { name: stage.firmName } : null }) };
 });
 vi.mock('./use_firm_coa', () => ({ useFirmCoa: () => ({ coa: derivedCoa() }) }));
 vi.mock('./shell', () => ({ SubBar: ({ right }: { right?: unknown }) => right as never }));
+const eksporStage: { calls: { firm?: string }[]; gagal: string } = { calls: [], gagal: '' };
+vi.mock('./export_xlsx', async () => {
+  const actual = await vi.importActual<Record<string, unknown>>('./export_xlsx');
+  return {
+    ...actual,
+    amsExportXlsx: async (model: { firm?: string }) => {
+      if (eksporStage.gagal) throw new Error(eksporStage.gagal);
+      eksporStage.calls.push(model);
+    },
+  };
+});
 
 const { FirmTreasury } = await import('./view_firmtreasury');
 
@@ -47,6 +60,7 @@ const FLOOR = FIRM_CASH_POLICY.watchFloorIdr;
 beforeEach(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   stage.firmName = 'KAP Uji & Rekan';
+  eksporStage.calls = []; eksporStage.gagal = '';
   container = document.createElement('div');
   document.body.appendChild(container);
   React.act(() => { root = createRoot(container as HTMLDivElement) as unknown as Root; });
@@ -233,5 +247,43 @@ describe('TR4/TR5 — ekspor tersegel & drill-down papan-ketik', () => {
     const fy = AMS.FIRM_BUDGET_FY as unknown as number;
     expect(teks()).toContain(`Q1 ${fy}`);
     expect(teks()).toContain(`FY${fy}`);
+  });
+});
+
+/* ------------------------------------------------------------------
+   TR6 — kertas kerja Anggaran & Arus Kas benar-benar dapat DIKELUARKAN
+   ------------------------------------------------------------------ */
+
+describe('TR6 — tombol Export bukan sekadar tergambar', () => {
+  const tombolExport = (): HTMLButtonElement =>
+    Array.from(document.querySelectorAll('button'))
+      .find((b) => (b.textContent || '').includes('Export')) as HTMLButtonElement;
+
+  it('hidup ketika identitas firma tersedia, dan klik SAMPAI ke penulis berkas', async () => {
+    mount();
+    const b = tombolExport();
+    expect(b, 'tombol Export tak ada').toBeTruthy();
+    expect(b.disabled).toBe(false);
+    await React.act(async () => { b.click(); });
+    expect(eksporStage.calls).toHaveLength(1);
+    expect(eksporStage.calls[0].firm).toBe('KAP Uji & Rekan');
+  });
+
+  it('tanpa identitas firma ia DIMATIKAN dan menyebut sebabnya', () => {
+    stage.firmName = '';
+    mount();
+    const b = tombolExport();
+    expect(b.disabled).toBe(true);
+    expect(b.getAttribute('title')).toContain('Identitas firma tak tersedia');
+  });
+
+  it('kegagalan ekspor berakhir di layar, bukan sebagai rejection tanpa penangan', async () => {
+    eksporStage.gagal = 'penulis XLSX menolak muatan';
+    mount();
+    await React.act(async () => { tombolExport().click(); });
+    const alert = document.querySelector('[role="alert"]');
+    expect(alert, 'tak ada baris alasan kegagalan').toBeTruthy();
+    expect(alert?.textContent).toContain('Ekspor gagal');
+    expect(alert?.textContent).toContain('penulis XLSX menolak muatan');
   });
 });
