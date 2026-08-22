@@ -9,6 +9,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 import { RelatedNavDock } from './related_modules';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SA 240 · Tanggung Jawab Auditor atas Kecurangan
@@ -97,7 +98,7 @@ const FRAUD_STATUS = ['Direncanakan', 'Berlangsung', 'Selesai'];
 const FRAUD_SEED: FraudState = { register: FRAUD_REGISTER, triangle: FRAUD_TRIANGLE, overrideProc: OVERRIDE_PROC };
 
 function fraudToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextFrId(list: FraudRisk[]) {

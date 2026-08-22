@@ -13,6 +13,7 @@ import {
 } from './canon_pph21';
 import type { GlJournalRow } from './canon_pph21';
 import { BPJS_LABEL, bpjsContribution, bpjsRatesOn } from './canon_bpjs';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — HCM: Payroll (Penggajian)
@@ -67,7 +68,7 @@ function Payroll() {
   const [run, setRun] = useAmsPersist('payrollRun', 'draft'); // draft | approved | paid
   const [sent, setSent] = useAmsPersist('payrollSent.v1', () => ({})); // { empId: { at, by } } — distribusi slip
   const meName = (auth && auth.user && auth.user.name) || 'HR';
-  const sendToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
+  const sendToday = amsDateIso();   /* K-02: klok SSOT. Dulu jam mesin, dengan literal beku sebagai jaring pengaman. */
   const markSent = (id: string) => setSent((m: PSent) => ({ ...m, [id]: { at: sendToday, by: meName } }));
   const [thr, setThr] = usePR(false);
   const [tab, setTab] = usePR('gaji');

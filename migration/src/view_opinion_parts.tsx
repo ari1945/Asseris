@@ -10,6 +10,7 @@ import { EQR_GATE_LABEL } from './canon_eqr_gate';
 import { wpSignatureStamp } from './wp_chain';
 import { useEthicsGate } from './ethics_gate';
 import { useMemberIndependenceGate } from './view_independence';
+import { amsDayMonthTimeId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels
@@ -312,7 +313,7 @@ function OpinionDecisionTree({ doc, patch }: any) {
   const recorded = doc.opinionDecision;
   const stale = recorded && recorded.opinion !== rec.opinion;
   const record = () => {
-    const when = new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const when = amsDayMonthTimeId();
     patch({ opinionBasis: basis, opinionDecision: { who: USER.name, role: USER.role, when, opinion: rec.opinion, rationale: basis } });
     if (audit.logActivity) audit.logActivity({ who: USER.name, what: `menetapkan basis opini ${recO.short} (pohon keputusan SA 705) — ${basis.slice(0, 90)}`, mod: 'opinion', icon: 'gavel' });
   };

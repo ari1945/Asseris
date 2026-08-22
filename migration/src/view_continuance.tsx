@@ -15,6 +15,7 @@ import { amsExportPdf } from './export_pdf';
 import { amsExportXlsx } from './export_xlsx';
 import { exportVerifySeal } from './api';
 import { buildMemoBlocks, buildMemoSheets, memoMeta, memoRefNo, memoTitle, type MemoInput } from './acceptance_continuance_memo';
+import { amsDateIso } from './clock_ssot';
 import {
   continuanceFlags,
   isOpinionModified,
@@ -226,7 +227,7 @@ function ContinuanceRegister() {
   const sel = sum.rows.find((r) => r.clientId === selId) || sum.rows[0];
 
   const me = (auth && auth.user && auth.user.name) || 'Partner';
-  const stamp = () => new Date().toISOString().slice(0, 10);
+  const stamp = () => amsDateIso();
 
   const patchRec = (clientId: string, patch: Partial<StoredDecision>) =>
     setDecisions((prev: Record<string, StoredDecision>) => ({ ...prev, [clientId]: { ...(prev[clientId] || {}), ...patch } }));

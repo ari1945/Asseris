@@ -445,8 +445,9 @@ import { objectivesForComponent } from './canon_smm_objectives';
 
   /* ---- Klok demo SSOT (Fase 4 · PR-A2): satu "hari ini" untuk delivery/
      audittimeline. Konstanta demo (bukan wall-clock — data seed berpusat Mar
-     2026). Modul lain masih punya anchor '2026-03-09' sendiri (sweep klok
-     app-wide = pekerjaan lanjutan, di luar PR ini). ---- */
+     2026). Sapuan app-wide SELESAI: tanggal beku dicabut PR #231, dan jam
+     sistem (`new Date()`) menyusul lewat `clock_ssot.ts` — pemakainya dijaga
+     gerbang `clock_ssot.test.ts`. ---- */
   const TODAY = '2026-03-09';
 
   /* ---- Delivery plan: fase + milestone per engagement (Gantt) ---- */

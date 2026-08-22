@@ -11,9 +11,10 @@ import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 import { useEthicsOverrides, ethicsComplianceOf } from './ethics_gate';
 import { resolveEmpId } from './ethics_compliance';
+import { amsDateIso } from './clock_ssot';
 
 /** Tanggal nyata — bentuk lama memaku '2026-03-09' pada SETIAP deklarasi. */
-const ethToday = () => new Date().toISOString().slice(0, 10);
+const ethToday = () => amsDateIso();
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -240,7 +241,7 @@ function HRCases() {
   const staff = A.STAFF;
   // F1/PR-5 (PRD 2026-07-19) — jalur tulis nyata: register disiplin kini editable (dulu setter
   // useAmsPersist dideklarasi tapi tak pernah dipanggil → efektif display-only).
-  const today = () => new Date().toISOString().slice(0, 10);
+  const today = () => amsDateIso();
   const patchCase = (id: string, fn: (c: HcCase) => HcCase) => setCases((list: HcCase[]) => list.map((c) => c.id === id ? fn(c) : c));
   const addCase = () => {
     const id = 'HC-' + String(700 + Math.floor(Math.random() * 290)).padStart(3, '0');

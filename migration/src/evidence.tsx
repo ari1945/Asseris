@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
+import { amsStamp } from './clock_ssot';
 
 /* ============================================================
    Asseris — Evidence Intake (lintas-modul)
@@ -27,7 +28,7 @@ function amsEvidenceCount(mid: any) { return (amsEvRead()[mid] || []).length; }
 function amsAttachEvidence(mid: any, meta: any) {
   if (!mid) mid = 'evidence';
   const o = amsEvRead(); const list = o[mid] ? o[mid].slice() : [];
-  const rec = { uid: 'ev-' + Date.now() + '-' + Math.round(Math.random() * 1e4), when: new Date().toISOString().slice(0, 16).replace('T', ' '), ...meta };
+  const rec = { uid: 'ev-' + Date.now() + '-' + Math.round(Math.random() * 1e4), when: amsStamp(), ...meta };
   list.unshift(rec); o[mid] = list.slice(0, 200); amsEvWrite(o);
   return rec;
 }

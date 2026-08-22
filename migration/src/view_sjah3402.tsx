@@ -7,6 +7,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SJAH 3402 · Laporan Asurans atas Pengendalian
@@ -331,7 +332,7 @@ function SocTesting({ E, toggle }: any) {
 /* ---------------- Tab: Opini & Laporan ---------------- */
 function SocReport({ E, A }: any) {
   const O = E.opinion;
-  const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  const today = amsDateLongId();
   return (
     <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>

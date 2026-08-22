@@ -2,6 +2,7 @@
 import React from 'react';
 import { I } from './icons';
 import { Badge, Btn } from './ui';
+import { amsClockId, amsDayMonthId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Shared parts for Portal Klien & DMS
@@ -160,8 +161,8 @@ function PThread({ msgs, onSend, placeholder = 'Tulis komentar…', selfSide = '
 
 /* nowtime helper for new messages */
 function pNowTime() {
-  const d = new Date();
-  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  /* K-02: TANGGAL dari klok SSOT; JAM tetap jam nyata (tak ada tanggal yang bisa salah di jam). */
+  return amsDayMonthId() + ' ' + amsClockId();
 }
 
 

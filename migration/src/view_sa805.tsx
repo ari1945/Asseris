@@ -7,6 +7,7 @@ import { Badge, Btn, Panel, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SA 805 · Audit LK Tunggal & Elemen Tertentu
@@ -436,14 +437,14 @@ function F805Report({ sel, onExportReport, exporting }: any) {
             {sel.conjunction && (
               <>
                 <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 4px' }}>Hal Lain</div>
-                <p style={{ margin: '0 0 10px' }}>Kami telah mengaudit laporan keuangan lengkap {sel.client} untuk tahun yang berakhir pada tanggal yang sama, dan dalam laporan kami tertanggal {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} kami menyatakan opini <b>{sel.completeOpinion}</b> atas laporan keuangan tersebut.</p>
+                <p style={{ margin: '0 0 10px' }}>Kami telah mengaudit laporan keuangan lengkap {sel.client} untuk tahun yang berakhir pada tanggal yang sama, dan dalam laporan kami tertanggal {amsDateLongId()} kami menyatakan opini <b>{sel.completeOpinion}</b> atas laporan keuangan tersebut.</p>
               </>
             )}
 
             <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 4px' }}>Tanggung Jawab atas Audit Elemen</div>
             <p style={{ margin: 0 }}>Audit ini dilaksanakan sesuai Standar Audit (SA), termasuk SA 805. Materialitas ditetapkan atas {sel.element.toLowerCase()} secara tersendiri, sebesar Rp {sel.matElement.toLocaleString('id-ID')} juta.</p>
 
-            <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Hartono Wijaya, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span></div>
+            <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Hartono Wijaya, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {amsDateLongId()}</span></div>
           </div>
         </div>
       </Panel>

@@ -8,6 +8,7 @@ import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Seg } from './ui';
 import { statusOf, noteOf, upsertFlux, fluxCounts, fluxStatusKind, fluxThresholds, isFluxFlagged, FLUX_STATUS_LABEL } from './flux_state';
 import type { FluxState, FluxStatus } from './flux_state';
+import { amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — WTB Deep modules
@@ -280,7 +281,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
   const save = (status: FluxStatus) => {
     if (!sel) return;
     const actor = (auth && auth.user) ? { name: auth.user.name, role: auth.user.role } : null;
-    setFluxState((s: FluxState) => upsertFlux(s, sel.code, { status, note: draft }, actor, new Date().toISOString()));
+    setFluxState((s: FluxState) => upsertFlux(s, sel.code, { status, note: draft }, actor, amsIsoTs()));
     /* menyimpan menuntaskan perpindahan yang tertahan dirty-guard */
     if (pendingKey != null) { setSelKey(pendingKey); setPendingKey(null); }
   };

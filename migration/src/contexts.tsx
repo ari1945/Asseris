@@ -29,6 +29,7 @@ import type { FluxState } from './flux_state';
 import type { PriorYearSource } from './prior_year';
 import type { ImportedWtbRow, ParseMeta } from './wtb_import';
 import type { LedgerLine } from './wtb_ledger';
+import { amsStamp } from './clock_ssot';
 
 /* ============================================================
    Asseris — React Context providers
@@ -1105,7 +1106,7 @@ function AuditProvider({ children }: any) {
        satu `any` baru meng-un-suppress seluruh berkas pada ratchet ESLint). */
     type AjeStatusRow = { id: string; status: string };
     const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId, { defer: true });
-    const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
+    const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: amsStamp(), ...e }, ...list].slice(0, 50)), []);
     /* PR-B - jembatan agar setAjeStatus/toggleAjeStatus dapat mencatat jejak tanpa
        menjadikan `logActivity` dependensi yang memutus memo mereka tiap jejak bertambah. */
     logRef.current = logActivity;

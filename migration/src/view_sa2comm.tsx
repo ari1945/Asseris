@@ -10,6 +10,7 @@ import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 import { RelatedNavDock } from './related_modules';
+import { amsDateLongId, amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SA 250 / 260 / 265
@@ -59,7 +60,7 @@ const NOCLAR_REPORT_SEED: ReportTier[] = [
 const NOCLAR_SEED = { items: NOCLAR_ITEMS_SEED, report: NOCLAR_REPORT_SEED };
 
 function nocToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextNcId(items: NoclarItem[]) {
@@ -758,7 +759,7 @@ function S265Indicators() {
 }
 
 function S265Comms({ sig, defs }: { sig: number; defs: Deficiency[] }) {
-  const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  const today = amsDateLongId();
   const firmName = (AMS.FIRM as { name?: string }).name || 'KAP';
   const sigDefs = (defs || []).filter(d => d.sig);
   return (

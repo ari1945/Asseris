@@ -5,6 +5,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
 import { SCHEDULE } from './data_part1';
+import { amsDateIso } from './clock_ssot';
 import {
   THREATS, rosterForEngagement, engagementIndependence, seedDeclarations,
   type EngagementDeclarations, type MemberDeclaration, type ThreatKey, type EngagementIndependence,
@@ -20,7 +21,7 @@ import {
    ============================================================ */
 
 const EMPTY_DECL: MemberDeclaration = { threats: {}, safeguards: '', note: '', signed: false };
-const stamp = () => new Date().toISOString().slice(0, 10);
+const stamp = () => amsDateIso();
 
 const statusMeta: Record<string, { kind: 'green' | 'amber' | 'red' | 'gray'; label: string }> = {
   clean: { kind: 'green', label: 'Bersih' },

@@ -31,6 +31,7 @@ import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
 import type { CoaAccount, MappingCoverageResult } from './wtb_mapping';
 import { parseLedger, ledgerForRow } from './wtb_ledger';
 import type { LedgerParseResult, LedgerLine, LedgerTieOut } from './wtb_ledger';
+import { amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — Working Trial Balance (WTB) + AJE
@@ -520,7 +521,7 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
       setPriorYearBalances({
         rows: source.rows,
         provenance: summarizeImport({
-          importedAt: new Date().toISOString(),
+          importedAt: amsIsoTs(),
           user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
           unit: unitPY, unitFactor: parsed.meta.unitFactor,
           period: (activeEngagement?.fy || '').replace(/(\d{4})/, (y: string) => String(+y - 1)),
@@ -867,7 +868,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
       try { sha = await sha256Hex(text); } catch (e) { /* konteks non-secure: hash dilewati, bukan penghalang */ }
       try { shaExcerpt = await sha256Hex(excerpt); } catch (e) { /* idem */ }
       const prov = summarizeImport({
-        importedAt: new Date().toISOString(),
+        importedAt: amsIsoTs(),
         user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
         unit, unitFactor: parsed.meta.unitFactor, period, sourceName,
         sha256: sha, sha256Excerpt: shaExcerpt, rawLength: text.length, excerptLength: excerpt.length,

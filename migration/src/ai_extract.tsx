@@ -8,6 +8,7 @@ import { AMS } from './data';
 /* Tahap 8 — helper WP via ESM dari wp_canon (eager). view_wp menjadi lazy
    chunk; modul eager (ai_extract) tidak boleh menariknya ke bundle boot. */
 import { openCanonicalWp, WP_REFS } from './wp_canon';
+import { amsDateTimeShortId, amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — Ekstraksi Isi Dokumen (FASE 3 · Babel JSX)
@@ -238,8 +239,8 @@ function amsExtractAdd(rec: any) {
   return full;
 }
 function exNowStamp() {
-  try { return new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
-  catch (e) { return new Date().toISOString(); }
+  try { return amsDateTimeShortId(); }
+  catch (e) { return amsIsoTs(); }
 }
 function useExtractions(ref: any) {
   const get = () => (ref ? amsExtractForWp(ref) : amsExtractAll());
