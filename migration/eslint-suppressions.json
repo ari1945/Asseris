@@ -771,7 +771,7 @@
   },
   "src/view_people.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 60
+      "count": 45
     }
   },
   "src/view_pipeline.tsx": {

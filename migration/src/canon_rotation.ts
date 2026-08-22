@@ -22,6 +22,28 @@
    Fungsi MURNI.
    ============================================================ */
 
+/* ---------- Ambang rotasi AP — SUMBER KEBENARAN TUNGGAL ----------
+   Empat tingkat, dipakai lintas view (BO Lisensi · Firm Dashboard ·
+   Independence · People) agar batas tidak direplikasi tak-konsisten:
+     · due   → tenure ≥ batas            (WAJIB rotasi sekarang)
+     · alert → ≤ 6 bulan sebelum batas   (jendela peringatan dini / auto-alert OJK)
+     · warn  → tahun terakhir sebelum batas
+     · ok    → di luar itu
+   6 bulan = 0,5 tahun (tenure dinyatakan dalam tahun).
+
+   Tinggal di modul LEAF ini (bukan `data_licensing`, yang mengimpor `./data`)
+   supaya modul aturan yang dibaca server dapat memakainya tanpa menyeret
+   lapisan data browser. `data_licensing` me-RE-EXPORT-nya — pengimpor lama utuh. */
+export type RotTier = 'ok' | 'warn' | 'alert' | 'due';
+export function rotTier(tenure: number, limit: number): RotTier {
+  if (!(limit > 0)) return 'ok';
+  if (tenure >= limit) return 'due';
+  if (tenure >= limit - 0.5) return 'alert';
+  if (tenure >= limit - 1) return 'warn';
+  return 'ok';
+}
+
+
 export interface SigningRecord {
   /** empId Akuntan Publik penanda tangan. */
   ap: string;

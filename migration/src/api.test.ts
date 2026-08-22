@@ -73,6 +73,41 @@ describe('isConflict() — optimistic-concurrency (CAS 409) detection', () => {
   });
 });
 
+/* ============================================================
+   PENOLAKAN TULIS YANG TERLIHAT.
+   `flush()` dulu hanya mengenali CONFLICT; SEMUA kegagalan lain — termasuk 403
+   FORBIDDEN dari `capForWrite` — jatuh ke cabang "offline" yang MEMPERTAHANKAN
+   nilai lokal tanpa satu pun pesan. Layar berkata tersimpan, server tidak
+   menyimpan apa pun, dan selisihnya baru terlihat saat reload. Untuk artefak
+   kepatuhan (deklarasi independensi, sign-off, persetujuan) itu bukan gangguan
+   kosmetik. Klasifikasinya kini eksplisit dan dapat diuji.
+   ============================================================ */
+describe('writeFailureKind() — tiga kegagalan tulis yang berbeda penanganannya', () => {
+  it('409 / CONFLICT → conflict (tawarkan adopsi atau timpa)', () => {
+    expect(api.writeFailureKind({ data: { code: 'CONFLICT' } })).toBe('conflict');
+    expect(api.writeFailureKind({ shape: { data: { httpStatus: 409 } } })).toBe('conflict');
+  });
+  it('403 / FORBIDDEN → rejected (server MENOLAK; wajib terlihat)', () => {
+    expect(api.writeFailureKind({ data: { code: 'FORBIDDEN', httpStatus: 403 } })).toBe('rejected');
+    expect(api.writeFailureKind({ shape: { data: { code: 'FORBIDDEN' } } })).toBe('rejected');
+    expect(api.writeFailureKind({ data: { httpStatus: 403 } })).toBe('rejected');
+  });
+  it('401 / UNAUTHORIZED → rejected (sesi habis; tulisan hilang diam-diam kalau tidak)', () => {
+    expect(api.writeFailureKind({ data: { code: 'UNAUTHORIZED', httpStatus: 401 } })).toBe('rejected');
+  });
+  it('jaringan mati / galat tak dikenal → offline (cache menyimpan, coba lagi)', () => {
+    expect(api.writeFailureKind(new Error('fetch failed'))).toBe('offline');
+    expect(api.writeFailureKind({ data: { httpStatus: 500 } })).toBe('offline');
+    expect(api.writeFailureKind(null)).toBe('offline');
+    expect(api.writeFailureKind(undefined)).toBe('offline');
+    expect(api.writeFailureKind({})).toBe('offline');
+  });
+  it('isConflict() tetap kontrak lama — hanya conflict, bukan penolakan', () => {
+    expect(api.isConflict({ data: { code: 'FORBIDDEN', httpStatus: 403 } })).toBe(false);
+    expect(api.isConflict({ data: { code: 'CONFLICT' } })).toBe(true);
+  });
+});
+
 describe('graceful degradation — reads return null/fallback when the server throws', () => {
   beforeEach(() => { trpc.behavior = 'reject'; });
 
