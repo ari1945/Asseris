@@ -51,6 +51,8 @@ describe('SC-8 — katalog menjawab pertanyaan bulan Januari', () => {
     expect(by['ptkp']).toBe('block');
     expect(by['biaya-jabatan']).toBe('block');
     expect(by['hari-libur']).toBe('warn');
+    /* Kurs (2026-08-22): hasilnya DIBUKUKAN ke GL 5-600, jadi ia memblokir. */
+    expect(by['kurs']).toBe('block');
   });
 });
 
@@ -67,17 +69,22 @@ describe('katalog menceritakan keadaan yang sesungguhnya', () => {
     expect(at('2026-03-01').filter((r) => r.look.blocked).map((r) => r.id)).toEqual([]);
   });
 
-  it('dua set belum dicocokkan hari ini — BPJS & TER, dan keduanya berkata begitu', () => {
+  it('tiga set belum dicocokkan hari ini — BPJS, TER & kurs, dan ketiganya berkata begitu', () => {
+    /* `kurs` menyusul 2026-08-22: angkanya adalah yang SUDAH dipakai pembukuan firma,
+       tetapi dasar kutipannya (kurs tengah BI vs KMK) belum dicocokkan. Belum
+       dicocokkan ≠ tak tercakup — ia tetap menghitung, dengan penanda. */
     const belum = at('2026-03-01').filter((r) => r.look.status === 'unverified').map((r) => r.id);
-    expect(belum.sort()).toEqual(['bpjs', 'ter']);
+    expect(belum.sort()).toEqual(['bpjs', 'kurs', 'ter']);
   });
 
-  it('pada 2027-01-01 BPJS berhenti — dan hanya BPJS', () => {
+  it('pada 2027-01-01 BPJS & kurs berhenti — dan hanya keduanya', () => {
     /* TER/PTKP/biaya jabatan rentangnya terbuka (berlaku sampai PMK-nya diganti),
        jadi tahun depan bukan masalah bagi mereka. BPJS tahunan, jadi ia berhenti.
-       Kalender libur memperingatkan, tidak berhenti. */
+       Kurs ditutup di akhir periode pelaporan yang terdaftar (2026-03-31) dan
+       SENGAJA tidak diperpanjang — menyalin kurs ke masa berikutnya adalah persis
+       cacat yang dicabutnya. Kalender libur memperingatkan, tidak berhenti. */
     const berhenti = at('2027-01-01').filter((r) => r.look.blocked).map((r) => r.id);
-    expect(berhenti).toEqual(['bpjs']);
+    expect(berhenti.sort()).toEqual(['bpjs', 'kurs']);
     const libur = at('2027-01-01').find((r) => r.id === 'hari-libur');
     expect(libur?.look.status).toBe('no-coverage');
     expect(libur?.look.blocked).toBe(false);

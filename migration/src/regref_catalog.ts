@@ -21,6 +21,7 @@ import {
   TER_LABEL, TER_REGISTRY,
 } from './canon_pph21';
 import { BPJS_LABEL } from './canon_bpjs';
+import { FX_LABEL, FX_REGISTRY } from './canon_fx';
 import type { BpjsRegistry } from './canon_bpjs';
 import type { HolidayCalendar } from './canon_leave';
 import type { RegRefEnforcement, RegRefSet } from './canon_regref';
@@ -99,8 +100,22 @@ export function regrefCatalog(): RegRefCatalogEntry[] {
       module: 'leave',
       sets: (cal?.sets || []) as RegRefSet<unknown>[],
     },
+    {
+      id: 'kurs',
+      label: FX_LABEL,
+      enforcement: 'block',
+      cadence: 'Setiap periode pelaporan — kurs penutup ditetapkan pada tiap tanggal pelaporan; kurs berubah harian',
+      breaksIfStale:
+        'Revaluasi pos moneter valas dihitung pada kurs periode LAIN dan hasilnya DIBUKUKAN ke '
+        + 'GL 5-600 (JV-0319/0320), sehingga laba operasi firma dan saldo akun kas valas ikut '
+        + 'bergeser tanpa satu pun tanda. Rekonsiliasi rekening valas juga membandingkan bank '
+        + 'dan buku pada dasar yang berbeda. Karena itu masa yang tak tercakup MENGHENTIKAN '
+        + 'perhitungan, bukan memakai kurs terakhir.',
+      module: 'cashbank',
+      sets: FX_REGISTRY as RegRefSet<unknown>[],
+    },
   ];
 }
 
 /** Id yang WAJIB ada. Gerbang uji memakai ini; menambah registry tanpa mendaftarkannya = merah. */
-export const REGREF_EXPECTED_IDS = ['bpjs', 'ter', 'ptkp', 'biaya-jabatan', 'hari-libur'] as const;
+export const REGREF_EXPECTED_IDS = ['bpjs', 'ter', 'ptkp', 'biaya-jabatan', 'hari-libur', 'kurs'] as const;
