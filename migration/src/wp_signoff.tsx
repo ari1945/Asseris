@@ -26,6 +26,8 @@ import { checkWtbIntegrity } from './wtb_integrity';
 import { useEthicsGate } from './ethics_gate';
 import { useEstimateExpertGate } from './estimate_gate';
 import { wpToday } from './wp_canon';
+import { wpSignatureStamp, wpContentHash, wpFormatSignedAt } from './wp_chain';
+import { buildWpSignature, wpSignBlock, wpUnsignBlock } from './wp_signature';
 
 const { useState: useStateWPS } = React;
 
@@ -162,7 +164,13 @@ function useWpSignoff(moduleId: any) {
   const audit = useAuditHeavy(['reviewNotes']);
   const auth = useAuth();
   const firm = useFirm();
-  const me = (auth && auth.user && auth.user.name) || 'Auditor';
+  /* IDENTITAS SESI, bukan nama pengganti. `'Auditor'` dulu dipakai sebagai
+     jaring pengaman; pada rantai tanda tangan ia bukan jaring melainkan lubang —
+     server membandingkan nama tanda tangan dengan nama pengguna sesi. */
+  const actor = (auth && auth.user && auth.user.id && auth.user.name)
+    ? { id: String(auth.user.id), name: String(auth.user.name) }
+    : null;
+  const me = actor ? actor.name : '';
   const ref = wpKeyFor(moduleId);
   const st = (audit.wpState && audit.wpState[ref]) || {};
   const chain = st.chain || {};
@@ -173,15 +181,46 @@ function useWpSignoff(moduleId: any) {
   const canReview = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
   const status = chain.reviewer ? 'reviewed' : chain.preparer ? 'prepared' : 'draft';
 
+  /* ------------------------------------------------------------------
+     TANDA TANGAN YANG BENAR-BENAR TERSIMPAN.
+
+     Bentuk lama `{ by: me, at: wpToday() }` DITOLAK server pada setiap klik
+     (`guardSignoffWrite` → `signatureAttributionViolations`), dan penolakannya
+     tak terlihat: `flush()` memperlakukan 403 seperti offline, sehingga tanda
+     tangan muncul di layar sementara tak ada apa pun yang tersimpan. Terbukti
+     hidup 2026-08-22 pada modul `jet`: klik → 403 `signature-missing-identity`
+     → `wpState` tetap kosong, layar tetap menampilkan "Anindya Pramesti".
+
+     Tiga hal yang dituntut server, dan yang sudah dipenuhi `view_wp` sejak PR-3:
+       · SIAPA  — `byUserId` (id sesi; nama tampilan lossy dan tak boleh memutuskan),
+       · KAPAN  — ISO dari JAM NYATA. Bukan `AMS.TODAY`: nilai ini diperiksa
+                  terhadap jam SERVER dalam jendela 10 menit (`WP_SIGNATURE_SKEW_MS`),
+                  jadi ia termasuk klok nyata, bukan klok perikatan,
+       · ATAS APA — `contentHash` isi kertas kerja saat ditandatangani.
+
+     Slot reviewer TIDAK lagi mengisi slot preparer yang kosong. Pengisian otomatis
+     itu melahirkan tanda tangan preparer atas nama orang yang menekan tombol
+     REVIEWER — satu orang memegang dua langkah, yang ditolak `wpChainSelfReviewBy`
+     (SMM 2 / SA 220.36) dan memang seharusnya ditolak.
+     ------------------------------------------------------------------ */
+  const signBlock = (level: string): string => wpSignBlock({ chain, slot: level, actor, locked });
   const sign = (level: any) => {
-    const at = wpToday();
+    if (signBlock(level)) return;   /* tombol mati bukan gerbang — handler menolak sendiri */
+    const at = wpSignatureStamp();
+    const sig = buildWpSignature(actor, at, wpContentHash(st));
+    if (!sig) return;
     if (level === 'preparer') {
-      setWp(ref, { chain: { ...chain, preparer: { by: me, at } }, status: st.status === 'Reviewed' ? st.status : 'In Review' });
+      setWp(ref, { chain: { ...chain, preparer: sig }, status: st.status === 'Reviewed' ? st.status : 'In Review' });
     } else {
-      setWp(ref, { chain: { ...chain, preparer: chain.preparer || { by: me, at }, reviewer: { by: me, at } }, status: 'Reviewed', reviewer: me, signedAt: at });
+      setWp(ref, { chain: { ...chain, reviewer: sig }, status: 'Reviewed', reviewer: me, signedAt: at });
     }
   };
+  /* R6 — menarik tanda tangan Preparer adalah hak penandatangannya sendiri, dan
+     hanya selama rantai belum berlanjut. Server menegakkan keduanya; tanpa cermin
+     di sini tombolnya gagal SENYAP dengan cara yang sama seperti sign(). */
+  const unsignBlock = (level: string): string => wpUnsignBlock({ chain, slot: level, actor, locked });
   const unsign = (level: any) => {
+    if (unsignBlock(level)) return;
     const nc = { ...chain };
     if (level === 'reviewer') {
       delete nc.reviewer;
@@ -196,7 +235,7 @@ function useWpSignoff(moduleId: any) {
   const saveConclusion = (text: any, disposition: any) =>
     setWp(ref, { conclusion: { text, disposition, by: me, at: wpToday() } });
 
-  return { ref, me, chain, status, locked, canReview, sign, unsign,
+  return { ref, me, actor, chain, status, locked, canReview, sign, unsign, signBlock, unsignBlock,
     preparer: chain.preparer || null, reviewer: chain.reviewer || null,
     conclusion, saveConclusion };
 }
@@ -227,7 +266,7 @@ function WpStatusBadge({ moduleId }: any) {
 
 /* ---- Kartu sign-off 2-tingkat (preparer → reviewer), lock lunak ---- */
 function WpSignoff({ moduleId }: any) {
-  const { status, locked, canReview, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
+  const { status, locked, canReview, sign, unsign, signBlock, unsignBlock, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
   const hasConclusion = !!(conclusion && conclusion.text);
   /* #3 — blokir pembubuhan tanda tangan bila deklarasi Kode Etik/AML penanda tangan belum sah. */
   const eg = useEthicsGate();
@@ -238,7 +277,9 @@ function WpSignoff({ moduleId }: any) {
   const barred = eg.blocked || xg.blocked;
   const barHint = eg.blocked ? 'deklarasi Kode Etik/AML belum sah' : (xg.blocked ? xg.hint : undefined);
   const doSign = (level: any) => { if (barred) return; sign(level); };
-  const Line = ({ role, who, onSign, onUnsign, canSign, noAuthHint }: any) => (
+  /* Satu sumber alasan: gerbang etik/pakar (lokal) ATAU aturan rantai (cermin server). */
+  const signHint = (level: string) => barHint || signBlock(level) || undefined;
+  const Line = ({ role, who, onSign, onUnsign, canSign, noAuthHint, unsignHint }: any) => (
     <div className="row ac gap8" style={{ padding: '7px 0' }}>
       <span style={{ width: 24, height: 24, borderRadius: '50%', flex: '0 0 24px', display: 'grid', placeItems: 'center',
         background: who ? 'var(--green-bg)' : 'var(--surface-3)', color: who ? 'var(--green)' : 'var(--ink-4)' }}>
@@ -246,11 +287,11 @@ function WpSignoff({ moduleId }: any) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="tiny" style={{ fontWeight: 700 }}>{role}</div>
-        {who ? <div className="tiny muted">{who.by} · {who.at}</div>
+        {who ? <div className="tiny muted">{who.by} · {wpFormatSignedAt(who.at)}</div>
           : <div className="tiny muted">{!canSign && noAuthHint ? noAuthHint : 'belum ditandatangani'}</div>}
       </div>
       {who
-        ? <button className="btn sm" disabled={locked || !canSign} onClick={onUnsign} title={canSign ? 'Buka kembali (lock lunak)' : 'Hanya otoritas berwenang'}><I.sync size={11} /> Buka</button>
+        ? <button className="btn sm" disabled={locked || !canSign || !!unsignHint} onClick={onUnsign} title={unsignHint || (canSign ? 'Buka kembali (lock lunak)' : 'Hanya otoritas berwenang')}><I.sync size={11} /> Buka</button>
         : <Btn sm variant={canSign ? 'primary' : ''} disabled={locked || !canSign} onClick={onSign}><I.check size={12} /> Sign-off</Btn>}
     </div>
   );
@@ -285,9 +326,9 @@ function WpSignoff({ moduleId }: any) {
           </div>
         </div>
       )}
-      <Line role="Preparer" who={preparer} canSign={!barred} onSign={() => doSign('preparer')} onUnsign={() => unsign('preparer')} noAuthHint={barHint} />
+      <Line role="Preparer" who={preparer} canSign={!barred && !signBlock('preparer')} onSign={() => doSign('preparer')} onUnsign={() => unsign('preparer')} noAuthHint={signHint('preparer')} unsignHint={unsignBlock('preparer')} />
       <div style={{ borderTop: '1px solid var(--line-soft)' }} />
-      <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview && !barred} noAuthHint={barHint || (!canReview ? 'menunggu otoritas berwenang (reviewer)' : 'menunggu preparer')} onSign={() => doSign('reviewer')} onUnsign={() => unsign('reviewer')} />
+      <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview && !barred && !signBlock('reviewer')} noAuthHint={barHint || (!canReview ? 'menunggu otoritas berwenang (reviewer)' : signBlock('reviewer') || 'menunggu preparer')} onSign={() => doSign('reviewer')} onUnsign={() => unsign('reviewer')} unsignHint={unsignBlock('reviewer')} />
       {!hasConclusion && (
         reviewer
           ? <div className="tiny" style={{ marginTop: 6, color: 'var(--amber)', fontWeight: 600 }}><I.alert size={11} /> Ditelaah tanpa kesimpulan terdokumentasi (SA 230) — lengkapi di bawah.</div>
