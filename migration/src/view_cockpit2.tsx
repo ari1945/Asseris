@@ -14,9 +14,10 @@ import { WpCompletenessRecap, wpCompletenessFor, wpModuleStatuses, WP_MODULE_MAP
 import { eqrGateDetail } from './canon_eqr_gate';
 import { cockpitEconomics, cockpitRiskCoverage, type CockpitWip, type CockpitMember, type CockpitRiskCoverage } from './cockpit_model';
 import {
-  progressBridge, phaseRollups, PHASE_BUDGET_WEIGHT, CKP_PHASE_ORDER,
+  progressBridge, phaseRollups, CKP_PHASE_ORDER,
   type ModuleWpStatus, type PhaseRollup, type ProgressBridge,
 } from './cockpit_progress';
+import { PHASE_LABEL, PHASE_ORDER, phaseBudgetHours, phaseHoursOf } from './phase_canon';
 import {
   engagementStart, engagementMilestones, timelineSpan,
   type CockpitMilestone, type EngagementStart, type TimelineSpan,
@@ -243,24 +244,32 @@ function EngagementCockpit() {
        progres literal, lalu disajikan sebagai pengukuran. Jam pembuka roster
        tidak ber-tag fase, jadi jumlah `tsAct` sengaja TIDAK sama dengan total
        jam — selisihnya dinyatakan, bukan disebar. */
-    const tsByPhase: Record<string, number> = {};
-    (timeEntries || []).forEach((t: { phase?: string; hours?: number }) => {
-      const k = t.phase || '—';
-      tsByPhase[k] = (tsByPhase[k] || 0) + (t.hours || 0);
-    });
+    /* Ember timesheet lewat `phaseOf`, bukan lewat string mentah: sampai kanon
+       fase ada, jam berfase 'Pelaporan' (ejaan formulir Time & Budget) tak
+       pernah terbaca di sini dan diam-diam jatuh ke `untaggedHrs`. Sekarang
+       yang jatuh ke sana hanyalah fase yang benar-benar tak dikenal. */
+    const { byPhase: tsByPhase, untagged: tsUnknown } = phaseHoursOf(
+      timeEntries as { phase?: string; hours?: number }[],
+    );
     const rollByPhase = new Map(rolls.map((r: PhaseRollup) => [r.phase, r]));
-    const phaseRows = [...CKP_PHASE_ORDER, 'Review & Arsip' as const].map((phase) => {
-      const roll = rollByPhase.get(phase as never);
+    /* Anggaran per fase dari kanon, dengan alokasi EKSAK — `Math.round(bobot ×
+       total)` per fase bisa meleset dari anggaran perikatan beberapa jam. */
+    const budByPhase = phaseBudgetHours(econ.budgetHrs);
+    const phaseRows = PHASE_ORDER.map((phase) => {
+      const roll = rollByPhase.get(phase);
       return {
         phase,
+        label: PHASE_LABEL[phase],
         color: roll ? roll.token : 'var(--ink-3)',
-        pct: roll ? Math.round(roll.provenPct) : 0,
+        /* null = fase ini tak punya kertas kerja kanonik ⇒ tak terukur.
+            Membulatkannya jadi 0 akan berbunyi "nol persen terbukti". */
+        pct: roll && roll.provenPct != null ? Math.round(roll.provenPct) : null,
         wpCount: roll ? roll.total : 0,
-        bud: Math.round((PHASE_BUDGET_WEIGHT as Record<string, number>)[phase] * econ.budgetHrs),
+        bud: Math.round(budByPhase[phase]),
         tsAct: Math.round(tsByPhase[phase] || 0),
       };
     });
-    const tsTotal = phaseRows.reduce((s, r) => s + r.tsAct, 0);
+    const tsTotal = phaseRows.reduce((s, r) => s + r.tsAct, 0) + Math.round(tsUnknown);
     const untaggedHrs = Math.max(0, Math.round(econ.actualHrs - tsTotal));
 
     /* gerbang kanonik — satu perhitungan, banyak konsumen */
@@ -517,8 +526,11 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
         </div>
         <div className="ckp-phases">
           {D.rolls.map((p: PhaseRollup) => {
-            const pp = Math.round(p.provenPct);
-            const isActive = p.phase === e.phase || (e.phase === 'Eksekusi' && p.phase === 'Specifics');
+            const pp = p.provenPct == null ? null : Math.round(p.provenPct);
+            /* Dulu: `p.phase === e.phase || (e.phase === 'Eksekusi' && p.phase
+               === 'Specifics')` — tambalan yang hanya ada KARENA cockpit dan
+               data memakai taksonomi berbeda. Satu kanon ⇒ perbandingan lurus. */
+            const isActive = p.phase === e.phase;
             return (
               <div key={p.phase} className={'ckp-phasecol' + (isActive ? ' on' : '')}>
                 <div className="ckp-phasecol-h">
@@ -526,7 +538,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
                   <span style={{ fontWeight: 700, fontSize: 12 }}>{p.phase}</span>
                   {isActive && <span className="ckp-now">AKTIF</span>}
                   <div style={{ flex: 1 }} />
-                  <span className="mono tiny" style={{ fontWeight: 700, color: ckpBar(pp) }}>{pp}%</span>
+                  <span className="mono tiny" style={{ fontWeight: 700, color: pp == null ? 'var(--ink-3)' : ckpBar(pp) }}>{pp == null ? '—' : pp + '%'}</span>
                 </div>
                 <div className="ckp-phasecol-sub tiny muted">
                   {p.total} kertas kerja{p.notStarted > 0 && <span> · <b style={{ color: 'var(--amber)' }}>{p.notStarted} belum dimulai</b></span>}
@@ -814,10 +826,10 @@ function TabAnggaran({ D, e }: any) {
                 <td className="num mono tiny" style={{ fontWeight: 700 }}>{r.tsAct ? fmt(r.tsAct) : <span className="muted" style={{ fontWeight: 400 }}>—</span>}</td>
                 <td>
                   <div className="row ac gap8">
-                    <div style={{ flex: 1, height: 7, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: Math.min(100, r.pct) + '%', height: '100%', background: r.color }} /></div>
+                    <div style={{ flex: 1, height: 7, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}>{r.pct != null && <div style={{ width: Math.min(100, r.pct) + '%', height: '100%', background: r.color }} />}</div>
                   </div>
                 </td>
-                <td className="num mono tiny" style={{ color: ckpBar(r.pct), fontWeight: 700 }}>{r.wpCount ? r.pct + '%' : '—'}</td>
+                <td className="num mono tiny" style={{ color: r.pct == null ? 'var(--ink-3)' : ckpBar(r.pct), fontWeight: 700 }}>{r.pct == null ? '—' : r.pct + '%'}</td>
               </tr>
             ))}
             <tr>
