@@ -10,7 +10,8 @@ import { useBankRecon } from './use_bank_recon';
 import { fxRevaluation, type FxPosition, type FxRevalRow } from './canon_fx';
 import { bankReconExportModel, type ReconExportAccount } from './bank_recon_export';
 import { reconMatchTrail } from './bank_recon_actor';
-import { useAmsPersist, useAudit, useAuth, useFirm } from './contexts';
+import { useAmsPersist, useAudit, useAuth } from './contexts';
+import { useFirmName } from './firm_identity';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
@@ -27,6 +28,45 @@ import { CAP } from './rbac';
 const { useState: useStateTR, useMemo: useMemoTR } = React;
 
 const CCY_SYMBOL = { IDR: 'Rp', USD: 'US$', SGD: 'S$', EUR: '€' };
+
+/* ============================================================
+   EKSPOR YANG MENGATAKAN SEBABNYA KETIKA GAGAL.
+
+   `bankReconExportModel` MELEMPAR bila identitas penerbit kosong atau tak ada
+   rekening yang diekspor — perilaku yang benar. Yang tidak benar adalah
+   pemanggil yang tak menangkap apa pun: promise rejection tanpa penangan =
+   layar diam, dan pengguna menyimpulkan tombolnya rusak alih-alih membaca
+   alasannya. Pola state mengikuti `DiagnosticPanel` (diagnostics_panel.tsx).
+   ============================================================ */
+type EksporFase = 'idle' | 'busy' | 'gagal';
+
+function useEkspor() {
+  /* `useStateTR` adalah alias React yang tak bertipe (konvensi repo) — argumen
+     tipe generik ditolak tsc, jadi bentuknya dinyatakan lewat anotasi hasil. */
+  const [fase, setFase] = useStateTR('idle') as [EksporFase, (v: EksporFase) => void];
+  const [pesan, setPesan] = useStateTR('') as [string, (v: string) => void];
+  const jalankan = async (fn: () => Promise<unknown>): Promise<void> => {
+    if (fase === 'busy') return;
+    setFase('busy'); setPesan('');
+    try {
+      await fn();
+      setFase('idle'); setPesan('');
+    } catch (e) {
+      setFase('gagal');
+      setPesan(e instanceof Error ? e.message : String(e));
+    }
+  };
+  return { fase, pesan, jalankan };
+}
+
+/** Baris alasan kegagalan ekspor — tampil DI LAYAR, bukan hanya di konsol. */
+function EksporGagal({ pesan }: { pesan: string }) {
+  return (
+    <div role="alert" className="tiny" style={{ marginTop: 8, padding: '6px 9px', background: 'var(--red-bg)', color: 'var(--red)', borderRadius: 4, fontWeight: 600, lineHeight: 1.5 }}>
+      <I.alert size={11} /> Ekspor gagal — {pesan}
+    </div>
+  );
+}
 
 /* ============================================================
    Anggaran, Forecast & Arus Kas
@@ -72,9 +112,11 @@ function FirmTreasury() {
   const bud: any = FIRMFIN.budget({ coa });
   const B: any = bud.lines;
   /* Identitas penerbit segel dari SSOT — bukan literal. Tanpa identitas, kertas
-     kerja tidak disegel (pola yang sama dipakai ekspor rekonsiliasi di berkas ini). */
-  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
-  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
+     kerja tidak disegel (pola yang sama dipakai ekspor rekonsiliasi di berkas ini).
+     DULU dibaca dari `useFirm().firm.name`: kunci yang tak pernah ada di
+     FirmContext, sehingga tombol Export ini permanen mati. Lihat `firm_identity.ts`. */
+  const firmName = useFirmName();
+  const ekspor = useEkspor();
   /* Angka pembanding untuk pengungkapan basis: saldo akun kontrol kas menurut buku
      besar. Ia BUKAN dipakai menghitung forecast — ia dipakai memperlihatkan bahwa
      saldo awal seed tidak berasal dari sana. */
@@ -98,7 +140,7 @@ function FirmTreasury() {
   const tabs = [{ id: 'budget', label: 'Anggaran vs Aktual' }, { id: 'cash', label: 'Forecast Arus Kas' }];
 
   const { rp } = AMS;
-  const onExport = async () => {
+  const onExport = () => ekspor.jalankan(async () => {
     const budRows: (string | number)[][] = [];
     for (const b of B) budRows.push([b.line, b.type === 'rev' ? 'Pendapatan' : 'Beban', rp(b.budget), rp(b.actual), rp(b.actual - b.budget), (b.actual / b.budget * 100).toFixed(0) + '%']);
     budRows.push(['LABA OPERASI', '', rp(budProfit), rp(actProfit), rp(actProfit - budProfit), '']);
@@ -121,7 +163,7 @@ function FirmTreasury() {
         { name: 'Forecast Arus Kas (Rp jt)', columns: ['Bulan', 'Saldo Awal', 'Arus Masuk', 'Arus Keluar', 'Arus Bersih', 'Saldo Akhir'], rows: cashRows, colWidths: [14, 14, 14, 14, 14, 14] },
       ],
     });
-  };
+  });
   const VarCell = ({ b, a, cost }: any) => {
     const v = a - b; const adverse = cost ? v > 0 : v < 0;
     return <span className="mono" style={{ color: Math.abs(v) < 1e6 ? 'var(--ink-3)' : adverse ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</span>;
@@ -129,8 +171,9 @@ function FirmTreasury() {
 
   return (
     <>
-      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">{'FY' + fy}</Badge><Btn sm disabled={!firmName} onClick={onExport} title={firmName ? 'Ekspor anggaran & arus kas (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}><I.download size={13} /> Export</Btn></div>} />
+      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">{'FY' + fy}</Badge><Btn sm disabled={!firmName || ekspor.fase === 'busy'} onClick={onExport} title={firmName ? 'Ekspor anggaran & arus kas (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}><I.download size={13} /> {ekspor.fase === 'busy' ? 'Menyiapkan…' : 'Export'}</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
+        {ekspor.fase === 'gagal' && <EksporGagal pesan={ekspor.pesan} />}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actProfit / 1e9, 1) + ' M'} label="Laba Operasi Aktual" accent="var(--green)" /></div></Panel>
@@ -295,8 +338,11 @@ function CashBank() {
      yang sendiri jatuh ke `AMS.USER.name` (data seed, sama untuk siapa pun yang
      login). Tanpa identitas, pencocokan TIDAK dicatat; lihat `bank_recon_actor`. */
   const sessionName = String((auth && auth.user && auth.user.name) || '');
-  const firmCtx = useFirm() as { firm?: { name?: string } } | null;
-  const firmName = String((firmCtx && firmCtx.firm && firmCtx.firm.name) || '');
+  /* Identitas penerbit dari SSOT sesi (`useAuth().firm`), lewat satu pintu.
+     DULU `useFirm().firm.name` — kunci yang tak pernah diterbitkan FirmContext,
+     sehingga kedua tombol ekspor rekonsiliasi permanen mati. Lihat `firm_identity.ts`. */
+  const firmName = useFirmName();
+  const ekspor = useEkspor();
 
   /* Ekuivalen IDR TIDAK dihitung ulang di sini: `bankIDR` sudah datang dari
      `FIRMFIN.bankRecon()` pada kurs penutup periode yang direkonsiliasi, dan itu
@@ -332,11 +378,11 @@ function CashBank() {
   const totReval = fxrv.total;
   const revalKnown = fxrv.covered && totReval != null;
 
-  const exportRecon = async (rows: ReconExportAccount[]) => {
+  const exportRecon = (rows: ReconExportAccount[]) => ekspor.jalankan(async () => {
     await amsExportXlsx(bankReconExportModel({
       accounts: rows, firmName, preparedOn: String(AMS.TODAY), preparedBy: sessionName,
     }));
-  };
+  });
 
   const tabs = [{ id: 'positions', label: 'Posisi Kas & Bank' }, { id: 'recon', label: 'Rekonsiliasi Bank', count: unrec }, { id: 'fx', label: 'Revaluasi Valas', count: valas.length }];
 
@@ -398,15 +444,16 @@ function CashBank() {
                     adalah alat penelusuran selisih itu — menguncinya mencabut satu-satunya
                     dokumen yang menjelaskan mengapa penguncian terjadi. Keadaannya dinyatakan
                     DI DALAM payload, bukan ditolak keluar. */}
-                <Btn sm variant="ghost" disabled={!R || !firmName} onClick={() => R && exportRecon([R])}
+                <Btn sm variant="ghost" disabled={!R || !firmName || ekspor.fase === 'busy'} onClick={() => R && exportRecon([R])}
                   title={firmName ? 'Ekspor kertas kerja rekonsiliasi rekening ini (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}>
                   <I.download size={12} /> Ekspor rekening ini
                 </Btn>
-                <Btn sm variant="ghost" disabled={!per.length || !firmName} onClick={() => exportRecon(per)}
+                <Btn sm variant="ghost" disabled={!per.length || !firmName || ekspor.fase === 'busy'} onClick={() => exportRecon(per)}
                   title={firmName ? 'Ekspor kertas kerja seluruh rekening (XLSX tersegel)' : 'Identitas firma tak tersedia — kertas kerja tidak disegel tanpa penerbit'}>
                   <I.download size={12} /> Seluruh rekening
                 </Btn>
               </div>
+              {ekspor.fase === 'gagal' && <EksporGagal pesan={ekspor.pesan} />}
               <div className="row jb ac" style={{ marginBottom: 12 }}>
                 <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {R ? R.name : '—'} <span className="tiny muted">({R ? R.id : '—'} · GL {R ? R.acct : '—'})</span></div><div className="tiny muted">{canEdit ? 'Periode ' + (R ? R.period : '—') + ' · klik baris untuk tandai cocok/belum' : 'Periode ' + (R ? R.period : '—') + ' · tampilan read-only — pencocokan dibatasi peran Finance Firma / Partner'}</div></div>
                 <span className={'badge b-' + (reconciled ? 'green' : 'red')} style={{ padding: '3px 10px' }}>{reconciled ? <><I.check size={12} /> Seimbang</> : 'BELUM DIJELASKAN Rp ' + fmt(Math.abs(adjustedBank - adjustedBook) / 1e6, 1) + ' jt'}</span>
