@@ -196,7 +196,7 @@
   },
   "src/diagnostics_panel.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 28
+      "count": 26
     }
   },
   "src/evidence.tsx": {
@@ -422,11 +422,6 @@
   "src/view_delivery.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 42
-    }
-  },
-  "src/view_diagnostics.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
     }
   },
   "src/view_disclosure.tsx": {

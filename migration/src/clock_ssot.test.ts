@@ -45,10 +45,12 @@ const IZIN: Record<string, { n: number; alasan: string }> = {
     n: 1,
     alasan: 'Jam keputusan auditor atas usulan AI (HH.MM saja).',
   },
-  'diagnostics_panel.tsx': {
-    n: 1,
-    alasan: 'Jam keputusan auditor atas temuan diagnostik (HH.MM saja).',
-  },
+  /* 'diagnostics_panel.tsx' DICABUT 2026-08-22 (prompt 72-diagnostic D1). Izinnya
+     dulu berbunyi "jam keputusan auditor atas temuan diagnostik (HH.MM saja)" —
+     dan justru DI SITU letak cacatnya: keputusan menutup temuan risiko kecurangan
+     bertanda "14:23" tak dapat ditempatkan pada hari mana pun, sementara SA 230
+     ¶8-11 menuntut KAPAN pertimbangan itu diambil. Kini `diagDecisionStamp()`
+     (klok SSOT + jam nyata) dan stempel tanpa tanggal DITOLAK catatannya. */
   'view_crypto.tsx': {
     n: 1,
     alasan: 'Umpan balik "terverifikasi pukul …" atas aksi yang baru saja dijalankan (HH.MM.SS saja).',
