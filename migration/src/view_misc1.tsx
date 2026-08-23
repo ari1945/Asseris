@@ -113,7 +113,9 @@ function StrategyMemo() {
               ['Partner', activeEngagement?.partner || '—'],
               ['Manajer', activeEngagement?.manager || '—'],
               ['Anggaran Jam', fmt(activeEngagement?.budgetHrs || 0) + ' jam'],
-              ['Tenggat', new Date(activeEngagement?.deadline || Date.now()).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
+              ['Tenggat', activeEngagement?.deadline
+                ? new Date(activeEngagement.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+                : '\u2014'],
             ] },
           ],
         }).catch(() => {});

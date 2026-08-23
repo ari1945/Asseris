@@ -90,7 +90,7 @@ const kindOf = (l: ReconExportLine) =>
 export interface ReconExportInput {
   /** Baris dari `FIRMFIN.bankRecon()` — SATU rekening, atau seluruhnya. */
   accounts: readonly ReconExportAccount[];
-  /** Nama firma dari SSOT (`useFirm().firm.name`). Kosong = ekspor DITOLAK. */
+  /** Nama firma dari SSOT sesi (`useFirmName()` → `useAuth().firm`). Kosong = ekspor DITOLAK. */
   firmName: string;
   /** Klok SSOT (`AMS.TODAY`) — dicetak sebagai tanggal penyusunan kertas kerja. */
   preparedOn: string;

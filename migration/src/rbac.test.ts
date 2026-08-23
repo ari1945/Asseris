@@ -131,10 +131,24 @@ describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () 
     });
   });
 
-  it('firm: dokumen Firm Finance/ERP (GL/AP/pajak firma/rekonsiliasi bank) → FIRMFIN_EDIT', () => {
-    ['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj'].forEach((key) => {
+  it('firm: dokumen Firm Finance/ERP (GL/AP/pajak firma/rekonsiliasi bank/keputusan duplikat aset) → FIRMFIN_EDIT', () => {
+    /* FA2 — `assetDupDecisions.v1`: keputusan firma atas kandidat pencatatan ganda
+       di register aset tetap. TANPA cabang eksplisit ia jatuh ke FIRM_ADMIN
+       (Partner-only) → peran 'Finance Firma' yang justru memegang register ini
+       menekan tombol lalu tulisannya DITOLAK server. Kelas cacat yang sama dengan
+       capacityPlan.v1 / pipeline / deliveryPlan.v1. */
+    ['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj', 'assetDupDecisions.v1'].forEach((key) => {
       expect(capForWrite('firm', key)).toBe(CAP.FIRMFIN_EDIT);
     });
+  });
+
+  it("FA2: peran 'Finance Firma' benar-benar dapat menulis keputusan duplikat aset", () => {
+    /* Gerbang PERILAKU, bukan gerbang peta: yang penting bukan namanya
+       FIRMFIN_EDIT, melainkan bahwa orang yang memegang register lolos. */
+    const cap = capForWrite('firm', 'assetDupDecisions.v1');
+    expect(cap).not.toBe(null);
+    expect(can(FIN_FIRMA, cap as string), "'Finance Firma' ditolak menulis keputusannya sendiri").toBe(true);
+    expect(can(LEAD, cap as string), 'Rekan Pemimpin ikut kehilangan akses').toBe(true);
   });
 
   it('user scope → null (kepemilikan dicek terpisah di server)', () => {

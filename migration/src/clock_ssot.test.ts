@@ -45,10 +45,12 @@ const IZIN: Record<string, { n: number; alasan: string }> = {
     n: 1,
     alasan: 'Jam keputusan auditor atas usulan AI (HH.MM saja).',
   },
-  'diagnostics_panel.tsx': {
-    n: 1,
-    alasan: 'Jam keputusan auditor atas temuan diagnostik (HH.MM saja).',
-  },
+  /* 'diagnostics_panel.tsx' DICABUT 2026-08-22 (prompt 72-diagnostic D1). Izinnya
+     dulu berbunyi "jam keputusan auditor atas temuan diagnostik (HH.MM saja)" —
+     dan justru DI SITU letak cacatnya: keputusan menutup temuan risiko kecurangan
+     bertanda "14:23" tak dapat ditempatkan pada hari mana pun, sementara SA 230
+     ¶8-11 menuntut KAPAN pertimbangan itu diambil. Kini `diagDecisionStamp()`
+     (klok SSOT + jam nyata) dan stempel tanpa tanggal DITOLAK catatannya. */
   'view_crypto.tsx': {
     n: 1,
     alasan: 'Umpan balik "terverifikasi pukul …" atas aksi yang baru saja dijalankan (HH.MM.SS saja).',
@@ -98,6 +100,68 @@ function pemakaian(): Record<string, number> {
   const peta: Record<string, number> = {};
   for (const p of sumberSrc()) {
     const n = (kode(readFileSync(p, 'utf8')).match(/new\s+Date\s*\(\s*\)/g) || []).length;
+    if (n > 0) peta[relative(SRC, p).split('\\').join('/')] = n;
+  }
+  return peta;
+}
+
+/* ------------------------------------------------------------------
+   `Date.now()` — KELAS KETIGA, digerbangi sejak 2026-08-22.
+
+   `new Date()` di atas menutup anchor "hari ini". `Date.now()` adalah anchor
+   yang sama dalam bentuk angka, dan ia lolos dari gerbang itu sepenuhnya.
+   Bedanya: mayoritas pemakaiannya SAH, jadi gerbang ini tak menuntut nol —
+   ia menuntut setiap pemakaian PUNYA ALASAN yang tertulis. Ada tiga alasan
+   yang sah, dan hanya tiga:
+
+     id    — pembangkit id/entropi (`'RN-' + Date.now()`). Bukan anchor waktu;
+             tak ada tanggal yang dapat salah.
+     nyata — jam yang DIVALIDASI SERVER. `nowStamp()` dipakai tanda tangan AJE
+             dan rantai kertas kerja, lalu diperiksa `decisionTimestampError`
+             terhadap jam server dalam jendela `AJE_DECISION_SKEW_MS` (10 menit).
+             Memindahkannya ke `AMS.TODAY` akan membuat SERVER MENOLAK setiap
+             keputusan — skew ~5 bulan.
+     pasangan — pembanding SLA/lewat-tempo atas stempel yang dibuat `nowStamp()`.
+             Ia HARUS memakai klok yang sama dengan nilai yang dibandingkannya;
+             memindahkan salah satu saja memutus pasangannya.
+
+   Yang TIDAK ada di sini lagi (diperbaiki bersama gerbang ini):
+     · `view_misc1` mencetak HARI INI sebagai "Tenggat" pada PDF yang diekspor
+       ketika perikatan tak punya tenggat — tanggal yang tak pernah dijanjikan
+       siapa pun, di dalam dokumen yang keluar dari aplikasi. Kini '—'.
+     · `view_hrops` menjatuhkan anchor kalender kehadiran ke jam mesin bila
+       `AMS.TODAY` tak terbaca. Kini jatuh ke klok SSOT.
+   ------------------------------------------------------------------ */
+const IZIN_NOW: Record<string, { n: number; jenis: 'id' | 'nyata' | 'pasangan'; alasan: string }> = {
+  'aje_approval.ts': {
+    n: 1, jenis: 'nyata',
+    alasan: 'Default `nowStamp(now = Date.now())` — stempel keputusan AJE & tanda tangan kertas kerja, DIVALIDASI server terhadap jam servernya sendiri (skew 10 menit). Klok perikatan akan membuat setiap keputusan ditolak.',
+  },
+  'view_aje.tsx': {
+    n: 2, jenis: 'pasangan',
+    alasan: 'Pembanding lewat-tempo atas `due` yang diturunkan dari `nowStamp()`. Harus satu klok dengan nilai yang dibandingkannya.',
+  },
+  'view_platform.tsx': {
+    n: 1, jenis: 'pasangan',
+    alasan: 'Sisa jam SLA persetujuan, dihitung atas stempel `nowStamp()` yang sama. Harus satu klok dengan nilai yang dibandingkannya.',
+  },
+  'ai_extract.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit uid hasil ekstraksi — entropi, bukan anchor waktu.' },
+  'contexts.tsx': { n: 2, jenis: 'id', alasan: 'Pembangkit id catatan reviu & entri waktu — entropi, bukan anchor waktu.' },
+  'copilot.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit uid pesan co-pilot — entropi, bukan anchor waktu.' },
+  'evidence.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit uid rekaman bukti — entropi, bukan anchor waktu (tanggalnya memakai `amsStamp()`).' },
+  'view_mytasks.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit id sub-tugas — entropi, bukan anchor waktu.' },
+  'view_mytasks_parts.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit id tugas pribadi — entropi, bukan anchor waktu.' },
+  'view_onboarding.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit nomor prospek manual — entropi, bukan anchor waktu.' },
+  'view_opinion_parts.tsx': { n: 2, jenis: 'id', alasan: 'Pembangkit id Hal Audit Utama (KAM) — entropi, bukan anchor waktu.' },
+  'view_restatement.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit id item penyajian kembali — entropi, bukan anchor waktu.' },
+  'view_workspace.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit id catatan ruang kerja — entropi, bukan anchor waktu.' },
+  'view_wp.tsx': { n: 1, jenis: 'id', alasan: 'Pembangkit id catatan kertas kerja — entropi, bukan anchor waktu.' },
+};
+
+function pemakaianNow(): Record<string, number> {
+  const peta: Record<string, number> = {};
+  for (const p of sumberSrc()) {
+    const n = (kode(readFileSync(p, 'utf8')).match(/Date\s*\.\s*now\s*\(\s*\)/g) || []).length;
     if (n > 0) peta[relative(SRC, p).split('\\').join('/')] = n;
   }
   return peta;
@@ -228,5 +292,42 @@ describe('K-02 — perilaku klok', () => {
     expect(d.getHours()).toBe(0);
     const besok = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
     expect(Math.round((besok.getTime() - d.getTime()) / 86400000)).toBe(1);
+  });
+});
+/* ============================================================
+   K-02 kelas ketiga — `Date.now()` sebagai anchor "hari ini".
+   ============================================================ */
+describe('K-02 — setiap `Date.now()` punya alasan yang tertulis', () => {
+  it('pemindai melihat `Date.now()` yang memang ada (kalibrasi)', () => {
+    expect(pemakaianNow()['aje_approval.ts']).toBe(1);
+  });
+
+  it('tidak ada berkas di luar daftar izin', () => {
+    const pakai = pemakaianNow();
+    const liar = Object.keys(pakai).filter(f => !IZIN_NOW[f]).map(f => `${f} (${pakai[f]}×)`);
+    expect(liar, `Date.now() tanpa alasan:\n  ${liar.join('\n  ')}`).toEqual([]);
+  });
+
+  it('berkas berizin tidak diam-diam menambah pemakaian', () => {
+    const pakai = pemakaianNow();
+    const beda = Object.keys(IZIN_NOW)
+      .filter(f => (pakai[f] || 0) !== IZIN_NOW[f].n)
+      .map(f => `${f}: izin ${IZIN_NOW[f].n}, nyata ${pakai[f] || 0}`);
+    expect(beda, `jumlah pemakaian bergeser:\n  ${beda.join('\n  ')}`).toEqual([]);
+  });
+
+  it('setiap izin membawa jenis DAN alasannya', () => {
+    Object.entries(IZIN_NOW).forEach(([f, v]) => {
+      expect(['id', 'nyata', 'pasangan'], `${f} berjenis tak dikenal`).toContain(v.jenis);
+      expect(v.alasan.length, `${f} tanpa alasan`).toBeGreaterThan(30);
+    });
+  });
+
+  it('klok NYATA dan pasangannya tetap satu keluarga — bukan dipindah sebagian', () => {
+    /* Kalau `nowStamp()` suatu hari pindah ke klok perikatan, pembanding SLA
+       yang berpasangan dengannya HARUS ikut — kalau tidak, "lewat tempo"
+       dihitung antara dua klok yang berbeda lima bulan. */
+    const keluarga = Object.keys(IZIN_NOW).filter(f => IZIN_NOW[f].jenis !== 'id');
+    expect(keluarga.sort()).toEqual(['aje_approval.ts', 'view_aje.tsx', 'view_platform.tsx']);
   });
 });

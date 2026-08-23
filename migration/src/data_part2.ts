@@ -84,6 +84,12 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
     { account: 'KAS-PTY', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END, lines: [] },
   ];
 
+  /* Tahun buku anggaran firma. Sampai 2026-08-22 ia hanya hidup di komentar dan
+     diketik ulang TIGA kali di `view_firmtreasury.tsx` (badge `FY2025`, meta ekspor,
+     dan label kuartal `Q1 2025` pada drill-down) — tiga tempat yang dapat berselisih.
+     Ia BUKAN turunan klok: anggaran ini memang milik FY2025. */
+  const FIRM_BUDGET_FY = 2025;
+
   /* Anggaran firma (FY2025, P&L) — RENCANA saja.
      PRD budget-actual-ledger-derived 2026-08-15: kolom `actual` DIHAPUS. Aktual bukan
      data yang disimpan di sini; ia saldo akun `acct` di buku besar (FIRM_COA), dan
@@ -781,4 +787,4 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
      exec: peta { [no]: bool } status pelaksanaan (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
 
-export { FIRM_PERIOD_END, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
+export { FIRM_PERIOD_END, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, FIRM_BUDGET_FY, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };

@@ -689,5 +689,37 @@ const FIRMFIN = (function () {
    antrean persetujuan sama sekali. */
 const WIP_WRITEOFF_APPROVAL_MIN = 1e8;
 
+/* ------------------------------------------------------------------
+   KEBIJAKAN LIKUIDITAS FIRMA (prompt 31-treasury TR2)
+
+   Ambang "zona perhatian" kas dulu diketik sebagai angka `7000` EMPAT KALI di
+   dalam JSX `view_firmtreasury.tsx` — kartu KPI, label grafik, warna batang, dan
+   kolom saldo akhir. Itu bukan detail tampilan: ia menentukan kapan kas firma
+   disebut perlu perhatian. Empat salinan berarti mengubahnya di satu tempat
+   menghasilkan layar yang berselisih dengan dirinya sendiri.
+
+   NILAINYA TIDAK DIUBAH — memindahkan bukan menetapkan ulang.
+
+   ⚠ DASARNYA BELUM DINYATAKAN. Siapa yang menetapkan Rp 7 M, atas dasar apa, dan
+   kapan ia ditinjau — tak ada jawabannya di repo ini, dan menuliskan alasan yang
+   masuk akal SEKARANG hanya akan membuat angka tanpa dasar terdengar berdasar.
+   `basis` karena itu sengaja kosong dan `open` menyebut apa yang belum dijawab,
+   dengan pola yang sama seperti `verified: false` pada registry regref.
+   ------------------------------------------------------------------ */
+const FIRM_CASH_POLICY = {
+  /** Saldo kas proyeksi di bawah ini ditandai zona perhatian (rupiah penuh). */
+  watchFloorIdr: 7_000_000_000,
+  /** Dasar penetapan. Kosong = BELUM dinyatakan; jangan diisi tanpa keputusan. */
+  basis: '',
+  open:
+    'Siapa yang menetapkan Rp 7 M, atas dasar apa (mis. n bulan beban rata-rata?), '
+    + 'dan kapan ia ditinjau ulang — ketiganya belum dijawab. Selama itu, angka ini '
+    + 'dipakai apa adanya dan dinyatakan sebagai ambang kebijakan, bukan sebagai hasil hitungan.',
+};
+
+/** Ambang yang sama dalam satuan deret `CASH_FORECAST` (juta rupiah).
+ *  Fungsi, bukan konstanta: ia harus ikut bergerak bila kebijakannya diubah. */
+const cashWatchFloorJt = (): number => FIRM_CASH_POLICY.watchFloorIdr / 1e6;
+
 /* [codemod] ESM export (window.FIRMFIN dilucuti — konsumen pakai named import) */
-export { FIRMFIN, WIP_WRITEOFF_APPROVAL_MIN };
+export { FIRMFIN, WIP_WRITEOFF_APPROVAL_MIN, FIRM_CASH_POLICY, cashWatchFloorJt };

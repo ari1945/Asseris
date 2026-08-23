@@ -178,7 +178,13 @@ export function capForWrite(scope: any, key: any) {
     // keduanya data keuangan firma → satu kebijakan FIRMFIN_EDIT dengan GL/AP/tax/rekon, supaya
     // gate UI can(FIRMFIN_EDIT) dan penegakan server capForWrite TIDAK berbeda (mencegah peran
     // Finance Firma melihat tombol aktif lalu suntingannya ditolak SENYAP oleh server).
-    if (['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj'].includes(key)) return FIRMFIN_EDIT;
+    // 2026-08-23 (prompt 33-fixedassets FA2 / usulan-FA2) — 'assetDupDecisions.v1': keputusan
+    // firma atas kandidat pencatatan ganda di register aset tetap (bukan duplikat / duplikat
+    // dikonfirmasi, dengan pelaku & alasan). Kunci firm-scope TANPA cabang eksplisit jatuh ke
+    // FIRM_ADMIN (Partner-only), sehingga peran 'Finance Firma' — yang justru memegang register
+    // ini — menekan tombol lalu tulisannya DITOLAK server. Register aset tetap adalah data
+    // keuangan firma, jadi ia satu kebijakan dengan GL/AP/tax/rekon di atas.
+    if (['firmgl', 'firmap', 'firmtax', 'bankrecon', 'invoices', 'wip.adj', 'assetDupDecisions.v1'].includes(key)) return FIRMFIN_EDIT;
     // 2026-07-21 (PR-A1 derivasi kapasitas) — rencana kapasitas minggu ke-depan
     // (capacityPlan.v1). Perencanaan kapasitas adalah tugas Partner/Manajer; tanpa
     // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal

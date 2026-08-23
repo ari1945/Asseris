@@ -33,9 +33,16 @@ vi.mock('./contexts', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('./contexts');
   return {
     ...actual,
-    useAuth: () => ({ user: stage.sessionName ? { name: stage.sessionName } : null, can: () => stage.canEdit }),
+    /* `firm` adalah kunci AuthContext YANG NYATA (contexts.tsx: `firm: D.FIRM`).
+       Dulu ia dikarang di atas `useFirm()` — konteks yang tak pernah menerbitkan
+       kunci itu — sehingga uji "tombol ekspor hidup" hijau terhadap bentuk yang
+       tak ada di produksi. Gerbang kesetiaan mock: `firm_identity.test.ts`. */
+    useAuth: () => ({
+      user: stage.sessionName ? { name: stage.sessionName } : null,
+      can: () => stage.canEdit,
+      firm: stage.firmName ? { name: stage.firmName } : null,
+    }),
     useAudit: () => ({ logActivity: (e: unknown) => { stage.logged.push(e); } }),
-    useFirm: () => ({ firm: { name: stage.firmName } }),
     useAmsPersist: (_k: string, init: unknown) => [typeof init === 'function' ? (init as () => unknown)() : init, () => {}],
   };
 });
@@ -45,6 +52,20 @@ vi.mock('./use_bank_recon', async () => {
   return { ...actual, useBankRecon: () => ({ lines: seedReconLines(), setLines: () => {}, healed: false }) };
 });
 vi.mock('./shell', () => ({ SubBar: () => null }));
+/* Ekspor disadap: yang diuji bukan isi XLSX-nya (itu `bank_recon_export.test.ts`),
+   melainkan bahwa pemanggilnya benar-benar SAMPAI ke sana membawa identitas — dan
+   bahwa kegagalannya berakhir di layar, bukan sebagai promise rejection tanpa penangan. */
+const eksporStage: { calls: { firm?: string }[]; gagal: string } = { calls: [], gagal: '' };
+vi.mock('./export_xlsx', async () => {
+  const actual = await vi.importActual<Record<string, unknown>>('./export_xlsx');
+  return {
+    ...actual,
+    amsExportXlsx: async (model: { firm?: string }) => {
+      if (eksporStage.gagal) throw new Error(eksporStage.gagal);
+      eksporStage.calls.push(model);
+    },
+  };
+});
 
 const { CashBank } = await import('./view_firmtreasury');
 
@@ -57,6 +78,7 @@ beforeEach(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   stage.canEdit = true; stage.sessionName = 'Dimas Raharjo';
   stage.firmName = 'KAP Uji & Rekan'; stage.logged = [];
+  eksporStage.calls = []; eksporStage.gagal = '';
   container = document.createElement('div');
   document.body.appendChild(container);
   React.act(() => { root = createRoot(container as HTMLDivElement) as unknown as Root; });
@@ -148,6 +170,31 @@ describe('layar Kas & Bank — kertas kerja & jejak', () => {
       expect((b.textContent || '').trim().length, 'tombol tanpa nama').toBeGreaterThan(0);
       expect((b as HTMLButtonElement).disabled).toBe(false);
     }
+  });
+
+  it('klik ekspor benar-benar SAMPAI ke penulis berkas, membawa nama firma sesi', async () => {
+    /* Ini yang selama ini tak dibuktikan: uji lama berhenti pada `disabled === false`,
+       dan `disabled` itu sendiri dihitung dari `firmName` yang dikarang harness. */
+    mount();
+    openTab('Rekonsiliasi Bank');
+    const b = Array.from(document.querySelectorAll('button'))
+      .find((x) => (x.textContent || '').includes('Ekspor rekening ini')) as HTMLButtonElement;
+    await React.act(async () => { b.click(); });
+    expect(eksporStage.calls).toHaveLength(1);
+    expect(eksporStage.calls[0].firm).toBe('KAP Uji & Rekan');
+  });
+
+  it('ekspor yang GAGAL mengatakan sebabnya di layar, bukan diam', async () => {
+    eksporStage.gagal = 'penulis XLSX menolak muatan';
+    mount();
+    openTab('Rekonsiliasi Bank');
+    const b = Array.from(document.querySelectorAll('button'))
+      .find((x) => (x.textContent || '').includes('Ekspor rekening ini')) as HTMLButtonElement;
+    await React.act(async () => { b.click(); });
+    const alert = document.querySelector('[role="alert"]');
+    expect(alert, 'tak ada baris alasan — kegagalan ekspor hilang senyap').toBeTruthy();
+    expect(alert?.textContent).toContain('Ekspor gagal');
+    expect(alert?.textContent).toContain('penulis XLSX menolak muatan');
   });
 
   it('tanpa identitas firma, ekspor DIMATIKAN dan mengatakan sebabnya', () => {
