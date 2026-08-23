@@ -24,13 +24,13 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
        → net −465. Penggajian Mandiri: JV-0311 cr −1.820. */
     expect(byCode(open, '1-101')).toBe(4_425_000_000 + 465_000_000);
     expect(byCode(open, '1-102')).toBe(1_180_000_000 + 1_820_000_000);
-    // Piutang: JV-0312 cr −925 · JV-0309 dr +555 · JV-0314 dr +1.640 → net +1.270
-    expect(byCode(open, '1-200')).toBe(4_440_000_000 - 1_270_000_000);
+    // Piutang: JV-0312 cr −925 · JV-0309 dr +555 · JV-0314 dr +1.640 · JV-0321 cr −492 → net +778
+    expect(byCode(open, '1-200')).toBe(3_948_000_000 - 778_000_000);
     // WIP: JV-0313 dr +2.850 · JV-0314 cr −1.640 → net +1.210
     expect(byCode(open, '1-300')).toBe(9_300_000_000 - 1_210_000_000);
     expect(byCode(open, '5-200')).toBe(1_570_000_000 - 820_000_000); // net +820
-    // Pendapatan: JV-0309 cr −555 · JV-0313 cr −2.850 → net −3.405
-    expect(byCode(open, '4-100')).toBe(-11_300_000_000 + 3_405_000_000);
+    // Pendapatan: JV-0309 cr −555 · JV-0313 cr −2.850 · JV-0321 dr +492 → net −2.913
+    expect(byCode(open, '4-100')).toBe(-10_808_000_000 + 2_913_000_000);
     // Utang usaha: JV-0310/0315/0317/0318 cr −1.030 · JV-0316 dr +910 → net −120
     expect(byCode(open, '2-100')).toBe(-1_820_000_000 + 120_000_000);
   });
@@ -51,7 +51,7 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     const changed = seedGl.map((j) => j.id === 'JV-0312' ? { ...j, posted: false } : j);
     const cur = currentBalances(coa, seedGl, changed);
     expect(byCode(cur, '1-101')).toBe(4_425_000_000 - 925_000_000); // kas turun
-    expect(byCode(cur, '1-200')).toBe(4_440_000_000 + 925_000_000); // piutang naik
+    expect(byCode(cur, '1-200')).toBe(3_948_000_000 + 925_000_000); // piutang naik
   });
 
   it('memposting jurnal draft menggeser TB', () => {
@@ -61,12 +61,13 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     expect(byCode(cur, '2-200')).toBe(-940_000_000 - 210_000_000);
   });
 
-  it('TB tetap seimbang — total debit == total kredit (36.760 M)', () => {
+  it('TB tetap seimbang — total debit == total kredit (36.268 M)', () => {
     const tb = trialBalance(coa, seedGl, seedGl);
     expect(tb.balanced).toBe(true);
-    /* +60,638 jt setelah revaluasi PSAK 10 diposting (JV-0319/0320, #248). */
-    expect(tb.totalDr).toBe(36_820_638_000);
-    expect(tb.totalCr).toBe(36_820_638_000);
+    /* +60,638 jt setelah revaluasi PSAK 10 diposting (JV-0319/0320, #248);
+       −492 jt setelah koreksi akrual ENG-2025-058 diposting (JV-0321, usulan B6). */
+    expect(tb.totalDr).toBe(36_328_638_000);
+    expect(tb.totalCr).toBe(36_328_638_000);
     // baris TB memakai saldo turunan (bukan seed)
     expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_425_000_000);
   });
@@ -75,28 +76,28 @@ describe('Program E — firm_ledger: saldo dari jurnal (P0)', () => {
     const withNew = [...seedGl, { id: 'JV-0999', date: '2026-03-09', desc: 'tes', dr: '1-101', cr: '4-100', amount: 100_000_000, posted: true }];
     const tb = trialBalance(coa, seedGl, withNew);
     expect(tb.balanced).toBe(true);
-    expect(tb.totalDr).toBe(36_920_638_000);
+    expect(tb.totalDr).toBe(36_428_638_000);
     expect(tb.rows.find((r) => r.code === '1-101')?.bal).toBe(4_525_000_000);
-    expect(tb.rows.find((r) => r.code === '4-100')?.bal).toBe(-11_400_000_000);
+    expect(tb.rows.find((r) => r.code === '4-100')?.bal).toBe(-10_908_000_000);
   });
 
-  it('LK turun dari TB: pendapatan 11.300, beban 8.500, laba 2.800, aset seimbang', () => {
+  it('LK turun dari TB: pendapatan 10.808, beban 8.500, laba 2.308, aset seimbang', () => {
     const st = statements(coa, seedGl, seedGl);
-    expect(st.revenue).toBe(11_300_000_000);
+    expect(st.revenue).toBe(10_808_000_000);
     /* Beban NETO: laba selisih kurs (akun 5-600, saldo kredit) kini dibukukan. */
     expect(st.expense).toBe(8_500_000_000 - 60_638_000);
-    expect(st.netProfit).toBe(2_800_000_000 + 60_638_000);
-    expect(st.totAset).toBe(28_260_000_000 + 60_638_000);
+    expect(st.netProfit).toBe(2_308_000_000 + 60_638_000);
+    expect(st.totAset).toBe(27_768_000_000 + 60_638_000);
     expect(st.totLiab).toBe(4_020_000_000);
-    expect(st.totEkuitas).toBe(24_240_000_000 + 60_638_000);
+    expect(st.totEkuitas).toBe(23_748_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 
-  it('LK bergeser mengikuti posting jurnal baru (laba 2.900 setelah +100 pendapatan)', () => {
+  it('LK bergeser mengikuti posting jurnal baru (laba 2.408 setelah +100 pendapatan)', () => {
     const withNew = [...seedGl, { id: 'JV-0998', date: '2026-03-09', desc: 'pendapatan tambahan', dr: '1-200', cr: '4-100', amount: 100_000_000, posted: true }];
     const st = statements(coa, seedGl, withNew);
-    expect(st.revenue).toBe(11_400_000_000);
-    expect(st.netProfit).toBe(2_900_000_000 + 60_638_000);
+    expect(st.revenue).toBe(10_908_000_000);
+    expect(st.netProfit).toBe(2_408_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 

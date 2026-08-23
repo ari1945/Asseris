@@ -70,11 +70,13 @@ describe('SC-4 — nol-delta pada seed bersih', () => {
   it('angka anggaran-vs-aktual pada keadaan boot tetap seperti sebelum arc ini', () => {
     /* Nilai-nilai ini adalah literal yang DULU tersimpan di FIRM_BUDGET.actual.
        Mengunci keduanya identik membuktikan penurunan tidak menggeser demo. */
+    /* JV-0321 (usulan B6, 2026-08-23) membaseline ulang sisi PENDAPATAN: 11.300 →
+       10.808 jt, laba 2.860,638 → 2.368,638 jt. Sisi BEBAN tak tersentuh. */
     const b = budgetOf(derivedCoa(seedGl()));
-    expect(b.actRev).toBe(11_300_000_000);
+    expect(b.actRev).toBe(10_808_000_000);
     /* Beban neto turun sebesar laba selisih kurs yang kini diposting (PSAK 10, #248). */
     expect(b.actCost).toBe(8_500_000_000 - 60_638_000);
-    expect(b.actProfit).toBe(2_800_000_000 + 60_638_000);
+    expect(b.actProfit).toBe(2_308_000_000 + 60_638_000);
     expect(b.budProfit).toBe(3_780_000_000 + 40_000_000);
   });
 
@@ -95,12 +97,12 @@ describe('SC-2/SC-3/SC-5 — aktual bergerak bersama buku besar, dua arah', () =
     const b = budgetOf(derivedCoa(glPosted()));
     const gaji = b.lines.find(l => l.acct === '5-100') as BudgetLine;
     expect(gaji.actual).toBe(5_630_000_000);
-    expect(b.actRev).toBe(11_300_000_000);
+    expect(b.actRev).toBe(10_808_000_000);
   });
 
   it('membatalkan posting mengembalikan angka (bukan sekali jalan)', () => {
     const kembali = glPosted().map(j => j.id === 'JV-0307' ? { ...j, posted: false } : j);
-    expect(budgetOf(derivedCoa(kembali)).actProfit).toBe(2_860_638_000);
+    expect(budgetOf(derivedCoa(kembali)).actProfit).toBe(2_368_638_000);
   });
 
   it('anggaran & P&L TETAP sepakat setelah posting — tak ada angka laba kedua', () => {
@@ -161,10 +163,12 @@ describe('SC-6 — gerbang cakupan DAPAT MERAH', () => {
 describe('SC-7 — varians pendapatan tidak dipoles', () => {
   it('pendapatan aktual ADA DI BAWAH anggaran; variansnya negatif', () => {
     /* Headline Firm Finance dulu menambahkan konstanta `+ 6` sehingga −5,8% tampil
-       sebagai "+0,2%" dengan panah hijau. Angkanya dipaku di sini. */
+       sebagai "+0,2%" dengan panah hijau. Angkanya dipaku di sini.
+       JV-0321 (usulan B6) membaselinenya ulang: −5,83% → −9,93%. Yang dijaga tetap
+       sama — variansnya NEGATIF dan tidak dipoles. */
     const b = budgetOf(derivedCoa(seedGl()));
     const varPct = (b.actRev / b.budRev - 1) * 100;
     expect(varPct).toBeLessThan(0);
-    expect(varPct).toBeCloseTo(-5.83, 2);
+    expect(varPct).toBeCloseTo(-9.93, 2);
   });
 });

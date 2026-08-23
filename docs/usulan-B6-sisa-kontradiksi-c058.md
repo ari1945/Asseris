@@ -1,6 +1,6 @@
 # Usulan B6 — sisa kontradiksi C-058: jembatan piutang 492 jt & `WIP_ENG.billed` 2.260 jt
 
-> Status: **USULAN — menunggu keputusan Ari. Belum dikerjakan.**
+> Status: **R1 SELESAI (keputusan Ari 2026-08-23) · R2 & R4 masih menunggu keputusan.**
 > Dibuat 2026-08-23 sesudah menutup cacat nilai faktur C-058 (lihat "Yang sudah
 > dikerjakan"). Bukan PRD (nama berkas sengaja tak berawalan `prd` agar tak masuk
 > registri status §7).
@@ -39,7 +39,7 @@ tetap nol; `residual` 0, `reconciles` true sebelum dan sesudah).
 
 (dalam juta rupiah)
 
-## R1 — `ARB-TRM-058`: termin 492 jt atas perikatan yang sudah ditagih penuh
+## R1 — `ARB-TRM-058` — ✅ SELESAI (JV-0321)
 
 ```
 { id: 'ARB-TRM-058', kind: 'Termin', ref: 'ENG-2025-058',
@@ -79,8 +79,32 @@ angka penggantinya tidak dapat diturunkan dari data yang ada. Menambalnya = meng
 - **C — dibiarkan, dinyatakan.** Baris jembatan diberi keterangan bahwa ia melampaui
   fee kontrak dan menunggu keputusan. Tidak memperbaiki angka, tetapi berhenti diam.
 
-Rekomendasi saya: **A**, dengan penyeimbang kas (perikatan sudah lunas ⇒ tak ada piutang
-tersisa yang sah). Tetapi akun penyeimbang adalah keputusan Anda, bukan saya.
+**KEPUTUSAN ARI 2026-08-23: opsi A, penyeimbang PENDAPATAN (4-100).**
+
+Rekomendasi awal saya di dokumen ini — penyeimbang **kas** — **DICABUT: ia salah.**
+`bankRecon` mengadu saldo GL tiap rekening dengan saldo REKENING KORAN (data eksternal
+literal) ± item rekonsiliasi, per rekening. Keenam rekening menutup persis hari ini dan
+`BANK_RECONS` tak memuat item 492 jt (terbesar: cek beredar 480 jt, setoran dalam
+perjalanan 410 jt — keduanya sudah bertuan). Mendebit kas 492 jt memerahkan satu
+rekening dan, menurut komentar mesinnya sendiri, **mengunci ekspor laporan keuangan** —
+kecuali saldo bank atau item rekonsiliasi dikarang. Itu kelas cacat yang sama dengan
+faktur yang baru dicabut di #295.
+
+**Yang dikerjakan:** `JV-0321` (2026-03-31, terposting) `Dr 4-100 / Cr 1-200 492 jt`.
+Bukan penyuntingan saldo diam-diam: `FIRM_COA[].bal` adalah saldo PENUTUP dan
+`openingBalances = penutup − Σ jurnal seed terposting`, jadi koreksi harus berupa jurnal —
+pola yang sama dengan revaluasi PSAK 10 (JV-0319/0320).
+
+| | sebelum | sesudah |
+|---|---:|---:|
+| kontrol piutang `1-200` | 4.440 jt | **3.948 jt** |
+| pendapatan jasa `4-100` | 11.300 jt | **10.808 jt** |
+| laba operasi | 2.860,638 jt | **2.368,638 jt** |
+| `arAging` residual / reconciles | 0 / true | **0 / true** |
+| rekonsiliasi bank (6 rekening) | residual 0 | **tak tersentuh** |
+| saldo AWAL 1-200 / 4-100 | 3.170 / −7.895 jt | **identik** |
+
+Saldo awal tidak bergerak karena koreksinya periode berjalan seluruhnya.
 
 ## R2 — `WIP_ENG.billed` 2.260 jt: bukan cacat C-058, melainkan basis seed
 
@@ -96,7 +120,34 @@ Menyentuh satu baris saja akan menghasilkan register yang setengah konsisten —
 sulit dinyatakan salah daripada yang sekarang. Ini menunggu **keputusan basis seed
 `WIP_ENG` secara keseluruhan** (butuh masukan Anda), bukan tambalan per baris.
 
+## R4 — `BI_DATA.fyRevenue`: salinan kedua pendapatan firma (BARU, ditemukan lewat R1)
+
+`BI_DATA.fyRevenue` (data_part3.ts) sama PERSIS dengan kontrol GL `4-100`, dan
+`revenueByService` menjumlah tepat kepadanya. Selama keduanya kebetulan sama tak ada
+yang berbunyi — dan itulah masalahnya: JV-0321 langsung membuat tiga modul
+(`view_bi`, `view_bi2`, `view_dashboard2`) melaporkan angka yang dibantah buku besarnya
+sendiri, tanpa satu pun gerbang memerah.
+
+Untuk sekarang salinannya **diikutkan** (11.300 → 10.808 jt; 492 jt dikurangkan dari lini
+`Audit Laporan Keuangan` karena ENG-2025-058 memang perikatan audit LK — atribusinya
+ditentukan data, bukan dipilih), dan dikunci `bi_revenue_ssot.test.ts`.
+
+**Yang benar adalah MENURUNKANNYA** dari `FIRMFIN.pl().revenue`, bukan menyalin lalu
+menjaga. Itu perubahan lintas-modul (tiga view + bauran lini jasa) — keputusan Anda.
+
+## Temuan sampingan (belum ditutup)
+
+`view_dashboard2` menampilkan **"Collection Rate 87%"** dan **"Realization Rate 87%"**
+sebagai literal beku, dengan panah hijau `+3pp` / `+3.1pp` yang juga literal. Register
+faktur mengatakan tingkat penagihan **41,5%** (sesudah #295). Dua angka untuk satu
+besaran, dan yang di layar bukan yang di register. Tidak saya sentuh di sini karena ia
+butuh keputusan tentang dari mana KPI itu seharusnya diturunkan.
+(Literal ketiga di panel yang sama, `delta="+11% YoY"`, IKUT diperbaiki — ia langsung
+dibuat salah oleh JV-0321, jadi kini diturunkan seperti di `view_bi`.)
+
 ## Yang saya minta
 
-1. R1 — pilih A, B, atau C. Bila A: akun penyeimbang untuk penurunan `1-200` 492 jt.
+1. ~~R1~~ — **selesai**, opsi A dengan penyeimbang 4-100.
 2. R2 — konfirmasi bahwa basis `WIP_ENG` tetap ditunda (dan tidak ditambal per baris).
+3. R4 — apakah `BI_DATA.fyRevenue` diturunkan dari GL, atau tetap salinan berpagar?
+4. Temuan sampingan — dari mana "Collection Rate" & "Realization Rate" diturunkan?

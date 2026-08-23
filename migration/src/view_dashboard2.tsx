@@ -139,6 +139,9 @@ function DashFinansial() {
   const wipRows = W.register.map((r: any) => ({ id: r.id, client: r.clientShort, wip: r.unbilled, recoverable: r.recoverable, billed: r.billed }));
   const totalWip = W.unbilledTotal;
   const totalAr = AGING.reduce((s: any, a: any) => s + a.amount, 0);
+  /* Dulu literal `delta="+11% YoY"`. Ia diam-diam jadi salah begitu pendapatan
+     bergerak (JV-0321: 11.300 → 10.808 jt); kini diturunkan, seperti di view_bi. */
+  const yoyPct = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -146,7 +149,7 @@ function DashFinansial() {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalWip / 1e9, 2) + ' M'} label="WIP Belum Ditagih" accent="var(--amber)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value="87%" label="Collection Rate" delta="+3pp" deltaDir="up" accent="var(--green)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value="87%" label="Realization Rate" delta="+3.1pp" deltaDir="up" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(B.fyRevenue / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta="+11% YoY" deltaDir="up" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(B.fyRevenue / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta={fmt(yoyPct, 1) + '% YoY'} deltaDir={yoyPct >= 0 ? 'up' : 'down'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
