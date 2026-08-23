@@ -569,9 +569,16 @@ import { objectivesForComponent } from './canon_smm_objectives';
 
      TERBUKA (butuh keputusan Ari, jangan diputuskan sepihak): dari mana tarif
      ini seharusnya berasal. INVOICES adalah penagihan termin (progres), bukan
-     realisasi; dan seed-nya sendiri tak konsisten (INV-2026-012 menagih 1.650 jt
-     "Final (100%)" untuk klien C-058 yang fee-nya 580 jt). Selama sumber itu
-     belum ada, ini DATA DEMO yang dinyatakan sebagai data. */
+     realisasi. Selama sumber itu belum ada, ini DATA DEMO yang dinyatakan
+     sebagai data.
+
+     (Alasan KEDUA yang dulu tertulis di sini — "seed INVOICES sendiri tak
+     konsisten: INV-2026-012 menagih 1.650 jt 'Final (100%)' untuk C-058 yang
+     fee-nya 580 jt" — SUDAH DITUTUP 2026-08-23. Nilai itu ternyata materialitas
+     ENG-2025-058 yang tersalin; register faktur kini memenuhi `amount === fee x
+     persentase termin` untuk ketujuh barisnya, dijaga
+     `invoices_seed_consistency.test.ts`. Yang tersisa di atas murni pertanyaan
+     KEBIJAKAN, bukan cacat data.) */
   const ENG_FEE_REALIZATION = [
     { eng: 'ENG-2025-014', rate: 0.91 },
     { eng: 'ENG-2025-040', rate: 0.88 },
