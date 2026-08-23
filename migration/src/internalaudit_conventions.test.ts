@@ -25,9 +25,14 @@ import { join } from 'node:path';
 import {
   IA_FACTOR_TEMPLATE, IA_PROFILE_FIELDS, emptyIaProfile, normalizeIaDoc,
   iaScore, iaVerdict, iaActor, iaConcludeBlockReason,
+  nextIaSeq, newIaUseArea, newIaReperfItem, newIaDirectItem,
+  iaUseAreaConflicts, iaUseAreaIncomplete, iaUseAreaImpact,
+  iaDiffAgainstCtt, iaReperfConflicts, iaReperfSummarize, iaAreasWithoutReperf,
+  iaDirectBlockers, iaDirectStatusBlockReason, iaDirectViolations, iaDirectHours,
+  iaDocumentationChecklist,
   iaMemoContext, sa610MemoBlockers, sa610ExportBlockReason,
   sa610MemoMeta, sa610MemoRefNo, sa610MemoFileName, sa610MemoTitle, buildSa610Blocks,
-  type IaFirmLike, type Sa610MemoInput,
+  type IaDirectItem, type IaFirmLike, type IaReperfItem, type IaUseArea, type Sa610MemoInput,
 } from './internalaudit_memo';
 
 const kode = (path: string): string => readFileSync(join(__dirname, path), 'utf8')
@@ -56,7 +61,8 @@ const memoInput = (firm: IaFirmLike, firmName: string): Sa610MemoInput => {
   return {
     ctx: iaMemoContext(firm, firmName),
     factors, profile: emptyIaProfile(), score, verdict: iaVerdict(score.avg),
-    conclusion: null, date: '2026-03-09',
+    conclusion: null, useAreas: [], reperf: [], direct: [], cttFull: null,
+    date: '2026-03-09',
   };
 };
 
@@ -287,7 +293,7 @@ describe('IA4 · kompatibilitas dokumen `internalAudit.v1`', () => {
 
   it('larik faktor lama terbaca sebagai dokumen, dengan skor & catatan utuh', () => {
     const d = normalizeIaDoc(LAMA);
-    expect(d.ver).toBe(2);
+    expect(d.ver).toBe(3);
     expect(d.factors.map((f) => f.v)).toEqual([5, 2, 3]);
     expect(d.factors[0].note).toBe('catatan auditor lama');
     expect(iaScore(d.factors).avg).toBeCloseTo(10 / 3, 10);
@@ -319,7 +325,7 @@ describe('IA4 · kompatibilitas dokumen `internalAudit.v1`', () => {
 
   it('dokumen bentuk baru dibaca apa adanya', () => {
     const doc = normalizeIaDoc({
-      ver: 2,
+      ver: 3,
       factors: [{ id: 'sys', v: 4, note: 'n', subs: [{ ok: true }] }],
       profile: { unit: 'Unit X', head: 'Nama Y' },
       conclusion: { by: 'Auditor Z', at: '2026-03-09', avg: 4, verdict: 'Dapat Diandalkan' },
@@ -369,5 +375,332 @@ describe('IA2 · kesimpulan yang benar-benar direkam', () => {
     const dg = buildSa610Blocks({ ...i, conclusion: { by: 'Anindya P.', at: '2026-03-09', avg: 3.7, verdict: 'Dapat Diandalkan' } });
     expect(JSON.stringify(dg)).toContain('Anindya P.');
     expect(JSON.stringify(dg)).not.toContain('Kesimpulan belum diambil');
+  });
+});
+
+/* ==================================================================
+   IA7 — tiga register yang dulu MENYATAKAN pekerjaan audit yang tak
+   pernah dilakukan: area penggunaan, reperformansi, bantuan langsung.
+   ================================================================== */
+describe('IA7 · register lahir KOSONG, bukan berisi pekerjaan karangan', () => {
+  it('dokumen baru tidak memuat satu pun area, pos reperformansi, atau individu', () => {
+    const d = normalizeIaDoc(null);
+    expect(d.useAreas).toEqual([]);
+    expect(d.reperf).toEqual([]);
+    expect(d.direct).toEqual([]);
+  });
+
+  it('baris baru lahir tanpa satu pun jawaban', () => {
+    const a = newIaUseArea([]);
+    expect([a.area, a.assertion, a.judgment, a.risk, a.nature, a.extent, a.result, a.note, a.wpRef])
+      .toEqual(['', '', '', '', '', '', '', '', '']);
+    expect(a.reperfPct).toBeNull();
+
+    const r = newIaReperfItem([]);
+    expect([r.areaId, r.item, r.iaConclusion, r.auditorResult, r.disposition]).toEqual(['', '', '', '', '']);
+    expect([r.exceptions, r.diffRp]).toEqual([null, null]);
+
+    const x = newIaDirectItem([]);
+    expect([x.name, x.task, x.supervisor, x.review, x.status]).toEqual(['', '', '', '', '']);
+    expect(x.hours).toBeNull();
+    expect([x.objectivityEvaluated, x.entityConsent, x.individualConsent]).toEqual([false, false, false]);
+  });
+
+  it('penomoran baris tidak memakai panjang larik — id tak pernah kembar', () => {
+    /* Menghapus baris tengah lalu menambah baris baru: `list.length` akan
+       melahirkan id KEMBAR, dan id kembar memutus tautan reperformansi→area
+       ke baris yang salah. */
+    const a1 = newIaUseArea([]);
+    const a2 = newIaUseArea([a1]);
+    const a3 = newIaUseArea([a1, a2]);
+    expect([a1.id, a2.id, a3.id]).toEqual(['IA-U-01', 'IA-U-02', 'IA-U-03']);
+    const sesudahHapus = newIaUseArea([a1, a3]);   // a2 dihapus, panjang = 2
+    expect(sesudahHapus.id).toBe('IA-U-04');
+    expect(nextIaSeq(['IA-U-01', 'IA-U-09', 'bukan-id'], 'IA-U-')).toBe(10);
+    expect(nextIaSeq([], 'IA-RP-')).toBe(1);
+  });
+
+  it('sumber view tidak memuat satu pun register pekerjaan sebagai konstanta', () => {
+    const src = view();
+    const konstanta = ['IA_USE_AREAS', 'IA_REPERF', 'IA_DIRECT'];
+    const hit = konstanta.filter((k) => new RegExp('const\\s+' + k + '\\s*=').test(src));
+    expect(hit, 'register masih konstanta modul: ' + hit.join(' | ')).toEqual([]);
+  });
+
+  it('nol disposisi hasil audit sebagai NILAI sebuah field di sumber view', () => {
+    /* 'Memadai'/'Sesuai'/'Selesai' sah sebagai PILIHAN dalam taksonomi. Yang
+       dilarang adalah ia menjadi nilai sebuah field — `result: 'Memadai'` —
+       yaitu jawaban yang sudah terisi sebelum auditor menjawabnya. */
+    const hit = [...view().matchAll(/\b(result|status|disposition|review|judgment|risk|nature|extent)\s*:\s*'[^']+'/g)]
+      .map((m) => m[0]);
+    expect(hit, 'jawaban terisi: ' + hit.join(' | ')).toEqual([]);
+  });
+
+  it('nol jam, pengecualian, atau tingkat reperformansi sebagai konstanta', () => {
+    const hit = [...view().matchAll(/\b(hours|exc|exceptions|reperf|reperfPct|diffRp)\s*:\s*-?[\d_.]+/g)].map((m) => m[0]);
+    expect(hit, 'angka pekerjaan tertanam: ' + hit.join(' | ')).toEqual([]);
+  });
+
+  it('nol nama individu pemberi bantuan langsung yang dikarang', () => {
+    const nama = ['Sari Anjani', 'Bagus Pratama', 'Dimas R.', 'Putri M.'];
+    const hit = nama.filter((n) => view().includes(n));
+    expect(hit, 'individu dikarang: ' + hit.join(' | ')).toEqual([]);
+  });
+
+  it('nol rujukan kertas kerja yang tak resolve; rujukan dipilih dari yang ADA', () => {
+    /* 'PR-3','A-2','C-1','PR-1','B-4' tak ada di `WORKPAPERS` (ref huruf
+       A·B·C·E·F·R) maupun di `WP_MODULE_MAP`. Register kini menautkan ke daftar
+       kertas kerja perikatan, bukan ke string yang diketik. */
+    const src = view();
+    const hit = [...src.matchAll(/\blead\s*:\s*'[^']+'/g)].map((m) => m[0]);
+    expect(hit, 'rujukan KK dikarang: ' + hit.join(' | ')).toEqual([]);
+    expect(src, 'view tidak membaca daftar kertas kerja perikatan').toMatch(/workpapers/);
+    expect(src, 'ambang jelas remeh tidak dibaca dari kanon materialitas').toMatch(/useMateriality\s*\(/);
+  });
+
+  it("nol klaim naratif tentang hasil pekerjaan yang tak pernah dicatat", () => {
+    /* "Reperformansi mengonfirmasi simpulan …", "direviu 100%", "Selisih < CTT",
+       "40 sampel sendiri" — kalimat yang menyatakan hasil untuk setiap perikatan. */
+    const src = view();
+    const pola = /mengonfirmasi simpulan|direviu <b>100%|Selisih < CTT|sampel sendiri|ditemukan 2 kekurangan/gi;
+    const hit = [...src.matchAll(pola)].map((m) => m[0]);
+    expect(hit, 'klaim hasil dikarang: ' + hit.join(' | ')).toEqual([]);
+  });
+
+  it('nol rujukan arsip dokumentasi yang tak ada di register kertas kerja', () => {
+    const hit = [...view().matchAll(/A-610\.\d/g)].map((m) => m[0]);
+    expect(hit, 'indeks arsip dikarang: ' + hit.join(' | ')).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------
+   IA7 — mesin MEMBANTAH, bukan mengisi.
+   ------------------------------------------------------------------ */
+describe('IA7 · pertentangan area penggunaan (¶18–19)', () => {
+  const area = (p: Partial<IaUseArea>): IaUseArea => ({ ...newIaUseArea([]), ...p });
+
+  it('area kosong tidak membantah apa pun', () => {
+    expect(iaUseAreaConflicts(newIaUseArea([]))).toEqual([]);
+  });
+
+  it('pertimbangan tinggi + tetap diandalkan = bertentangan (¶18)', () => {
+    const c = iaUseAreaConflicts(area({ judgment: 'Tinggi', nature: 'Menggunakan hasil kerja', result: 'Memadai', reperfPct: 50 }));
+    expect(c.length).toBeGreaterThan(0);
+    expect(c.join(' ')).toContain('¶18');
+  });
+
+  it('risiko signifikan + tingkat penggunaan tinggi = bertentangan (¶19)', () => {
+    const c = iaUseAreaConflicts(area({ risk: 'Signifikan', extent: 'Tinggi', nature: 'Menggunakan hasil kerja', result: 'Memadai', reperfPct: 20 }));
+    expect(c.join(' ')).toContain('¶19');
+  });
+
+  it('diandalkan tanpa reperformansi sama sekali = bertentangan (¶24)', () => {
+    const c = iaUseAreaConflicts(area({ judgment: 'Rendah', risk: 'Rendah', nature: 'Menggunakan hasil kerja', extent: 'Sedang', result: 'Memadai', reperfPct: 0 }));
+    expect(c.join(' ')).toContain('¶24');
+  });
+
+  it('"Dikecualikan" tetapi bentuknya mengandalkan = bertentangan', () => {
+    const c = iaUseAreaConflicts(area({ nature: 'Bantuan langsung', result: 'Dikecualikan', reperfPct: 100 }));
+    expect(c.join(' ')).toContain('Dikecualikan');
+  });
+
+  it('kombinasi yang konsisten TIDAK dibantah', () => {
+    expect(iaUseAreaConflicts(area({
+      area: 'Rekonsiliasi bank', judgment: 'Rendah', risk: 'Rendah',
+      nature: 'Menggunakan hasil kerja', extent: 'Tinggi', reperfPct: 15, result: 'Memadai',
+    }))).toEqual([]);
+    expect(iaUseAreaConflicts(area({
+      area: 'Estimasi kompleks', judgment: 'Tinggi', risk: 'Signifikan',
+      nature: 'Tidak digunakan', extent: '', reperfPct: 100, result: 'Dikecualikan',
+    }))).toEqual([]);
+  });
+
+  it('kelengkapan & dampak ¶18 diturunkan, bukan ditulis', () => {
+    expect(iaUseAreaIncomplete(newIaUseArea([]))).toBe(true);
+    const lengkap = area({ area: 'X', judgment: 'Rendah', risk: 'Rendah', nature: 'Menggunakan hasil kerja', result: 'Memadai' });
+    expect(iaUseAreaIncomplete(lengkap)).toBe(false);
+    expect(iaUseAreaImpact(lengkap)).toBe('Efisiensi');
+    expect(iaUseAreaImpact(area({ nature: 'Tidak digunakan' }))).toBe('Tidak berubah');
+    expect(iaUseAreaImpact(area({ nature: 'Menggunakan hasil kerja', result: 'Perlu Perluasan' }))).toBe('Prosedur diperluas');
+    expect(iaUseAreaImpact(newIaUseArea([]))).toBe('Belum ditentukan');
+  });
+});
+
+describe('IA7 · reperformansi diuji terhadap ambang perikatan (¶24)', () => {
+  const CTT = 74_250_000;   // ambang jelas remeh contoh (Rp penuh)
+  const pos = (p: Partial<IaReperfItem>): IaReperfItem => ({ ...newIaReperfItem([]), ...p });
+
+  it('tanpa ambang atau tanpa selisih, jawabannya "unknown" — bukan "below"', () => {
+    expect(iaDiffAgainstCtt(null, CTT)).toBe('unknown');
+    expect(iaDiffAgainstCtt(1, null)).toBe('unknown');
+    expect(iaDiffAgainstCtt(1, 0)).toBe('unknown');
+  });
+
+  it('selisih diuji terhadap ambang, dua arah, termasuk selisih negatif', () => {
+    expect(iaDiffAgainstCtt(CTT - 1, CTT)).toBe('below');
+    expect(iaDiffAgainstCtt(CTT, CTT)).toBe('above');
+    expect(iaDiffAgainstCtt(-(CTT + 1), CTT)).toBe('above');
+    expect(iaDiffAgainstCtt(-(CTT - 1), CTT)).toBe('below');
+  });
+
+  it('klaim "di bawah ambang" yang tidak dapat diuji DIBANTAH', () => {
+    const c = iaReperfConflicts(pos({ disposition: 'Selisih di bawah ambang', auditorResult: 'x' }), CTT);
+    expect(c.join(' ')).toContain('tak dapat diuji');
+  });
+
+  it('klaim "di bawah ambang" yang SALAH dibantah oleh angkanya sendiri', () => {
+    const c = iaReperfConflicts(pos({ disposition: 'Selisih di bawah ambang', diffRp: CTT * 2, auditorResult: 'x' }), CTT);
+    expect(c.join(' ')).toContain('MELAMPAUI');
+  });
+
+  it('"Sesuai" dengan pengecualian bukan nol dibantah', () => {
+    const c = iaReperfConflicts(pos({ disposition: 'Sesuai', exceptions: 2, auditorResult: 'x' }), CTT);
+    expect(c.join(' ')).toContain('Sesuai');
+  });
+
+  it('disposisi tanpa hasil pelaksanaan ulang dibantah', () => {
+    const c = iaReperfConflicts(pos({ disposition: 'Sesuai' }), CTT);
+    expect(c.join(' ')).toContain('hasil pelaksanaan ulang');
+  });
+
+  it('ringkasan & cakupan ¶24 diturunkan dari register', () => {
+    const areas = [
+      { ...newIaUseArea([]), id: 'IA-U-01', area: 'Bank', nature: 'Menggunakan hasil kerja' as IaUseArea['nature'] },
+      { ...newIaUseArea([]), id: 'IA-U-02', area: 'CKPN', nature: 'Tidak digunakan' as IaUseArea['nature'] },
+    ];
+    const rows = [pos({ id: 'IA-RP-01', areaId: 'IA-U-01', disposition: 'Sesuai', exceptions: 0, auditorResult: 'cocok' })];
+    const s = iaReperfSummarize(rows, CTT);
+    expect(s).toEqual({ total: 1, agreed: 1, exceptions: 0, expand: 0, conflicts: 0 });
+    expect(iaAreasWithoutReperf(areas, rows)).toEqual([]);
+    /* area yang diandalkan tanpa pos reperformansi = temuan, bukan diam */
+    expect(iaAreasWithoutReperf(areas, []).map((a) => a.id)).toEqual(['IA-U-01']);
+  });
+});
+
+describe('IA7 · gerbang bantuan langsung (¶29 · ¶33 · ¶34)', () => {
+  const orang = (p: Partial<IaDirectItem>): IaDirectItem => ({ ...newIaDirectItem([]), ...p });
+  const siap = orang({ name: 'A', supervisor: 'B', objectivityEvaluated: true, entityConsent: true, individualConsent: true });
+
+  it('baris baru punya EMPAT prasyarat yang belum terpenuhi', () => {
+    expect(iaDirectBlockers(newIaDirectItem([])).length).toBe(4);
+  });
+
+  it('setiap prasyarat yang hilang disebut sendiri-sendiri', () => {
+    expect(iaDirectBlockers(siap)).toEqual([]);
+    expect(iaDirectBlockers({ ...siap, objectivityEvaluated: false }).join(' ')).toContain('¶29');
+    expect(iaDirectBlockers({ ...siap, entityConsent: false }).join(' ')).toContain('¶33(a)');
+    expect(iaDirectBlockers({ ...siap, individualConsent: false }).join(' ')).toContain('¶33(b)');
+    expect(iaDirectBlockers({ ...siap, supervisor: '  ' }).join(' ')).toContain('¶34');
+  });
+
+  it('status tak dapat melampaui prasyaratnya', () => {
+    const kosong = newIaDirectItem([]);
+    expect(iaDirectStatusBlockReason(kosong, '')).toBe('');
+    expect(iaDirectStatusBlockReason(kosong, 'Direncanakan')).toBe('');
+    expect(iaDirectStatusBlockReason(kosong, 'Berlangsung')).toContain('Prasyarat belum terpenuhi');
+    expect(iaDirectStatusBlockReason(kosong, 'Selesai')).toContain('Prasyarat belum terpenuhi');
+  });
+
+  it('"Selesai" menuntut reviu PENUH (¶34), bukan sekadar prasyarat terpenuhi', () => {
+    expect(iaDirectStatusBlockReason(siap, 'Berlangsung')).toBe('');
+    expect(iaDirectStatusBlockReason(siap, 'Selesai')).toContain('¶34');
+    expect(iaDirectStatusBlockReason({ ...siap, review: 'Sebagian' }, 'Selesai')).toContain('¶34');
+    expect(iaDirectStatusBlockReason({ ...siap, review: 'Penuh' }, 'Selesai')).toBe('');
+  });
+
+  it('dokumen warisan yang statusnya terlanjur melampaui prasyarat DILAPORKAN', () => {
+    /* Persis bentuk `IA_DIRECT` lama: nama, penyelia, jam, status 'Selesai' —
+       tanpa satu pun persetujuan ¶33 tercatat. */
+    const warisan = normalizeIaDoc({
+      direct: [{ id: 'IA-DA-01', name: 'Seseorang', task: 't', supervisor: 'S', review: 'Penuh', hours: 24, status: 'Selesai' }],
+    });
+    const v = iaDirectViolations(warisan.direct);
+    expect(v.length).toBe(1);
+    expect(v[0].reason).toContain('¶33');
+    expect(iaDirectHours(warisan.direct)).toBe(24);
+  });
+});
+
+describe('IA7 · daftar simak dokumentasi ¶36–37 diturunkan', () => {
+  it('dokumen kosong: tak satu pun butir selesai, kecuali butir bantuan langsung yang memang nihil', () => {
+    const c = iaDocumentationChecklist(normalizeIaDoc(null));
+    expect(c.length).toBe(5);
+    expect(c.map((x) => x.done)).toEqual([false, false, false, true, false]);
+  });
+
+  it('butir ikut bergerak mengikuti isi kertas kerja', () => {
+    const d = normalizeIaDoc(null);
+    d.factors = d.factors.map((f, i) => ({ ...f, v: [4, 4, 3][i] }));
+    d.useAreas = [{ ...newIaUseArea([]), area: 'X', judgment: 'Rendah', risk: 'Rendah', nature: 'Menggunakan hasil kerja', result: 'Memadai' }];
+    d.reperf = [{ ...newIaReperfItem([]), disposition: 'Sesuai' }];
+    d.direct = [{ ...newIaDirectItem([]), name: 'A' }];
+    d.conclusion = { by: 'A', at: '2026-03-09', avg: 3.7, verdict: 'Dapat Diandalkan' };
+    expect(iaDocumentationChecklist(d).map((x) => x.done)).toEqual([true, true, true, false, true]);
+  });
+});
+
+/* ------------------------------------------------------------------
+   IA7 — kompatibilitas & memo.
+   ------------------------------------------------------------------ */
+describe('IA7 · dokumen ver 2 tetap terbaca, register lahir kosong', () => {
+  it('dokumen tanpa register (ver 2) tidak kehilangan penilaian ¶16', () => {
+    const ver2 = { ver: 2, factors: [{ id: 'obj', v: 5, note: 'n', subs: [{ ok: true }] }], profile: { unit: 'U' }, conclusion: null };
+    const d = normalizeIaDoc(ver2);
+    expect(d.ver).toBe(3);
+    expect(d.factors[0].v).toBe(5);
+    expect(d.profile.unit).toBe('U');
+    expect([d.useAreas, d.reperf, d.direct]).toEqual([[], [], []]);
+  });
+
+  it('baris register tanpa id DIBUANG — tanpa id ia tak dapat disunting maupun ditaut', () => {
+    const d = normalizeIaDoc({ useAreas: [{ area: 'tanpa id' }, { id: 'IA-U-01', area: 'punya id' }] });
+    expect(d.useAreas.map((a) => a.id)).toEqual(['IA-U-01']);
+  });
+
+  it('nilai taksonomi yang tak dikenali jatuh ke KOSONG, bukan ditebak', () => {
+    const d = normalizeIaDoc({
+      useAreas: [{ id: 'IA-U-01', judgment: 'Ekstrem', risk: 'Rendah', nature: 'ngarang', result: 'Memadai', reperfPct: 500 }],
+      direct: [{ id: 'IA-DA-01', review: 'Kadang', status: 'Selesai', hours: -5, objectivityEvaluated: 'ya' }],
+    });
+    expect(d.useAreas[0].judgment).toBe('');
+    expect(d.useAreas[0].risk).toBe('Rendah');
+    expect(d.useAreas[0].nature).toBe('');
+    expect(d.useAreas[0].result).toBe('Memadai');
+    expect(d.useAreas[0].reperfPct).toBeNull();     // di luar 0..100
+    expect(d.direct[0].review).toBe('');
+    expect(d.direct[0].hours).toBeNull();           // negatif
+    expect(d.direct[0].objectivityEvaluated).toBe(false);  // hanya `true` yang berarti ya
+  });
+});
+
+describe('IA7 · memo tersegel membawa register — termasuk ketika kosong', () => {
+  it('register kosong DINYATAKAN kosong, bukan dihilangkan dari memo', () => {
+    const teks = JSON.stringify(buildSa610Blocks(memoInput(FIRM_A, 'KAP Uji Satu')));
+    expect(teks).toContain('Belum ada area penggunaan');
+    expect(teks).toContain('Belum ada pos reperformansi');
+    expect(teks).toContain('Tidak ada bantuan langsung');
+  });
+
+  it('isi register ikut tersegel, beserta pertentangan yang belum diselesaikan', () => {
+    const base = memoInput(FIRM_A, 'KAP Uji Satu');
+    const a: IaUseArea = { ...newIaUseArea([]), area: 'Pengendalian penggajian', judgment: 'Tinggi', risk: 'Rendah', nature: 'Menggunakan hasil kerja', extent: 'Tinggi', reperfPct: 20, result: 'Memadai', wpRef: 'A' };
+    const r: IaReperfItem = { ...newIaReperfItem([]), areaId: a.id, item: 'Uji otorisasi', auditorResult: 'cocok', disposition: 'Sesuai', exceptions: 0 };
+    const x: IaDirectItem = { ...newIaDirectItem([]), name: 'Individu Uji', supervisor: 'Penyelia Uji', hours: 8, status: 'Selesai' };
+    const teks = JSON.stringify(buildSa610Blocks({ ...base, useAreas: [a], reperf: [r], direct: [x], cttFull: 74_250_000 }));
+    expect(teks).toContain('Pengendalian penggajian');
+    expect(teks).toContain('Uji otorisasi');
+    expect(teks).toContain('Individu Uji');
+    /* pertentangan ¶18 dan pelanggaran ¶33 IKUT tersegel — memo tidak boleh
+       lebih rapi daripada kertas kerjanya */
+    expect(teks).toContain('¶18');
+    expect(teks).toContain('¶33');
+    expect(teks).not.toContain('undefined');
+  });
+
+  it('ambang jelas remeh yang dipakai ikut tercetak, atau dinyatakan tak tersedia', () => {
+    const base = memoInput(FIRM_A, 'KAP Uji Satu');
+    const r: IaReperfItem = { ...newIaReperfItem([]), item: 'x', auditorResult: 'y', disposition: 'Sesuai', exceptions: 0 };
+    expect(JSON.stringify(buildSa610Blocks({ ...base, reperf: [r], cttFull: null }))).toContain('tidak tersedia');
+    expect(JSON.stringify(buildSa610Blocks({ ...base, reperf: [r], cttFull: 74_250_000 }))).toContain('74250000');
   });
 });
