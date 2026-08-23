@@ -421,7 +421,18 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { id: 'INV-2026-022', clientId: 'C-040', client: 'PT Mandiri Sejahtera Finance', eng: 'ENG-2025-040', issued: '2026-02-20', due: '2026-03-22', amount: 1_170_000_000, paid: 0, status: 'Overdue', milestone: 'Termin 1 (50%)' },
     { id: 'INV-2026-035', clientId: 'C-031', client: 'PT Bumi Hijau Agrindo', eng: 'ENG-2025-031', issued: '2026-03-05', due: '2026-04-04', amount: 560_000_000, paid: 0, status: 'Sent', milestone: 'Termin 1 (50%)' },
     { id: 'INV-2026-018', clientId: 'C-063', client: 'PT Graha Properti Investama', eng: 'ENG-2025-063', issued: '2026-01-30', due: '2026-03-01', amount: 820_000_000, paid: 410_000_000, status: 'Partial', milestone: 'Termin 2 (50%)' },
-    { id: 'INV-2026-012', clientId: 'C-058', client: 'PT Samudra Pangan Lestari', eng: 'ENG-2025-058', issued: '2026-01-15', due: '2026-02-14', amount: 1_650_000_000, paid: 1_650_000_000, status: 'Paid', milestone: 'Final (100%)' },
+    /* 2026-08-23 — `amount`/`paid` 1_650_000_000 DICABUT. Angka itu adalah PERSIS
+       `ENGAGEMENTS['ENG-2025-058'].materiality`, tersalin dari kolom sebelah: 284,5%
+       dari fee kontrak C-058 (580 jt) di bawah label yang berbunyi `Final (100%)`.
+       Enam faktur seed lainnya memenuhi `amount === fee x persentase termin` PERSIS;
+       hanya baris ini yang membantah labelnya sendiri. Kelas cacat yang sama sudah
+       dicabut di modul Pendapatan (#277: `contract = e.materiality * 0.4`).
+       Akibat hilirnya bukan kosmetik: `recognitionSchedule` melaporkan liabilitas
+       kontrak 1.070 jt atas perikatan yang 100% selesai — dan karena baris lain
+       punya lubang data, itu SELURUH liabilitas kontrak yang dilaporkan firma.
+       Dijaga `invoices_seed_consistency.test.ts`. Piutang & kontrol GL 1-200 TIDAK
+       tersentuh: faktur ini lunas penuh, jadi `amount - paid` tetap nol. */
+    { id: 'INV-2026-012', clientId: 'C-058', client: 'PT Samudra Pangan Lestari', eng: 'ENG-2025-058', issued: '2026-01-15', due: '2026-02-14', amount: 580_000_000, paid: 580_000_000, status: 'Paid', milestone: 'Final (100%)' },
     { id: 'INV-2026-045', clientId: 'C-022', client: 'PT Cahaya Logistik Nusantara', eng: 'ENG-2025-022', issued: '2026-03-08', due: '2026-04-07', amount: 360_000_000, paid: 0, status: 'Draft', milestone: 'Termin 1 (50%)' },
   ];
 
