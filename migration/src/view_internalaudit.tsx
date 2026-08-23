@@ -1,59 +1,78 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm, useAmsPersist } from './contexts';
+import { AMS } from './data';
+import { useAuth, useFirm, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
+import {
+  IA_PROFILE_FIELDS, normalizeIaDoc,
+  iaScore, iaVerdict, iaActor, iaConcludeBlockReason,
+  iaMemoContext, sa610MemoBlockers, sa610ExportBlockReason,
+  sa610MemoTitle, sa610MemoRefNo, sa610MemoMeta, sa610MemoFileName, buildSa610Blocks,
+  type IaConclusion, type IaDoc, type IaFactor, type IaMemoContext, type IaProfile,
+  type IaScore, type IaVerdict, type IaVerdictKind,
+} from './internalaudit_memo';
 
 /* ============================================================
    Asseris — Penggunaan Pekerjaan Audit Internal (SA 610)
    Deep workpaper: konteks & strategi, evaluasi fungsi IA,
    penggunaan pekerjaan, reperformansi, bantuan langsung (direct
    assistance), kesimpulan & dampak terhadap audit.
+
+   Model kertas kerja, aritmetika skor, dan perakitan memo TERSEGEL hidup di
+   `internalaudit_memo.ts` (murni & diuji). Berkas ini merender & menyunting.
+
+   Yang dicabut arc ini — dan sebabnya, agar tak ditulis ulang:
+     · `IA_PROFILE` — profil fungsi audit internal KLIEN sebagai konstanta modul:
+       nama unit, garis pelaporan, nama kepala, jumlah personel, tanggal piagam.
+       Sama untuk setiap klien, tak dapat disunting, dirender sebagai fakta di dua
+       tempat. Kini isian auditor yang ter-persist, diseed KOSONG.
+     · `IA_FACTORS_SEED` — skor 4/4/3 dengan sub-kriteria yang sudah dijawab.
+       Kini kerangka pertanyaan ¶16 tanpa satu pun jawaban.
+     · identitas literal pada memo TERSEGEL (`ENG-2025-014`, `FY2025`, nama KAP,
+       jatuh-balik nama klien) — lihat kepala `internalaudit_memo.ts`.
+     · blok "Sign-off" berisi tiga nama personel dengan tanggal dan `done: true`:
+       tanda tangan yang tak pernah ada, tanpa otorisasi, tanpa jejak audit, sama
+       untuk setiap perikatan. Modul ini TIDAK terdaftar di `WP_MODULE_MAP` dan
+       karenanya tak punya rantai sign-off kanonik sama sekali. Yang menggantikan:
+       rekaman kesimpulan yang benar-benar diambil seseorang (tombol "Simpulkan").
+       Menyambungkannya ke `WpPanel` adalah keputusan alur kerja — usulannya ada di
+       `docs/usulan-IA6-internalaudit-skor-dan-signoff.md`.
+
+   MASIH KONSTANTA MODUL & DILAPORKAN, BUKAN DIPERBAIKI DI ARC INI:
+   `IA_USE_AREAS`, `IA_REPERF`, `IA_DIRECT` — area penggunaan, hasil reperformansi,
+   dan individu pemberi bantuan langsung beserta jamnya. Ketiganya menyatakan
+   pekerjaan audit yang telah dilaksanakan, identik untuk setiap perikatan. Sama
+   kelasnya dengan yang dicabut di atas; lingkupnya jauh lebih besar (tiga register
+   + kontrol penyuntingnya) sehingga dipisahkan ke arc sendiri.
    ============================================================ */
 const { useState: useStateIA, useMemo: useMemoIA } = React;
 
-/* ---- IAF profile (reference) ---- */
-const IA_PROFILE = {
-  unit: 'Satuan Pengawasan Intern (SPI)',
-  reportLine: 'Komite Audit (administratif ke Direktur Utama)',
-  head: 'Wijaya Kusuma, QIA · CIA',
-  headcount: 7,
-  certified: 5,
-  charter: '14 Feb 2023',
-  plan: 'Risk-based annual plan disetujui Komite Audit',
-  methodology: 'IPPF (IIA) · ada manual & QA internal',
+/* Peran warna verdict dienumerasi, BUKAN dirakit `var(--${k})`: token yang
+   disusun saat runtime tak terbaca gerbang `css_tokens`, dan `--gray` tak pernah
+   ada — substitusi yang gagal jatuh diam-diam ke warna warisan. */
+const TONE_INK: Record<IaVerdictKind, string> = {
+  green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)', gray: 'var(--ink-3)',
+};
+const TONE_BG: Record<IaVerdictKind, string> = {
+  green: 'var(--green-bg)', amber: 'var(--amber-bg)', red: 'var(--red-bg)', gray: 'var(--surface-2)',
 };
 
-/* ---- Evaluasi fungsi IA: 3 faktor SA 610 ¶16, masing-masing sub-kriteria ---- */
-const IA_FACTORS_SEED = [
-  { id: 'obj', k: 'Objektivitas', ref: '¶16(a)', v: 4,
-    note: 'Status organisasi & kebijakan menjaga objektivitas penilaian.',
-    subs: [
-      { t: 'SPI melapor fungsional langsung ke Komite Audit', ok: true },
-      { t: 'Tidak ada tanggung jawab operasional yang menimbulkan konflik', ok: true },
-      { t: 'Kebijakan rotasi & deklarasi independensi anggota SPI ada', ok: true },
-      { t: 'Remunerasi tidak dikaitkan dengan area yang diaudit', ok: false, note: 'Skema bonus sebagian terkait KPI divisi — perhatian.' },
-    ] },
-  { id: 'comp', k: 'Kompetensi', ref: '¶16(b)', v: 4,
-    note: 'Kualifikasi, sertifikasi & pengembangan profesional memadai.',
-    subs: [
-      { t: '5 dari 7 anggota bersertifikat (QIA/CIA)', ok: true },
-      { t: 'Pengalaman rata-rata > 6 tahun di bidang audit', ok: true },
-      { t: 'Program CPE/PPL terstruktur & terdokumentasi', ok: true },
-      { t: 'Kompetensi TI/IT audit untuk lingkungan ERP', ok: false, note: 'Cakupan IT audit masih terbatas pada kontrol umum.' },
-    ] },
-  { id: 'sys', k: 'Pendekatan Sistematis & Disiplin', ref: '¶16(c)', v: 3,
-    note: 'Metodologi, perencanaan berbasis risiko & QA.',
-    subs: [
-      { t: 'Perencanaan tahunan berbasis risiko & disetujui', ok: true },
-      { t: 'Program kerja, kertas kerja & supervisi terdokumentasi', ok: true },
-      { t: 'Program QA & peningkatan mutu (QAIP) berjalan penuh', ok: false, note: 'Asesmen mutu eksternal (EQA) belum dilakukan 5 tahun terakhir.' },
-      { t: 'Konsistensi dokumentasi antar penugasan', ok: false, note: 'Sebagian KKP belum seragam — temuan inspeksi internal.' },
-    ] },
-];
+/* Tipe event struktural — proyek ini tanpa @types/react (shim W13), jadi
+   React.ChangeEvent tak tersedia; cukup bentuk yang kita pakai. */
+type FormEv = { target: { value: string } };
+
+const SCORE_LABEL: Record<number, string> = {
+  1: 'sangat tidak memadai', 2: 'tidak memadai', 3: 'cukup', 4: 'memadai', 5: 'sangat memadai',
+};
+
+const scoreInk = (v: number | null): string =>
+  v === null ? 'var(--ink-4)' : v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)';
+
+const shown = (s: string): string => (s && s.trim()) || '—';
 
 /* ---- Area penggunaan pekerjaan IA ---- */
 const IA_USE_AREAS = [
@@ -97,20 +116,65 @@ const IA_PROHIBIT = [
   'Keputusan audit (penilaian kecukupan bukti, materialitas, opini)',
 ];
 
+const IA_CSS = `
+.ia-rowbtn{ display:block; width:100%; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.ia-rowbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:4px; }
+.ia-rowbtn[aria-pressed="true"]{ color:var(--blue); }
+.ia-cellbtn{ display:block; width:100%; background:none; border:0; padding:7px 9px; margin:0; font:inherit; font-weight:600; color:inherit; text-align:left; cursor:pointer; }
+.ia-cellbtn:hover{ background:var(--surface-2); }
+.ia-cellbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
+.ia-cellbtn[aria-pressed="true"]{ color:var(--blue); }
+`;
+
 /* ============================================================ */
 function InternalAudit() {
   const firm = useFirm();
-  const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const auth = useAuth();
   const [tab, setTab] = useStateIA('konteks');
-  const [factors, setFactors] = useAmsPersist('internalAudit.v1', () => IA_FACTORS_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
 
-  const setV = (id: any, v: any) => setFactors((fs: any) => fs.map((f: any) => f.id === id ? { ...f, v } : f));
-  const avg = factors.reduce((s: any, f: any) => s + f.v, 0) / factors.length;
-  const verdict = avg >= 3.5
-    ? { k: 'green', label: 'Dapat Diandalkan', t: 'Fungsi audit internal memenuhi ketiga faktor SA 610 ¶16. Pekerjaan dapat digunakan dengan reperformansi atas sebagian, kecuali area pertimbangan signifikan.' }
-    : avg >= 2.5
-    ? { k: 'amber', label: 'Andalan Terbatas', t: 'Penggunaan terbatas — perluas reperformansi & evaluasi per area. Area pertimbangan signifikan dikerjakan sendiri oleh tim audit.' }
-    : { k: 'red', label: 'Tidak Dapat Diandalkan', t: 'Faktor SA 610 tidak terpenuhi — laksanakan seluruh prosedur audit secara mandiri.' };
+  /* Dokumen kertas kerja SA 610. `normalizeIaDoc` adalah jalur kompatibilitas:
+     sebelum arc ini kunci yang sama menyimpan LARIK faktor telanjang, dan
+     dokumen itu masih ada di perikatan yang sudah dipakai. */
+  const [raw, setRaw] = useAmsPersist('internalAudit.v1', () => normalizeIaDoc(null));
+  const doc: IaDoc = useMemoIA(() => normalizeIaDoc(raw), [raw]);
+  const patch = (fn: (d: IaDoc) => IaDoc) => setRaw((prev: unknown) => fn(normalizeIaDoc(prev)));
+
+  const factors = doc.factors;
+  const profile = doc.profile;
+  const score = iaScore(factors);
+  const verdict = iaVerdict(score.avg);
+
+  const setV = (id: string, v: number | null) =>
+    patch((d) => ({ ...d, factors: d.factors.map((f) => (f.id === id ? { ...f, v } : f)) }));
+  const setFactorNote = (id: string, note: string) =>
+    patch((d) => ({ ...d, factors: d.factors.map((f) => (f.id === id ? { ...f, note } : f)) }));
+  const setSub = (id: string, idx: number, ok: boolean | null) =>
+    patch((d) => ({ ...d, factors: d.factors.map((f) => (f.id === id
+      ? { ...f, subs: f.subs.map((s, i) => (i === idx ? { ...s, ok } : s)) } : f)) }));
+  const setSubNote = (id: string, idx: number, note: string) =>
+    patch((d) => ({ ...d, factors: d.factors.map((f) => (f.id === id
+      ? { ...f, subs: f.subs.map((s, i) => (i === idx ? { ...s, note } : s)) } : f)) }));
+  const setProfileField = (key: keyof IaProfile, value: string) =>
+    patch((d) => ({ ...d, profile: { ...d.profile, [key]: value } }));
+
+  /* ---- Identitas memo: SATU sumber untuk muka berkas DAN scope segel ---- */
+  const memoCtx: IaMemoContext = useMemoIA(
+    () => iaMemoContext(firm, ((AMS as { FIRM?: { name?: string } }).FIRM || {}).name),
+    [firm],
+  );
+  const memoBlockers = sa610MemoBlockers(memoCtx);
+  const memoBlockReason = sa610ExportBlockReason(memoBlockers);
+
+  /* ---- Kesimpulan: pelaku dari SESI, tanpa jaring ke data seed ---- */
+  const actor = iaActor(auth && (auth as { user?: { id?: string; name?: string } }).user);
+  const concludeBlock = iaConcludeBlockReason(verdict, actor);
+  const concluded = doc.conclusion;
+  const toggleConclude = () => {
+    if (concluded) { patch((d) => ({ ...d, conclusion: null })); return; }
+    if (concludeBlock || score.avg === null || !actor) return;
+    const rec: IaConclusion = { by: actor, at: AMS.TODAY, avg: score.avg, verdict: verdict.label };
+    patch((d) => ({ ...d, conclusion: rec }));
+  };
 
   const tabs = [
     { id: 'konteks', label: 'Konteks & Strategi' },
@@ -121,27 +185,24 @@ function InternalAudit() {
     { id: 'kesimpulan', label: 'Kesimpulan & Dampak' },
   ];
 
-  /* K-06 lanjutan — wire tombol "Memo Penggunaan IA" (dulu mati): ekspor PDF tersegel
-     memo SA 610 — evaluasi fungsi IA, penggunaan & reperformansi. */
   const [exporting, setExporting] = useStateIA(false);
   const onExportMemo = async () => {
     if (exporting) return;
+    /* Berkas bersegel membawa identitas ke luar aplikasi dan tak dapat ditarik
+       kembali. Identitas yang tak diketahui → TIDAK diterbitkan. */
+    if (memoBlockers.length) return;
     setExporting(true);
     try {
+      const input = { ctx: memoCtx, factors, profile, score, verdict, conclusion: doc.conclusion, date: AMS.TODAY };
       await amsExportPdf({
-        kind: 'sa610-memo', scope: 'engagement', scopeId: (firm as { activeEngagement?: { id?: string } }).activeEngagement?.id,
-        fileName: `Memo SA 610 - ${client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
-        title: 'Memo — Penggunaan Pekerjaan Audit Internal (SA 610)',
-        meta: [`${client} · ENG-2025-014 · FY2025 · SA 610 (Revisi 2013)`,
-          `Rata-rata evaluasi ${avg.toFixed(1)}/5 · Verdict: ${verdict.label}`],
-        blocks: [
-          { type: 'heading', text: '1. Evaluasi Fungsi IA (¶16)' },
-          { type: 'table', head: ['Faktor', 'Skor', 'Acuan'],
-            body: factors.map((f: { id: string; label: string; v: number; ref: string }) => [f.label, String(f.v), f.ref]) },
-          { type: 'heading', text: '2. Kesimpulan' },
-          { type: 'para', text: verdict.t },
-        ],
+        kind: 'sa610-memo',
+        scope: 'engagement', scopeId: memoCtx.engagementId,
+        fileName: sa610MemoFileName(input),
+        firm: memoCtx.firmName,
+        title: sa610MemoTitle(input),
+        refNo: sa610MemoRefNo(input),
+        meta: sa610MemoMeta(input),
+        blocks: buildSa610Blocks(input),
       });
     } finally {
       setExporting(false);
@@ -153,8 +214,15 @@ function InternalAudit() {
       <SubBar moduleId="internalaudit" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 610</Badge>
-          <Btn sm onClick={onExportMemo} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Penggunaan IA'}</Btn>
-          <Btn sm variant="primary"><I.check size={14} /> Simpulkan</Btn>
+          <Btn sm onClick={onExportMemo} disabled={exporting || memoBlockers.length > 0}
+            title={memoBlockReason || 'Terbitkan memo SA 610 tersegel untuk perikatan aktif'}>
+            <I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Memo Penggunaan IA'}
+          </Btn>
+          <Btn sm variant={concluded ? '' : 'primary'} onClick={toggleConclude}
+            disabled={!concluded && concludeBlock !== ''}
+            title={concluded ? 'Buka kembali kesimpulan untuk dinilai ulang' : (concludeBlock || 'Rekam kesimpulan penggunaan pekerjaan audit internal')}>
+            <I.check size={14} /> {concluded ? 'Dibuka kembali' : 'Simpulkan'}
+          </Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -164,50 +232,86 @@ function InternalAudit() {
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 200 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Fungsi Audit Internal</div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{IA_PROFILE.unit}</div>
-              <div className="tiny muted">{client}</div>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>{shown(profile.unit)}</div>
+              <div className="tiny muted">{shown(memoCtx.clientName)}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Garis Pelaporan</div><div style={{ fontWeight: 600, fontSize: 12, maxWidth: 190, lineHeight: 1.35 }}>{IA_PROFILE.reportLine}</div></div>
+            <div><div className="tiny muted upper">Garis Pelaporan</div><div style={{ fontWeight: 600, fontSize: 12, maxWidth: 190, lineHeight: 1.35 }}>{shown(profile.reportLine)}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tim SPI</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{IA_PROFILE.headcount} org · {IA_PROFILE.certified} bersertifikat</div></div>
+            <div><div className="tiny muted upper">Tim Audit Internal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{shown(profile.headcount)} · {shown(profile.certified)} bersertifikat</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Skor Evaluasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: `var(--${verdict.k})` }}>{avg.toFixed(1)} / 5</div></div>
+            <div><div className="tiny muted upper">Skor Evaluasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: TONE_INK[verdict.k] }}>
+              {score.avg === null ? score.scored + ' / ' + score.total + ' faktor' : score.avg.toFixed(1) + ' / 5'}
+            </div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Keputusan Penggunaan</div>
               <Badge kind={verdict.k} dot>{verdict.label}</Badge>
             </div>
           </div>
+          {memoBlockers.length > 0 && (
+            <div style={{ padding: '9px 16px', background: 'var(--amber-bg)', borderTop: '1px solid var(--line-soft)' }}>
+              <span className="row ac gap8" style={{ fontSize: 12, lineHeight: 1.45 }}>
+                <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>{memoBlockReason}
+              </span>
+            </div>
+          )}
         </Panel>
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'konteks' && <IAContext />}
-        {tab === 'evaluasi' && <IAEvaluation factors={factors} setV={setV} avg={avg} verdict={verdict} />}
+        {tab === 'konteks' && <IAContext profile={profile} setProfileField={setProfileField} score={score} verdict={verdict} conclusion={doc.conclusion} />}
+        {tab === 'evaluasi' && <IAEvaluation factors={factors} setV={setV} setFactorNote={setFactorNote} setSub={setSub} setSubNote={setSubNote} score={score} verdict={verdict} />}
         {tab === 'penggunaan' && <IAUsage />}
         {tab === 'reperform' && <IAReperform />}
         {tab === 'direct' && <IADirect />}
-        {tab === 'kesimpulan' && <IAConclusion verdict={verdict} />}
+        {tab === 'kesimpulan' && <IAConclusionTab verdict={verdict} score={score} conclusion={doc.conclusion} blockReason={concludeBlock} />}
 
       </div></div>
+      <style>{IA_CSS}</style>
     </>
   );
 }
 
 /* ---------------- Tab: Konteks & Strategi ---------------- */
-function IAContext() {
+interface ContextProps {
+  profile: IaProfile;
+  setProfileField: (key: keyof IaProfile, value: string) => void;
+  score: IaScore;
+  verdict: IaVerdict;
+  conclusion: IaConclusion | null;
+}
+
+function IAContext({ profile, setProfileField, score, verdict, conclusion }: ContextProps) {
+  /* Pohon keputusan DITURUNKAN dari keadaan kertas kerja. Sebelum arc ini ia
+     memuat jawaban tetap — termasuk "Skor 3,7/5" yang ditulis tangan dan tidak
+     lagi cocok dengan mesin begitu auditor menggeser satu skor. */
+  const dikecualikan = IA_USE_AREAS.filter((a) => a.result === 'Dikecualikan').length;
   const decision = [
-    { q: 'Apakah fungsi IF ada & relevan dengan audit?', a: 'Ya — SPI menguji pengendalian & area yang relevan.', ok: true },
-    { q: 'Objektivitas, kompetensi & pendekatan sistematis memadai? (¶16)', a: 'Ya, dengan catatan (lihat Evaluasi). Skor 3,7/5.', ok: true },
-    { q: 'Apakah area melibatkan pertimbangan signifikan / risiko signifikan? (¶15)', a: 'Sebagian — area tsb dikecualikan dari penggunaan.', ok: false },
-    { q: 'Apakah penggunaan akan menyisakan keterlibatan auditor memadai? (¶18)', a: 'Ya — auditor tetap melaksanakan prosedur signifikan & reperformansi.', ok: true },
+    { q: 'Apakah fungsi audit internal ada & relevan dengan audit?',
+      a: profile.unit.trim() ? profile.unit.trim() : 'Belum diprofilkan — isi Profil Fungsi Audit Internal di samping.',
+      ok: !!profile.unit.trim() },
+    { q: 'Objektivitas, kompetensi & pendekatan sistematis memadai? (¶16)',
+      a: score.avg === null
+        ? `Belum — ${score.scored} dari ${score.total} faktor dinilai (lihat Evaluasi).`
+        : `${verdict.label} — rata-rata ${score.avg.toFixed(1)}/5 (lihat Evaluasi).`,
+      ok: verdict.k === 'green' },
+    { q: 'Apakah area melibatkan pertimbangan signifikan / risiko signifikan? (¶15)',
+      a: dikecualikan
+        ? `${dikecualikan} area dikecualikan dari penggunaan (lihat Penggunaan Pekerjaan).`
+        : 'Belum ada area yang ditandai dikecualikan.',
+      ok: false },
+    { q: 'Apakah penggunaan akan menyisakan keterlibatan auditor memadai? (¶18)',
+      a: conclusion
+        ? `Dinyatakan ${conclusion.at} oleh ${conclusion.by}.`
+        : 'Belum dinyatakan — kesimpulan penggunaan belum diambil.',
+      ok: !!conclusion },
   ];
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Tujuan & Lingkup (SA 610)</h3><div style={{ flex: 1 }} /></div>
+          <div className="panel-h"><h3>Tujuan &amp; Lingkup (SA 610)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>
             <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Bila entitas memiliki fungsi audit internal, auditor menentukan apakah <b>pekerjaan fungsi audit internal
@@ -222,7 +326,7 @@ function IAContext() {
                 { ic: 'layers', t: 'Nature & Extent (¶17–20)', d: 'Menentukan area & seberapa banyak pekerjaan IA digunakan.' },
                 { ic: 'flask', t: 'Reperformansi (¶24)', d: 'Auditor melaksanakan kembali sebagian pekerjaan IA yang digunakan.' },
               ].map((c, i) => {
-                const Ic = (I as any)[c.ic];
+                const Ic = (I as Record<string, (p: { size?: number }) => JSX.Element>)[c.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', boxShadow: 'none' }}>
                     <span style={{ color: 'var(--blue)' }}><Ic size={18} /></span>
@@ -236,7 +340,7 @@ function IAContext() {
         </Panel>
 
         <Panel noBody>
-          <div className="panel-h"><h3>Pohon Keputusan Penggunaan</h3><div style={{ flex: 1 }} /><Badge kind="green">Memenuhi syarat</Badge></div>
+          <div className="panel-h"><h3>Pohon Keputusan Penggunaan</h3><div style={{ flex: 1 }} /><Badge kind={verdict.k}>{verdict.label}</Badge></div>
           <div style={{ padding: '6px 14px 14px' }}>
             {decision.map((d, i) => (
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < decision.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -254,24 +358,23 @@ function IAContext() {
       </div>
 
       <div className="grid" style={{ gap: 12 }}>
-        <Panel title="Profil Fungsi Audit Internal">
-          <div style={{ display: 'grid', gap: 8 }}>
-            <KvBox label="Kepala SPI" v={IA_PROFILE.head} />
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <KvBox label="Anggota" v={IA_PROFILE.headcount + ' org'} />
-              <KvBox label="Bersertifikat" v={IA_PROFILE.certified + ' / ' + IA_PROFILE.headcount} accent="var(--green)" />
-            </div>
-            <KvBox label="Piagam Audit Internal" v={'Disahkan ' + IA_PROFILE.charter} />
-            <KvBox label="Metodologi" v={IA_PROFILE.methodology} />
-            <div className="tiny muted" style={{ lineHeight: 1.4 }}>{IA_PROFILE.plan}.</div>
+        <Panel title="Profil Fungsi Audit Internal" sub="Isian auditor — tidak ada sumber data fungsi audit internal klien di aplikasi">
+          <div style={{ display: 'grid', gap: 9 }}>
+            {IA_PROFILE_FIELDS.map((f) => (
+              <div key={f.key} className="field">
+                <label htmlFor={'ia-prof-' + f.key}>{f.label}</label>
+                <input id={'ia-prof-' + f.key} className="input" value={profile[f.key]} placeholder={f.hint}
+                  onChange={(e: FormEv) => setProfileField(f.key, e.target.value)} />
+              </div>
+            ))}
           </div>
         </Panel>
         <Panel title="Strategi Koordinasi (SA 315/300)">
           <div style={{ display: 'grid', gap: 7 }}>
             {[
-              'Peroleh rencana audit internal tahunan & laporan SPI terbit selama periode.',
+              'Peroleh rencana audit internal tahunan & laporan fungsi audit internal yang terbit selama periode.',
               'Selaraskan jadwal opname & pengujian pengendalian agar tidak tumpang tindih.',
-              'Sepakati protokol akses kertas kerja & komunikasi temuan SPI ke tim audit.',
+              'Sepakati protokol akses kertas kerja & komunikasi temuan audit internal ke tim audit.',
             ].map((t, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={14} /></span>{t}
@@ -285,31 +388,61 @@ function IAContext() {
 }
 
 /* ---------------- Tab: Evaluasi Fungsi IA ---------------- */
-function IAEvaluation({ factors, setV, avg, verdict }: any) {
+interface EvalProps {
+  factors: IaFactor[];
+  setV: (id: string, v: number | null) => void;
+  setFactorNote: (id: string, note: string) => void;
+  setSub: (id: string, idx: number, ok: boolean | null) => void;
+  setSubNote: (id: string, idx: number, note: string) => void;
+  score: IaScore;
+  verdict: IaVerdict;
+}
+
+const SUB_STATUS = [
+  { value: '', label: 'Belum dinilai' },
+  { value: 'ok', label: 'Terpenuhi' },
+  { value: 'no', label: 'Perhatian' },
+];
+
+function IAEvaluation({ factors, setV, setFactorNote, setSub, setSubNote, score, verdict }: EvalProps) {
   const [selId, setSelId] = useStateIA('obj');
-  const sel = factors.find((f: any) => f.id === selId);
+  const sel = factors.find((f) => f.id === selId);
   return (
     <div className="grid split" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Tiga Faktor Evaluasi" sub="SA 610 ¶16 · skala 1–5">
-        {factors.map((f: any) => (
-          <div key={f.id} onClick={() => setSelId(f.id)}
-            style={{ marginBottom: 12, padding: '10px 11px', borderRadius: 8, cursor: 'pointer',
+        {factors.map((f) => (
+          <div key={f.id}
+            style={{ marginBottom: 12, padding: '10px 11px', borderRadius: 8,
               border: '1px solid ' + (f.id === selId ? 'var(--blue)' : 'var(--line-soft)'),
               background: f.id === selId ? 'var(--blue-050)' : 'transparent' }}>
-            <div className="row jb ac" style={{ marginBottom: 6 }}>
-              <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 700 }}>{f.k}<span className="mono tiny muted">{f.ref}</span></span>
-              <span className="mono" style={{ fontWeight: 700, color: f.v >= 4 ? 'var(--green)' : f.v >= 3 ? 'var(--amber)' : 'var(--red)' }}>{f.v}/5</span>
+            {/* IA5 — kartu faktor dulu `<div onClick>`: tak fokusabel, tak
+                menanggapi Enter/Space. Kontrol pemilihnya kini native. */}
+            <button type="button" className="ia-rowbtn" aria-pressed={f.id === selId}
+              title={'Lihat sub-kriteria — ' + f.k} onClick={() => setSelId(f.id)}>
+              <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 700 }}>{f.k} <span className="mono tiny muted">{f.ref}</span></span>
+                <span className="mono" style={{ fontWeight: 700, color: scoreInk(f.v) }}>{f.v === null ? '—' : f.v + '/5'}</span>
+              </span>
+            </button>
+            <div className="field">
+              <label htmlFor={'ia-skor-' + f.id}>Skor faktor</label>
+              <select id={'ia-skor-' + f.id} className="select" value={f.v === null ? '' : String(f.v)}
+                onChange={(e: FormEv) => setV(f.id, e.target.value === '' ? null : Number(e.target.value))}>
+                <option value="">Belum dinilai</option>
+                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} — {SCORE_LABEL[n]}</option>)}
+              </select>
             </div>
-            <input type="range" min="1" max="5" value={f.v} onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => setV(f.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
-            <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{f.note}</div>
+            <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.35 }}>{f.ask}</div>
           </div>
         ))}
         <div className="divider" />
-        <div className="panel" style={{ padding: '11px 12px', background: `var(--${verdict.k}-bg)`, borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '11px 12px', background: TONE_BG[verdict.k], borderColor: 'transparent' }}>
           <div className="row ac gap10">
-            <span className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${verdict.k})` }}>{avg.toFixed(1)}</span>
+            <span className="mono" style={{ fontSize: 22, fontWeight: 800, color: TONE_INK[verdict.k] }}>
+              {score.avg === null ? '—' : score.avg.toFixed(1)}
+            </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12, color: `var(--${verdict.k})` }}>{verdict.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: TONE_INK[verdict.k] }}>{verdict.label}</div>
               <div className="tiny" style={{ lineHeight: 1.4, marginTop: 2 }}>{verdict.t}</div>
             </div>
           </div>
@@ -319,33 +452,54 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
       {sel && (
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
-            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.ref}</span><Badge kind={sel.v >= 4 ? 'green' : sel.v >= 3 ? 'amber' : 'red'}>{sel.v}/5</Badge></div>
+            <div className="row ac gap8">
+              <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.ref}</span>
+              <Badge kind={sel.v === null ? 'gray' : sel.v >= 4 ? 'green' : sel.v >= 3 ? 'amber' : 'red'}>{sel.v === null ? 'Belum dinilai' : sel.v + '/5'}</Badge>
+            </div>
             <div style={{ fontWeight: 700, fontSize: 15, marginTop: 3 }}>{sel.k}</div>
-            <div className="tiny muted">{sel.note}</div>
+            <div className="tiny muted" style={{ lineHeight: 1.4 }}>{sel.ask}</div>
           </div>
           <table className="dtbl">
-            <thead><tr><th>Sub-kriteria Penilaian</th><th style={{ width: 130 }}>Status</th></tr></thead>
+            <thead><tr><th>Sub-kriteria Penilaian</th><th style={{ width: 150 }}>Status</th><th style={{ width: 240 }}>Catatan Auditor</th></tr></thead>
             <tbody>
-              {sel.subs.map((s: any, i: any) => (
+              {sel.subs.map((s, i) => (
                 <tr key={i}>
-                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>
-                    {s.t}
-                    {s.note && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 3 }}>{s.note}</div>}
+                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{s.t}</td>
+                  <td>
+                    <div className="field">
+                      <label htmlFor={'ia-sub-' + sel.id + '-' + i}>Status</label>
+                      <select id={'ia-sub-' + sel.id + '-' + i} className="select"
+                        value={s.ok === null ? '' : s.ok ? 'ok' : 'no'}
+                        onChange={(e: FormEv) => setSub(sel.id, i, e.target.value === '' ? null : e.target.value === 'ok')}>
+                        {SUB_STATUS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </div>
                   </td>
-                  <td>{s.ok
-                    ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={13} /> Terpenuhi</span>
-                    : <span className="row ac gap6 tiny" style={{ color: 'var(--amber)', fontWeight: 600 }}><I.flag size={13} /> Perhatian</span>}
+                  <td>
+                    <div className="field">
+                      <label htmlFor={'ia-subnote-' + sel.id + '-' + i}>Catatan</label>
+                      <input id={'ia-subnote-' + sel.id + '-' + i} className="input" value={s.note || ''}
+                        placeholder="dasar penilaian" onChange={(e: FormEv) => setSubNote(sel.id, i, e.target.value)} />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div style={{ padding: 12 }}>
+            <div className="field">
+              <label htmlFor={'ia-note-' + sel.id}>Justifikasi skor faktor {sel.k}</label>
+              <input id={'ia-note-' + sel.id} className="input" value={sel.note}
+                placeholder="mengapa skor ini yang diberikan" onChange={(e: FormEv) => setFactorNote(sel.id, e.target.value)} />
+            </div>
+          </div>
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
               <span style={{ fontSize: 12, lineHeight: 1.45 }}>
-                Faktor <b>{sel.k}</b> dievaluasi atas {sel.subs.length} sub-kriteria. Catatan perhatian tidak meniadakan
-                penggunaan, namun menyempitkan area & menaikkan tingkat reperformansi atas pekerjaan terkait.
+                Faktor <b>{sel.k}</b> dinilai atas {sel.subs.length} sub-kriteria. Catatan perhatian tidak dengan
+                sendirinya meniadakan penggunaan, namun menyempitkan area & menaikkan tingkat reperformansi atas
+                pekerjaan terkait.
               </span>
             </div>
           </div>
@@ -358,22 +512,30 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
 /* ---------------- Tab: Penggunaan Pekerjaan ---------------- */
 function IAUsage() {
   const [selId, setSelId] = useStateIA('U1');
-  const sel = IA_USE_AREAS.find(a => a.id === selId);
-  const judgKind = (j: any) => j === 'Tinggi' ? 'red' : j === 'Sedang' ? 'amber' : 'green';
-  const natKind = (n: any) => n.startsWith('Tidak') ? 'gray' : n.startsWith('Bantuan') ? 'purple' : 'blue';
+  const sel = IA_USE_AREAS.find((a) => a.id === selId);
+  const judgKind = (j: string) => (j === 'Tinggi' ? 'red' : j === 'Sedang' ? 'amber' : 'green');
+  const natKind = (n: string) => (n.startsWith('Tidak') ? 'gray' : n.startsWith('Bantuan') ? 'purple' : 'blue');
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Area Penggunaan Pekerjaan Audit Internal</h3><div style={{ flex: 1 }} /><span className="tiny muted">{IA_USE_AREAS.length} area</span></div>
         <div className="panel" style={{ margin: 0, padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 16, fontSize: 11 }}>
-          <span className="muted">Makin tinggi <b>pertimbangan</b> & <b>risiko</b>, makin sedikit pekerjaan IA dapat digunakan dan makin besar reperformansi (SA 610 ¶15, ¶18–19).</span>
+          <span className="muted">Makin tinggi <b>pertimbangan</b> &amp; <b>risiko</b>, makin sedikit pekerjaan IA dapat digunakan dan makin besar reperformansi (SA 610 ¶15, ¶18–19).</span>
         </div>
         <table className="dtbl">
           <thead><tr><th>Area / Prosedur</th><th>Pertimbangan</th><th>Bentuk Penggunaan</th><th style={{ width: 56 }}>Tingkat</th><th style={{ width: 110 }}>Hasil</th></tr></thead>
           <tbody>
-            {IA_USE_AREAS.map(a => (
-              <tr key={a.id} className={a.id === selId ? 'sel' : ''} onClick={() => setSelId(a.id)} style={{ cursor: 'pointer' }}>
-                <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }} className="truncate">{a.area}<div className="tiny muted" style={{ fontWeight: 400 }}>{a.assertion}</div></td>
+            {IA_USE_AREAS.map((a) => (
+              <tr key={a.id} className={a.id === selId ? 'sel' : ''}>
+                {/* IA5 — baris dulu `<tr onClick>` bergaya pointer. Kontrol
+                    pemilihnya kini native, di dalam sel pertama. */}
+                <td style={{ padding: 0 }}>
+                  <button type="button" className="ia-cellbtn" aria-pressed={a.id === selId}
+                    title={'Lihat pertimbangan penggunaan — ' + a.area} onClick={() => setSelId(a.id)}>
+                    <span style={{ display: 'block', whiteSpace: 'normal', lineHeight: 1.35 }}>{a.area}</span>
+                    <span className="tiny muted" style={{ display: 'block', fontWeight: 400 }}>{a.assertion}</span>
+                  </button>
+                </td>
                 <td><Badge kind={judgKind(a.judgment)}>{a.judgment}</Badge></td>
                 <td><Badge kind={natKind(a.nature)}>{a.nature}</Badge></td>
                 <td className="tiny" style={{ fontWeight: 600, color: a.extent === 'Tinggi' ? 'var(--green)' : a.extent === 'Sedang' ? 'var(--amber)' : 'var(--ink-3)' }}>{a.extent}</td>
@@ -407,7 +569,13 @@ function IAUsage() {
                 <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Pertimbangan signifikan — SA 610 ¶15 melarang pengandalan. Dikerjakan penuh oleh tim audit.</span></div>
               </div>
             )}
-            <Btn sm variant="primary" style={{ width: '100%' }}><I.flask size={14} /> Buka WP {sel.lead}</Btn>
+            {/* IA2 — tombol "Buka WP {lead}" DICABUT, tidak diaktifkan. Rujukan yang
+                dijanjikannya ('PR-3', 'A-2', 'C-1', 'PR-1', 'B-4') tidak ada di
+                register kertas kerja mana pun: `WORKPAPERS` (data_part1.ts) hanya
+                memuat ref huruf A · B · C · E · F · R, dan `WP_MODULE_MAP`
+                (wp_signoff.tsx) tak mengenal satu pun di antaranya. Menyambungkannya
+                ke `nav('workpapers')` akan menamai tujuan yang tak pernah ada —
+                lebih buruk daripada tidak menamainya. */}
           </div>
         </Panel>
       )}
@@ -418,21 +586,23 @@ function IAUsage() {
 /* ---------------- Tab: Reperformansi ---------------- */
 function IAReperform() {
   const totExc = IA_REPERF.reduce((s, r) => s + r.exc, 0);
-  const ok = IA_REPERF.filter(r => r.status === 'Sesuai').length;
+  const ok = IA_REPERF.filter((r) => r.status === 'Sesuai').length;
+  const perluasan = IA_REPERF.filter((r) => r.status === 'Perlu Perluasan').length;
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={IA_REPERF.length} label="Pos Diuji Ulang" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={ok} label="Konsisten dgn IA" accent="var(--green)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={totExc} label="Pengecualian" accent={totExc ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'1'} label="Area Perlu Perluasan" accent="var(--amber)" /></div></Panel>
+        {/* dulu literal '1' — angka yang tak ikut bergerak bersama tabelnya */}
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={perluasan} label="Area Perlu Perluasan" accent={perluasan ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
       <Panel noBody>
         <div className="panel-h"><h3>Reperformansi atas Pekerjaan IA yang Digunakan (¶24)</h3><div style={{ flex: 1 }} /><span className="tiny muted">Auditor melaksanakan kembali sebagian pekerjaan</span></div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 64 }}>Ref</th><th>Area</th><th>Pos yang Direperform</th><th>Simpulan IA</th><th>Hasil Auditor</th><th className="num" style={{ width: 64 }}>Selisih</th><th style={{ width: 130 }}>Status</th></tr></thead>
           <tbody>
-            {IA_REPERF.map(r => (
+            {IA_REPERF.map((r) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td style={{ fontWeight: 600 }}>{r.area}</td>
@@ -452,8 +622,8 @@ function IAReperform() {
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.flask size={15} /></span>
             <span style={{ fontSize: 12, lineHeight: 1.45 }}>
-              Reperformansi mengonfirmasi simpulan SPI pada area penggajian, bank & opname (selisih opname &lt; clearly
-              trivial threshold). Pada <b>siklus pendapatan</b>, ditemukan 2 kekurangan dokumentasi — tim audit
+              Reperformansi mengonfirmasi simpulan audit internal pada area penggajian, bank &amp; opname (selisih opname
+              &lt; clearly trivial threshold). Pada <b>siklus pendapatan</b>, ditemukan 2 kekurangan dokumentasi — tim audit
               <b> memperluas pengujian substantif sendiri</b> dan tidak mengandalkan pekerjaan IA atas area tersebut.
             </span>
           </div>
@@ -474,7 +644,7 @@ function IADirect() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 56 }}>Ref</th><th>Individu</th><th>Tugas yang Diberikan</th><th>Supervisi</th><th>Reviu</th><th className="num" style={{ width: 52 }}>Jam</th><th style={{ width: 96 }}>Status</th></tr></thead>
             <tbody>
-              {IA_DIRECT.map(d => (
+              {IA_DIRECT.map((d) => (
                 <tr key={d.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                   <td style={{ fontWeight: 600 }}>{d.name}</td>
@@ -509,14 +679,14 @@ function IADirect() {
         <Panel title="Prasyarat Bantuan Langsung">
           <div style={{ display: 'grid', gap: 7 }}>
             {[
-              { t: 'Evaluasi ancaman objektivitas & kompetensi individu (¶29)', ok: true },
-              { t: 'Persetujuan tertulis entitas — individu boleh ikuti instruksi auditor (¶33a)', ok: true },
-              { t: 'Persetujuan tertulis individu IA — jaga kerahasiaan (¶33b)', ok: true },
-              { t: 'Arahan, supervisi & reviu memadai oleh auditor (¶34)', ok: true },
-            ].map((r, i) => (
+              'Evaluasi ancaman objektivitas & kompetensi individu (¶29)',
+              'Persetujuan tertulis entitas — individu boleh ikuti instruksi auditor (¶33a)',
+              'Persetujuan tertulis individu IA — jaga kerahasiaan (¶33b)',
+              'Arahan, supervisi & reviu memadai oleh auditor (¶34)',
+            ].map((t, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
-                <span style={{ lineHeight: 1.4 }}>{r.t}</span>
+                <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={15} /></span>
+                <span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
             ))}
           </div>
@@ -534,12 +704,19 @@ function IADirect() {
 }
 
 /* ---------------- Tab: Kesimpulan & Dampak ---------------- */
-function IAConclusion({ verdict }: any) {
+interface ConclusionProps {
+  verdict: IaVerdict;
+  score: IaScore;
+  conclusion: IaConclusion | null;
+  blockReason: string;
+}
+
+function IAConclusionTab({ verdict, score, conclusion, blockReason }: ConclusionProps) {
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Dampak terhadap Strategi & Lingkup Audit (¶18)</h3><div style={{ flex: 1 }} /></div>
+          <div className="panel-h"><h3>Dampak terhadap Strategi &amp; Lingkup Audit (¶18)</h3><div style={{ flex: 1 }} /></div>
           <table className="dtbl">
             <thead><tr><th>Area</th><th>Tanpa Penggunaan IA</th><th>Dengan Penggunaan IA</th><th style={{ width: 120 }}>Efek</th></tr></thead>
             <tbody>
@@ -562,17 +739,24 @@ function IAConclusion({ verdict }: any) {
         </Panel>
 
         <Panel title="Kesimpulan Auditor (SA 610)">
-          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
-            Fungsi audit internal (SPI) entitas dinilai memenuhi faktor <b>objektivitas, kompetensi, serta pendekatan
-            sistematis & disiplin</b> (skor {verdict.label === 'Dapat Diandalkan' ? '≥ 3,5' : 'evaluasi'}). Pekerjaan IA
-            <b> digunakan untuk area berpertimbangan & berisiko rendah hingga moderat</b> dengan reperformansi atas
-            sebagian pekerjaan. Area yang melibatkan <b>pertimbangan signifikan</b> (pengakuan pendapatan, CKPN PSAK 71)
-            <b> dikecualikan</b> sesuai SA 610 ¶15 dan dikerjakan sepenuhnya oleh tim audit. Bantuan langsung dibatasi
-            pada prosedur non-judgmental, dengan arahan, supervisi, dan reviu penuh. <b>Keterlibatan auditor tetap
-            memadai</b> dan tanggung jawab atas opini tidak berkurang.
+          {/* Paragraf ini dulu MENYATAKAN bahwa fungsi audit internal "dinilai
+              memenuhi" ketiga faktor — kalimat yang sama muncul juga ketika verdict
+              merah. Teks kesimpulan kini berasal dari mesin yang sama dengan skornya. */}
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>{verdict.t}</p>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+            Tanggung jawab atas opini tetap sepenuhnya pada auditor dan tidak berkurang oleh penggunaan pekerjaan
+            fungsi audit internal (SA 610 ¶11). Bantuan langsung dibatasi pada prosedur non-judgmental, dengan arahan,
+            supervisi, dan reviu auditor.
           </p>
-          <div className="panel" style={{ padding: '10px 12px', background: `var(--${verdict.k}-bg)`, borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: `var(--${verdict.k})` }}><I.checkCircle size={16} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Penggunaan pekerjaan IA terdokumentasi memadai — siap dirujuk ke strategi audit & ringkasan reviu.</span></div>
+          <div className="panel" style={{ padding: '10px 12px', background: TONE_BG[verdict.k], borderColor: 'transparent' }}>
+            <div className="row ac gap8">
+              <span style={{ color: TONE_INK[verdict.k] }}><I.checkCircle size={16} /></span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>
+                {score.avg === null
+                  ? `Evaluasi ¶16 belum selesai — ${score.scored} dari ${score.total} faktor dinilai.`
+                  : `Rata-rata evaluasi ¶16: ${score.avg.toFixed(1)} / 5 — ${verdict.label}.`}
+              </span>
+            </div>
           </div>
         </Panel>
       </div>
@@ -593,26 +777,34 @@ function IAConclusion({ verdict }: any) {
             ))}
           </div>
         </Panel>
-        <Panel title="Sign-off">
-          <div style={{ display: 'grid', gap: 9 }}>
-            {[
-              { role: 'Disiapkan', who: 'Dimas Raharjo', when: '07 Mar', done: true },
-              { role: 'Direview', who: 'Anindya Pramesti', when: '09 Mar', done: true },
-              { role: 'Disetujui Partner', who: 'Hartono Wijaya', when: '—', done: false },
-            ].map((s, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, paddingBottom: 8, borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
-                <div><div className="tiny muted upper">{s.role}</div><div style={{ fontWeight: 600 }}>{s.who}</div></div>
-                {s.done ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> {s.when}</span> : <Badge kind="amber">Menunggu</Badge>}
+        {/* Panel "Sign-off" berisi tiga nama personel dengan tanggal dan `done: true`
+            DICABUT: modul ini tak terdaftar di `WP_MODULE_MAP`, jadi tanda tangan itu
+            tak pernah ada. Yang tersisa adalah rekaman yang benar-benar dibuat. */}
+        <Panel title="Rekaman Kesimpulan">
+          {conclusion ? (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <KvBox label="Disimpulkan oleh" v={conclusion.by} />
+              <KvBox label="Tanggal" v={conclusion.at} />
+              <KvBox label="Rata-rata evaluasi ¶16" v={conclusion.avg.toFixed(1) + ' / 5'} />
+              <KvBox label="Keputusan" v={conclusion.verdict} accent={TONE_INK[verdict.k]} />
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <div className="tiny muted" style={{ lineHeight: 1.45 }}>
+                Kesimpulan penggunaan pekerjaan fungsi audit internal belum diambil.
+                {blockReason ? ' ' + blockReason + '.' : ' Gunakan tombol “Simpulkan” di bilah atas.'}
               </div>
-            ))}
-          </div>
+              <div className="tiny muted" style={{ lineHeight: 1.45 }}>
+                Modul ini belum tersambung ke rantai sign-off kertas kerja (penyusun · penelaah · rekan) —
+                lihat usulan IA6.
+              </div>
+            </div>
+          )}
         </Panel>
       </div>
     </div>
   );
 }
-
-
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { InternalAudit };
