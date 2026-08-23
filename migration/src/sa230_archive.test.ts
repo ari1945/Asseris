@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { RETENTION } from './data_records';
-import { sa230ArchiveState, daysBetween } from './sa230_archive';
+import { sa230ArchiveState, daysBetween, sa230AssemblyWindowDays } from './sa230_archive';
 
 /* ============================================================
    SA 230 · siklus hidup arsip — gerbang SSOT.
@@ -164,35 +164,123 @@ describe('agregat yang dibaca view_sa230 benar-benar ada', () => {
 });
 
 /* ============================================================
-   KARANTINA — kontradiksi kebijakan yang BELUM diputuskan.
+   Kebijakan retensi: SATU angka, dari kelas — bukan per dokumen.
 
-   Dokumen DMS membawa `retentionYears: 10` per dokumen, sementara
-   kelas retensi kanoniknya (kk-audit) menetapkan 7 tahun dengan
-   dasar tertulis. view_dms.tsx:76 menuliskan dasarnya sebagai
-   "SA 230: min. 10 tahun untuk KK audit" — SA 230 ¶A23 tidak
-   menyatakan itu (yang disebut ¶A23 adalah lazimnya tidak kurang
-   dari LIMA tahun sejak tanggal laporan auditor).
+   Keputusan Ari 2026-08-23: masa simpan berkas audit KAP adalah
+   **7 tahun** — angka yang punya dasar tertulis (SA 230 ¶A23 /
+   SMM 1 min. 5 thn; WHR menetapkan 7, melebihi minimum).
 
-   Akibatnya nyata, bukan kosmetik: view_dms menghitung kedaluwarsa
-   dari 10 tahun, sedangkan disposalQueue() → disposalObligations()
-   → kalender kewajiban firma & PO pemusnahan memakai 7. Salah satu
-   dari keduanya menjadwalkan pemusnahan dokumentasi audit pada
-   tahun yang salah.
+   Angka 10 yang sebelumnya melekat pada tiap dokumen DMS tidak
+   punya dasar sama sekali, dan `view_dms.tsx` menuliskan dasarnya
+   sebagai "SA 230: min. 10 tahun untuk KK audit" — ¶A23 tidak
+   menyatakan itu. Angka 10 juga diterapkan SERAGAM ke semua jenis
+   dokumen, sehingga ia hanya kebetulan benar untuk Surat Perikatan
+   (kelas `perikatan` = 10) dan salah untuk Kertas Kerja, Laporan,
+   dan EQR sekaligus.
 
-   MANA yang kebijakan firma adalah keputusan Ari, bukan keputusan
-   agen. Repro ini dibiarkan MERAH-terkarantina agar kontradiksinya
-   tidak kembali tenggelam.
-
-   KARANTINA s/d 2026-09-30 — menunggu keputusan kebijakan retensi.
+   Akibat yang ditutup: `view_dms` menghitung kedaluwarsa dari 10
+   thn sedangkan `disposalQueue()` → kalender kewajiban firma & PO
+   pemusnahan memakai kelas (7) — dua tanggal musnah untuk satu
+   berkas yang sama.
    ============================================================ */
-describe('kontradiksi kebijakan retensi (menunggu keputusan)', () => {
-  it.fails('masa simpan dokumen DMS == kelas retensi kanoniknya', () => {
-    const docs = RETENTION.docsForEng(ENG_AKTIF) as ReadonlyArray<{ type: string; retentionYears: number }>;
+describe('masa simpan adalah kebijakan firma, bukan angka per dokumen', () => {
+  it('setiap dokumen DMS mewarisi masa simpan KELAS retensinya', () => {
+    const docs = RETENTION.docsForEng(ENG_AKTIF) as ReadonlyArray<{ type: string }>;
     expect(docs.length).toBeGreaterThan(0);
     for (const d of docs) {
       const cls = RETENTION.classForType(d.type);
-      expect(d.retentionYears, `dokumen ${d.type}: DMS ${d.retentionYears} thn vs kelas ${cls.years} thn`)
-        .toBe(cls.years);
+      expect(RETENTION.retentionYearsForType(d.type), `jenis ${d.type}`).toBe(cls.years);
     }
+  });
+
+  it('berkas audit KAP = 7 tahun (keputusan firma, dasar tertulis)', () => {
+    expect(RETENTION.classById('kk-audit').years).toBe(7);
+    expect(RETENTION.retentionYearsForType('Kertas Kerja')).toBe(7);
+  });
+
+  it('tak ada dokumen DMS yang membawa masa simpannya sendiri', () => {
+    const code = stripComments(readSrc('data_part2.ts'));
+    expect(code).not.toMatch(/retentionYears\s*:/);
+  });
+
+  it('konsumen masa simpan menurunkannya dari kanon, bukan literal', () => {
+    for (const f of ['view_dms.tsx', 'view_crypto.tsx']) {
+      const code = stripComments(readSrc(f));
+      /* fallback literal `d.retentionYears || 10` & default form 10 dicabut */
+      expect(code, f).not.toMatch(/retentionYears\s*\|\|\s*\d+/);
+      expect(code, f).toMatch(/retentionYearsForType|RETENTION\./);
+    }
+  });
+
+  it('klaim "SA 230 min. 10 tahun" tidak boleh kembali (¶A23 menyebut lima)', () => {
+    for (const f of ['view_dms.tsx', 'view_crypto.tsx', 'view_sa230.tsx']) {
+      const code = readSrc(f);   // termasuk komentar: klaim keliru tak boleh hidup di mana pun
+      expect(code, f).not.toMatch(/SA\s*230\s*:?\s*min\.?\s*10\s*tahun/i);
+    }
+  });
+});
+
+/* ============================================================
+   Kelas retensi klien ↔ server harus SATU registri.
+
+   `server/src/attachments/retention.ts` menyimpan RETENTION_CLASSES
+   sendiri (id → years) dan menjadi otoritas pemusnahan lampiran.
+   Klien mengirim `retentionClass` saat mengunggah dokumen; dulu ia
+   mengirim string 'SA230/10y' yang TIDAK ADA di registri server,
+   sehingga server diam-diam memakai default. Angka yang tampil di
+   layar dan angka yang menjadwalkan pemusnahan tak pernah bertemu.
+   ============================================================ */
+describe('registri kelas retensi klien ↔ server', () => {
+  const serverSrc = () => readFileSync(
+    join(SRC, '..', '..', 'server', 'src', 'attachments', 'retention.ts'), 'utf8');
+
+  it('setiap kelas kanonik klien ada di registri server dengan tahun yang sama', () => {
+    const kode = serverSrc();
+    const blok = kode.slice(kode.indexOf('RETENTION_CLASSES'));
+    const server = new Map<string, number>(
+      [...blok.matchAll(/id:\s*'([\w-]+)'\s*,\s*years:\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]),
+    );
+    expect(server.size, 'registri server terbaca').toBeGreaterThan(0);
+
+    const klien = RETENTION.RETENTION_CLASSES as ReadonlyArray<{ id: string; years: number }>;
+    for (const c of klien) {
+      expect(server.get(c.id), `kelas '${c.id}' hilang / beda di server`).toBe(c.years);
+    }
+  });
+
+  it('unggahan DMS mengirim ID KELAS, bukan string yang tak dikenali server', () => {
+    const code = stripComments(readSrc('view_dms.tsx'));
+    expect(code).not.toMatch(/retentionClass:\s*'SA230\//);
+    expect(code).toMatch(/retentionClass:\s*RETENTION\.classForType/);
+  });
+});
+
+/* ============================================================
+   Pengaturan Firma tidak boleh menawarkan kebijakan yang salah.
+
+   "Periode Retensi Arsip" dulu adalah dropdown 5/10/15 tahun —
+   kebijakan firma yang sebenarnya (7) bahkan tak ada di dalamnya —
+   dan nilainya TIDAK DIBACA modul mana pun. Ia adalah kontrol yang
+   berpura-pura menetapkan kebijakan.
+   ============================================================ */
+describe('Pengaturan Firma menampilkan kebijakan retensi yang berlaku', () => {
+  it('tak ada lagi pilihan masa simpan bebas di pengaturan', () => {
+    const code = stripComments(readSrc('view_settings.tsx'));
+    expect(code).not.toMatch(/'5 tahun'/);
+    expect(code).not.toMatch(/'15 tahun'/);
+    expect(code).not.toMatch(/setGroup\('firm',\s*'retentionYears'/);
+  });
+
+  it('angka retensi di pengaturan turun dari kanon', () => {
+    const code = stripComments(readSrc('view_settings.tsx'));
+    expect(code).toMatch(/RETENTION\.classById\('kk-audit'\)\.years/);
+  });
+
+  it('jendela perakitan di pengaturan DITURUNKAN, bukan literal kedua', () => {
+    const code = stripComments(readSrc('view_settings.tsx'));
+    expect(code).toMatch(/sa230AssemblyWindowDays/);
+    expect(code).not.toMatch(/>\s*60 hari\s*</);
+    /* dan nilainya memang jendela ¶A21 yang dipakai kotak arsip */
+    expect(sa230AssemblyWindowDays()).toBe(60);
   });
 });

@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+/* Masa simpan = kebijakan firma per KELAS dokumen (SSOT lapisan Arsip). */
+import { RETENTION } from './data_records';
 import { useAmsPersist } from './contexts';
 import { FileDropField, FileList, SecurePipeline } from './evidence';
 import { I, MODULE_INDEX } from './icons';
@@ -32,11 +34,19 @@ const DMS_ENGS = [
 const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 const dDate = (d: any, opt?: any) => d ? new Date(d).toLocaleDateString('id-ID', opt || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+/* Masa simpan dokumen DITARIK dari kelas retensinya, tidak melekat pada
+   dokumen. Sebelumnya tiap dokumen membawa `retentionYears: 10` tanpa dasar —
+   angka seragam yang hanya kebetulan benar untuk Surat Perikatan, dan salah
+   untuk Kertas Kerja, Laporan & EQR sekaligus. Akibatnya layar ini menghitung
+   kedaluwarsa dari 10 thn sementara antrean pemusnahan firma memakai kelas
+   (7 thn) — dua tanggal musnah untuk satu berkas yang sama. */
+const retentionYearsOf = (d: any) => RETENTION.retentionYearsForType(d.type);
 function retentionInfo(d: any) {
   if (!d.archivedOn) return null;
-  const until = new Date(d.archivedOn); until.setFullYear(until.getFullYear() + d.retentionYears);
+  const years = retentionYearsOf(d);
+  const until = new Date(d.archivedOn); until.setFullYear(until.getFullYear() + years);
   const yrsLeft = (+until - +REF) / (365.25 * 864e5);
-  return { until, yrsLeft, expired: yrsLeft <= 0, pct: Math.max(0, Math.min(100, (1 - yrsLeft / d.retentionYears) * 100)) };
+  return { until, yrsLeft, expired: yrsLeft <= 0, pct: Math.max(0, Math.min(100, (1 - yrsLeft / years) * 100)) };
 }
 function assemblyInfo(d: any) {
   if (!d.opinionDate || d.assembly === 'complete') return null;
@@ -50,7 +60,7 @@ const DMS_TYPE_MODULE = { 'Kertas Kerja': 'workpapers', 'Laporan': 'fsgen', 'Sur
 
 /* ---- Upload modal ---- */
 function UploadModal({ onClose, onAdd }: any) {
-  const [f, setF] = useDMS({ name: '', eng: 'ENG-2025-014', type: 'Kertas Kerja', classification: 'Rahasia', retentionYears: 10, linkedWP: '' });
+  const [f, setF] = useDMS({ name: '', eng: 'ENG-2025-014', type: 'Kertas Kerja', classification: 'Rahasia', linkedWP: '' });
   const [files, setFiles] = useDMS([]);
   const set = (k: any, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const okFiles = files.filter((m: any) => m.ok);
@@ -73,7 +83,7 @@ function UploadModal({ onClose, onAdd }: any) {
         <PField label="Engagement"><select className="select" value={f.eng} onChange={(e: any) => set('eng', e.target.value)}>{DMS_ENGS.map(e => <option key={e.id} value={e.id}>{e.id} · {e.client.replace('PT ', '')}</option>)}</select></PField>
         <PField label="Jenis"><select className="select" value={f.type} onChange={(e: any) => set('type', e.target.value)}>{DMS_TYPES.map(t => <option key={t}>{t}</option>)}</select></PField>
         <PField label="Klasifikasi"><select className="select" value={f.classification} onChange={(e: any) => set('classification', e.target.value)}>{Object.keys(CLASS_KIND).map(c => <option key={c}>{c}</option>)}</select></PField>
-        <PField label="Retensi (tahun)" hint="SA 230: min. 10 tahun untuk KK audit"><input className="input" type="number" value={f.retentionYears} onChange={(e: any) => set('retentionYears', +e.target.value)} /></PField>
+        <PField label="Retensi (tahun)" hint="Kebijakan firma per kelas dokumen — bukan per dokumen"><div className="input" style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)' }}><span className="mono" style={{ fontWeight: 700 }}>{RETENTION.retentionYearsForType(f.type)} thn</span><span className="tiny muted" style={{ marginLeft: 8 }}>{RETENTION.classForType(f.type).jenis}</span></div></PField>
         <PField label="Tautan Kertas Kerja (opsional)" span hint="Indeks WP yang ditautkan, pisahkan dengan koma"><input className="input" value={f.linkedWP} onChange={(e: any) => set('linkedWP', e.target.value)} placeholder="mis. B-200 Aging Piutang, C-100 Kas & Bank" /></PField>
       </div>
       {cls && <div className="tiny" style={{ marginTop: 10, color: 'var(--blue)', display: 'flex', alignItems: 'center', gap: 6 }}><I.sparkle size={12} /> AI mendeteksi <b>{cls.type}</b> — akan ditautkan ke modul <b>{((MODULE_INDEX as any)[cls.dest] || {}).label || cls.dest}</b>.</div>}
@@ -136,7 +146,7 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
             <div className="row ac gap10">
               <div style={{ flex: 1 }}>
                 <div className="row ac gap8"><div style={{ flex: 1, height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: r.pct + '%', height: '100%', borderRadius: 4, background: r.expired ? 'var(--red)' : r.yrsLeft < 1 ? 'var(--amber)' : 'var(--blue)' }} /></div></div>
-                <div className="tiny muted" style={{ marginTop: 4 }}>Diarsip {dDate(d.archivedOn, { month: 'short', year: 'numeric' })} · kedaluwarsa {dDate(r.until, { month: 'short', year: 'numeric' })} · retensi {d.retentionYears} thn</div>
+                <div className="tiny muted" style={{ marginTop: 4 }}>Diarsip {dDate(d.archivedOn, { month: 'short', year: 'numeric' })} · kedaluwarsa {dDate(r.until, { month: 'short', year: 'numeric' })} · retensi {retentionYearsOf(d)} thn</div>
               </div>
               <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: r.expired ? 'var(--red)' : 'var(--navy)' }}>{r.expired ? 'Lewat' : r.yrsLeft.toFixed(1)}</div><div className="tiny muted">{r.expired ? 'masa retensi' : 'tahun tersisa'}</div></div>
             </div>
@@ -260,12 +270,15 @@ function DocManagement() {
       try {
         const up = await window.amsAttachmentUpload({
           scope: 'firm', scopeId: 'FIRM-WHR', collection: 'dms', refId: id, meta,
-          retentionClass: 'SA230/' + f.retentionYears + 'y',
+          /* Server mengurai retentionClass sebagai ID KELAS (server/src/attachments/
+             retention.ts). Klien dulu mengirim 'SA230/10y' — string yang tak dikenali,
+             sehingga server diam-diam jatuh ke default. Kirim id kelasnya. */
+          retentionClass: RETENTION.classForType(f.type).id,
         });
         attachmentId = up.id; sha256 = up.sha256; realSize = +(up.size / 1048576).toFixed(1);
       } catch (e) { /* server absen / ditolak: pertahankan catatan metadata-only */ }
     }
-    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: AMS.TODAY, sizeMB: realSize, retentionYears: f.retentionYears, archivedOn: AMS.TODAY, legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
+    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: AMS.TODAY, sizeMB: realSize, archivedOn: AMS.TODAY, legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
       sha256, attachmentId, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
       versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: AMS.TODAY, sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
       access: [['Anindya Pramesti', 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
@@ -392,7 +405,7 @@ function DocManagement() {
                       <tr key={d.id} onClick={() => setSelId(d.id)} style={{ cursor: 'pointer' }} className={d.id === selId ? 'sel' : ''}>
                         <td style={{ minWidth: 220, fontWeight: 600 }} className="truncate">{d.name}</td>
                         <td className="mono tiny muted">{dDate(d.archivedOn)}</td>
-                        <td className="num"><span className="chip tiny">{d.retentionYears} thn</span></td>
+                        <td className="num"><span className="chip tiny">{retentionYearsOf(d)} thn</span></td>
                         <td className="mono tiny">{dDate(rr.until, { month: 'short', year: 'numeric' })}</td>
                         <td>
                           <div className="row ac gap8"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: rr.pct + '%', height: '100%', borderRadius: 3, background: rr.expired ? 'var(--red)' : rr.yrsLeft < 1 ? 'var(--amber)' : 'var(--blue)' }} /></div><span className="mono tiny" style={{ width: 56, textAlign: 'right', color: rr.expired ? 'var(--red)' : 'var(--ink-3)' }}>{rr.expired ? 'Lewat' : rr.yrsLeft.toFixed(1) + ' thn'}</span></div>
