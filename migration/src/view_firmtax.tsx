@@ -7,6 +7,12 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
 import { CAP } from './rbac';
+import { TAX23 } from './data_pph23';
+import { glActor, glWriteAllowed } from './firm_gl_actor';
+import {
+  BUPOT_MASA, PROVENANCE_LABEL, PROVENANCE_TONE, bupotRows, pphSummaryRows,
+} from './firmtax_bupot';
+import type { Provenance } from './firmtax_bupot';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Pajak Firma
@@ -16,6 +22,33 @@ import { CAP } from './rbac';
 const { useState: useStateTX } = React;
 
 const TAX_STAT = { 'Lapor': 'green', 'Bayar': 'blue', 'Belum Lapor': 'amber', 'Draft': 'gray', 'Terlambat': 'red' };
+
+/* Penanda asal sebuah baris — WAJIB pada setiap baris tabel yang bercampur.
+   Sebelumnya hanya baris kanonik yang bertanda ("SSOT"), sehingga baris karangan
+   dikenali hanya lewat KETIADAAN chip. Ketiadaan tidak terbaca. */
+function ProvChip({ p, title }: { p: Provenance; title?: string }) {
+  const tone = PROVENANCE_TONE[p];
+  return (
+    <span
+      className="chip tiny"
+      title={title || PROVENANCE_LABEL[p]}
+      style={{ height: 16, marginLeft: 6, color: tone.fg, borderColor: 'transparent', background: tone.bg }}
+    >
+      {p === 'kanonik' ? <I.link2 size={10} /> : <I.alert size={10} />} {PROVENANCE_LABEL[p]}
+    </span>
+  );
+}
+
+/* Idiom repo untuk tabel yang SELURUH barisnya berasal dari seed (dipakai juga di
+   view_firmrevenue & view_firmtreasury): satu pernyataan di tingkat tabel, bukan
+   chip per-baris yang jadi derau ketika tak ada yang membedakannya. */
+function IlustrasiBanner({ children }: { children?: unknown }) {
+  return (
+    <div className="tiny" style={{ margin: '10px 14px', padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}>
+      <I.alert size={12} /> {children}
+    </div>
+  );
+}
 
 function FirmTax() {
   const { fmt } = AMS;
@@ -29,7 +62,22 @@ function FirmTax() {
   const auth = useAuth();
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* FT3 — pelaku jejak dari SESI. Dulu `(AMS.USER && AMS.USER.name) || 'Pengguna'`:
+     `AMS.USER` adalah data seed, jadi jejak `TAX_FILED` — menandai sebuah kewajiban
+     pajak telah dilaporkan — mencatat nama yang tak ada hubungannya dengan siapa
+     yang menekan tombol, dan mencatat literal 'Pengguna' bila seed kosong.
+     Catatan: `useCurrentAuditor()` TIDAK dipakai di sini meski ia identitas sesi,
+     karena ia sengaja JATUH KEMBALI ke `AMS.USER.name` (contexts.tsx:282) — jaring
+     itu benar untuk memfilter "milik saya", tetapi untuk ATRIBUSI TULIS ia justru
+     cacat yang sama. Pola yang dipakai = `glActor`/`glWriteAllowed` (firm_gl_actor.ts),
+     yang sudah menutup cacat identik di Firm GL dan AP/AR. */
+  const who = glActor(auth && auth.user);
+  const canFile = glWriteAllowed(canEdit, who);
+  /* Alasan ditulis di sini, bukan diambil dari `glWriteBlockReason`: kalimat di sana
+     berbunyi "Posting jurnal", yang salah modul. Predikatnya yang dibagi, bukan teksnya. */
+  const fileBlockReason = !canEdit
+    ? 'Penandaan pelaporan dibatasi peran Finance Firma / Partner (SoD finansial)'
+    : 'Identitas sesi tidak tersedia — penandaan dinonaktifkan agar jejak kepatuhan tidak mencatat nama yang salah';
 
   const ppnOut = EF.filter((e: any) => e.kind === 'Keluaran').reduce((s: any, e: any) => s + e.ppn, 0);
   const ppnIn = EF.filter((e: any) => e.kind === 'Masukan').reduce((s: any, e: any) => s + e.ppn, 0);
@@ -37,20 +85,24 @@ function FirmTax() {
   const pphTotal = PPH.reduce((s: any, p: any) => s + p.tax, 0);
   const cit = obs.find((o: any) => o.jenis.includes('Badan'));
 
-  /* PPh 23 ditarik dari modul kanonik (SSOT) — bukan angka kedua */
-  const T23 = window.TAX23 ? window.TAX23.summary() : null;
+  /* PPh 23 ditarik dari modul kanonik (SSOT) — bukan angka kedua.
+     FT5 — `TAX23` diimpor ESM. Penerbitnya (`data_pph23.ts`) eager di main.tsx:29,
+     jadi cabang lama `window.TAX23 ? … : null` tak pernah aktif; ia kode mati, bukan
+     bug yang diperbaiki. Perakit `pphSummaryRows` tetap menerima `null` karena ia
+     modul murni yang harus dapat diuji tanpa lapisan data. */
+  const T23 = TAX23.summary();
   const goTax = () => navTX('tax', { from: 'firmtax' });
-  const PPHrows = PPH.map((p: any) => (p.jenis === 'PPh 23' && T23)
-    ? { ...p, basis: 'Jasa vendor — register PPh 23 (SSOT)', dpp: T23.totalDpp, tax: T23.totalPph, canon: true } : p);
-  const ebupotFeb = [
-    ...(T23 ? window.TAX23.register().filter((r: any) => r.masa === '2026-02')
-        .map((r: any) => ({ no: r.id, jenis: 'PPh 23', pihak: r.name, dpp: r.dpp, rate: r.effRate + '%', tax: r.pph, canon: true })) : []),
-    { no: '1.2-02.26-0001849', jenis: 'PPh 4(2)', pihak: 'PT Properti Graha Kantor', dpp: 480_000_000, rate: '10%', tax: 48_000_000 },
-    { no: '1.1-02.26-0009921', jenis: 'PPh 21', pihak: '38 karyawan (kolektif)', dpp: 1_400_000_000, rate: 'TER', tax: 210_000_000 },
-  ];
+  const PPHrows = pphSummaryRows({ withheld: PPH, t23: T23 });
+  const masaLabel = (TAX23.MASA_LABEL as Record<string, string>)[BUPOT_MASA] || BUPOT_MASA;
+  const ebupot = bupotRows({
+    masa: BUPOT_MASA,
+    register: TAX23.register(),
+    withheld: PPH,
+    payrollPeriod: (AMS.PAYROLL_RATES as { period?: string } | undefined)?.period || null,
+  });
 
   const markFiled = (i: any) => {
-    if (!canEdit) return;
+    if (!canFile || !who) return;
     const o = obs[i];
     setObs((list: any) => list.map((x: { status: string }, j: number) => j === i ? { ...x, status: 'Lapor' } : x));
     logActivity && logActivity({ who, action: 'TAX_FILED', detail: `${o ? o.jenis + ' · ' : ''}${o ? o.period : ''} ditandai Lapor` });
@@ -63,7 +115,17 @@ function FirmTax() {
     { m: 'Jan', out: 1095, in: 340 }, { m: 'Feb', out: ppnOut / 1e6, in: ppnIn / 1e6 }, { m: 'Mar', out: 1240, in: 395 },
   ].map(r => ({ ...r, pay: r.out - r.in }));
 
-  /* Deferred tax — temporary differences × 22% */
+  /* Deferred tax — temporary differences × 22%
+     FT4 (TEMUAN TERTAUT, SENGAJA TIDAK DIPINDAHKAN) — 22% adalah tarif statuter yang
+     pernah berubah (25% → 22%, UU HPP) dan dapat berubah lagi. Salinannya sudah ada di
+     `canon_base.ts:7` (RATE, diekspor sebagai `AMS_CANON.RATE`) dan dibaca sebagai
+     fallback di `data_proforma.ts:129`. Rumah yang BENAR baginya adalah set bermasa
+     berlaku di `regrefCatalog()` dengan `enforcement: 'block'` — itu lingkup prompt
+     27-regref (R3), yang pada HEAD ini BELUM dikerjakan: `REGREF_EXPECTED_IDS` masih
+     berisi lima id (bpjs · ter · ptkp · biaya-jabatan · hari-libur), tanpa tarif PPh
+     badan. Karena itu salinan ini DIBIARKAN di tempatnya: memindahkannya ke berkas
+     data sebagai konstanta baru hanya akan menambah rumah ketiga yang harus dicabut
+     lagi nanti. Jangan menyalinnya lagi. */
   const RATE = 0.22;
   const tempDiff = [
     { item: 'Penyusutan aset tetap (komersial vs fiskal)', carry: 6_100_000_000, taxbase: 5_620_000_000, kind: 'taxable' },
@@ -93,7 +155,8 @@ function FirmTax() {
         <Panel noBody>
           <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-          {tab === 'kalender' && (
+          {tab === 'kalender' && (<>
+            <IlustrasiBanner>Kalender kewajiban ini ILUSTRASI demo — jenis, masa, dan jumlahnya berasal dari data seed (<code>AMS.TAX_OBLIGATIONS</code>), belum diturunkan dari SPT/Coretax maupun buku besar firma. Yang nyata di sini hanya status yang Anda ubah sendiri, beserta jejaknya.</IlustrasiBanner>
             <table className="dtbl">
               <thead><tr><th>Jenis Pajak</th><th>Masa</th><th>Jatuh Tempo</th><th className="num">Jumlah</th><th>Status</th><th></th></tr></thead>
               <tbody>
@@ -106,15 +169,15 @@ function FirmTax() {
                       <td className="mono tiny" style={{ color: days <= 7 ? 'var(--red)' : days <= 20 ? 'var(--amber)' : 'var(--ink-3)' }}>{new Date(o.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} {days >= 0 ? '· ' + days + 'h lagi' : '· lewat'}</td>
                       <td className="num">{fmt(o.amount / 1e6, 0)} jt</td>
                       <td><Badge kind={(TAX_STAT as any)[o.status]}>{o.status}</Badge></td>
-                      <td>{(o.status === 'Belum Lapor' || o.status === 'Draft' || o.status === 'Bayar') && (canEdit
+                      <td>{(o.status === 'Belum Lapor' || o.status === 'Draft' || o.status === 'Bayar') && (canFile
                         ? <button className="btn sm" style={{ height: 22 }} onClick={() => markFiled(i)}>Tandai Lapor</button>
-                        : <span className="tiny muted" title="Penandaan pelaporan dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> kunci</span>)}</td>
+                        : <span className="tiny muted" title={fileBlockReason}><I.lock size={11} /> kunci</span>)}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          )}
+          </>)}
 
           {tab === 'ppn' && (
             <div style={{ padding: 14 }}>
@@ -140,8 +203,9 @@ function FirmTax() {
                     );
                   })}
                 </div>
-                <div className="tiny muted" style={{ marginTop: 8 }}>PPN kurang bayar bulanan (keluaran − masukan) · Rp jt · disetor & dilaporkan via SPT Masa PPN.</div>
+                <div className="tiny muted" style={{ marginTop: 8 }}>PPN kurang bayar bulanan (keluaran − masukan) · Rp jt · disetor &amp; dilaporkan via SPT Masa PPN. <b style={{ color: 'var(--amber)' }}>Hanya batang Feb yang dihitung dari daftar faktur di bawah</b> — lima bulan lainnya ILUSTRASI demo yang diketik di dalam modul.</div>
               </div>
+              <IlustrasiBanner>Daftar faktur di bawah ILUSTRASI demo — ia adalah <b>fixture konektor Coretax</b> (<code>server/src/integrations/providers/coretaxFixture.ts</code>), bukan tarikan dari e-Faktur milik firma. Nomor serinya sengaja identik dengan fixture itu agar control total Σ PPN Keluaran di kokpit Integrasi menutup; ia bukan nomor faktur yang pernah diterbitkan.</IlustrasiBanner>
               <table className="dtbl">
                 <thead><tr><th>No. Seri Faktur Pajak</th><th>Lawan Transaksi</th><th>Jenis</th><th className="num">DPP</th><th className="num">PPN 11%</th><th>Status e-Faktur</th></tr></thead>
                 <tbody>
@@ -165,9 +229,13 @@ function FirmTax() {
               <table className="dtbl">
                 <thead><tr><th>Jenis PPh</th><th>Objek / Dasar</th><th className="num">Tarif</th><th className="num">DPP</th><th className="num">PPh Dipotong</th></tr></thead>
                 <tbody>
-                  {PPHrows.map((p: any) => (
-                    <tr key={p.jenis} style={{ cursor: p.canon ? 'pointer' : 'default' }} onClick={p.canon ? goTax : undefined}>
-                      <td style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.jenis}{p.canon && <span className="chip tiny" style={{ height: 16, marginLeft: 6, color: 'var(--green)', borderColor: 'transparent', background: 'var(--green-bg)' }} title="Ditarik dari modul Pajak PPh 23"><I.link2 size={10} /> SSOT</span>}</td>
+                  {PPHrows.map((p) => (
+                    <tr key={p.jenis}>
+                      <td style={{ fontWeight: 700, color: 'var(--blue)' }}>
+                        {p.jenis}
+                        <ProvChip p={p.provenance} title={p.note} />
+                        {p.route && <button type="button" className="btn sm" style={{ height: 18, marginLeft: 6 }} onClick={goTax}>Buka register</button>}
+                      </td>
                       <td>{p.basis}</td>
                       <td className="num"><span className="chip tiny">{p.rate}</span></td>
                       <td className="num">{fmt(p.dpp / 1e6, 0)} jt</td>
@@ -175,28 +243,36 @@ function FirmTax() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={4}>TOTAL PPh DIPOTONG/DISETOR</td><td className="num">{fmt(PPHrows.reduce((s: any, p: any) => s + p.tax, 0) / 1e6, 1)} jt</td></tr></tfoot>
+                <tfoot><tr><td colSpan={4}>TOTAL PPh DIPOTONG/DISETOR <span className="tiny muted" style={{ fontWeight: 400 }}>— campuran: {PPHrows.filter(p => p.provenance === 'kanonik').length} baris kanonik + {PPHrows.filter(p => p.provenance !== 'kanonik').length} baris ilustrasi</span></td><td className="num">{fmt(PPHrows.reduce((s, p) => s + p.tax, 0) / 1e6, 1)} jt</td></tr></tfoot>
               </table>
               <div className="panel" style={{ marginTop: 12, padding: '10px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
                 <div className="tiny" style={{ lineHeight: 1.55 }}>Bukti Potong Unifikasi diterbitkan otomatis via <b>Coretax DJP</b> (menggantikan e-Bupot/e-Faktur lama sejak 2025). PPh 21 disetor maks. tgl 10 bulan berikutnya; PPh 23 & 4(2) menyertakan bukti potong ke lawan transaksi — identitas OP memakai NIK sebagai NPWP.</div>
               </div>
-              <div className="row jb ac" style={{ margin: '16px 0 8px' }}><span className="tiny upper" style={{ fontWeight: 700, color: 'var(--blue)' }}>Bukti Potong Unifikasi · Coretax · Feb 2026</span>{T23 && <button className="chip tiny" style={{ cursor: 'pointer', height: 20 }} onClick={goTax}><I.receipt size={11} /> Kelola di modul Pajak PPh 23</button>}</div>
+              <div className="row jb ac" style={{ margin: '16px 0 8px' }}><span className="tiny upper" style={{ fontWeight: 700, color: 'var(--blue)' }}>Bukti Potong Unifikasi · Coretax · {masaLabel}</span><button type="button" className="chip tiny" style={{ cursor: 'pointer', height: 20 }} onClick={goTax}><I.receipt size={11} /> Kelola di modul Pajak PPh 23</button></div>
               <table className="dtbl">
                 <thead><tr><th>No. Bukti Potong</th><th>Jenis</th><th>Lawan Transaksi</th><th className="num">DPP</th><th className="num">Tarif</th><th className="num">PPh</th><th>Status</th></tr></thead>
                 <tbody>
-                  {ebupotFeb.map(b => (
-                    <tr key={b.no}>
-                      <td className="mono tiny" style={{ color: 'var(--blue)' }}>{b.no}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.jenis}</td>
-                      <td className="truncate" style={{ maxWidth: 200, fontWeight: 600 }}>{b.pihak}</td>
-                      <td className="num">{fmt(b.dpp / 1e6, 0)} jt</td>
-                      <td className="num"><span className="chip tiny">{b.rate}</span></td>
-                      <td className="num" style={{ fontWeight: 600 }}>{fmt(b.tax / 1e6, 1)} jt</td>
-                      <td><Badge kind="green">Terbit</Badge></td>
+                  {ebupot.map(b => (
+                    <tr key={b.key}>
+                      {/* Nomor dokumen hanya ada untuk baris kanonik. Tanda hubung di
+                          sini BUKAN kekosongan data yang menunggu diisi — ia menyatakan
+                          bahwa baris itu tak punya bukti potong, dan tak boleh dikarang. */}
+                      <td className="mono tiny" style={{ color: b.no ? 'var(--blue)' : 'var(--ink-3)' }}>{b.no || '—'}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.jenis}<ProvChip p={b.provenance} title={b.note} /></td>
+                      <td className="truncate" style={{ maxWidth: 200, fontWeight: 600 }}>{b.pihak || <span className="muted" style={{ fontWeight: 400 }}>tidak dinyatakan</span>}</td>
+                      <td className="num">{b.dpp === null ? '—' : fmt(b.dpp / 1e6, 0) + ' jt'}</td>
+                      <td className="num">{b.rate ? <span className="chip tiny">{b.rate}</span> : '—'}</td>
+                      <td className="num" style={{ fontWeight: 600 }}>{b.tax === null ? '—' : fmt(b.tax / 1e6, 1) + ' jt'}</td>
+                      <td>{b.status ? <Badge kind={b.status === 'Terbit' ? 'green' : 'amber'}>{b.status}</Badge> : <span className="tiny muted">—</span>}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.55 }}>
+                Baris ber-chip <b>SSOT</b> berasal dari register pemotongan PPh 23 — nomor, lawan transaksi, dan status penerbitannya nyata.
+                Baris <b>ilustrasi</b> hanya membawa agregat seed: tak ada register bukti potongnya, sehingga nomor dokumen dan lawan transaksinya tidak dinyatakan.
+                Baris <b>belum tersedia</b> tak membawa angka sama sekali — alasannya ada pada chip-nya.
+              </div>
             </div>
           )}
 
@@ -246,6 +322,7 @@ function FirmTax() {
 
           {tab === 'deferred' && (
             <div style={{ padding: 14 }}>
+              <IlustrasiBanner>Keempat beda temporer di bawah ILUSTRASI demo — nilai tercatat dan dasar pajaknya diketik di dalam modul, belum diturunkan dari register aset tetap, WIP, maupun imbalan kerja firma (PRD Keuangan Firma PR-4: “PPh Badan firma memakai mesin PSAK 46 milik firma sendiri”). Tarif 22%-nya juga belum menjadi referensi regulatori bermasa berlaku.</IlustrasiBanner>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12, background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Aset Pajak Tangguhan (DTA)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(dtaSum / 1e6, 0)} jt</div></div>
                 <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Liabilitas Pajak Tangguhan (DTL)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(dtlSum / 1e6, 0)} jt</div></div>
