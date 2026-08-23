@@ -37,6 +37,14 @@ import {
   type ExpertGateBearer,
 } from '../../migration/src/canon_expert_eval';
 import type { ExpertEvalState } from '../../migration/src/canon_expert_eval';
+/* Rantai persetujuan deklarasi independensi — modul MURNI yang SAMA dengan yang
+   dipakai `view_people.tsx`. `capForWrite` hanya menggerbang DOKUMEN (HR_MANAGE),
+   sehingga tanpa guard ini pemegang HR_MANAGE mana pun — atau panggilan tRPC
+   langsung — dapat menulis rantai bertanda tangan siapa pun, termasuk mengisi
+   ketiga lapis sendirian. Pemisahan tugas yang hanya hidup di UI bukan pemisahan. */
+import {
+  INDEP_CHAIN, indepApprOf, indepApprTransitions, indepSignatureAuthority,
+} from '../../migration/src/indep_approval';
 
 export type SignoffChange = { what: string; cap: string };
 
@@ -134,6 +142,45 @@ function memberIndepCounts(d: unknown): boolean {
   return !!o.signed && !o.seeded;
 }
 
+/* ---- Deklarasi independensi firma (`independence`) ----
+   Barisnya ber-id EMP-xxx, jadi "apakah ini deklarasi Anda sendiri" DAPAT dijawab
+   server — tak seperti `memberIndep.v1` yang berkunci nama. */
+function indepRows(v: unknown): Record<string, Record<string, unknown>> {
+  const out: Record<string, Record<string, unknown>> = {};
+  if (Array.isArray(v)) for (const r of v) { const o = asObj(r); if (typeof o.id === 'string') out[o.id] = o; }
+  return out;
+}
+/** Baris yang `declared` BARU menjadi true. */
+function indepDeclaredOn(prev: unknown, next: unknown): string[] {
+  const p = indepRows(prev), n = indepRows(next);
+  return Object.keys(n).filter((id) => !asObj(p[id]).declared && !!asObj(n[id]).declared);
+}
+/** Baris yang `declared` DICABUT (true → false) — pembatalan, tindakan otoritatif. */
+function indepDeclaredOff(prev: unknown, next: unknown): string[] {
+  const p = indepRows(prev), n = indepRows(next);
+  return Object.keys(p).filter((id) => !!asObj(p[id]).declared && n[id] && !asObj(n[id]).declared);
+}
+
+/* ---- Atribusi jejak `indepThreats` (array ber-id) & `indepRotAck` (peta ber-id) ---- */
+function attributionEntries(key: string, v: unknown): Record<string, Record<string, unknown>> {
+  const out: Record<string, Record<string, unknown>> = {};
+  if (key === 'indepThreats') {
+    if (Array.isArray(v)) for (const r of v) { const o = asObj(r); if (typeof o.id === 'string') out[o.id] = o; }
+  } else {
+    const o = asObj(v);
+    for (const k of Object.keys(o)) out[k] = asObj(o[k]);
+  }
+  return out;
+}
+/** Entri yang BARU memperoleh pembubuh (`by` kosong → terisi). */
+function attributionAcquired(key: string, prev: unknown, next: unknown): string[] {
+  const p = attributionEntries(key, prev), n = attributionEntries(key, next);
+  return Object.keys(n).filter((id) => !asObj(p[id]).by && !!asObj(n[id]).by);
+}
+function newlyAttributed(key: string, next: unknown, id: string): unknown {
+  return attributionEntries(key, next)[id];
+}
+
 /** Anggota yang deklarasinya BARU menjadi memuaskan gerbang. */
 function memberIndepSatisfyTransitions(prev: unknown, next: unknown): string[] {
   const p = asObj(prev), n = asObj(next);
@@ -181,6 +228,20 @@ export function signoffContextNeeds(key: string, prev: unknown, next: unknown): 
   if (key === 'eqrReviews.v2') {
     return eqrNewlyCleared(prev, next).length
       ? { siblingKeys: [], attachmentCollections: [], firmSiblingKeys: ['engagements'] }
+      : null;
+  }
+  /* Rantai persetujuan deklarasi independensi — lapis 1 terikat identitas, jadi
+     server harus memetakan sesi → EMP. Konteks HANYA diminta bila diff benar-benar
+     menyentuh tanda tangan; menulis ulang `period` saja tetap nol query. */
+  if (key === 'indepAppr') {
+    return indepApprTransitions(prev, next).length
+      ? { siblingKeys: [], attachmentCollections: [], actorEmpId: true }
+      : null;
+  }
+  /* Deklarasi independensi firma — `declared` adalah pernyataan PRIBADI berkunci EMP. */
+  if (key === 'independence') {
+    return indepDeclaredOn(prev, next).length
+      ? { siblingKeys: [], attachmentCollections: [], actorEmpId: true }
       : null;
   }
   /* Deklarasi Kode Etik — pernyataan PRIBADI berkunci empId. */
@@ -285,7 +346,15 @@ export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 
   /* PR-2b — deklarasi Kode Etik & independensi anggota tim. Keduanya MENGGERBANGI
      sign-off kertas kerja dan penerbitan opini, tetapi sebelumnya tak dijaga sama
      sekali: satu-satunya gerbang server adalah capForWrite (HR_MANAGE / WP_EDIT). */
-  'pc.ethics', 'memberIndep.v1']);
+  'pc.ethics', 'memberIndep.v1',
+  /* Rantai persetujuan & deklarasi independensi firma. Sebelumnya ABSEN: satu-satunya
+     gerbang server adalah `capForWrite` = HR_MANAGE, yang menggerbang DOKUMEN, bukan
+     siapa menandatangani lapis mana. Seorang pemegang HR_MANAGE karenanya dapat menulis
+     `{level:3, steps:[…]}` dengan tiga tanda tangan atas namanya sendiri — atau atas
+     nama orang lain — dan tak ada apa pun yang menolaknya. `indepThreats`/`indepRotAck`
+     masuk untuk alasan yang lebih sempit: atribusi mitigasi & pengakuan rotasi harus
+     menyebut pembubuhnya, bukan nama yang diketik klien. */
+  'indepAppr', 'independence', 'indepThreats', 'indepRotAck']);
 
 /* Kunci atestasi mutu firma BER-ALAMAT DINAMIS (`firmAttest.<nama>.<tahun>`),
    jadi ia tak dapat dicantumkan sebagai anggota Set. Router memakai predikat ini
@@ -557,6 +626,98 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
         throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:indep:${m}: tanda tangan menyebut orang lain, bukan pembubuhnya.` });
       }
       changes.push({ what: `indep-decl:${m}`, cap: '' });
+    }
+  } else if (key === 'indepAppr') {
+    /* PEMISAHAN TUGAS RANTAI DEKLARASI INDEPENDENSI.
+
+       `capForWrite` menjawab "boleh-kah peran ini menulis dokumen `indepAppr`"
+       (HR_MANAGE). Ia tidak menjawab satu pun pertanyaan yang sesungguhnya
+       penting: lapis MANA, atas deklarasi SIAPA, oleh ORANG YANG MANA, dan
+       apakah orang itu sudah mengisi lapis lain pada rantai yang sama.
+
+       Aturannya TIDAK ditulis ulang di sini — ia diimpor dari modul murni yang
+       sama dengan yang dipakai UI (`indep_approval`). Yang ditambahkan lapisan
+       server hanyalah dua hal yang tak bisa ditanyakan klien atas dirinya
+       sendiri: apakah tanda tangan menyebut SESI yang membubuhkannya, dan
+       apakah tanda tangan yang sudah ada boleh dihapus/ditulis ulang. */
+    const moves = indepApprTransitions(prev, next);
+    if (moves.length) {
+      if (!ctx || ctx.actorEmpId === undefined) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'signoff:context-missing' });
+      }
+      if (!ctx.actorEmpId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'indep-appr:no-emp-mapping: sesi tidak terpetakan ke personel firma — rantai persetujuan tak dapat ditandatangani.' });
+      }
+      for (const mv of moves) {
+        const label = `${INDEP_CHAIN[mv.stepIndex].key}:${mv.personId}`;
+        if (mv.kind === 'rewrite') {
+          /* ATURAN, bukan wewenang: tanda tangan yang sudah dibubuhkan tak dapat
+             diganti menjadi tanda tangan orang lain. Yang tersedia adalah
+             PEMBATALAN rantai (di bawah), yang terlihat di jejak audit. */
+          throw new TRPCError({ code: 'FORBIDDEN', message: `signature-overwrite:indep-appr:${label}: tanda tangan yang sudah dibubuhkan tidak dapat ditulis ulang; batalkan rantainya.` });
+        }
+        if (mv.kind === 'clear') {
+          need(CAP.FIRM_ADMIN, `indep-appr:reset:${label}`);
+          continue;
+        }
+        /* Tanda tangan harus menyebut SESI-nya. Tanpa ini seluruh aturan di bawah
+           dapat dilewati hanya dengan mengetik nama orang lain di payload. */
+        const st = mv.step || ({} as { byUserId?: string; byEmpId?: string; by?: string });
+        if (!st.by || st.byUserId !== actor.id || st.byEmpId !== ctx.actorEmpId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:indep-appr:${label}: tanda tangan tidak menyebut pembubuhnya.` });
+        }
+        const verdict = indepSignatureAuthority({
+          stepIndex: mv.stepIndex,
+          prevRec: indepApprOf(prev, mv.personId),
+          rowId: mv.personId,
+          actor: { userId: actor.id, name: actor.name, role, empId: ctx.actorEmpId },
+        });
+        if (!verdict.ok) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `indep-appr:${label}: ${verdict.reason}` });
+        }
+        changes.push({ what: `indep-appr:${label}`, cap: INDEP_CHAIN[mv.stepIndex].cap });
+      }
+    }
+  } else if (key === 'independence') {
+    /* Deklarasi tahunan = pernyataan PRIBADI, sama seperti Kode Etik. Barisnya
+       ber-id EMP-xxx sehingga "milik siapa" dapat dijawab server dengan pasti.
+       Tanpa aturan ini seorang Admin HR dapat mencentang deklarasi seorang Rekan —
+       dan dengan itu lapis 1 rantai independensinya terpenuhi tanpa ia menyatakan
+       apa pun. Jalur SAH untuk pegawai biasa tetap `personal.declare`
+       (`personalSelfService.declareSelf`), yang tidak melewati `state.set`. */
+    const on = indepDeclaredOn(prev, next);
+    if (on.length) {
+      if (!ctx || ctx.actorEmpId === undefined) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'signoff:context-missing' });
+      }
+      if (!ctx.actorEmpId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'indep-decl:no-emp-mapping: sesi tidak terpetakan ke personel firma — deklarasi tak dapat ditandatangani.' });
+      }
+      for (const emp of on) {
+        if (emp !== ctx.actorEmpId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `indep-decl:not-own:${emp}: deklarasi independensi hanya dapat ditandatangani oleh yang bersangkutan.` });
+        }
+        changes.push({ what: `indep-decl:${emp}`, cap: '' });
+      }
+    }
+    /* Mencabut deklarasi orang lain menghapus pernyataan yang pernah ia buat —
+       otoritatif, sejajar pembatalan rantai. */
+    for (const emp of indepDeclaredOff(prev, next)) {
+      need(CAP.FIRM_ADMIN, `indep-decl:revoke:${emp}`);
+    }
+  } else if (key === 'indepThreats' || key === 'indepRotAck') {
+    /* ATRIBUSI, bukan wewenang. Mitigasi ancaman (IESBA 120) dan pengakuan rotasi
+       (PP 20/2015 · POJK 13/2017) adalah jejak yang akan dibaca pemeriksa. Bentuk
+       lama menerima `by` apa pun yang diketik klien — sebuah "dimitigasi oleh
+       Sari Dewanti, CPA" yang tak pernah ia bubuhkan tak dapat dibedakan dari
+       yang asli. Yang ditegakkan: begitu sebuah entri MEMPEROLEH pembubuh, entri
+       itu harus menyebut sesi yang membubuhkannya. */
+    for (const label of attributionAcquired(key, prev, next)) {
+      const st = asObj(newlyAttributed(key, next, label));
+      if (st.byUserId !== actor.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:${key}:${label}: jejak menyebut orang lain, bukan pembubuhnya.` });
+      }
+      changes.push({ what: `${key}:${label}`, cap: '' });
     }
   } else if (key === 'mat.memo.signoff') {
     /* PR-6a — dokumen ini SENDIRI adalah objek slot ({preparer, manager, partner}),

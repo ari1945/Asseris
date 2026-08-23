@@ -294,3 +294,101 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
     expect(r.version).toBe(2);
   });
 });
+
+/* ============================================================
+   PEMISAHAN TUGAS RANTAI INDEPENDENSI — LEWAT tRPC NYATA.
+
+   `guardSignoffWrite` diuji sebagai fungsi murni di `indep_signoff.test.ts`.
+   Yang dibuktikan DI SINI adalah perkabelannya: bahwa `state.set` benar-benar
+   memanggilnya untuk `indepAppr`, dengan `prev` yang benar dan dengan empId
+   aktor yang diturunkan dari SESI (bukan dari payload). Tanpa berkas ini,
+   "aturannya benar" dan "aturannya berlaku" adalah dua klaim berbeda.
+
+   Nama sesi sengaja memakai personel roster nyata: `resolveEmpId` memetakan
+   sesi → EMP lewat roster (`STAFF ∪ FIRM_STAFF`), dan akun di luar roster
+   GAGAL-TERTUTUP — perilaku yang ikut diuji di bawah.
+   ============================================================ */
+const indepScopeId = 'FIRM-TEST-INDEP';
+const YUNI_EMP = 'EMP-501';   // Yuni Marlina — Admin & HR Firma (FIRM_STAFF)
+const HW_EMP = 'EMP-001';     // Hartono Wijaya — Rekan Pemimpin (STAFF)
+const yuni = mk('TEST-YUNI', 'Admin & HR Firma', 'Yuni Marlina');
+const hartono = mk('TEST-HW', 'Rekan Pemimpin', 'Hartono Wijaya');
+const asing = mk('TEST-GHOST', 'Rekan Pemimpin', 'Akun Di Luar Roster');
+
+const indepSig = (userId: string, empId: string, name: string) =>
+  ({ by: name, byUserId: userId, byEmpId: empId, at: '2026-03-09' });
+
+describe('SoD rantai independensi ditegakkan via state.set (tRPC)', () => {
+  beforeAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+  });
+  afterAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+  });
+
+  it('MENOLAK tiga lapis sekali tulis — celah yang gate UI tak dapat menutup', async () => {
+    const s = indepSig('TEST-YUNI', YUNI_EMP, 'Yuni Marlina');
+    await expectRejected(
+      yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 0,
+        value: { [HW_EMP]: { level: 3, steps: [s, s, s], period: 'TA 2026' } } }),
+      'FORBIDDEN', /hanya yang bersangkutan/,
+    );
+  });
+
+  it('MENOLAK tanda tangan yang mengaku dibubuhkan orang lain', async () => {
+    await expectRejected(
+      yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 0,
+        value: { [YUNI_EMP]: { level: 1, steps: [indepSig('TEST-HW', HW_EMP, 'Hartono Wijaya')], period: 'TA 2026' } } }),
+      'FORBIDDEN', /signature-identity-mismatch/,
+    );
+  });
+
+  it('MENOLAK sesi di luar roster firma (gagal-tertutup)', async () => {
+    await expectRejected(
+      asing.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 0,
+        value: { [HW_EMP]: { level: 1, steps: [indepSig('TEST-GHOST', HW_EMP, 'Akun Di Luar Roster')], period: 'TA 2026' } } }),
+      'FORBIDDEN', /no-emp-mapping|signature-identity-mismatch/,
+    );
+  });
+
+  it('rantai berjalan lapis demi lapis oleh orang yang BERBEDA, lalu berhenti', async () => {
+    const yuniSig = indepSig('TEST-YUNI', YUNI_EMP, 'Yuni Marlina');
+    const hwSig = indepSig('TEST-HW', HW_EMP, 'Hartono Wijaya');
+    // lapis 1 — Yuni atas deklarasinya SENDIRI
+    const v1 = await yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 0,
+      value: { [YUNI_EMP]: { level: 1, steps: [yuniSig], period: 'TA 2026' } } });
+    expect(v1.version).toBe(1);
+    // lapis 2 — Hartono (hr.manage, bukan deklaran)
+    const v2 = await hartono.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 1,
+      value: { [YUNI_EMP]: { level: 2, steps: [yuniSig, hwSig], period: 'TA 2026' } } });
+    expect(v2.version).toBe(2);
+    // lapis 3 — Hartono LAGI: ditolak meski ia memegang firm.admin
+    await expectRejected(
+      hartono.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 2,
+        value: { [YUNI_EMP]: { level: 3, steps: [yuniSig, hwSig, hwSig], period: 'TA 2026' } } }),
+      'FORBIDDEN', /satu orang tidak dapat mengisi dua lapis/,
+    );
+    // dan tanda tangan yang sudah ada tak dapat ditulis ulang
+    await expectRejected(
+      yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'indepAppr', baseVersion: 2,
+        value: { [YUNI_EMP]: { level: 2, steps: [yuniSig, yuniSig], period: 'TA 2026' } } }),
+      'FORBIDDEN', /signature-overwrite/,
+    );
+  });
+
+  it('MENOLAK Admin HR yang mencentang deklarasi tahunan orang lain', async () => {
+    const row = (id: string, declared: boolean) => ({ id, name: id, declared, conflicts: 0, tenure: 0, rotationLimit: 5 });
+    await yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'independence', baseVersion: 0,
+      value: [row(HW_EMP, false), row(YUNI_EMP, false)] });
+    await expectRejected(
+      yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'independence', baseVersion: 1,
+        value: [row(HW_EMP, true), row(YUNI_EMP, false)] }),
+      'FORBIDDEN', /indep-decl:not-own/,
+    );
+    const ok = await yuni.state.set({ scope: 'firm', scopeId: indepScopeId, key: 'independence', baseVersion: 1,
+      value: [row(HW_EMP, false), row(YUNI_EMP, true)] });
+    expect(ok.version).toBe(2);
+  });
+});
