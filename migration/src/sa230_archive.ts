@@ -183,3 +183,21 @@ export const SA230_STAGE_LABEL: Record<Sa230Stage, string> = {
   'jatuh-tempo': 'Jatuh Tempo Retensi',
   'legal-hold': 'Legal Hold',
 };
+
+/**
+ * Lebar jendela perakitan berkas final (SA 230 ¶A21) menurut kanon, dalam hari.
+ *
+ * TIDAK ditulis sebagai konstanta: angkanya dipanggang di dalam
+ * `finalizeBox()` (data_records.ts) dan tidak diekspor, jadi ia DITURUNKAN dari
+ * jarak reportDate→assembleBy pada kotak arsip pertama yang punya keduanya.
+ * Menyalinnya jadi konstanta kedua justru mengulang cacat yang berkas ini cabut.
+ * Mengembalikan null bila belum ada kotak yang dapat dipakai menurunkannya.
+ */
+export function sa230AssemblyWindowDays(): number | null {
+  const boxes = RETENTION.archiveBoxes() as ReadonlyArray<Record<string, unknown>>;
+  for (const b of boxes) {
+    const d = daysBetween((b.reportDate as string | null) || null, (b.assembleBy as string | null) || null);
+    if (d != null) return d;
+  }
+  return null;
+}

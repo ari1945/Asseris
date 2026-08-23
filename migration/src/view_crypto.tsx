@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { RETENTION } from './data_records';
 import { AMS_CANON } from './canon';
 import { useAudit, useAuditHeavy, useNav } from './contexts';
 import { I } from './icons';
@@ -378,7 +379,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
       ['Segel WORM', d.wormLabel],
       ['Hash tersegel (SHA-256)', d.sha],
       ['Enkripsi at-rest', 'AES-256-GCM'],
-      ['Retensi', (d.retentionYears || 10) + ' tahun'],
+      ['Retensi', RETENTION.retentionYearsForType(d.type) + ' tahun'],
       ['Legal hold', d.legalHold ? 'Ya' : 'Tidak'],
     ];
     await amsExportXlsx({
@@ -422,7 +423,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
             <KvBox label="Enkripsi at-rest" v="AES-256-GCM" />
             <KvBox label="Pindai malware" v="Bersih" />
             <KvBox label="Penandatangan" v={d.signer} />
-            <KvBox label="Retensi" v={(d.retentionYears || 10) + ' tahun'} />
+            <KvBox label="Retensi" v={RETENTION.retentionYearsForType(d.type) + ' tahun'} />
           </div>
 
           {/* version lineage */}
