@@ -133,13 +133,6 @@ const BO: any = (function () {
   ];
 
   /* ---------------- Retensi & Arsip Dokumen (SA 230) ---------------- */
-  const RETENTION_POLICY = [
-    { jenis: 'Kertas Kerja Audit (final)', dasar: 'SA 230 / SMM — min. 5 thn sejak laporan', years: 7, format: 'Elektronik terenkripsi', note: 'WHR menetapkan 7 tahun (melebihi minimum).' },
-    { jenis: 'File Asurans & Reviu (SPR/SJAH)', dasar: 'SMM 1', years: 7, format: 'Elektronik', note: '' },
-    { jenis: 'Dokumen Perikatan & Kontrak Klien', dasar: 'Kebijakan firma', years: 10, format: 'Elektronik + fisik', note: 'Termasuk surat perikatan & representasi.' },
-    { jenis: 'Dokumen Pajak & Keuangan Firma', dasar: 'UU KUP — 10 tahun', years: 10, format: 'Elektronik', note: '' },
-    { jenis: 'Data Pribadi / PMPJ (AML)', dasar: 'PJK3 / POJK — 5 tahun pasca hubungan', years: 5, format: 'Elektronik terenkripsi', note: 'Tunduk UU PDP.' },
-  ];
   const ARCHIVES = [
     { id: 'ARC-014', eng: 'ENG-2025-014 · PT Sentosa Makmur Tbk', tahun: 2025, arsip: '2026-02-28', musnah: '2033-02-28', size: '2,4 GB', legal: false, status: 'Terkunci' },
     { id: 'ARC-012', eng: 'ENG-2024-022 · PT Cahaya Abadi', tahun: 2024, arsip: '2025-03-15', musnah: '2032-03-15', size: '1,8 GB', legal: false, status: 'Terkunci' },
@@ -277,7 +270,7 @@ const BO: any = (function () {
     VENDORS, PURCHASE_ORDERS, SPEND_BY_CAT, CAT_COLOR,
     REQUISITIONS, RECEIPTS, BILLS, PROC_BUDGET,
     FIXED_ASSETS, ASSET_REGISTER, FIXED_ASSET_DUPS, MAINTENANCE, SOFTWARE_LICENSES, SPACE, DISPOSALS, ASSET_GL,
-    RETENTION_POLICY, ARCHIVES, LEGAL_HOLDS,
+    ARCHIVES, LEGAL_HOLDS,
     CONTRACTS, DISPUTES,
     POLICIES, CLAIMS, RISK_REGISTER,
     TRIPS, REIMBURSEMENTS, PER_DIEM, ROUTES, TRAVEL_TREND,
