@@ -421,7 +421,11 @@ function FirmAPAR() {
   };
 
   // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
-  const FFp = (FIRMFIN && (FIRMFIN as any).pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
+  /* Cadangan `|| { revenue: 11_300_000_000, … }` DICABUT 2026-08-23: `FIRMFIN.pl()`
+     selalu mengembalikan objek, jadi cabang itu MATI — sementara angkanya adalah
+     salinan beku kontrol GL yang baru saja bergerak lewat JV-0321. Cadangan ke data
+     karangan lebih buruk daripada tanpa cadangan (pelajaran ARC-014). */
+  const FFp = (FIRMFIN as any).pl();
   const annualRev = FFp.revenue, annualPurch = FFp.totalExpense - FFp.salary;
   const dso = Math.round(arOutstanding / annualRev * 365);
   const dpo = Math.round(apOutstanding / annualPurch * 365);

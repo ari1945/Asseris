@@ -645,7 +645,10 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { code: '1-104', name: 'BCA — Valas USD', type: 'Aset', bal: 788_125_000 },      // USD 48.500 @ kurs penutup 16.250 (setelah JV-0319)
     { code: '1-105', name: 'DBS — Cabang Singapura', type: 'Aset', bal: 1_112_215_000 }, // SGD 92.300 @ kurs penutup 12.050 (setelah JV-0320)
     { code: '1-106', name: 'Kas Kecil', type: 'Aset', bal: 35_298_000 },
-    { code: '1-200', name: 'Piutang Usaha (klien)', type: 'Aset', bal: 4_440_000_000 },
+    /* 2026-08-23 — 4_440_000_000 → 3_948_000_000 lewat JV-0321 (lihat FIRM_GL).
+       Piutang belum difakturkan `ARB-TRM-058` 492 jt DICABUT: ia mengklaim termin
+       kedua atas ENG-2025-058 yang sudah `Completed` dan fakturnya lunas penuh. */
+    { code: '1-200', name: 'Piutang Usaha (klien)', type: 'Aset', bal: 3_948_000_000 },
     { code: '1-300', name: 'WIP Belum Ditagih', type: 'Aset', bal: 9_300_000_000 },
     { code: '1-400', name: 'Aset Tetap — neto', type: 'Aset', bal: 6_100_000_000 },
     { code: '2-100', name: 'Utang Usaha (vendor)', type: 'Liabilitas', bal: -1_820_000_000 },
@@ -653,7 +656,10 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { code: '2-300', name: 'Beban Akrual', type: 'Liabilitas', bal: -1_260_000_000 },
     { code: '3-100', name: 'Modal Rekan', type: 'Ekuitas', bal: -14_000_000_000 },
     { code: '3-200', name: 'Saldo Laba', type: 'Ekuitas', bal: -7_440_000_000 },
-    { code: '4-100', name: 'Pendapatan Jasa', type: 'Pendapatan', bal: -11_300_000_000 },
+    /* 2026-08-23 — −11_300_000_000 → −10_808_000_000 lewat JV-0321. Akrual pendapatan
+       belum difakturkan yang tak pernah diperoleh dibalik; keputusan Ari atas usulan
+       B6 (kas DITOLAK sebagai penyeimbang — ia memecah rekonsiliasi bank). */
+    { code: '4-100', name: 'Pendapatan Jasa', type: 'Pendapatan', bal: -10_808_000_000 },
     { code: '5-100', name: 'Beban Gaji & Tunjangan', type: 'Beban', bal: 5_420_000_000 },
     { code: '5-200', name: 'Beban Overhead Kantor', type: 'Beban', bal: 1_570_000_000 },
     { code: '5-300', name: 'Beban Umum & Administrasi', type: 'Beban', bal: 540_000_000 },
@@ -687,6 +693,24 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
 
      Urutan menurun (terbaru di atas) mengikuti tampilan modul Firm GL. */
   const FIRM_GL = [
+    /* Koreksi akrual pendapatan belum difakturkan (usulan B6, keputusan Ari 2026-08-23).
+       `AR_BRIDGE.ARB-TRM-058` mengklaim "Termin 2 — disetujui, faktur dalam proses"
+       492 jt atas ENG-2025-058 yang berstatus `Completed`, fase `Arsip`, progres 100%,
+       dan faktur finalnya (INV-2026-012, 580 jt = fee kontrak penuh) sudah LUNAS.
+       Penagihan terbit + termin belum difakturkan mencapai 184,8% dari fee — satu-
+       satunya perikatan yang melewati plafonnya; bandingkan ENG-2025-014 yang mendarat
+       persis 100,0%.
+
+       Penyeimbangnya PENDAPATAN, bukan kas. Kas ditolak karena `bankRecon` mengadu
+       saldo GL tiap rekening dengan saldo REKENING KORAN (data eksternal) ± item
+       rekonsiliasi; keenam rekening menutup persis hari ini dan `BANK_RECONS` tak
+       memuat item 492 jt. Mendebit kas akan memerahkan satu rekening dan MENGUNCI
+       ekspor LK — atau memaksa mengarang saldo bank/item rekonsiliasi.
+
+       Saldo AWAL tidak bergerak: koreksi ini periode berjalan seluruhnya
+       (`FIRM_PERIOD_END` 2026-03-31). 1-200 awal tetap 3.170 jt, 4-100 awal tetap
+       −7.895 jt — dijaga `firm_ledger.test.ts`. */
+    { id: 'JV-0321', date: '2026-03-31', desc: 'Koreksi akrual termin belum difakturkan — ENG-2025-058 (fee kontrak sudah tertagih penuh)', dr: '4-100', cr: '1-200', amount: 492_000_000, posted: true },
     /* Penjabaran ulang pos moneter valas pada kurs penutup (PSAK 10). Saldo awal tiap
        akun valas tetap pada kurs buku; jurnal inilah yang membawanya ke kurs penutup,
        sehingga buku besar — bukan sekadar sebuah tab — yang menyatakannya. */
@@ -720,7 +744,9 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { id: 'ARB-TRM-063', kind: 'Termin', ref: 'ENG-2025-063', desc: 'Termin final — menunggu penerbitan opini', amount: 550_000_000 },
     { id: 'ARB-RET-031', kind: 'Retensi', ref: 'ENG-2025-031', desc: 'Retensi 10% ditahan klien s/d penyerahan laporan', amount: 126_000_000 },
     { id: 'ARB-RET-040', kind: 'Retensi', ref: 'ENG-2025-040', desc: 'Retensi 10% ditahan klien s/d penyerahan laporan', amount: 207_000_000 },
-    { id: 'ARB-TRM-058', kind: 'Termin', ref: 'ENG-2025-058', desc: 'Termin 2 — disetujui, faktur dalam proses', amount: 492_000_000 },
+    /* `ARB-TRM-058` (Termin 2, 492 jt) DICABUT 2026-08-23 lewat JV-0321 — lihat FIRM_GL.
+       Jangan dihidupkan kembali tanpa menaikkan kontrol 1-200 pada jumlah yang sama:
+       `arAging` menutup lewat `residual = control − (open + bridgeTotal)`. */
   ];
   const AP_BRIDGE = [
     { id: 'APB-ACR-PPL', kind: 'Akrual', vendor: 'IAPI · PPL & keanggotaan', desc: 'Akrual iuran & PPL kuartal berjalan', amount: 185_000_000 },

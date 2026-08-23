@@ -53,19 +53,21 @@ describe('SC-9 — nol-delta: jejak bertambah, angka tidak', () => {
     for (const a of coa) expect(cur[a.code], a.code).toBe(a.bal);
   });
 
+  /* Angkanya dibaseline ulang oleh JV-0321 (usulan B6, 2026-08-23): 1-200 4.440 → 3.948.
+     Yang dijaga tetap sama — arc #239/#240 sendiri nol-delta. */
   it('akun kontrol tetap pada angka yang dipakai #239/#240', () => {
     const cur = currentBalances(coa, gl, gl);
-    expect(cur['1-200']).toBe(4_440_000_000);
+    expect(cur['1-200']).toBe(3_948_000_000);
     expect(cur['1-300']).toBe(9_300_000_000);
     expect(cur['2-100']).toBe(-1_820_000_000);
   });
 
   it('laporan keuangan tidak bergerak sedikit pun', () => {
     const st = statements(coa, gl, gl);
-    expect(st.revenue).toBe(11_300_000_000);
+    expect(st.revenue).toBe(10_808_000_000);
     /* Beban neto setelah revaluasi PSAK 10 diposting (#248). */
     expect(st.expense).toBe(8_500_000_000 - 60_638_000);
-    expect(st.netProfit).toBe(2_800_000_000 + 60_638_000);
+    expect(st.netProfit).toBe(2_308_000_000 + 60_638_000);
     expect(st.balanced).toBe(true);
   });
 });
@@ -105,7 +107,7 @@ describe('Cache firmgl basi tidak boleh merusak saldo', () => {
 
   it('REPRO: tanpa penggabungan, saldo menyimpang jauh dari seed', () => {
     const rusak = currentBalances(coa, gl, glLama);
-    expect(rusak['4-100']).toBe(-8_450_000_000);   // seharusnya −11.300
+    expect(rusak['4-100']).toBe(-7_958_000_000);   // seharusnya −10.808
     expect(rusak['1-300']).toBe(8_090_000_000);    // seharusnya 9.300
     expect(trialBalance(coa, gl, glLama).balanced).toBe(true); // ← tetap "seimbang"
   });
