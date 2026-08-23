@@ -454,10 +454,18 @@ import { PFI_3400 } from './data_part2';
   };
 
   /* ---- BI Firma Terkonsolidasi (executive analytics) ---- */
+  /* `fyRevenue` adalah SALINAN KEDUA pendapatan firma: ia sama persis dengan kontrol
+     GL `4-100`, dan `revenueByService` menjumlah tepat kepadanya. Karena itu JV-0321
+     (usulan B6, 2026-08-23) harus ikut: 11.300 → 10.808 jt, dan 492 jt itu dikurangkan
+     dari lini `Audit Laporan Keuangan` — ENG-2025-058 memang perikatan audit LK, jadi
+     atribusinya ditentukan datanya, bukan dipilih. Keduanya dijaga
+     `bi_revenue_ssot.test.ts` supaya tak bisa menyimpang lagi diam-diam.
+     TERBUKA: salinan ini semestinya DITURUNKAN dari `FIRMFIN.pl().revenue`, bukan
+     disalin — lihat usulan B6 §R4. */
   const BI_DATA = {
-    fyRevenue: 11_300_000_000, prevYearRevenue: 10_100_000_000,
+    fyRevenue: 10_808_000_000, prevYearRevenue: 10_100_000_000,
     revenueByService: [
-      { svc: 'Audit Laporan Keuangan', std: 'SA', amount: 8_200_000_000, color: '#005085' },
+      { svc: 'Audit Laporan Keuangan', std: 'SA', amount: 7_708_000_000, color: '#005085' },
       { svc: 'Asurans Lain', std: 'SPA 3000/3402/3400', amount: 1_000_000_000, color: '#0a6b73' },
       { svc: 'Jasa Pajak & Konsultasi', std: 'PMK', amount: 860_000_000, color: '#9a6a00' },
       { svc: 'Reviu Laporan Keuangan', std: 'SPR 2400', amount: 760_000_000, color: '#5b3fa6' },

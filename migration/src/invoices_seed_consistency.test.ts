@@ -22,7 +22,7 @@
    dapat membantah dirinya tanpa mesin apa pun.
    ============================================================ */
 import { describe, expect, it } from 'vitest';
-import { CLIENTS, ENGAGEMENTS, INVOICES } from './data_part1';
+import { AR_BRIDGE, CLIENTS, ENGAGEMENTS, INVOICES } from './data_part1';
 import type { ClientRow, InvoiceRow } from './ams_types';
 
 const inv = INVOICES as unknown as InvoiceRow[];
@@ -86,6 +86,55 @@ describe('penagihan tidak melampaui fee kontrak', () => {
 
   it('gerbang plafon bisa merah (anti-tautologi)', () => {
     expect(feeOf('C-058')! + 1).toBeGreaterThan(feeOf('C-058')!);
+  });
+});
+
+/* ============================================================
+   Plafon fee mencakup KEDUA register piutang, bukan faktur saja.
+
+   `AR_BRIDGE` adalah termin & retensi yang BELUM difakturkan tetapi sudah masuk
+   kontrol GL 1-200. Jadi klaim firma terhadap seorang klien = faktur terbit +
+   komponen jembatan miliknya, dan itulah yang tak boleh melewati fee kontrak.
+
+   `ARB-TRM-058` (492 jt, "Termin 2 — faktur dalam proses") melanggarnya: ia
+   mengklaim termin kedua atas ENG-2025-058 yang `Completed`, fase `Arsip`,
+   progres 100%, dan fakturnya lunas penuh — 580 + 492 = 184,8% dari fee. Dicabut
+   lewat JV-0321 (usulan B6, keputusan Ari 2026-08-23) dengan penyeimbang
+   PENDAPATAN; kas ditolak karena akan memerahkan rekonsiliasi bank.
+
+   Bahwa plafon ini memang disengaja terbaca dari ENG-2025-014: faktur 1.480 +
+   jembatan 370 mendarat PERSIS 100,0% dari fee 1.850 jt.
+   ============================================================ */
+describe('plafon fee mencakup faktur + termin belum difakturkan', () => {
+  const bridge = AR_BRIDGE as unknown as { id: string; ref: string; amount: number }[];
+  const engOf = (clientId: string): string => (
+    (ENGAGEMENTS as unknown as { id: string; clientId: string }[]).find((e) => e.clientId === clientId) || { id: '' }
+  ).id;
+
+  const claimOf = (clientId: string): number => {
+    const eng = engOf(clientId);
+    const inv = INVOICES.filter((i) => i.clientId === clientId).reduce((s, i) => s + i.amount, 0);
+    const brg = bridge.filter((b) => b.ref === eng).reduce((s, b) => s + b.amount, 0);
+    return inv + brg;
+  };
+
+  const CLIENT_IDS = [...new Set(INVOICES.map((i) => i.clientId))];
+
+  it.each(CLIENT_IDS.map((c) => [c] as const))('%s — faktur + jembatan ≤ fee', (clientId) => {
+    expect(claimOf(clientId), `${clientId} · fee ${feeOf(clientId)}`).toBeLessThanOrEqual(feeOf(clientId)!);
+  });
+
+  it('premis: plafon ini memang disengaja — ENG-2025-014 mendarat persis 100%', () => {
+    expect(claimOf('C-014')).toBe(feeOf('C-014'));
+  });
+
+  it('ARB-TRM-058 tidak boleh tumbuh kembali', () => {
+    expect(bridge.map((b) => b.id)).not.toContain('ARB-TRM-058');
+  });
+
+  it('gerbang ini bisa merah (anti-tautologi) — komponen historis 492 jt ditolak', () => {
+    const historis = claimOf('C-058') + 492_000_000;
+    expect(historis).toBeGreaterThan(feeOf('C-058')!);
   });
 });
 

@@ -81,7 +81,7 @@ describe('feeConcentration — rasio & klasifikasi', () => {
 
 describe('feeConcentration — integrasi seed nyata', () => {
   it('menghasilkan baris untuk klien aktif seed & rasio wajar (0..1)', () => {
-    const sum = feeConcentration(CLIENTS, 11_300_000_000);
+    const sum = feeConcentration(CLIENTS, 10_808_000_000);   // = kontrol GL 4-100 pasca JV-0321
     expect(sum.rows.length).toBeGreaterThan(0);
     expect(sum.rows.every((r) => r.ratioFirm >= 0 && r.ratioFirm <= 1)).toBe(true);
     // C-052 berstatus Proposal → tak boleh muncul

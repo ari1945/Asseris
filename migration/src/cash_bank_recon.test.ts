@@ -218,10 +218,10 @@ describe('SC-9 — nol-delta di luar Kas', () => {
     const p = FIRMFIN.pl(ctxWith()) as unknown as { revenue: number; opProfit: number; totalExpense: number };
     /* Pendapatan jasa TIDAK bergerak — akun 5-600 sengaja bertipe Beban bersaldo kredit,
        supaya selisih kurs tidak menggelembungkan "Pendapatan KAP (GL 4-100)". */
-    expect(p.revenue).toBe(11_300_000_000);
+    expect(p.revenue).toBe(10_808_000_000);
     /* Beban neto turun sebesar laba selisih kurs yang kini DIBUKUKAN (PSAK 10). */
     expect(p.totalExpense).toBe(8_500_000_000 - 60_638_000);
-    expect(p.opProfit).toBe(2_800_000_000 + 60_638_000);
+    expect(p.opProfit).toBe(2_308_000_000 + 60_638_000);
   });
 
   it('ketiga baris rekonsiliasi lain tetap seperti sebelumnya', () => {
@@ -295,8 +295,8 @@ describe('F-4 — revaluasi PSAK 10 DIBUKUKAN, bukan sekadar ditampilkan', () =>
 
   it('laba operasi naik persis sebesar revaluasi — satu-satunya angka firma yang berubah', () => {
     const p = FIRMFIN.pl(ctxWith()) as unknown as { revenue: number; opProfit: number };
-    expect(p.revenue).toBe(11_300_000_000);            // pendapatan jasa TIDAK bergerak
-    expect(p.opProfit).toBe(2_860_638_000);
+    expect(p.revenue).toBe(10_808_000_000);            // pendapatan jasa TIDAK bergerak
+    expect(p.opProfit).toBe(2_368_638_000);
   });
 
   it('gerbang CAKUPAN anggaran (#242) tetap hijau — 5-600 punya baris anggaran', () => {
