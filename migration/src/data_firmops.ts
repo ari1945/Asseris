@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice';
+import { RETENTION } from './data_records';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
@@ -118,13 +119,11 @@ import { LEGAL } from './data_legal';
     BO.SOFTWARE_LICENSES.forEach((l: any) =>
       push({ module: 'facilities', kind: 'Lisensi software', label: l.name, ref: l.vendor, due: l.exp, amount: l.cost, owner: 'TI & Operasi' }));
     /* Arsip jatuh tempo — DITARIK dari lapisan kanonik Retensi (SSOT).
-       Kotak arsip dirakit dari dokumen DMS; tenggat = retensi habis. */
-    if (window.RETENTION) {
-      window.RETENTION.disposalObligations().forEach((o: any) => push(o));
-    } else {
-      BO.ARCHIVES.filter((a: any) => a.status === 'Jatuh Tempo').forEach((a: any) =>
-        push({ module: 'records', kind: 'Pemusnahan arsip', label: a.eng, ref: a.id, due: a.musnah, amount: 0, owner: 'Kepala Mutu' }));
-    }
+       Kotak arsip dirakit dari dokumen DMS; tenggat = retensi habis.
+       Cabang `else` ke BO.ARCHIVES dicabut: register statis itu memberi
+       tanggal musnah untuk berkas yang belum pernah diarsipkan. Kewajiban
+       pemusnahan yang dikarang lebih berbahaya daripada daftar kosong. */
+    RETENTION.disposalObligations().forEach((o: any) => push(o));
     BO.POLICIES.forEach((p: any) =>
       push({ module: 'insurance', kind: 'Perpanjangan polis', label: p.jenis, ref: p.id, due: p.akhir, amount: p.premi, owner: 'Risk & Legal' }));
     BO.FIRM_LICENSES.filter((l: any) => l.exp).forEach((l: any) =>
