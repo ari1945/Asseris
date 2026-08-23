@@ -17,7 +17,7 @@
 import { describe, it, expect } from 'vitest';
 import { WP_MODULE_MAP } from './wp_signoff';
 import {
-  PHASE_OF_MODULE, CKP_PHASE_ORDER, PHASE_BUDGET_WEIGHT, WP_MILESTONES,
+  PHASE_OF_MODULE, CKP_PHASE_ORDER, PHASE_BUDGET_WEIGHT, PHASES_WITHOUT_WP, WP_MILESTONES,
   moduleProvenPct, progressBridge, phaseRollups, unmappedModules,
   type ModuleWpStatus, type PhaseKey,
 } from './cockpit_progress';
@@ -46,9 +46,18 @@ describe('gerbang CAKUPAN peta modul → fase (S4)', () => {
     Object.entries(PHASE_OF_MODULE).forEach(([id, phase]) => {
       expect(valid.has(phase), `${id} → fase tak dikenal "${phase}"`).toBe(true);
     });
+    /* TB7 — sesudah taksonomi disatukan, 'Arsip' menjadi fase tersendiri dan
+       belum punya kertas kerja kanonik. Itu DIDAFTARKAN (`PHASES_WITHOUT_WP`),
+       bukan dibiarkan lolos: fase yang kosong karena kelalaian tetap merah,
+       dan daftarnya sendiri tak boleh menyimpan fase yang sudah terisi. */
+    const kosongSah = new Set<string>(PHASES_WITHOUT_WP);
     CKP_PHASE_ORDER.forEach((p) => {
       const n = Object.values(PHASE_OF_MODULE).filter((x) => x === p).length;
-      expect(n, `fase ${p} kosong`).toBeGreaterThan(0);
+      if (kosongSah.has(p)) {
+        expect(n, `fase ${p} terdaftar kosong tetapi ternyata terisi`).toBe(0);
+      } else {
+        expect(n, `fase ${p} kosong`).toBeGreaterThan(0);
+      }
     });
   });
 
@@ -166,10 +175,13 @@ describe('skor per kertas kerja & roll-up fase', () => {
   it('progres fase bergerak sendiri-sendiri, tak saling menular', () => {
     const rows = allEmpty().map((s) =>
       PHASE_OF_MODULE[s.id] === 'Perencanaan' ? st(s.id, { signed: true, hasEvidence: true, hasConclusion: true }) : s);
-    const byPhase = new Map<PhaseKey, number>(phaseRollups(rows).map((r) => [r.phase, Math.round(r.provenPct)]));
+    const byPhase = new Map<PhaseKey, number | null>(
+      phaseRollups(rows).map((r) => [r.phase, r.provenPct == null ? null : Math.round(r.provenPct)]));
     expect(byPhase.get('Perencanaan')).toBe(100);
     expect(byPhase.get('Eksekusi')).toBe(0);
-    expect(byPhase.get('Specifics')).toBe(0);
     expect(byPhase.get('Finalisasi')).toBe(0);
+    /* 'Specifics' sudah terlipat ke Eksekusi (TB7); 'Arsip' belum punya kertas
+       kerja kanonik ⇒ TAK TERUKUR, bukan nol persen. */
+    expect(byPhase.get('Arsip')).toBeNull();
   });
 });

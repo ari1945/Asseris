@@ -155,6 +155,42 @@ export function depreciate(a: AssetSeed, ref: Date): AssetComputed {
   };
 }
 
+/* ---------------- Skedul penyusutan per tahun kalender ----------------
+   Panel drill-down "Skedul Penyusutan" dulu menghitungnya SENDIRI di dalam view:
+
+     const annual = a.cost / a.life;      // mengabaikan `residu`
+     const curYear = 2026;                // literal tahun beku
+
+   Itu mesin penyusutan KEDUA yang lolos dari PR-1, dan ia BERSELISIH dengan
+   register yang membukanya: `depreciate()` memprorata bulanan sejak bulan
+   perolehan, sedangkan skedul membebankan SATU TAHUN PENUH di tahun perolehan.
+   Untuk FA-001 (perolehan Juni 2021, 2.400 jt / 8 th) skedul menulis 300 jt untuk
+   2021 — padahal registernya hanya membebankan 7 bulan, 175 jt. Dua angka untuk
+   satu aset, di dua panel yang bersebelahan.
+
+   Fungsi ini MEMBACA `depreciate()`, tidak mengulanginya: akumulasi tiap tahun
+   adalah `accDep` pada 1 Januari tahun berikutnya, dan beban tahunnya adalah
+   selisih dua akumulasi. Karena itu ia tak dapat menyimpang — kalau mesinnya
+   berubah, skedulnya ikut. `residu` dihormati (beban total = cost − residu),
+   dan barisnya berhenti tepat ketika penyusutan habis. */
+export interface DepScheduleRow { yr: number; dep: number; acc: number; nbv: number }
+
+export function depreciationSchedule(a: AssetSeed): DepScheduleRow[] {
+  const depreciable = a.cost - a.residu;
+  const startYear = new Date(a.acq).getFullYear();
+  const out: DepScheduleRow[] = [];
+  let prev = 0;
+  /* Batas atas `life + 2` adalah rem, bukan panjang yang diharapkan: proration
+     membuat aset ber-umur N tahun menyentuh N+1 tahun kalender. */
+  for (let yr = startYear; yr < startYear + a.life + 2; yr++) {
+    const acc = depreciate(a, new Date(yr + 1, 0, 1)).accDep;
+    out.push({ yr, dep: acc - prev, acc, nbv: Math.max(a.residu, a.cost - acc) });
+    prev = acc;
+    if (acc >= depreciable) break;
+  }
+  return out;
+}
+
 export interface AssetRegister {
   rows: AssetComputed[];
   totCost: number;

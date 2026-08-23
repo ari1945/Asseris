@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { api, isConflict, writeFailureKind, hydrateCoreFromApi } from './api';
+import { api, isConflict, isRejected, rejectionMessage, hydrateCoreFromApi } from './api';
 import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
@@ -29,6 +29,7 @@ import type { FluxState } from './flux_state';
 import type { PriorYearSource } from './prior_year';
 import type { ImportedWtbRow, ParseMeta } from './wtb_import';
 import type { LedgerLine } from './wtb_ledger';
+import { amsStamp } from './clock_ssot';
 
 /* ============================================================
    Asseris — React Context providers
@@ -70,14 +71,25 @@ interface AuditWtbRow extends WtbRow {
 interface WpSignEntry { by?: string; at?: string; [k: string]: unknown }
 interface WpNote { id?: string; text?: string; disposition?: string; by?: string; at?: string; status?: string; [k: string]: unknown }
 interface WpExecStep { items?: { result?: string; [k: string]: unknown }[]; concl?: string; [k: string]: unknown }
+/* Register bukti sebuah kertas kerja. Dulu `unknown[]`, yang membuat entri ini
+   TIDAK dapat diserahkan ke `wpContentHash` (wp_chain) — padahal bukti adalah
+   salah satu dari empat bagian yang MENGIKAT sebuah tanda tangan. Bentuk di
+   bawah adalah yang benar-benar ditulis `view_wp` (EvRec). */
+interface WpEvidenceRec { id?: string; name?: string; source?: string; tier?: number; type?: string; asr?: readonly string[] | null; by?: string; at?: string; [k: string]: unknown }
 interface WpStateEntry {
   chain?: { preparer?: WpSignEntry | null; reviewer?: WpSignEntry | null; partner?: WpSignEntry | null; eqr?: WpSignEntry | null; [k: string]: WpSignEntry | null | undefined };
-  procs?: Record<string, unknown>;
+  /* flag prosedur manual per-langkah ('Selesai' | 'Pengecualian' | 'Belum').
+     Bertipe string, bukan `unknown`: ia salah satu dari empat bagian yang
+     mengikat sebuah tanda tangan lewat `wpContentHash`. */
+  procs?: Record<string, string>;
   noteStatus?: Record<string, string>;
   ticks?: Record<string, string>;
   exec?: Record<string, WpExecStep>;
-  asrConcl?: Record<string, { by?: string; at?: string; [k: string]: unknown }>;
-  evidence?: unknown[];
+  /* kesimpulan per-ASERSI. `result` & `concl` disebut EKSPLISIT karena keduanya
+     ikut menyusun `wpContentHash` (wp_chain) — index signature saja membuat
+     entri ini tak dapat diserahkan ke sana. */
+  asrConcl?: Record<string, { result?: string; concl?: string; by?: string; at?: string; [k: string]: unknown }>;
+  evidence?: WpEvidenceRec[];
   notes?: WpNote[];
   /** kesimpulan auditor (P1) — dipersist ke `wpState[ref].conclusion` */
   conclusion?: { text?: string; disposition?: string; by?: string; at?: string } | null;
@@ -615,11 +627,19 @@ function conflictLabel(key: any) { return (CONFLICT_LABELS as any)[key] || key; 
 function emitConflict(detail: any) {
   try { window.dispatchEvent(new CustomEvent('ams:conflict', { detail })); } catch (e) {}
 }
-/* Penolakan server (403/401). Dipisah dari konflik karena tak ada pilihan untuk
-   ditawarkan — nilainya sudah ditarik kembali; yang tersisa adalah memberitahu. */
-function emitWriteRejected(detail: unknown) {
-  try { window.dispatchEvent(new CustomEvent('ams:write-rejected', { detail })); } catch (e) {}
+
+/* Tulisan yang DITOLAK server atas isinya — beda peristiwa dari konflik CAS,
+   karena beda pula yang dapat dilakukan pengguna: konflik menawarkan pilihan
+   (muat terbaru / timpa), penolakan tidak menawarkan apa pun. Yang ia butuhkan
+   hanyalah tahu bahwa yang dilihatnya di layar TIDAK tersimpan, dan mengapa. */
+function emitRejected(detail: unknown) {
+  try { window.dispatchEvent(new CustomEvent('ams:rejected', { detail })); } catch (e) {}
 }
+
+/* Pembaca state — bentuknya sama untuk `state.get` dan `personal.get`. Dinyatakan
+   struktural (bukan `any`) karena satu `any` baru di berkas ini meng-un-suppress
+   SELURUH berkas pada ratchet ESLint. */
+type StateReader = { query: (a: { scope: string; scopeId: string; key: string }) => Promise<{ value: unknown; version: number }> };
 
 function cacheRead(cacheKey: any, legacyKey: any, initial: any) {
   try { const s = localStorage.getItem(cacheKey); if (s != null) return JSON.parse(s); } catch (e) {}
@@ -674,6 +694,15 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
      yang tertunda harus tetap memakai baseVersion milik target LAMA agar CAS-nya sah. */
   const pendingRef = React.useRef(null);   // PendingWrite | null
 
+  /* Nilai AWAL sebuah kunci, dibaca ULANG saat dibutuhkan. Dipakai hanya oleh
+     jalur penolakan: bila server tak pernah menyimpan kunci ini (version 0),
+     tak ada nilai server untuk dipulihkan — yang benar adalah kembali ke titik
+     berangkatnya, bukan mempertahankan tulisan yang baru saja ditolak. */
+  const initialRef = React.useRef(null);
+  initialRef.current = () => (isPersonal
+    ? emptyLike(initial)
+    : (typeof initial === 'function' ? initial() : initial));
+
   const hydrate = React.useCallback(() => {
     let cancelled = false;
     setValRaw(isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache (kosong-aman utk personal)
@@ -720,9 +749,6 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
      `targetRef`/`versionRef` di sini. `versionRef` hanya boleh maju bila hook MASIH
      menunjuk target yang barusan ditulis — sesudah pindah perikatan, versi milik target
      lama tak berarti apa-apa bagi target baru dan menuliskannya akan merusak CAS. */
-  /* Baca-ulang dokumen yang barusan gagal ditulis. Satu titik `as any` (klien tRPC
-     tak bertipe di sisi ini) dipakai bersama kedua cabang kegagalan. */
-  const readTarget = React.useCallback((t: WriteTarget) => (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }), []);
   const flush = React.useCallback((pending: PendingWrite) => {
     const t = pending.target;
     const value = pending.value;
@@ -738,7 +764,7 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
         // surface a conflict toast that lets the user adopt latest or overwrite.
         if (isConflict(err)) {
           const attempted = value;
-          readTarget(t).then((res: any) => {
+          (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then((res: any) => {
             /* R-1 — versi ini milik `t`. Diadopsi ke `versionRef`/`val` HANYA bila hook
                masih menunjuk `t`; untuk target yang sudah ditinggalkan versinya disimpan
                lokal saja, supaya "pertahankan milik saya" tetap punya baseVersion sah
@@ -761,23 +787,30 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
             });
           }).catch(() => {});
         }
-        /* PENOLAKAN SERVER (403 FORBIDDEN dari capForWrite / 401 sesi habis).
-           Bentuk lama menjatuhkannya ke cabang "offline" di bawah: nilai lokal
-           dipertahankan, tak ada pesan, dan layar terus mengklaim perubahan yang
-           tak pernah tersimpan. Di sini nilainya DITARIK KEMBALI ke apa yang
-           benar-benar ada di server, lalu penolakannya ditampilkan. */
-        else if (writeFailureKind(err) === 'rejected') {
-          readTarget(t)
-            .then((res: { version: number; value: unknown }) => {
-              if (stillCurrent()) { versionRef.current = res.version; if (res.version > 0) setValRaw(res.value); }
-              if (res.version > 0) cacheWrite(t.cacheKey, res.value);
-            })
-            .catch(() => {})
-            .then(() => emitWriteRejected({ scope: t.scope, key: t.key, label: conflictLabel(t.key) }));
+        /* DITOLAK server atas ISINYA (aturan `signature-*`/`posted-immutable`,
+           atau kapabilitas). Cabang ini WAJIB terpisah dari "offline" di bawah:
+           offline berarti "belum sampai" sehingga mempertahankan nilai lokal itu
+           benar; ditolak berarti "tak akan pernah diterima" sehingga
+           mempertahankannya membuat layar berbohong tentang apa yang tersimpan.
+           Kunci personal dibaca lewat `personal.get` — `state.get` menolaknya. */
+        else if (isRejected(err)) {
+          const personal = PERSONAL_STATE_KEYS.has(t.key);
+          const reader: StateReader = personal
+            ? (api as unknown as { personal: { get: StateReader } }).personal.get
+            : (api as unknown as { state: { get: StateReader } }).state.get;
+          const notify = () => emitRejected({
+            scope: t.scope, key: t.key, label: conflictLabel(t.key), message: rejectionMessage(err),
+          });
+          reader.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then((res) => {
+            const restored = res.version > 0 ? res.value : initialRef.current();
+            if (stillCurrent()) { versionRef.current = res.version; setValRaw(restored); }
+            if (!personal) cacheWrite(t.cacheKey, restored);
+            notify();
+          }).catch(() => { notify(); });
         }
         /* other errors (offline): cache already holds the value; the next edit retries */
       });
-  }, [readTarget]);
+  }, []);
 
   /* Kirim tulisan tertunda SEKARANG (timer dibatalkan). Dipanggil oleh debounce dan oleh
      cleanup efek di bawah saat target berpindah / hook di-unmount. */
@@ -843,26 +876,39 @@ window.useAmsPersist = useAmsPersist;
 
 /* W6 Fase 2 — global toaster for save conflicts. Listens for 'ams:conflict',
    dedupes by (scope,key), auto-dismisses, offers adopt-latest / overwrite-mine. */
+type ToastItem = {
+  id: string; key?: string; scope?: string; label?: string;
+  /** varian PENOLAKAN server; tanpa ini kartu adalah konflik CAS biasa */
+  rejected?: boolean; message?: string;
+  adopt?: () => void; keepMine?: () => void;
+};
+
 function ConflictToaster() {
   const [items, setItems] = React.useState([]);
   const dismiss = React.useCallback((id: any) => setItems((list: any) => list.filter((t: any) => t.id !== id)), []);
 
   React.useEffect(() => {
-    const push = (kind: string) => (ev: any) => {
+    const onConflict = (ev: any) => {
       const d = (ev && ev.detail) || {};
       const id = (d.scope || '') + ':' + (d.key || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
       setItems((list: any) => {
         const rest = list.filter((t: any) => !(t.key === d.key && t.scope === d.scope)); // one toast per target
-        return [...rest, { id, kind, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
+        return [...rest, { id, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
       });
     };
-    const onConflict = push('conflict');
-    const onRejected = push('rejected');
+    const onRejected = (ev: Event) => {
+      const d = (((ev as CustomEvent).detail || {}) as { scope?: string; key?: string; label?: string; message?: string });
+      const id = 'rej:' + (d.scope || '') + ':' + (d.key || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
+      setItems((list: ToastItem[]) => {
+        const rest = list.filter((t) => !(t.key === d.key && t.scope === d.scope && t.rejected));
+        return [...rest, { id, key: d.key, scope: d.scope, label: d.label || d.key, rejected: true, message: d.message }];
+      });
+    };
     window.addEventListener('ams:conflict', onConflict);
-    window.addEventListener('ams:write-rejected', onRejected);
+    window.addEventListener('ams:rejected', onRejected);
     return () => {
       window.removeEventListener('ams:conflict', onConflict);
-      window.removeEventListener('ams:write-rejected', onRejected);
+      window.removeEventListener('ams:rejected', onRejected);
     };
   }, []);
 
@@ -875,28 +921,34 @@ function ConflictToaster() {
   if (!items.length) return null;
   const wrap = { position: 'fixed', right: 18, bottom: 18, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 360 };
   const card = { background: 'var(--surface,#fff)', border: '1px solid var(--line,#e3e6ea)', borderLeft: '3px solid var(--amber,#d98a00)', borderRadius: 10, boxShadow: '0 8px 28px rgba(15,23,42,.16)', padding: '12px 14px', font: '13px/1.45 inherit', color: 'var(--ink,#1f2733)' };
-  const cardRejected = { ...card, borderLeft: '3px solid var(--red,#c0392b)' };
   const head = { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 };
   const row = { display: 'flex', gap: 8, marginTop: 10 };
   const btn = { cursor: 'pointer', border: '1px solid var(--line,#e3e6ea)', borderRadius: 7, padding: '5px 10px', font: '12px inherit', background: '#fff', color: 'var(--ink,#1f2733)' };
   const btnPrimary = { ...btn, background: 'var(--navy,#1f3a5f)', color: '#fff', borderColor: 'var(--navy,#1f3a5f)' };
+  const cardRejected = { ...card, borderLeftColor: 'var(--red,#b3261e)' };
   const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 15, lineHeight: 1 };
   return (
     <div style={wrap} role="status" aria-live="polite" data-testid="conflict-toaster">
       {items.map((t: any) => (
-        <div key={t.id} style={t.kind === 'rejected' ? cardRejected : card} data-conflict-key={t.key} data-toast-kind={t.kind || 'conflict'}>
+        <div key={t.id} style={t.rejected ? cardRejected : card} data-conflict-key={t.key} data-rejected={t.rejected ? '1' : undefined}>
           <div style={head}>
-            <span>{t.kind === 'rejected' ? '⛔ Perubahan ditolak server' : '⚠︎ Konflik penyimpanan'}</span>
+            <span>{t.rejected ? '⚠︎ Penyimpanan ditolak' : '⚠︎ Konflik penyimpanan'}</span>
             <button style={x} title="Tutup" onClick={() => dismiss(t.id)}>×</button>
           </div>
-          {t.kind === 'rejected'
-            ? <div><b>{t.label}</b> tidak tersimpan: peran Anda tidak berwenang menulis dokumen ini (atau sesi Anda telah berakhir). Tampilan sudah dikembalikan ke data server.</div>
-            : <div><b>{t.label}</b> diubah dari sesi/peramban lain. Perubahan Anda belum tersimpan.</div>}
-          {t.kind !== 'rejected' && (
-            <div style={row}>
-              <button style={btnPrimary} onClick={() => { try { t.adopt && t.adopt(); } finally { dismiss(t.id); } }}>Muat versi terbaru</button>
-              <button style={btn} onClick={() => { try { t.keepMine && t.keepMine(); } finally { dismiss(t.id); } }}>Timpa dengan perubahan saya</button>
-            </div>
+          {t.rejected ? (
+            <>
+              <div><b>{t.label}</b> TIDAK tersimpan — server menolaknya.</div>
+              <div style={{ marginTop: 4, color: 'var(--ink-2,#5a6472)' }}>{t.message}</div>
+              <div style={{ marginTop: 6, fontSize: 12, color: 'var(--ink-3,#8a93a2)' }}>Layar sudah dikembalikan ke nilai yang benar-benar tersimpan.</div>
+            </>
+          ) : (
+            <>
+              <div><b>{t.label}</b> diubah dari sesi/peramban lain. Perubahan Anda belum tersimpan.</div>
+              <div style={row}>
+                <button style={btnPrimary} onClick={() => { try { t.adopt && t.adopt(); } finally { dismiss(t.id); } }}>Muat versi terbaru</button>
+                <button style={btn} onClick={() => { try { t.keepMine && t.keepMine(); } finally { dismiss(t.id); } }}>Timpa dengan perubahan saya</button>
+              </div>
+            </>
           )}
         </div>
       ))}
@@ -1138,7 +1190,7 @@ function AuditProvider({ children }: any) {
        satu `any` baru meng-un-suppress seluruh berkas pada ratchet ESLint). */
     type AjeStatusRow = { id: string; status: string };
     const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId, { defer: true });
-    const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
+    const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: amsStamp(), ...e }, ...list].slice(0, 50)), []);
     /* PR-B - jembatan agar setAjeStatus/toggleAjeStatus dapat mencatat jejak tanpa
        menjadikan `logActivity` dependensi yang memutus memo mereka tiap jejak bertambah. */
     logRef.current = logActivity;

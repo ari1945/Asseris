@@ -44,29 +44,19 @@
 
    Fungsi di berkas ini MURNI: tak menyentuh React/DOM/window/localStorage.
    ============================================================ */
+import {
+  PHASE_BUDGET_WEIGHT, PHASE_ORDER, PHASE_TOKEN, phaseOf, type PhaseId,
+} from './phase_canon';
 
-export type PhaseKey = 'Perencanaan' | 'Eksekusi' | 'Specifics' | 'Finalisasi';
-
-export const CKP_PHASE_ORDER: readonly PhaseKey[] = ['Perencanaan', 'Eksekusi', 'Specifics', 'Finalisasi'];
-
-/* Warna fase memakai token peran semantik (CLAUDE.md §5) — dulu hex hardcode. */
-export const PHASE_TOKEN: Record<PhaseKey, string> = {
-  Perencanaan: 'var(--purple)',
-  Eksekusi: 'var(--blue)',
-  Specifics: 'var(--teal)',
-  Finalisasi: 'var(--amber)',
-};
-
-/* Bobot JAM ANGGARAN per fase. Ini MODEL ALOKASI, bukan pengukuran — dan kini
-   diberi label demikian di UI. Dipisahkan dari progres justru supaya tak lagi
-   tertukar: dulu satu angka literal melayani keduanya sekaligus. */
-export const PHASE_BUDGET_WEIGHT: Record<PhaseKey | 'Review & Arsip', number> = {
-  Perencanaan: 0.152,
-  Eksekusi: 0.413,
-  Specifics: 0.196,
-  Finalisasi: 0.185,
-  'Review & Arsip': 0.054,
-};
+/* Taksonomi & bobot fase TIDAK hidup di berkas ini lagi. Sampai PRD
+   `prd-timebudget-phase-profile.md` ada EMPAT daftar fase di aplikasi, dan
+   dua di antaranya (di sini dan di Time & Budget) membagi jam anggaran yang
+   SAMA dengan bobot yang BERBEDA — dua layar, satu perikatan, dua jawaban.
+   Keduanya kini memanggil `phase_canon.ts`. Lihat catatan pelipatan
+   'Specifics' → Eksekusi di sana; ia keputusan metodologi, bukan kerapian. */
+export type PhaseKey = PhaseId;
+export { PHASE_TOKEN, PHASE_BUDGET_WEIGHT };
+export const CKP_PHASE_ORDER: readonly PhaseKey[] = PHASE_ORDER;
 
 /* ------------------------------------------------------------------
    PETA MODUL → FASE — dienumerasi untuk SETIAP kunci `WP_MODULE_MAP`.
@@ -74,7 +64,15 @@ export const PHASE_BUDGET_WEIGHT: Record<PhaseKey | 'Review & Arsip', number> = 
    membuktikan tiap kunci WP_MODULE_MAP muncul di sini dan sebaliknya.
    Tie-out "jumlah fase = total" akan lulus otomatis & tak membuktikan apa pun.
    ------------------------------------------------------------------ */
-export const PHASE_OF_MODULE: Record<string, PhaseKey> = {
+/* Peta di bawah tetap DITULIS pada taksonomi lama (lima kunci) supaya
+   pengelompokan halus 'Specifics' — 26 dari 51 modul — tidak lenyap dari
+   catatan hanya karena ia tak lagi jadi fase tersendiri. Yang DIEKSPOR adalah
+   hasil pelipatannya lewat `phaseOf`, sehingga pemetaannya dapat dibaca dan
+   diuji alih-alih terjadi diam-diam. Cockpit merender daftar modul per fase,
+   jadi yang hilang hanyalah judul antaranya. */
+type LegacyPhase = PhaseId | 'Specifics' | 'Review & Arsip';
+
+const MODULE_PHASE_RAW: Record<string, LegacyPhase> = {
   /* --- Perencanaan: penilaian risiko, materialitas, pengendalian --- */
   materiality: 'Perencanaan',   // SA 320
   icfr: 'Perencanaan',          // SA 315 · 330 · 265
@@ -134,6 +132,37 @@ export const PHASE_OF_MODULE: Record<string, PhaseKey> = {
   sa260: 'Finalisasi',          // komunikasi TCWG
   sa265: 'Finalisasi',          // defisiensi pengendalian
 };
+
+export const PHASE_OF_MODULE: Record<string, PhaseKey> = Object.fromEntries(
+  Object.entries(MODULE_PHASE_RAW).map(([id, fase]) => {
+    const kanon = phaseOf(fase);
+    /* Tak mungkin null selama `LegacyPhase` dan `PHASE_ALIAS` sinkron; kalau
+       toh terjadi, ia harus berbunyi di sini alih-alih menghilangkan modul
+       dari seluruh rollup fase tanpa suara. */
+    if (!kanon) throw new Error('fase modul tak dikenal: ' + id + ' → ' + fase);
+    return [id, kanon];
+  }),
+);
+
+/** Peta mentah (taksonomi lama) — untuk uji pelipatan & diagnostik saja. */
+export const MODULE_PHASE_LEGACY: Readonly<Record<string, LegacyPhase>> = MODULE_PHASE_RAW;
+
+/**
+ * Fase yang memang TIDAK punya kertas kerja kanonik.
+ *
+ * Sesudah taksonomi disatukan (TB7), 'Arsip' menjadi fase tersendiri sementara
+ * tak satu pun kunci `WP_MODULE_MAP` memetakan ke sana — kertas kerja
+ * dokumentasi & perakitan berkas (`sa230`) hari ini terpetakan ke Finalisasi.
+ *
+ * Didaftarkan, BUKAN dibiarkan lolos diam-diam: gerbang cakupan S4 tetap
+ * memerahkan fase yang kosong karena kelalaian, dan daftar ini sendiri diuji
+ * agar tak menyimpan fase yang sebenarnya sudah terisi.
+ *
+ * TERBUKA (keputusan Ari, jangan diputuskan sepihak): apakah `sa230` — dan
+ * mungkin `sa580`/`sa710`/`sa720` — seharusnya pindah ke Arsip. Itu pertanyaan
+ * metodologi audit, bukan kerapian peta.
+ */
+export const PHASES_WITHOUT_WP: readonly PhaseId[] = ['Arsip'];
 
 /* ---------- bentuk data dari wp_signoff.wpModuleStatuses ---------- */
 export interface ModuleWpStatus {
@@ -204,7 +233,17 @@ export interface PhaseRollup {
   token: string;
   modules: { id: string; pct: number; status: ModuleWpStatus }[];
   total: number;
-  provenPct: number;
+  /**
+   * Kelengkapan terbukti fase ini, 0..100 — atau `null` bila fase ini tak
+   * punya SATU PUN kertas kerja kanonik.
+   *
+   * Dulu `progressBridge` mengembalikan 0 untuk himpunan kosong (penyebutnya
+   * nol ⇒ tiap baris `pp: 0`), sehingga "tak ada yang diukur" tak dapat
+   * dibedakan dari "semua kertas kerja belum disentuh". Keduanya pernyataan
+   * yang berbeda, dan sesudah taksonomi disatukan perbedaan itu terlihat di
+   * layar: fase Arsip belum punya kertas kerja kanonik.
+   */
+  provenPct: number | null;
   /** jumlah kertas kerja yang belum dimulai (nol bukti & nol kesimpulan) */
   notStarted: number;
 }
@@ -226,7 +265,7 @@ export function phaseRollups(statuses: ModuleWpStatus[]): PhaseRollup[] {
       token: PHASE_TOKEN[phase],
       modules,
       total: inPhase.length,
-      provenPct: bridge.provenPct,
+      provenPct: inPhase.length ? bridge.provenPct : null,
       notStarted: inPhase.filter((s) => s.notStarted).length,
     };
   });

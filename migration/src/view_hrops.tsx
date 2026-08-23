@@ -17,6 +17,8 @@ import {
   leaveLedger, leaveStateOn, onLeaveOn,
 } from './canon_leave';
 import type { HolidayCalendar, LeaveRequestInput, LeaveRow } from './canon_leave';
+import { amsYear } from './clock_ssot';
+import { amsTodayDate } from './clock_ssot';
 
 /* ============================================================
    Asseris — HCM: Cuti & Kehadiran  ·  Siklus Kinerja
@@ -58,7 +60,7 @@ function LeaveAttendance() {
   const list = (Array.isArray(reqs) ? reqs : []) as LeaveRequestInput[];
   const today = String(AMS.TODAY || '');
   const cal = AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar;
-  const coverage = holidayCoverage(cal, Number(today.slice(0, 4)) || new Date().getUTCFullYear());
+  const coverage = holidayCoverage(cal, Number(today.slice(0, 4)) || amsYear());
   /* Baris yang boleh dilihat caller = yang punya entri saldo (server sudah menyaring). */
   const visible = roster.filter((s) => !!carry[s.id]);
   const ledgers = leaveLedger(visible, list, carry, today, cal, LEAVE_POLICY);
@@ -86,7 +88,7 @@ function LeaveAttendance() {
 
   /* Strip kalender berpusat pada AMS.TODAY — dulu dipaku ke Maret 2026, sehingga
      klok bergerak meninggalkannya tanpa suara. */
-  const t0 = (() => { const t = Date.parse(today + 'T00:00:00Z'); return Number.isFinite(t) ? t - 7 * DAY_MS_HR : Date.now(); })();
+  const t0 = (() => { const t = Date.parse(today + 'T00:00:00Z'); return (Number.isFinite(t) ? t : amsTodayDate().getTime()) - 7 * DAY_MS_HR; })();
   const days = Array.from({ length: 21 }, (_, i) => t0 + i * DAY_MS_HR);
   const holidayNames = new Map(holidayEntries(cal).map((h) => [h.date, h.name]));
 

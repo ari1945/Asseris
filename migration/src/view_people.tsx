@@ -20,6 +20,7 @@ import {
 } from './indep_approval';
 import { cpeFromTraining, type TrainingCourse } from './cpe_training';
 import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
+import { amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
@@ -209,7 +210,7 @@ function CPETracker() {
   /* Ambang PPL datang dari `canon_ppl.PPL_REQ_PMK186` — SATU sumber, dgn dasar
      hukumnya melekat. `AMS.CPE_REQ` tinggal menyumbang tahun berjalan; nilainya
      identik (40/30/10) sehingga pemindahan ini nol-delta. */
-  const pplYear: number = (AMS.CPE_REQ as { year?: number } | undefined)?.year || new Date().getFullYear();
+  const pplYear: number = (AMS.CPE_REQ as { year?: number } | undefined)?.year || amsYear();
   const req = { annual: PPL_REQ_PMK186.annual, structured: PPL_REQ_PMK186.structuredMin, year: pplYear };
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   // 2026-07-05 — cpeLog (kredit SKP dasar) & cpeExtra ter-filter server (personal.get).

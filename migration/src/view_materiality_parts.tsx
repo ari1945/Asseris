@@ -7,6 +7,7 @@ import { CAP } from './rbac';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { wpSignatureStamp } from './wp_chain';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Materiality (SA 320 / SA 450) — heavy tab panels
@@ -378,7 +379,7 @@ function MatRevision({ om, applied, locked }: any) {
   const trend = [...revs.map((r: any) => r.to), om].map(v => v / 1e9);
 
   const commit = () => setRevs((list: any) => [...list, {
-    id: 'V' + (list.length + 1), date: new Date().toISOString().slice(0, 10), phase: 'Eksekusi',
+    id: 'V' + (list.length + 1), date: amsDateIso(), phase: 'Eksekusi',
     from: last.to, to: om, basis: 'Penyesuaian saat eksekusi — lihat memo materialitas', by: 'Anindya P.', appr: 'Menunggu',
   }]);
 

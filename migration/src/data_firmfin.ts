@@ -9,7 +9,7 @@
      · Utang usaha               ← FIRM_AP     (modul AP/AR)
      · WIP & pendapatan diakui   ← ENGAGEMENTS + CLIENTS (PSAK 72)
      · Portofolio fee partner    ← ENGAGEMENTS + CLIENTS
-     · Kas & bank (multi-ccy)    ← BANK_ACCOUNTS + FX_RATES
+     · Kas & bank (multi-ccy)    ← BANK_ACCOUNTS + canon_fx (kurs bermasa berlaku)
      · Rincian biaya operasi     ← FIRMOPS.operatingCosts() (sub-ledger backoffice)
 
    PRINSIP: Buku Besar (FIRM_COA) adalah AKUN KONTROL; tiap sub-buku
@@ -17,6 +17,7 @@
    perubahan di pemilik data otomatis mengalir ke seluruh modul firma.
    ============================================================ */
 import { AMS } from './data';
+import { fxAt } from './canon_fx';
 import { rpRosterMap, rpSeedHours, type RPRosterRow } from './roster_profile';
 const FIRMFIN = (function () {
   const REFDATE = new Date(AMS.TODAY); /* K-02: klok SSOT */
@@ -402,7 +403,7 @@ const FIRMFIN = (function () {
   }
 
 
-  /* ---------- Kas & bank (sumber: BANK_ACCOUNTS + FX_RATES) ---------- */
+  /* ---------- Kas & bank (sumber: BANK_ACCOUNTS + canon_fx) ---------- */
   /* ---------- Kas & bank: SATU akun buku besar per rekening ----------
      PRD cash-bank-reconciliation-register 2026-08-15.
 
@@ -421,8 +422,7 @@ const FIRMFIN = (function () {
      tersendiri — bukan item rekonsiliasi. */
   interface BankAccountSeed { id: string; bank: string; name: string; no: string; ccy: string; acct: string; balance: number }
   interface ReconLine { id: string; account?: string; date?: string; desc?: string; amount: number; matched?: boolean; ref?: string }
-  interface ReconSeed { account: string; period: string; lines: ReconLine[] }
-  type Rates = Record<string, number>;
+  interface ReconSeed { account: string; period: string; periodEnd?: string; lines: ReconLine[] }
 
   const cashAccounts = (): string[] => (A().BANK_ACCOUNTS as BankAccountSeed[]).map((a) => a.acct);
   const cashControl = (coa: CoaLine[]): number => {
@@ -435,8 +435,6 @@ const FIRMFIN = (function () {
     const coa = coaOf(ctx) as CoaLine[];
     const accts = A().BANK_ACCOUNTS as BankAccountSeed[];
     const regs = (A().BANK_RECONS || []) as ReconSeed[];
-    const fx = (A().FX_RATES || { IDR: 1 }) as Rates;
-    const fxBook = (A().FX_BOOK || { IDR: 1 }) as Rates;
     /* `ctx.reconLines` = daftar datar hasil `useBankRecon()` (mencakup status `matched`
        yang disunting pengguna). Tanpa penyaluran ini, mencocokkan baris di modul
        Rekonsiliasi Bank tak akan menggeser residual Kas maupun gerbang ekspor. */
@@ -457,18 +455,36 @@ const FIRMFIN = (function () {
          Konsekuensi yang DIKEHENDAKI: membatalkan posting jurnal revaluasi membuat buku
          kembali ke kurs perolehan dan rekening valas itu TIDAK menutup — memang begitu
          seharusnya, sebab bukunya belum dijabarkan ulang. */
+      /* KURS PENUTUP PERIODE YANG DIREKONSILIASI — dipilih dari registry bermasa
+         berlaku (`canon_fx`), bukan dari "kurs firma" tanpa tanggal. Rekonsiliasi
+         Maret 2026 selamanya memakai kurs penutup Maret 2026: memajukan klok tidak
+         boleh menulis ulang kertas kerja yang sudah selesai.
+
+         Bentuk lama `fx[a.ccy] || 1` menilai mata uang yang tak dikenal 1:1 terhadap
+         rupiah dan tetap menghasilkan angka yang tampak sah. Kini rekening seperti itu
+         menjadi NaN → `reconciled: false` → baris Kas `open` → ekspor LK terkunci,
+         dengan `fxNote` yang menyebut sebabnya. */
+      const periodEnd = String((reg && reg.periodEnd) || '');
+      const look = fxAt(periodEnd);
+      const num = (v: unknown) => (typeof v === 'number' ? v : NaN);
+      const closingRate = a.ccy === 'IDR' ? 1 : num(look.value && look.value.closing[a.ccy]);
+      const carryRate = a.ccy === 'IDR' ? 1 : num(look.value && look.value.book[a.ccy]);
+      const fxCovered = Number.isFinite(closingRate) && Number.isFinite(carryRate);
       const bookIDR = acct(coa, a.acct).bal as number;
-      const bankIDR = a.balance * (fx[a.ccy] || 1);
+      const bankIDR = a.balance * closingRate;
       const adjustedBook = bookIDR + bookSide;
       const adjustedBank = bankIDR + bankSide;
       const residual = adjustedBank - adjustedBook;
       return {
-        ...a, period: (reg && reg.period) || '—', lines,
+        ...a, period: (reg && reg.period) || '—', periodEnd, lines,
         bookIDR, bankIDR, bookSide, bankSide, adjustedBook, adjustedBank, residual,
         reconciled: Math.abs(residual) < RECON_TOLERANCE,
         openCount: open.length,
-        idrMarket: a.balance * (fx[a.ccy] || 1),
-        reval: a.balance * ((fx[a.ccy] || 1) - (fxBook[a.ccy] || 1)),
+        idrMarket: bankIDR,
+        closingRate, carryRate, fxCovered,
+        fxNote: fxCovered ? '' : (look.note
+          || `Kurs ${a.ccy} untuk ${periodEnd || '(periode tak dinyatakan)'} tak terdaftar.`),
+        reval: a.balance * (closingRate - carryRate),
       };
     });
   }
@@ -673,5 +689,37 @@ const FIRMFIN = (function () {
    antrean persetujuan sama sekali. */
 const WIP_WRITEOFF_APPROVAL_MIN = 1e8;
 
+/* ------------------------------------------------------------------
+   KEBIJAKAN LIKUIDITAS FIRMA (prompt 31-treasury TR2)
+
+   Ambang "zona perhatian" kas dulu diketik sebagai angka `7000` EMPAT KALI di
+   dalam JSX `view_firmtreasury.tsx` — kartu KPI, label grafik, warna batang, dan
+   kolom saldo akhir. Itu bukan detail tampilan: ia menentukan kapan kas firma
+   disebut perlu perhatian. Empat salinan berarti mengubahnya di satu tempat
+   menghasilkan layar yang berselisih dengan dirinya sendiri.
+
+   NILAINYA TIDAK DIUBAH — memindahkan bukan menetapkan ulang.
+
+   ⚠ DASARNYA BELUM DINYATAKAN. Siapa yang menetapkan Rp 7 M, atas dasar apa, dan
+   kapan ia ditinjau — tak ada jawabannya di repo ini, dan menuliskan alasan yang
+   masuk akal SEKARANG hanya akan membuat angka tanpa dasar terdengar berdasar.
+   `basis` karena itu sengaja kosong dan `open` menyebut apa yang belum dijawab,
+   dengan pola yang sama seperti `verified: false` pada registry regref.
+   ------------------------------------------------------------------ */
+const FIRM_CASH_POLICY = {
+  /** Saldo kas proyeksi di bawah ini ditandai zona perhatian (rupiah penuh). */
+  watchFloorIdr: 7_000_000_000,
+  /** Dasar penetapan. Kosong = BELUM dinyatakan; jangan diisi tanpa keputusan. */
+  basis: '',
+  open:
+    'Siapa yang menetapkan Rp 7 M, atas dasar apa (mis. n bulan beban rata-rata?), '
+    + 'dan kapan ia ditinjau ulang — ketiganya belum dijawab. Selama itu, angka ini '
+    + 'dipakai apa adanya dan dinyatakan sebagai ambang kebijakan, bukan sebagai hasil hitungan.',
+};
+
+/** Ambang yang sama dalam satuan deret `CASH_FORECAST` (juta rupiah).
+ *  Fungsi, bukan konstanta: ia harus ikut bergerak bila kebijakannya diubah. */
+const cashWatchFloorJt = (): number => FIRM_CASH_POLICY.watchFloorIdr / 1e6;
+
 /* [codemod] ESM export (window.FIRMFIN dilucuti — konsumen pakai named import) */
-export { FIRMFIN, WIP_WRITEOFF_APPROVAL_MIN };
+export { FIRMFIN, WIP_WRITEOFF_APPROVAL_MIN, FIRM_CASH_POLICY, cashWatchFloorJt };

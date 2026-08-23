@@ -8,6 +8,7 @@ import { Badge, Btn, Panel, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SJAH 3000 · Perikatan Asurans selain Audit/Reviu
@@ -431,7 +432,7 @@ function F3000Report({ sel, onExportReport, exporting }: any) {
             <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 4px' }}>Simpulan ({limited ? 'Bentuk Negatif' : 'Bentuk Positif'})</div>
             <p style={{ margin: 0 }}>{sel.concl}</p>
 
-            <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Rudi Gunawan, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span></div>
+            <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Rudi Gunawan, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {amsDateLongId()}</span></div>
           </div>
         </div>
       </Panel>

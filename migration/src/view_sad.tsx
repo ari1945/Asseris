@@ -15,6 +15,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { amsExportPdf } from './export_pdf';
 import { RowKv } from './view_calc';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Evidence Evaluation · SAD Ledger (SA 450)
@@ -694,7 +695,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
       kind: 'representation-letter', scope: 'engagement',
       fileName: 'Surat Representasi Tertulis - Klien.pdf',
       firm: FIRM.name, title: 'Surat Representasi Tertulis (SA 580)',
-      refNo: 'SA 580 · ' + new Date().toISOString().slice(0, 10),
+      refNo: 'SA 580 · ' + amsDateIso(),
       meta: ['Kepada KAP Wijaya Hartono & Rekan', 'Daftar salah saji tidak dikoreksi terlampir', (exceedsOM ? 'Material — memengaruhi opini' : (exceedsPM ? 'Perlu evaluasi lanjut' : 'Tidak material kuantitatif'))],
       blocks: [
         { type: 'para', text: 'Kepada KAP Wijaya Hartono & Rekan' },
@@ -704,7 +705,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
         { type: 'para', text: '"Kami berkeyakinan bahwa dampak dari salah saji yang tidak dikoreksi, baik secara individual maupun agregat, adalah tidak material terhadap laporan keuangan secara keseluruhan. Ikhtisar salah saji tersebut terlampir dalam representasi ini."' },
         ...(repItems.length ? [{ type: 'table', head: ['Ref', 'FS Line', 'Efek Laba (jt)'], body: repItems.map((m: { id: string; fsli?: string; pbt?: number }) => [m.id, m.fsli || '—', m.pbt ? fmt(m.pbt / 1e6, 0) : '—']) }] : [{ type: 'para', text: 'Tidak ada salah saji tidak dikoreksi.' }]),
         ...(exceedsOM || exceedsPM ? [{ type: 'para', text: 'Catatan: agregat salah saji tidak dikoreksi sebesar Rp ' + fmt(Math.abs(calc.rolloverNet) / 1e6, 0) + ' jt (' + (Math.abs(calc.rolloverNet) / om * 100).toFixed(0) + '% dari materialitas keseluruhan) — pertimbangan kualitatif (' + qualCount + ' faktor relevan) ikut dievaluasi.' }] : []),
-        { type: 'signature', signers: [{ name: 'Manajemen', role: 'Direksi', at: new Date().toISOString().slice(0, 10) }] },
+        { type: 'signature', signers: [{ name: 'Manajemen', role: 'Direksi', at: amsDateIso() }] },
       ],
     }).catch(() => {});
   };

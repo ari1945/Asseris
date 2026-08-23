@@ -12,6 +12,7 @@ import { SA530_POPULATION, scalePopulation, selectMus, musPlan, type PopItem, ty
 import { reconcileSamplingTolerance, type SamplingToleranceResult } from './canon_validation';
 import { RelatedNavDock } from './related_modules';
 import { WpPanel } from './wp_signoff';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SA 530 · Sampling Audit
@@ -44,7 +45,7 @@ const DESIGN_SEED: SamplingDesign = { topThreshold: 7000, rationale: 'Saldo indi
 const SAMPLING_SEED: SamplingState = { params: { bv: 245000, conf: 95, tm: 7000, em: 1200 }, findings: SAMPLE_FINDINGS, design: DESIGN_SEED, seedFrac: 0.5 };
 
 function smpToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 function nextSmpId(list: SampleFinding[]) {

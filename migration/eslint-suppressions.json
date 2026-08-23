@@ -196,7 +196,7 @@
   },
   "src/diagnostics_panel.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 28
+      "count": 26
     }
   },
   "src/evidence.tsx": {
@@ -424,11 +424,6 @@
       "count": 42
     }
   },
-  "src/view_diagnostics.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    }
-  },
   "src/view_disclosure.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 14
@@ -521,7 +516,7 @@
   },
   "src/view_firmrevenue.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 15
     }
   },
   "src/view_firmtax.tsx": {
@@ -531,7 +526,7 @@
   },
   "src/view_firmtreasury.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 63
+      "count": 37
     }
   },
   "src/view_forensic.tsx": {
@@ -627,11 +622,6 @@
   "src/view_isqm_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 24
-    }
-  },
-  "src/view_jet.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "src/view_kb.tsx": {
@@ -956,7 +946,7 @@
   },
   "src/view_sa230.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 90
+      "count": 86
     }
   },
   "src/view_sa240.tsx": {
@@ -1101,7 +1091,7 @@
   },
   "src/view_timebudget.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 53
+      "count": 41
     }
   },
   "src/view_workspace.tsx": {

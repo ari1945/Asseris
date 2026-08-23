@@ -8,6 +8,7 @@
 import type { ProcedureInput } from './canon_selectors';
 import { WP_SLOT_LABEL, WP_SLOT_ORDER, wpChainSelfReview, wpChainLinks, wpChainComplete, wpContentHash } from './wp_chain';
 import type { WpChain } from './wp_chain';
+import { amsDateShortId } from './clock_ssot';
 
 /* ---- File index (ref, title, preparer, reviewer, status, tanggalReviu?) ----
    Elemen ke-6 = TANGGAL REVIU yang DIDEKLARASIKAN sebagai data seed. Ia ada hanya
@@ -52,7 +53,7 @@ const defaultProcState = (ref: any, status: any, i: any, total: any) => {
   return 'Belum';
 };
 function wpToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 /* Status satu prosedur (exec-aware) — SSOT dipakai WPDrill, roll-up asersi & matriks.

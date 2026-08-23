@@ -7,6 +7,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat } from './ui';
 import { DEFICIENCIES, DEF_SEED, DEFICIENCY_ML_LINK, LEVEL_KIND, reconcileGovernanceComms, type GovCommRow, type PendingFinding } from './canon_deficiency';
 import { amsExportPdf } from './export_pdf';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)
@@ -165,7 +166,7 @@ const idDate = (s: any) => {
   try { return new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
   catch (e) { return s; }
 };
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => amsDateIso();
 
 /* ---------------- Finding body (six-section block) ---------------- */
 function MLFinding({ f, editing, setField, idx, total }: any) {

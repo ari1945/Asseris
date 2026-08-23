@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Core Specifics: Internal Audit (610), Use of Expert (620),
@@ -219,7 +220,7 @@ function blankExpert(id: string): ExpertRow {
   };
 }
 function expToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  try { return amsDateShortId(); }
   catch (e) { return ''; }
 }
 

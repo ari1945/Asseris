@@ -17,6 +17,7 @@ import type { SmmComponentCode } from './canon_smm_refs';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Mutu & Regulasi: SOQM Operasional (SMM 1)
@@ -71,7 +72,7 @@ function SOQM() {
   const advComplaint = (id: string) => setComplaints((list: SoqmCmpRow[]) => list.map((c) => c.id === id ? { ...c, status: SOQM_CMP_CYCLE[Math.min(SOQM_CMP_CYCLE.indexOf(c.status) + 1, SOQM_CMP_CYCLE.length - 1)] } : c));
   const addComplaint = () => {
     const id = 'KP-' + String(200 + Math.floor(Math.random() * 700)).padStart(3, '0');
-    const nc = { id, date: new Date().toISOString().slice(0, 10), source: 'Internal', type: 'Keluhan', subject: 'Keluhan baru — lengkapi pokok perkara & penanggung jawab.', resolution: '', severity: 'Rendah', owner: 'Tim Mutu', status: 'Baru' };
+    const nc = { id, date: amsDateIso(), source: 'Internal', type: 'Keluhan', subject: 'Keluhan baru — lengkapi pokok perkara & penanggung jawab.', resolution: '', severity: 'Rendah', owner: 'Tim Mutu', status: 'Baru' };
     setComplaints((list: SoqmCmpRow[]) => [nc, ...list]);
   };
   const inspections: any = AMS.QM_INSPECTIONS;

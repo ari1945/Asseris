@@ -11,6 +11,7 @@ import {
   recruitmentSummary, requisitionState,
 } from './canon_talent';
 import type { TalentRequisition } from './canon_talent';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -177,7 +178,7 @@ function Learning() {
   const [attendance, setAttendance] = useAmsPersist('trainingAttendance.v1', () => ({}));
   const canConfirm = !auth || typeof auth.can !== 'function' || auth.can(CAP.ENGAGEMENT_MANAGE);
   const me = (auth && auth.user && auth.user.name) || 'Admin';
-  const attToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
+  const attToday = amsDateIso();   /* K-02: klok SSOT. Dulu jam mesin, dengan literal beku sebagai jaring pengaman. */
   const isConfirmed = (trId: string, empId: string) => !!(attendance as any)[trId]?.[empId]?.confirmed;
   const attendOk = (trId: string, empId: string) => {
     const t = A.TRAINING_CATALOG.find((x: any) => x.id === trId);

@@ -11,7 +11,7 @@
 | Draft | 53 |
 | Approved | 5 |
 | In Progress | 11 |
-| Implemented | 37 |
+| Implemented | 39 |
 | Superseded | 1 |
 
 ## Daftar
@@ -108,6 +108,7 @@
 | docs/prd-program-tahap-0-9.md | In Progress — retrospektif: Tahap 0–9 terkirim (`18d6e69`); Fase R disetujui ("Proceed." 2026-08-12, Q-1=a), R-0 selesai (#179), R-1..R-7 dieksekusi |
 | docs/prd-rbac-admin-console.md | Draft — Open Questions terjawab — menunggu "Proceed." |
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-revenue-input-method-psak72.md | Implemented — Opsi A ("Proceed." 2026-08-22). SC-1..SC-8 tertutup: kemajuan = jam/anggaran berpagar (Pagar 1 kewajiban tuntas ⇒ 100% lewat kanon `isCompletedEngagement`; Pagar 2a jepit 100%), `progress` dicabut dari jalur pengakuan & dijaga gerbang cakupan, lubang `progress-unknown` menggantikan taksiran, dan `timebudget_model.revRecognized` disatukan ke kanon yang sama (dua angka "pendapatan diakui" untuk satu perikatan dicabut). Total pengakuan seed 4.815,7 → 4.942,8 jt (+127,1 jt · +2,64%). Q1/Q2/Q4 mengikuti rekomendasi; **Q3 (klasifikasi perikatan non-audit) TETAP TERBUKA** — tanda "klasifikasi terbuka" dipertahankan sampai dijawab |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-regulatory-reference-annual.md | In Progress — Proceed. 2026-08-19 untuk **Tahap A** (mekanisme; Tahap B admin-editable dinilai ulang kemudian). Q-3 = blokir yang menyangkut uang. **TAHAP A TUNTAS** — PR-1 — `canon_regref.ts` (registry berkunci masa berlaku, tanpa "yang terdekat") + kalender hari libur dimigrasi NOL-DELTA (60 uji cuti lama hijau tanpa disentuh). PR-2 BPJS (batas upah berkunci masa; Januari 2027 BERHENTI, bukan memakai batas 2026) · PR-3 TER/PTKP/biaya jabatan (TER baru ada sejak 1 Jan 2024 — masa pra-2024 berhenti) · PR-4 halaman `regref` + gerbang katalog. SC-1..SC-10 tertutup, live-verified 3 tanggal. Q-1·Q-4·Q-5 menunggu DATA dari Ari (Lampiran PMK 168 · cuti bersama · batas upah BPJS 2026) |
@@ -119,6 +120,7 @@
 | docs/prd-smm-toolkit-map.md | Draft — PR-8 arc SMM (Fase 5). Q-1 = Opsi B (kanon + panel) & Q-2 = risiko ilustratif dirumuskan ulang (Ari 2026-08-13); menunggu sign-off ("Proceed.") |
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-timebudget-phase-profile.md | Implemented — Opsi B + peta bobot direkomendasikan (keputusan Ari 2026-08-22). SC-1..SC-7 tertutup: taksonomi fase disatukan ke taksonomi DATA (Perencanaan · Eksekusi · Finalisasi · Arsip) di `phase_canon.ts`, dengan pelipatan TERDAFTAR 'Specifics'→Eksekusi (bobot 0,413+0,196=0,609) dan 'Review & Arsip'→Arsip. Empat daftar fase → satu; bobot anggaran fase KEDUA dicabut (cockpit & T&B dulu membagi jam anggaran yang SAMA dengan bobot berbeda: 280/760/361/340/99 vs 320/1080/320/120 atas 1840 jam). `TB_PHASE_PROFILE` dicabut seluruhnya: `pct` literal → kelengkapan TERBUKTI dari kertas kerja (`phaseRollups`), `period` (kalender perikatan demo) dicabut mengikuti preseden `engagementMilestones`, `eac` per fase dicabut (memproyeksikan jam dari kelengkapan dokumentasi = mencampur dua masalah), `base` dicabut — jam pembuka roster tak lagi disebar menurut bobot melainkan dinyatakan sebagai `untaggedHrs`. Panel "Timeline Fase" (Gantt bergeometri dipaku `left=[4,30,67,86]`) dicabut. TEMUAN BARU: `progressBridge` atas himpunan kosong mengembalikan 0% — tak terbedakan dari "semua kertas kerja belum disentuh" — terlihat begitu 'Arsip' jadi fase tersendiri tanpa satu pun kertas kerja kanonik; `phaseRollups` kini `null` untuk fase kosong. **TERBUKA:** apakah `sa230` (+`sa580`/`sa710`/`sa720`) seharusnya pindah dari Finalisasi ke Arsip — pertanyaan metodologi audit; keadaannya didaftarkan di `PHASES_WITHOUT_WP` agar fase yang kosong karena KELALAIAN tetap memerahkan gerbang cakupan |
 | docs/prd-w9-coretax-connector.md | Implemented — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven |
 | docs/prd-wip-rollforward-falsifiable.md | Implemented — SELESAI 2026-08-15 (Q-1=WIP saja · Q-2=blokir ekspor · Q-3=seed menutup). Empat angka plug dicabut; SC-1..SC-11 tertutup; live-verified DUA keadaan (menutup & TIDAK menutup) |
 | docs/prd-wip-merge-valuasi-realisasi.md | Implemented — SELESAI 2026-08-15. "Proceed." (Q-1=`wip` · Q-2=Operasi Praktik · Q-3=Opsi A). SC-1..SC-9 tertutup; verify hijau + live-verified (propagasi write-down ke 5 surface + Approvals) |

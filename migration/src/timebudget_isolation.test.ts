@@ -22,6 +22,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
+import { PHASE_ORDER, phaseBudgetHours } from './phase_canon';
 import {
   tbModel, tbEntryValue, tbWeekly, tbTanggalPanjang,
   type TBTimeEntry, type TBRosterRow, type TBWip, type TBWipOf,
@@ -180,18 +181,45 @@ describe('TB3 — tie-out anggaran per fase', () => {
       expect(m!.phases.reduce((s, p) => s + p.budget, 0)).toBe(budget);
     });
 
-    it('total aktual fase == actualHrs perikatan — ' + id, () => {
+    /* PREMIS DIPERBARUI (TB7). Dulu jam PEMBUKA roster disebar ke keempat fase
+       menurut bobot, sehingga `Σ aktual fase == actualHrs` berlaku langsung.
+       Penyebaran itu mengarang atribusi fase untuk jam yang tak membawanya dan
+       kini dicabut: jam pembuka dilaporkan utuh sebagai `untaggedHrs`.
+
+       Sifat yang dijaga TIDAK berubah — nol jam dikarang, nol jam hilang.
+       Yang berubah hanya bentuk invariannya. */
+    it('Σ aktual fase + jam tanpa fase == actualHrs perikatan — ' + id, () => {
       const m = tbModel(entries(), engById(id), clients(), wipOfSynthetic({ [id]: spec }));
       expect(m).not.toBeNull();
-      expect(m!.phases.reduce((s, p) => s + p.actual, 0)).toBeCloseTo(m!.actualTotal, 6);
+      const perFase = m!.phases.reduce((s, p) => s + p.actual, 0);
+      expect(perFase + m!.untaggedHrs).toBeCloseTo(m!.actualTotal, 6);
+      /* anti-tautologi: invariannya tak lolos hanya karena semuanya nol */
+      expect(m!.actualTotal).toBeGreaterThan(0);
     });
   });
 
-  it('profil fase perikatan demo TIDAK berubah — nol-delta terhadap literal lama', () => {
+  /* TB7 — angka ini SENGAJA berubah, dan perubahannya didaftar di sini.
+     Sampai PRD `prd-timebudget-phase-profile.md`, Time & Budget membagi jam
+     anggaran dengan bobotnya sendiri (320/1080/320/120 dari 1840) sementara
+     cockpit membagi jam yang SAMA dengan bobot lain (280/760/361/340/99).
+     Kini keduanya memanggil `phaseBudgetHours`. */
+  it('anggaran fase demo memakai bobot KANON, dan menutup eksak', () => {
     const m = tbModel(entries(), engById(DEMO), clients(), seedWipOf);
     expect(m).not.toBeNull();
-    expect(m!.phases.map((p) => p.budget)).toEqual([320, 1080, 320, 120]);
-    expect(m!.phases.map((p) => p.base)).toEqual([318, 658, 98, 24]);
+    expect(m!.phases.map((p) => p.id)).toEqual([...PHASE_ORDER]);
+    const kanon = phaseBudgetHours(1840);
+    expect(m!.phases.map((p) => p.budget)).toEqual(PHASE_ORDER.map((id) => kanon[id]));
+    expect(m!.phases.reduce((s, p) => s + p.budget, 0)).toBeCloseTo(1840, 9);
+    /* delta yang dinyatakan: bobot lama sudah tidak berlaku */
+    expect(m!.phases.map((p) => Math.round(p.budget))).not.toEqual([320, 1080, 320, 120]);
+  });
+
+  it('jam pembuka roster TIDAK lagi disebar ke fase — ia dinyatakan', () => {
+    const m = tbModel(entries(), engById(DEMO), clients(), seedWipOf)!;
+    /* seed timesheet perikatan demo seluruhnya berfase Eksekusi */
+    expect(m.phases.find((p) => p.id === 'Perencanaan')!.actual).toBe(0);
+    expect(m.untaggedHrs).toBeGreaterThan(0);
+    expect(m.phases.reduce((s, p) => s + p.actual, 0) + m.untaggedHrs).toBeCloseTo(m.actualTotal, 6);
   });
 });
 

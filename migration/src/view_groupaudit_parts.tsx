@@ -4,6 +4,7 @@ import { I } from './icons';
 import { Badge, Btn, Panel, Progress } from './ui';
 import { KvBox } from './view_analytical';
 import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS, PKG_STATUS_KIND } from './view_groupaudit';
+import { amsDateShortId } from './clock_ssot';
 
 /* ============================================================
    Asseris — Group Audit (bagian): GAPackages · GAConsol · GAElimReview
@@ -20,7 +21,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
   const [impErr, setImpErr] = useStateGAP('');
   if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat paket pelaporan (AMS_CANON.psak65)…</div>;
 
-  const todayStr = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  const todayStr = () => amsDateShortId();
   const setPkg = (id: any, patch: any) => setPackages((m: any) => ({ ...m, [id]: { ...m[id], ...patch } }));
   const setField = (id: any, k: any, val: any) => setPkg(id, { [k]: (val === '' ? 0 : Number(val)) });
   const setStatus = (id: any, status: any) => setPackages((m: any) => {

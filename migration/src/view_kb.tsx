@@ -11,6 +11,7 @@ import { amsExportPdf } from './export_pdf';
    ESM, bukan window.STANDARDS_REGISTRY yang hanya terisi setelah chunk
    Matriks Kepatuhan dimuat. */
 import { STANDARDS_REGISTRY } from './data_knowledge';
+import { amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — Knowledge Base (modul mendalam)
@@ -85,7 +86,7 @@ function KnowledgeBase() {
       const artRows = all.map((a: { code: string; title: string; type: string; tags?: string[]; read?: string }) => [a.code, a.title, a.type, kbFamily(a.type), (a.tags || []).join(', '), a.read || '']);
       await amsExportXlsx({
         kind: 'kb-index', scope: 'firm', scopeId: undefined,
-        fileName: `Indeks Basis Pengetahuan - ${new Date().getFullYear()}.xlsx`,
+        fileName: `Indeks Basis Pengetahuan - ${amsYear()}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Indeks Basis Pengetahuan — Referensi Audit',
         meta: [`${all.length} artikel · ${authored} ditulis · ${checklistN} checklist`,

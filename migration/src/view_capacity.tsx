@@ -11,6 +11,7 @@ import { demandSplit } from './canon_pipeline_fee';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
+import { amsIsoTs } from './clock_ssot';
 
 /* ============================================================
    Asseris — Capacity Planning (Practice Operations · D+)
@@ -69,7 +70,7 @@ function CapacityPlanning() {
     ...pl,
     grades: pl.grades.map((g) => g.grade === gradeName ? { ...g, [field]: g[field].map((x, i) => i === wi ? Math.max(0, val) : x) } : g),
     updatedBy: userName,
-    updatedAt: new Date().toISOString(),
+    updatedAt: amsIsoTs(),
   }));
 
   // selected series

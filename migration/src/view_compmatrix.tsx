@@ -9,6 +9,7 @@ import { amsExportXlsx } from './export_xlsx';
    data_knowledge memakainya via ESM, bukan window.* yang hanya terisi setelah
    chunk Matriks dimuat. Di-re-export untuk kompatibilitas. */
 import { STANDARDS_REGISTRY } from './data_knowledge';
+import { amsYear } from './clock_ssot';
 
 /* ============================================================
    Asseris — Matriks Kepatuhan (Standards Register / Index)
@@ -118,7 +119,7 @@ function ComplianceMatrix() {
       ]);
       await amsExportXlsx({
         kind: 'compmatrix-register', scope: 'firm', scopeId: undefined,
-        fileName: `Register Standar (Matriks Kepatuhan) - ${new Date().getFullYear()}.xlsx`,
+        fileName: `Register Standar (Matriks Kepatuhan) - ${amsYear()}.xlsx`,
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Register Standar — Matriks Kepatuhan',
         meta: [`${STANDARDS_REGISTRY.length} standar · ${applRows.length} berlaku`,

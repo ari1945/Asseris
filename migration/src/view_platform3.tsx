@@ -9,6 +9,7 @@ import { KvBox } from './view_analytical';
 import { auditList, auditVerify } from './api';
 import { resolveAuditView, deriveStats, type AuditRow, type VerifyState } from './audit_trail_core';
 import { amsExportPdf } from './export_pdf';
+import { amsDateIso } from './clock_ssot';
 
 /* ============================================================
    Asseris — Firm Platform · Audit Trail (PRD prd-audit-trail-server-chain.md)
@@ -92,10 +93,10 @@ function AuditTrail() {
     setExportMsg(null);
     const r = await amsExportPdf({
       kind: 'audit-log', scope: 'firm', scopeId: 'WHR',
-      fileName: `Jejak Audit - ${new Date().toISOString().slice(0, 10)}.pdf`,
+      fileName: `Jejak Audit - ${amsDateIso()}.pdf`,
       firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Jejak Audit Sistem (Append-Only Hash-Chain)',
-      refNo: `AUD-${all.length}-${new Date().toISOString().slice(0, 10)}`,
+      refNo: `AUD-${all.length}-${amsDateIso()}`,
       meta: [
         `Sumber: ${view.source === 'server' ? 'server chain (audit.list)' : 'arus turunan lokal (server tidak tersedia)'}`,
         `Entri: ${all.length} · Verifikasi: ${view.verified === true ? 'OK' : view.verified === false ? `GAGAL di #${view.brokenAt}` : 'tidak dijalankan'}`,

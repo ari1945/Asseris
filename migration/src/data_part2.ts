@@ -5,13 +5,9 @@ import { fmt } from './data_base';
 import { LEAVE_CARRY_EXT, PAYROLL_EXT } from './data_roster';
 import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
 
-  const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
-  /* Kurs BUKU — kurs saat transaksi dibukukan; buku besar mencatat valas pada kurs ini.
-     Sampai 2026-08-15 ia konstanta PRIVAT di dalam `view_firmtreasury.tsx` (tak diekspor,
-     tak di AMS), sehingga lapisan kanon tak bisa membandingkan sisi bank dengan sisi buku
-     pada dasar yang sama. Selisihnya terhadap `FX_RATES` adalah REVALUASI — bukan item
-     rekonsiliasi. (PRD cash-bank-reconciliation-register 2026-08-15.) */
-  const FX_BOOK = { IDR: 1, USD: 15_780, SGD: 11_640, EUR: 17_120 };
+  /* Tanggal pelaporan periode yang sedang dibukukan & direkonsiliasi firma.
+     Ia yang memilih kurs — bukan "kurs firma" sebagai konstanta. */
+  const FIRM_PERIOD_END = '2026-03-31';
 
   /* Cash & bank accounts (multi-currency) */
   /* Saldo menurut BANK — data EKSTERNAL, karena itu tetap literal.
@@ -50,10 +46,16 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
      Item `matched: true` sudah tercermin di kedua sisi; ia riwayat, bukan penyesuaian.
 
      Rekonsiliasi menutup bila  saldoBuku + Σ sisi-buku  ==  saldoBank + Σ sisi-bank.
-     Sisa apa pun di luar itu TIDAK dinamai di sini dan akan memerahkan baris Kas. */
+     Sisa apa pun di luar itu TIDAK dinamai di sini dan akan memerahkan baris Kas.
+
+     `periodEnd` (2026-08-22): tanggal pelaporan periode yang direkonsiliasi. Rekening
+     valas dibandingkan pada kurs penutup PERIODE ITU, yang dipilih dari registry
+     bermasa berlaku `canon_fx`. Sebelum ini "kurs" adalah satu record tanpa tanggal,
+     jadi rekonsiliasi Maret 2026 dan revaluasi hari apa pun memakai angka yang sama —
+     dan tak ada yang tahu kapan angka itu berhenti berlaku. */
   const BANK_RECONS = [
     {
-      account: 'BCA-OPS', period: 'Maret 2026',
+      account: 'BCA-OPS', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END,
       lines: [
         { id: 'OPS-1', date: '2026-03-08', desc: 'Transfer masuk — Sentosa Makmur (INV-2026-031)', amount: 925_000_000, matched: true, ref: 'JV-0312' },
         { id: 'OPS-2', date: '2026-03-13', desc: 'Pembayaran utang vendor jatuh tempo', amount: -910_000_000, matched: true, ref: 'JV-0316' },
@@ -64,7 +66,7 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
       ],
     },
     {
-      account: 'MDR-PAY', period: 'Maret 2026',
+      account: 'MDR-PAY', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END,
       lines: [
         { id: 'PAY-1', date: '2026-03-07', desc: 'Pembayaran gaji staf Maret', amount: -1_820_000_000, matched: true, ref: 'JV-0311' },
         { id: 'PAY-2', date: '2026-03-31', desc: 'Biaya administrasi rekening penggajian', amount: -850_000, matched: false, ref: '' },
@@ -72,15 +74,21 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
       ],
     },
     {
-      account: 'BNI-TAX', period: 'Maret 2026',
+      account: 'BNI-TAX', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END,
       lines: [
         { id: 'TAX-1', date: '2026-03-31', desc: 'Jasa giro rekening escrow pajak', amount: 1_600_000, matched: false, ref: '' },
       ],
     },
-    { account: 'BCA-USD', period: 'Maret 2026', lines: [] },
-    { account: 'DBS-SGD', period: 'Maret 2026', lines: [] },
-    { account: 'KAS-PTY', period: 'Maret 2026', lines: [] },
+    { account: 'BCA-USD', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END, lines: [] },
+    { account: 'DBS-SGD', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END, lines: [] },
+    { account: 'KAS-PTY', period: 'Maret 2026', periodEnd: FIRM_PERIOD_END, lines: [] },
   ];
+
+  /* Tahun buku anggaran firma. Sampai 2026-08-22 ia hanya hidup di komentar dan
+     diketik ulang TIGA kali di `view_firmtreasury.tsx` (badge `FY2025`, meta ekspor,
+     dan label kuartal `Q1 2025` pada drill-down) — tiga tempat yang dapat berselisih.
+     Ia BUKAN turunan klok: anggaran ini memang milik FY2025. */
+  const FIRM_BUDGET_FY = 2025;
 
   /* Anggaran firma (FY2025, P&L) — RENCANA saja.
      PRD budget-actual-ledger-derived 2026-08-15: kolom `actual` DIHAPUS. Aktual bukan
@@ -779,4 +787,4 @@ import { FIXED_ASSETS as FIXED_ASSETS_REGISTER } from './data_fixedassets';
      exec: peta { [no]: bool } status pelaksanaan (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
 
-export { FX_RATES, FX_BOOK, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };
+export { FIRM_PERIOD_END, BANK_ACCOUNTS, BANK_RECONS, FIRM_BUDGET, FIRM_BUDGET_FY, CASH_FORECAST, FIXED_ASSETS, TAX_OBLIGATIONS, EFAKTUR, PPH_WITHHELD, CREDIT_NOTES, PAYROLL, PAYROLL_RATES, LEAVE_HOLIDAYS, LEAVE_BALANCE, LEAVE_REQUESTS, PERF_CYCLE, SOQM_RISKS, COMPLAINTS, EQR_REVIEWS, PPPK_REPORT, PBC_REQUESTS, PORTAL_MSGS, DMS_DOCS, NONAUDIT, REVIEW_2400, AUP_4400, aupNarrate, aupEvalMeasure, aupEngine, COMPILATION_4410, PFI_3400 };

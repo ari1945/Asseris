@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SPR 2410 · Reviu atas Informasi Keuangan Interim
@@ -533,7 +534,7 @@ const CONCL_2410 = [
 ];
 function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }: any) {
   const c = CONCL_2410[concl];
-  const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  const today = amsDateLongId();
   const text = concl === 0
     ? 'Berdasarkan reviu kami, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya bahwa informasi keuangan interim terlampir tidak disusun, dalam semua hal yang material, sesuai dengan Standar Akuntansi Keuangan.'
     : concl === 1

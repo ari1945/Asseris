@@ -47,6 +47,15 @@ export const api: any = createTRPCClient({
      · 'rejected' → server MENOLAK (otorisasi/sesi). Nilai lokal HARUS ditarik
                     kembali dan penolakannya ditampilkan.
      · 'offline'  → tak sampai ke server; cache menyimpan, coba lagi nanti.
+
+   PENGGABUNGAN 2026-08-23 — BACA INI SEBELUM MEMAKAI `writeFailureKind` UNTUK
+   MENENTUKAN PENOLAKAN. Dua arc menutup cacat ini terpisah; `flush()` di
+   contexts.tsx memakai `isRejected()` di bawah, BUKAN fungsi ini. Keduanya
+   sengaja berbeda pada SATU titik: di sini 401 dihitung 'rejected', di sana
+   TIDAK — sesi kedaluwarsa bersifat sementara, dan memulihkan nilai server di
+   situ membuang suntingan yang masih sah. Fungsi ini tetap ada karena
+   `isConflict` diturunkan darinya dan ia menamai ketiga hasil dengan jelas;
+   untuk pertanyaan "apakah ini penolakan?" jawabannya `isRejected`.
    ============================================================ */
 export type WriteFailure = 'conflict' | 'rejected' | 'offline';
 
@@ -64,6 +73,43 @@ export function writeFailureKind(err: unknown): WriteFailure {
 /* True when a mutation lost an optimistic-concurrency race (server returned 409). */
 export function isConflict(err: any) {
   return writeFailureKind(err) === 'conflict';
+}
+
+/* ============================================================
+   DITOLAK vs GAGAL SAMPAI — bedanya menentukan apa yang boleh dilakukan klien.
+
+   `flush()` di contexts.tsx dulu hanya mengenal 409. Segala kesalahan lain
+   jatuh ke satu cabang berkomentar "offline": nilai lokal DIPERTAHANKAN dan
+   tak ada satu pun pemberitahuan. Untuk kegagalan transport itu benar — tulisan
+   belum sampai, suntingan berikutnya akan mencobanya lagi. Untuk tulisan yang
+   DITOLAK server atas isinya, itu keliru total: server tak akan pernah
+   menerimanya, sementara layar terus memperlihatkan seolah tersimpan.
+   Terlihat langsung 2026-08-22 pada rantai sign-off kertas kerja: tombol
+   ditekan, tanda tangan muncul di layar, server menjawab 403, tak ada apa pun
+   yang tersimpan. Repo ini sudah tiga kali menambal kelasnya dari sisi lain
+   (priorYear · capacityPlan.v1 · deliveryPlan.v1 — lihat rbac.ts) dengan
+   menggeser peta kapabilitas agar penolakannya tak pernah terjadi; pelanggaran
+   ATURAN tak dapat dihindari begitu.
+
+   401 SENGAJA TIDAK termasuk: sesi kedaluwarsa adalah keadaan sementara, dan
+   memulihkan nilai server karenanya akan membuang suntingan yang masih sah.
+   ============================================================ */
+export function isRejected(err: unknown): boolean {
+  if (isConflict(err)) return false;
+  const e = err as { data?: { code?: string; httpStatus?: number }; shape?: { data?: { code?: string; httpStatus?: number } } } | null;
+  const d = (e && (e.data || (e.shape && e.shape.data))) || null;
+  if (!d) return false;   // tanpa amplop tRPC = gagal transport, bukan penolakan
+  return d.code === 'FORBIDDEN' || d.code === 'BAD_REQUEST' || d.code === 'PRECONDITION_FAILED'
+    || d.httpStatus === 400 || d.httpStatus === 403 || d.httpStatus === 412;
+}
+
+/** Kalimat yang dapat dibaca manusia dari sebuah penolakan server. Pesan server
+    berbentuk `<kode>:<lokasi>: <kalimat>`; kalimatnya memang ditulis untuk dibaca. */
+export function rejectionMessage(err: unknown): string {
+  const e = err as { message?: unknown; shape?: { message?: unknown } } | null;
+  const raw = String((e && e.message) || (e && e.shape && e.shape.message) || '').trim();
+  const i = raw.indexOf(': ');
+  return (i >= 0 ? raw.slice(i + 2) : raw) || 'Server menolak penyimpanan tanpa keterangan.';
 }
 
 (window as any).AMS_API = api;
