@@ -1056,7 +1056,7 @@
   },
   "src/view_spr2400.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 2
+      "count": 1
     }
   },
   "src/view_spr2410.tsx": {
