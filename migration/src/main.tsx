@@ -10,6 +10,10 @@ import './data_people';
 import './data_fpm';
 import './data_backoffice';
 import './data_legal';
+/* data_records SEBELUM data_firmops: kewajiban pemusnahan firma kini ditarik
+   dari RETENTION (bukan register statis), jadi kanon Arsip harus sudah ada.
+   Dependensinya (./data, ./data_backoffice) sudah dievaluasi di atas. */
+import './data_records';
 import './data_firmops';
 import './data_travel';
 import './data_licensing';
@@ -29,7 +33,6 @@ import './data_firmfin';
 import './data_pph23';
 import './data_procurement';
 import './data_facilities';
-import './data_records';
 import './data_risk';
 import './data_ojk';
 import './data_legaldigital';

@@ -9,6 +9,9 @@ import { amsExportXlsx } from './export_xlsx';
 import { BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2';
 import { BO } from './data_backoffice';
+/* Arsip & legal hold: lapisan kanonik Retensi (SSOT). Diimpor ESM, bukan
+   ditebak lewat `window.RETENTION` — nilainya wajib ada, bukan opsional. */
+import { RETENTION } from './data_records';
 import { LEGAL } from './data_legal';
 import { SectionTitle } from './view_fpm_parts';
 
@@ -72,8 +75,6 @@ function FirmOps() {
   /* kesehatan tiap sub-modul (derived) */
   const pendingPO = B.PURCHASE_ORDERS.filter((p: any) => p.status === 'Menunggu Approval');
   const maintLate = B.MAINTENANCE.filter((m: any) => m.status === 'Terlambat');
-  const archDue = B.ARCHIVES.filter((a: any) => a.status === 'Jatuh Tempo');
-  const holds = B.LEGAL_HOLDS.filter((h: any) => h.status === 'Aktif');
 
   /* K-06 lanjutan — wire tombol "Paket Operasi" (dulu mati): ekspor XLSX tersegel
      ringkasan operasi firma — overhead, aset, kewajiban & kontrak. */
@@ -102,11 +103,18 @@ function FirmOps() {
       setExporting(false);
     }
   };
-  /* Retensi & Arsip — DITARIK dari lapisan kanonik (SSOT) bila tersedia. */
-  const RET = window.RETENTION ? window.RETENTION.metrics() : null;
-  const recArchives = RET ? RET.total : B.ARCHIVES.length;
-  const recDue = RET ? RET.due : archDue.length;
-  const recHolds = RET ? RET.holds : holds.length;
+  /* Retensi & Arsip — DITARIK dari lapisan kanonik (SSOT), tanpa fallback.
+     Fallback lama (`RET ? RET.total : B.ARCHIVES.length`) membaca register
+     arsip STATIS yang tak pernah diperbarui sejak kanon ada: ia menghitung
+     5 kotak dari 10, 2 terkunci dari 5, dan menyembunyikan satu legal hold
+     yang AKTIF. Cabangnya memang tak terjangkau (main.tsx mengimpor
+     data_records eager), tetapi fallback ke angka karangan lebih buruk
+     daripada tidak ada fallback: bila kanon gagal dimuat, layar ini harus
+     GAGAL, bukan menyajikan arsip yang tidak pernah ada. */
+  const RET = RETENTION.metrics();
+  const recArchives = RET.total;
+  const recDue = RET.due;
+  const recHolds = RET.holds;
   const openLit = B.DISPUTES.filter((d: any) => d.status !== 'Putusan');
   const polDue = B.POLICIES.filter((p: any) => B.daysTo(p.akhir) <= 60);
   const travPend = B.TRIPS.filter((t: any) => t.status === 'Menunggu Approval');
