@@ -9,6 +9,9 @@ import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat, Switch } from './ui';
    tanpa menunggu chunk settings). Di-re-export dari sini agar API lama tetap sama. */
 import { amsApplyPrefs as amsApplyPrefsEager, SETTINGS_ACCENTS } from './prefs';
 import { amsDateShortId } from './clock_ssot';
+/* Kebijakan retensi & jendela perakitan = kanon Arsip, bukan pilihan bebas. */
+import { RETENTION } from './data_records';
+import { sa230AssemblyWindowDays } from './sa230_archive';
 
 /* ============================================================
    Asseris — Pengaturan (full settings workspace)
@@ -25,7 +28,7 @@ const SETTINGS_DEFAULTS = {
   profile: { name: 'Anindya Pramesti', title: 'Audit Manager', email: 'anindya.p@whr-cpa.id', phone: '+62 812-3456-7890', initials: 'AP' },
   notif: { email: true, app: true, push: false, reviewNotes: true, deadlines: true, approvals: true, eqr: true, mentions: true, digest: 'Harian', quietStart: '19:00', quietEnd: '07:00' },
   security: { twoFA: true, sessionTimeout: '30 menit', loginAlerts: true, ipAllowlist: false },
-  firm: { defaultStandard: 'SA (ISA-converged)', fiscalYearEnd: '31 Desember', materialityBenchmark: '5% Laba Sebelum Pajak', retentionYears: '10 tahun', eqrThreshold: 'PIE + Risiko Tinggi', archiveWindow: '60 hari (SA 230)' },
+  firm: { defaultStandard: 'SA (ISA-converged)', fiscalYearEnd: '31 Desember', materialityBenchmark: '5% Laba Sebelum Pajak', eqrThreshold: 'PIE + Risiko Tinggi' },
   locale: { language: 'Bahasa Indonesia', dateFormat: 'DD/MM/YYYY', numberFormat: '1.234.567,89', currency: 'IDR (Rp)', timezone: 'WIB (GMT+7)', firstDay: 'Senin' },
   ai: { provider: 'anthropic', keys: {}, baseUrls: {}, share: true, temperature: 'Standar' },
   nav: { adaptive: true, mode: 'sorot', source: 'auto', manualPhase: 'Eksekusi', focusGroup: true, resumeCard: true, resumeCount: 3, markDone: true },
@@ -685,11 +688,23 @@ function SecFirma({ s, setGroup, firm, isPartner }: any) {
         <SRow title="Ambang EQR Wajib" sub="Kriteria perikatan yang memerlukan telaah mutu.">
           <SSelect value={f.eqrThreshold} onChange={(v: any) => isPartner && setGroup('firm', 'eqrThreshold', v)} options={['Semua PIE', 'PIE + Risiko Tinggi', 'Berbasis Risiko', 'Manual']} w={190} />
         </SRow>
-        <SRow title="Periode Retensi Arsip" sub="Lama penyimpanan kertas kerja final.">
-          <SSelect value={f.retentionYears} onChange={(v: any) => isPartner && setGroup('firm', 'retentionYears', v)} options={['5 tahun', '10 tahun', '15 tahun']} w={130} />
+        {/* Dua baris ini dulu berupa dropdown bebas yang TIDAK DIBACA siapa pun:
+            retensi menawarkan 5/10/15 tahun — kebijakan firma yang sebenarnya (7)
+            bahkan tak ada dalam pilihan — dan nilainya tersimpan hanya di state
+            layar ini. Kontrol yang berpura-pura menetapkan kebijakan sementara
+            kebijakan sesungguhnya hidup di kelas retensi kanonik. Kini keduanya
+            MENAMPILKAN kebijakan yang berlaku, dengan jalan ke tempat mengubahnya. */}
+        <SRow title="Periode Retensi Arsip" sub="Lama penyimpanan berkas final — ditetapkan per kelas dokumen, bukan satu angka firma.">
+          <div style={{ textAlign: 'right' }}>
+            <div className="mono" style={{ fontWeight: 700 }}>{RETENTION.classById('kk-audit').years} tahun</div>
+            <div className="tiny muted">Berkas audit · {RETENTION.RETENTION_CLASSES.length} kelas retensi</div>
+          </div>
         </SRow>
-        <SRow title="Jendela Perakitan Arsip" sub="Batas perakitan file final setelah tanggal laporan (SA 230)." last>
-          <SSelect value={f.archiveWindow} onChange={(v: any) => isPartner && setGroup('firm', 'archiveWindow', v)} options={['45 hari', '60 hari (SA 230)', '90 hari']} w={170} />
+        <SRow title="Jendela Perakitan Arsip" sub="Batas perakitan berkas final setelah tanggal laporan (SA 230 ¶A21)." last>
+          <div style={{ textAlign: 'right' }}>
+            <div className="mono" style={{ fontWeight: 700 }}>{sa230AssemblyWindowDays() ?? '—'} hari</div>
+            <div className="tiny muted">SA 230 ¶A21 — buka Retensi &amp; Arsip untuk kebijakan lengkap</div>
+          </div>
         </SRow>
       </Panel>
     </>
