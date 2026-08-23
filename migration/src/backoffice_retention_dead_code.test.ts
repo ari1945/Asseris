@@ -97,17 +97,22 @@ describe('S1 — yang HIDUP tetap hidup', () => {
 
   /* 2026-08-23 — #292 mencabut pembaca produksi TERAKHIR `BO.ARCHIVES`/`BO.LEGAL_HOLDS`
      (`view_firmops.tsx`, `data_firmops.ts`) karena register statis itu mengarang tanggal
-     arsip. Jadi keduanya kini TAK BOLEH dibaca produksi — invarian itu milik
-     `archive_register_ssot.test.ts`, dan sengaja TIDAK diduplikasi di sini.
+     arsip. Versi pertama berkas ini lalu menjaga agar keduanya tetap ADA pada objek `BO`,
+     dengan alasan yang benar pada waktunya: gerbang #292 membaca `BO.ARCHIVES` untuk
+     MEMBUKTIKAN register itu menyimpang dari kanon, jadi mencabut simbolnya akan
+     membutakan gerbang tersebut, bukan membersihkannya.
 
-     Yang dijaga berkas ini: keduanya tetap ADA pada objek `BO`. Gerbang #292 sendiri
-     membaca `BO.ARCHIVES` untuk membuktikan register statis itu MENYIMPANG dari kanon;
-     mencabut simbolnya sekarang akan membutakan gerbang itu, bukan membersihkannya. */
-  it('BO tetap membawa ARCHIVES & LEGAL_HOLDS — gerbang #292 bergantung padanya', async () => {
+     #294 mencabut simbolnya DAN gerbang yang bergantung padanya sekaligus: uji
+     pembuktian-divergensi di `archive_register_ssot.test.ts` digantikan tripwire
+     "register bayangan tidak boleh kembali". Premisnya karena itu terpenuhi lewat jalan
+     lain, dan invariannya dibalik — bukan dihapus. */
+  it('BO tak lagi membawa ARCHIVES / LEGAL_HOLDS, dan ada tripwire yang menjaganya', async () => {
     const { BO } = await import('./data_backoffice');
-    expect(BO.ARCHIVES.length).toBeGreaterThan(0);
-    expect(BO.LEGAL_HOLDS.length).toBeGreaterThan(0);
-    expect(read('archive_register_ssot.test.ts')).toContain('BO.ARCHIVES');
+    const kunci = Object.keys(BO as unknown as Record<string, unknown>);
+    expect(kunci).not.toContain('ARCHIVES');
+    expect(kunci).not.toContain('LEGAL_HOLDS');
+    /* invariannya berpindah, tidak menguap: penggantinya wajib ada */
+    expect(read('archive_register_ssot.test.ts')).toContain('register arsip bayangan tidak boleh kembali');
   });
 
   it('primitif bersama view_bo1 masih punya konsumen nyata', () => {

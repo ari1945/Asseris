@@ -35,7 +35,7 @@ const stripComments = (s: string) =>
 /* Modul yang benar-benar dirender aplikasi (rute hidup). view_bo1.tsx
    sengaja TIDAK di sini: `RecordsRetentionLegacy` di dalamnya tak diekspor
    dan tak terdaftar di lazy_views (rute `records` menuju view_records),
-   sehingga ia kode mati — dicabut pada arc terpisah. */
+   sehingga ia kode mati. Komponen itu kini SUDAH dicabut — lihat tripwire di bawah. */
 const MODUL_HIDUP = ['view_firmops.tsx', 'data_firmops.ts', 'view_records.tsx', 'view_dms.tsx'];
 
 describe('tidak ada modul hidup yang membaca register arsip bayangan', () => {
@@ -64,47 +64,47 @@ describe('tidak ada modul hidup yang membaca register arsip bayangan', () => {
 });
 
 /* ============================================================
-   Mengapa register statis itu tak boleh dibaca — bukti, bukan
-   pendapat. Uji ini menyatakan KONTRADIKSINYA secara eksplisit.
+   Register bayangan itu kini TIDAK ADA — dan tak boleh kembali.
 
-   Bila suatu hari uji ini GAGAL, artinya seseorang memperbaiki
-   atau mencabut register statisnya. Itu kabar baik: cabut uji ini
-   bersama registernya.
+   Sampai 2026-08-23 `data_backoffice` memuat tiga register statis
+   pra-kanon: RETENTION_POLICY (kebijakan retensi), ARCHIVES (kotak
+   arsip) dan LEGAL_HOLDS (penangguhan disposal). Ketiganya dicabut.
+
+   Versi sebelumnya berkas ini MENDOKUMENTASIKAN kontradiksinya
+   sebagai assertion — ARC-014 mengklaim diarsipkan 2026-02-28,
+   dua puluh hari MENDAHULUI tanggal laporannya sendiri (2026-03-20),
+   berstatus "Terkunci" padahal kertas kerjanya masih disunting, dan
+   menyembunyikan satu legal hold AKTIF. Uji itu menutup dengan janji:
+   "bila suatu hari uji ini gagal, artinya registernya diperbaiki atau
+   dicabut — cabut uji ini bersamanya." Hari itu tiba; ini penggantinya.
+
+   Yang membuat register itu bertahan begitu lama tertulis di komentarnya
+   sendiri: "Blok ini dipertahankan sbg referensi, tak diekspor."
+   Data yang salah yang disimpan "sebagai referensi" tetap data yang
+   salah — dan repo ini tidak punya gerbang variabel mati yang akan
+   menunjukkannya (no-unused-vars dimatikan di dua blok konfigurasi).
    ============================================================ */
-describe('register arsip statis tak dapat dipercaya (terdokumentasi)', () => {
-  const arc = () => (BO as unknown as { ARCHIVES: ReadonlyArray<Record<string, string | boolean | number>> }).ARCHIVES;
-  const arc014 = () => arc().find((a) => a.id === 'ARC-014');
-  const box014 = () => RETENTION.archiveBoxes().find((b: { engId: string }) => b.engId === 'ENG-2025-014');
-
-  it('ARC-014 mengklaim tanggal arsip MENDAHULUI tanggal laporannya sendiri', () => {
-    const a = arc014();
-    const b = box014();
-    expect(a, 'ARC-014 ada di register statis').toBeTruthy();
-    expect(b?.reportDate, 'kanon punya tanggal laporan').toBeTruthy();
-    /* Berkas final dirakit SETELAH opini ditandatangani (SA 230 ¶14 · ¶A21).
-       Register statis mengklaim sebaliknya — itu tak mungkin terjadi. */
-    expect(String(a?.arsip) < String(b?.reportDate)).toBe(true);
+/* Pembagian tugas dengan `backoffice_retention_dead_code.test.ts` (#293): berkas ITU
+   menjaga komponen mati view_bo1, daftar ekspornya, rute `records`, dan klaim
+   "satu tabel kelas retensi". Berkas INI menjaga registernya sendiri & konsumennya.
+   Tak ada assertion yang sengaja diduplikasi antar keduanya. */
+describe('register arsip bayangan tidak boleh kembali', () => {
+  it('data_backoffice tak lagi mendeklarasikan register arsip/retensi/hold', () => {
+    const code = stripComments(readSrc('data_backoffice.ts'));
+    for (const nama of ['RETENTION_POLICY', 'ARCHIVES', 'LEGAL_HOLDS']) {
+      /* toContain, BUKAN RegExp yang dirakit dari template literal: escape
+         word-boundary di dalam template literal JS justru ditafsirkan sebagai
+         karakter BACKSPACE, sehingga regex begitu lolos secara VAKUM. */
+      expect(code, `${nama} kembali ke data_backoffice`).not.toContain(nama);
+    }
   });
 
-  it('ARC-014 mengklaim "Terkunci" padahal kanon masih Perakitan', () => {
-    expect(arc014()?.status).toBe('Terkunci');
-    expect(box014()?.status).toBe('Perakitan');
-    /* dan ia memberi tanggal musnah untuk berkas yang belum diarsipkan */
-    expect(arc014()?.musnah).toBeTruthy();
-    expect(box014()?.retentionUntil).toBeNull();
+  it('BO tidak mengekspor kunci arsip/retensi/hold apa pun', () => {
+    const kunci = Object.keys(BO as unknown as Record<string, unknown>);
+    const menyerempet = kunci.filter((k) => /ARCHIVE|RETENTION|HOLD/i.test(k));
+    expect(menyerempet, `kunci menyerempet arsip: ${menyerempet.join(', ')}`).toEqual([]);
   });
 
-  it('register statis menyembunyikan kotak arsip dan satu legal hold AKTIF', () => {
-    const statis = new Set(arc().map((a) => String(a.eng).split(' · ')[0]));
-    const kanon = RETENTION.archiveBoxes().map((b: { engId: string }) => b.engId);
-    const hilang = kanon.filter((id: string) => !statis.has(id));
-    expect(hilang.length, `kotak arsip tak terlihat: ${hilang.join(', ')}`).toBeGreaterThan(0);
-
-    const holdKanon = RETENTION.activeHolds().map((h: { engId: string }) => h.engId);
-    expect(holdKanon.length).toBe(2);
-    expect(holdKanon.some((id: string) => !statis.has(id)),
-      'ada legal hold aktif yang tak muncul di register statis').toBe(true);
-  });
 });
 
 /* ============================================================
@@ -117,9 +117,20 @@ describe('metrik arsip kokpit firma menutup ke kanon', () => {
     expect(m.due).toBe(RETENTION.disposalQueue().length);
     expect(m.holds).toBe(
       RETENTION.archiveBoxes().filter((b: { status: string }) => b.status === 'Legal Hold').length);
-    /* dan angka kanon BERBEDA dari register statis — jadi mana yang dibaca
-       kokpit bukan perbedaan kosmetik */
-    const statisTotal = ((BO as unknown as { ARCHIVES: readonly unknown[] }).ARCHIVES).length;
-    expect(m.total).not.toBe(statisTotal);
+    /* kotak arsip dirakit dari dokumen DMS — bukan daftar yang diketik */
+    expect(m.total).toBeGreaterThan(0);
+    expect(m.dmsBoxes).toBeGreaterThan(0);
+  });
+
+  it('satu legal hold per perikatan yang ditahan, dari registri kanonik', () => {
+    const aktif = RETENTION.activeHolds() as ReadonlyArray<{ engId: string }>;
+    expect(aktif.length).toBeGreaterThan(0);
+    const eng = aktif.map((h) => h.engId);
+    expect(new Set(eng).size, 'tak ada hold ganda untuk satu perikatan').toBe(eng.length);
+    /* tiap hold aktif benar-benar menahan sebuah kotak arsip */
+    for (const id of eng) {
+      const box = RETENTION.archiveBoxes().find((b: { engId: string }) => b.engId === id);
+      expect(box?.status, `hold ${id} tak tercermin pada kotaknya`).toBe('Legal Hold');
+    }
   });
 });
