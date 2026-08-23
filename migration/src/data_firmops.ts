@@ -15,7 +15,7 @@ import { LEGAL } from './data_legal';
      · Polis & premi         ← BO.POLICIES
      · Keanggotaan & izin    ← BO.MEMBERSHIPS / BO.FIRM_LICENSES / BO.AP_LICENSES
      · Perjalanan            ← BO.TRIPS / BO.TRAVEL_TREND
-     · Arsip & legal hold    ← BO.ARCHIVES / BO.LEGAL_HOLDS
+     · Arsip & legal hold    ← RETENTION (data_records — SSOT)
      · Kontrak               ← LEGAL.buildRegister(firm)
 
    Prinsip: satu vendor = satu master; tiap biaya operasi menunjuk ke

@@ -132,18 +132,13 @@ const BO: any = (function () {
     { floor: 'Lantai 14 — Ruang Rapat & Arsip', seats: 16, occ: 9, area: 240 },
   ];
 
-  /* ---------------- Retensi & Arsip Dokumen (SA 230) ---------------- */
-  const ARCHIVES = [
-    { id: 'ARC-014', eng: 'ENG-2025-014 · PT Sentosa Makmur Tbk', tahun: 2025, arsip: '2026-02-28', musnah: '2033-02-28', size: '2,4 GB', legal: false, status: 'Terkunci' },
-    { id: 'ARC-012', eng: 'ENG-2024-022 · PT Cahaya Abadi', tahun: 2024, arsip: '2025-03-15', musnah: '2032-03-15', size: '1,8 GB', legal: false, status: 'Terkunci' },
-    { id: 'ARC-009', eng: 'ENG-2024-008 · PT Bina Usaha', tahun: 2024, arsip: '2025-02-20', musnah: '2032-02-20', size: '1,1 GB', legal: true, status: 'Legal Hold' },
-    { id: 'ARC-003', eng: 'ENG-2019-031 · PT Lama Sejahtera', tahun: 2019, arsip: '2020-03-10', musnah: '2026-03-10', size: '0,9 GB', legal: false, status: 'Jatuh Tempo' },
-    { id: 'ARC-001', eng: 'ENG-2018-014 · CV Mitra Lestari', tahun: 2018, arsip: '2019-03-05', musnah: '2026-03-05', size: '0,7 GB', legal: false, status: 'Jatuh Tempo' },
-  ];
-  const LEGAL_HOLDS = [
-    { id: 'LH-02', subjek: 'ENG-2024-008 · PT Bina Usaha', alasan: 'Sengketa pemegang saham — potensi litigasi atas LK 2023', sejak: '2025-09-12', oleh: 'Kepala Legal', status: 'Aktif' },
-    { id: 'LH-01', subjek: 'ENG-2022-019 · PT Surya Niaga', alasan: 'Permintaan keterangan regulator (OJK)', sejak: '2024-11-03', oleh: 'Managing Partner', status: 'Dicabut' },
-  ];
+  /* ---------------- Retensi & Arsip Dokumen (SA 230) ----------------
+     DICABUT 2026-08-23. RETENTION_POLICY dicabut #293; ARCHIVES & LEGAL_HOLDS
+     dicabut #294. Ketiganya register statis pra-kanon. Sumber kebenaran tunggalnya kini
+     `data_records.ts` (window.RETENTION): kebijakan retensi = RETENTION_CLASSES,
+     kotak arsip = archiveBoxes() (dirakit dari dokumen DMS), penangguhan
+     disposal = HOLDS. Lihat archive_register_ssot.test.ts untuk gerbang
+     yang mencegah register bayangan ini kembali.                        */
 
   /* ---------------- Kontrak & Legal Firma ---------------- */
   const CONTRACTS = [
@@ -270,7 +265,6 @@ const BO: any = (function () {
     VENDORS, PURCHASE_ORDERS, SPEND_BY_CAT, CAT_COLOR,
     REQUISITIONS, RECEIPTS, BILLS, PROC_BUDGET,
     FIXED_ASSETS, ASSET_REGISTER, FIXED_ASSET_DUPS, MAINTENANCE, SOFTWARE_LICENSES, SPACE, DISPOSALS, ASSET_GL,
-    ARCHIVES, LEGAL_HOLDS,
     CONTRACTS, DISPUTES,
     POLICIES, CLAIMS, RISK_REGISTER,
     TRIPS, REIMBURSEMENTS, PER_DIEM, ROUTES, TRAVEL_TREND,
