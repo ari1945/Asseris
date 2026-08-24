@@ -336,4 +336,88 @@ test.describe('Tahap 9 — aksesibilitas (axe) & smoke keyboard', () => {
 
     await scanAndAssert(page, 'suksesi & karier (kontradiksi)');
   });
+
+  // Modul `spr2400` (SPR 2400 · Reviu). Sampai 2026-08-23 pemilih bentuk
+  // simpulan adalah `<div onClick>` dengan lingkaran radio yang HANYA
+  // digambar: tak fokusable, tak punya semantik grup, dan tak menanggapi
+  // papan-ketik sama sekali — padahal memilih bentuk simpulan adalah satu-
+  // satunya interaksi tab itu. Tautan "Analitis & Inquiry" di tab Prosedur
+  // Reviu juga `<div onClick>`.
+  //
+  // Bentuk NATIVE-nya dipaku oleh `spr2400_render.test.ts` di jsdom, TETAPI
+  // jsdom tidak mengimplementasikan navigasi panah antar-radio sekelompok
+  // dan tidak menjalankan axe. Dua hal itu hanya dapat dibuktikan di peramban
+  // sungguhan — itulah yang dikerjakan blok ini.
+  test('smoke keyboard: bentuk simpulan adalah radiogroup native, panah memindah pilihan', async ({ page }) => {
+    await login(page, USERS.manager);
+    await gotoModule(page, 'spr2400');
+
+    await page.locator('.tabs button', { hasText: 'Bentuk Simpulan' }).click();
+    await page.waitForTimeout(300);
+
+    const grup = page.locator('.view-pad').getByRole('radio');
+    await expect(grup).toHaveCount(4);
+
+    // Terbuka pada simpulan TEREKAM perikatan, dan mengatakannya.
+    const pad = page.locator('.view-pad');
+    await expect(pad).toContainText('Simpulan terekam perikatan');
+    await expect(pad).toContainText('Terekam');
+
+    // Radio yang tercentang dapat dituju Tab (roving tabindex native), dan
+    // panah memindah pilihan TANPA tetikus.
+    const terpilih = page.locator('.view-pad input[type="radio"]:checked');
+    await expect(terpilih).toHaveCount(1);
+    const semula = await terpilih.getAttribute('value');
+    expect(semula, 'tak ada opsi yang tercentang saat modul dibuka').toBeTruthy();
+
+    await terpilih.focus();
+    await expect(terpilih).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+
+    // Pilihan benar-benar berpindah — dan pratinjau laporan mengikutinya.
+    const sesudah = await page.locator('.view-pad input[type="radio"]:checked').getAttribute('value');
+    expect(sesudah, 'panah tidak memindah pilihan — kontrol tidak benar-benar native').not.toBe(semula);
+    await expect(pad).toContainText('Simulasi metodologi');
+    // simpulan terekam TETAP disebut: pratinjau tak boleh menyembunyikannya
+    await expect(pad).toContainText('Simpulan terekam');
+
+    await scanAndAssert(page, 'SPR 2400 (bentuk simpulan)');
+  });
+
+  // Pratinjau laporan dulu mencetak nama seorang akuntan publik NYATA sebagai
+  // TANDA TANGAN, di bawah simpulan yang barusan dipilih dari radio di
+  // sebelahnya. Ia kini menyatakan dirinya tidak ditandatangani.
+  test('pratinjau laporan reviu tidak menandatangani siapa pun', async ({ page }) => {
+    await login(page, USERS.manager);
+    await gotoModule(page, 'spr2400');
+    await page.locator('.tabs button', { hasText: 'Bentuk Simpulan' }).click();
+    await page.waitForTimeout(300);
+
+    const pad = page.locator('.view-pad');
+    await expect(pad).toContainText('tidak ditandatangani');
+    await expect(pad).toContainText('Elemen yang dilengkapi saat penerbitan');
+  });
+
+  // Tab default (Kontinum Keyakinan) dan tab Prosedur Reviu — dua permukaan
+  // lain modul ini; tautan navigasinya dulu `<div onClick>`.
+  test('SPR 2400: tab lain bersih dari pelanggaran critical, tautan prosedur adalah <button>', async ({ page }) => {
+    await login(page, USERS.manager);
+    await gotoModule(page, 'spr2400');
+    await scanAndAssert(page, 'SPR 2400 (kontinum keyakinan)');
+
+    await page.locator('.tabs button', { hasText: 'Prosedur Reviu' }).click();
+    await page.waitForTimeout(300);
+
+    // Label tautan dirakit dari rekaman: `${REVIEW_2400.id} · Analitis & Inquiry`.
+    // Karena itu ia TIDAK boleh dicocokkan `exact` — dan teks cadangan
+    // ("Perikatan reviu · …", dipakai saat rekaman tak ada) justru yang
+    // harus absen: kehadirannya berarti modul kehilangan perikatan tertautnya.
+    const tautan = page.locator('.view-pad button').filter({ hasText: 'Analitis & Inquiry' });
+    await expect(tautan).toHaveCount(1);
+    await expect(tautan).not.toContainText('Perikatan reviu · Analitis & Inquiry');
+    await tautan.focus();
+    await expect(tautan).toBeFocused();
+
+    await scanAndAssert(page, 'SPR 2400 (prosedur reviu)');
+  });
 });
