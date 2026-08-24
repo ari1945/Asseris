@@ -408,8 +408,13 @@ test.describe('Tahap 9 — aksesibilitas (axe) & smoke keyboard', () => {
     await page.locator('.tabs button', { hasText: 'Prosedur Reviu' }).click();
     await page.waitForTimeout(300);
 
-    const tautan = page.locator('.view-pad').getByRole('button', { name: 'Analitis & Inquiry', exact: true });
-    await expect(tautan).toBeVisible();
+    // Label tautan dirakit dari rekaman: `${REVIEW_2400.id} · Analitis & Inquiry`.
+    // Karena itu ia TIDAK boleh dicocokkan `exact` — dan teks cadangan
+    // ("Perikatan reviu · …", dipakai saat rekaman tak ada) justru yang
+    // harus absen: kehadirannya berarti modul kehilangan perikatan tertautnya.
+    const tautan = page.locator('.view-pad button').filter({ hasText: 'Analitis & Inquiry' });
+    await expect(tautan).toHaveCount(1);
+    await expect(tautan).not.toContainText('Perikatan reviu · Analitis & Inquiry');
     await tautan.focus();
     await expect(tautan).toBeFocused();
 
