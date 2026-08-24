@@ -521,7 +521,7 @@
   },
   "src/view_firmtax.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 27
+      "count": 21
     }
   },
   "src/view_firmtreasury.tsx": {
