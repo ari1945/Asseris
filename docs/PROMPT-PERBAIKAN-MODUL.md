@@ -301,16 +301,31 @@ Pola cacat dengan sebaran terbesar di repo ini (~94 situs/79 berkas hanya untuk 
 firma). Tempel untuk modul mana pun yang menghasilkan memo, kertas kerja, bukti
 potong, faktur, atau ekspor tersegel.
 
+> **Direvisi 2026-08-24 sesudah uji lapangan pertama (`mgmtletter`).** Versi pertama
+> menangkap 2 dari 4 cacat modul itu, dan yang lebih buruk: **gerbang penutupnya HIJAU
+> di atas kode yang bocor.** Tiga perubahan di bawah lahir dari situ —
+> (1) alat yang benar disebut LEBIH DULU, (2) lingkup persistensi masuk sebagai
+> identitas, (3) gerbangnya menagih ISI, bukan kop. Rinciannya:
+> `docs/prompts-perbaikan/142-mgmtletter.md`.
+
 ```
 ADENDUM IDENTITAS
 Cari SEMUA identitas di modul ini dan buktikan asal tiap satu:
   grep -n "Wijaya|Hartono|Linda|CPA|KAP |ENG-20|FY20|NPWP" <view>
 
-- Nama pelaku (penyusun/peninjau/penandatangan) HANYA dari sesi: useCurrentAuditor().
-  PERINGATAN: useCurrentAuditor() JATUH KEMBALI ke AMS.USER. Untuk ATRIBUSI TULIS
-  fallback itu SALAH. Periksa preseden repo TERKINI; jangan meniru modul tetangga
-  tanpa memeriksa — meniru `useFirm().firm.name` (yang tak pernah ada) sudah
-  melahirkan tiga tombol ekspor mati permanen.
+- Nama pelaku (penyusun/peninjau/penandatangan) pada JALUR TULIS: pakai pola
+  glActor() (firm_gl_actor.ts) — turunkan HANYA dari auth.user, dan bila sesi tak
+  menyediakannya, JANGAN JALANKAN aksi tulisnya. Tombol dinonaktifkan dengan alasan
+  yang terbaca; tidak ada nama cadangan. Jejak yang salah orang lebih buruk daripada
+  tidak ada jejak, karena ia terbaca seolah-olah terbukti. Preseden: glActor
+  (Firm GL, AP/AR, Pajak Firma), iaActor (internalaudit_memo.ts), mlActor
+  (mgmtletter_record.ts — yang ini juga membawa PERAN dari sesi, bukan cuma nama).
+  JANGAN pakai useCurrentAuditor() untuk atribusi tulis: ia sengaja JATUH KEMBALI ke
+  AMS.USER (data seed). Jaring itu benar untuk memfilter "milik saya" di tampilan —
+  di sana tebakan yang meleset tak merusak apa pun — tetapi pada jalur tulis ia
+  justru cacat yang sama dengan nama berbeda.
+  Dan jangan meniru modul tetangga tanpa memeriksa: meniru `useFirm().firm.name`
+  (yang tak pernah ada) sudah melahirkan tiga tombol ekspor mati permanen.
 - Nama firma/klien/perikatan dari konteks (useFirm/useAudit), bukan literal.
   Literal 'ENG-2025-014'/'FY2025' adalah perikatan BAWAAN seed, sehingga cacatnya
   TAK TERLIHAT pada perikatan default. Uji WAJIB memakai perikatan KEDUA.
@@ -321,8 +336,31 @@ Cari SEMUA identitas di modul ini dan buktikan asal tiap satu:
 - Anotasi tipe INLINE di call-site bisa MENGARANG bentuk objek sehingga tsc ikut diam
   dan sel memo selalu kosong. Ambil tipe dari sumbernya, jangan tulis ulang di
   parameter callback.
-- Gerbang: buka modul pada DUA perikatan berbeda -> identitas di payload ekspor harus
-  BERBEDA. Gerbang yang hanya memeriksa "ada nama" tidak membuktikan apa pun.
+- LINGKUP PERSISTENSI ADALAH IDENTITAS. Identitas bukan hanya apa yang DICETAK,
+  melainkan DOKUMEN SIAPA yang dibuka. Untuk SETIAP useAmsPersist(<key>) di modul,
+  buktikan lingkupnya: kunci yang tak terdaftar di AMS_PERSIST_SCOPE dan tak cocok
+  PR4_ENGAGEMENT_KEY_RE JATUH KE LINGKUP FIRMA — kertas kerja satu klien terbaca pada
+  SELURUH perikatan. Cacat ini TIDAK menghasilkan satu pun literal, jadi grep di atas
+  buta terhadapnya; ia hanya terlihat dengan membaca peta lingkup. Efek keduanya:
+  firm-scope tanpa cabang capForWrite = FIRM_ADMIN, jadi suntingan Manajer/Senior
+  ditolak server SENYAP. Memindahkan kunci ke 'engagement' TIDAK perlu menaikkan
+  versi — lingkup sudah bagian dari alamat (ams.v1.<scope>.<scopeId>.<key>), sehingga
+  dokumen firma lama tidak tertimpa dan tidak pula terbaca.
+- Gerbang: TULIS pada perikatan A -> buka perikatan B -> ISI-nya harus TIDAK ADA di
+  sana. Gerbang yang hanya memeriksa "identitas di payload ekspor berbeda" TIDAK
+  CUKUP dan bisa MENYESATKAN: di mgmtletter, scopeId/nama klien/refNo sudah diturunkan
+  dari activeEngagement sehingga kop surat memang berubah — sementara temuan di
+  bawahnya milik klien lain. Kop yang benar di atas isi yang salah lebih buruk
+  daripada kop yang salah. Perikatan KEDUA wajib (bukan ENG-2025-014/FY2025 bawaan).
+- Gerbang pelaku: dua sesi berbeda melakukan aksi yang SAMA -> jejak tersimpan menyebut
+  nama BERBEDA, dan tanpa sesi tak ada baris yang tertulis sama sekali. Gerbang yang
+  hanya memeriksa "bukan <nama karangan lama>" tidak membuktikan apa pun — nama
+  karangan yang lain juga bukan nama itu.
+- Pisahkan DATA SEED dari KODE HIDUP sebelum menghitung. grep di atas tidak tahu
+  bedanya: di mgmtletter ia menandai 13 situs padahal hanya 3 yang jalur tulis.
+  Seed ilustratif adalah kelas masalah lain dengan prioritas lain — iris berkasnya
+  (mis. dari deklarasi komponen pertama) dan gerbangi jumlah situs seed agar tetap
+  UTUH, supaya batas itu sendiri terbukti dihormati.
 ```
 
 ### C-I · Fallback ke seed karangan

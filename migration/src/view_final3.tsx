@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAmsPersist, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
 import { AMS } from './data';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -8,6 +8,7 @@ import { Badge, Btn, Panel, Seg, Stat } from './ui';
 import { DEFICIENCIES, DEF_SEED, DEFICIENCY_ML_LINK, LEVEL_KIND, reconcileGovernanceComms, type GovCommRow, type PendingFinding } from './canon_deficiency';
 import { amsExportPdf } from './export_pdf';
 import { amsDateIso } from './clock_ssot';
+import { mlActor, mlDecisionFields, mlDecisionStamp, mlDiscussionNote, mlWriteAllowed, mlWriteBlockReason } from './mgmtletter_record';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)
@@ -208,7 +209,7 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
 }
 
 /* ---------------- Discussion thread ---------------- */
-function MLDiscussionThread({ items, onAdd }: any) {
+function MLDiscussionThread({ items, onAdd, canWrite, blockReason }: any) {
   const [draft, setDraft] = useStateF3('');
   const [role, setRole] = useStateF3('auditor');
   return (
@@ -241,8 +242,8 @@ function MLDiscussionThread({ items, onAdd }: any) {
         </div>
         <textarea className="input" value={draft} onChange={(e: any) => setDraft(e.target.value)} placeholder="Catatan diskusi, kesepakatan, atau tanggapan tertulis…" style={{ width: '100%', minHeight: 60, padding: 9, resize: 'vertical', borderRadius: 6 }} />
         <div className="row jb ac" style={{ marginTop: 7 }}>
-          <span className="tiny muted">Catatan akan terstempel waktu &amp; pengguna aktif.</span>
-          <Btn sm variant="primary" onClick={() => { if (!draft.trim()) return; onAdd({ d: today(), who: role === 'auditor' ? 'Linda Wijaya' : 'Wakil Klien', role, org: role === 'auditor' ? 'Manager Audit' : 'Klien', note: draft.trim() }); setDraft(''); }}><I.send size={13} /> Catat</Btn>
+          <span className="tiny muted" style={canWrite ? undefined : { color: 'var(--amber)' }}>{canWrite ? 'Catatan akan terstempel waktu & pengguna sesi aktif.' : blockReason}</span>
+          <Btn sm variant="primary" disabled={!canWrite} title={blockReason || undefined} onClick={() => { if (!canWrite || !draft.trim()) return; onAdd({ speaker: role, note: draft.trim() }); setDraft(''); }}><I.send size={13} /> Catat</Btn>
         </div>
       </div>
     </div>
@@ -250,7 +251,7 @@ function MLDiscussionThread({ items, onAdd }: any) {
 }
 
 /* ---------------- Decision panel ---------------- */
-function MLDecisionPanel({ f, onDecide, onReopen }: any) {
+function MLDecisionPanel({ f, onDecide, onReopen, canWrite, blockReason }: any) {
   const [note, setNote] = useStateF3('');
   const decided = f.stage === 'final' || f.stage === 'tuntas';
   return (
@@ -265,7 +266,7 @@ function MLDecisionPanel({ f, onDecide, onReopen }: any) {
             <div><span className="tiny muted upper">Oleh &nbsp;</span><b>{f.decisionBy || '—'}</b></div>
             <div style={{ marginTop: 4, padding: 9, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 6, lineHeight: 1.55, color: 'var(--ink-2)' }}>{f.decisionNote || <span className="muted">(tanpa catatan)</span>}</div>
           </div>
-          <Btn sm onClick={onReopen}><I.sync size={13} /> Buka Kembali ke Diskusi</Btn>
+          <Btn sm disabled={!canWrite} title={blockReason || undefined} onClick={onReopen}><I.sync size={13} /> Buka Kembali ke Diskusi</Btn>
         </div>
       ) : (
         <div style={{ padding: '4px 2px' }}>
@@ -274,14 +275,15 @@ function MLDecisionPanel({ f, onDecide, onReopen }: any) {
           </div>
           <textarea className="input" value={note} onChange={(e: any) => setNote(e.target.value)} placeholder="Alasan keputusan (wajib dicatat untuk jejak audit)…" style={{ width: '100%', minHeight: 64, padding: 9, resize: 'vertical', borderRadius: 6, marginBottom: 8 }} />
           <div style={{ display: 'grid', gap: 6 }}>
-            <button className="btn primary" style={{ width: '100%', justifyContent: 'center' }} disabled={!note.trim()} onClick={() => onDecide('final', note.trim())}>
+            <button className="btn primary" style={{ width: '100%', justifyContent: 'center' }} disabled={!canWrite || !note.trim()} title={blockReason || undefined} onClick={() => onDecide('final', note.trim())}>
               <I.check size={14} /> Masuk Final ML
             </button>
-            <button className="btn" style={{ width: '100%', justifyContent: 'center', borderColor: 'var(--green)', color: 'var(--green)' }} disabled={!note.trim()} onClick={() => onDecide('tuntas', note.trim())}>
+            <button className="btn" style={{ width: '100%', justifyContent: 'center', borderColor: 'var(--green)', color: 'var(--green)' }} disabled={!canWrite || !note.trim()} title={blockReason || undefined} onClick={() => onDecide('tuntas', note.trim())}>
               <I.x size={14} /> Tuntas — Keluarkan dari ML
             </button>
           </div>
-          {!note.trim() && <div className="tiny muted" style={{ marginTop: 7, color: 'var(--amber)' }}>Catatan keputusan wajib diisi.</div>}
+          {!canWrite && <div className="tiny muted" style={{ marginTop: 7, color: 'var(--amber)' }}>{blockReason}</div>}
+          {canWrite && !note.trim() && <div className="tiny muted" style={{ marginTop: 7, color: 'var(--amber)' }}>Catatan keputusan wajib diisi.</div>}
         </div>
       )}
     </Panel>
@@ -320,7 +322,7 @@ function MLFindingList({ findings, selId, onSel, filter, onFilter }: any) {
 
 /* ---------------- Workflow view: discussion + decision ---------------- */
 function MLWorkflowFull(props: any) {
-  const { findings, discussions, selId, setSelId, setField, addDiscussion, setStage, filter, setFilter, editing, setEditing } = props;
+  const { findings, discussions, selId, setSelId, setField, addDiscussion, setStage, filter, setFilter, editing, setEditing, canWrite, blockReason } = props;
   const [innerTab, setInnerTab] = useStateF3('detail');
   const sel = findings.find((f: any) => f.id === selId);
   return (
@@ -344,14 +346,14 @@ function MLWorkflowFull(props: any) {
           </div>
           <div style={{ padding: '16px 20px 20px', maxHeight: 'calc(100vh - 280px)', overflow: 'auto' }}>
             {innerTab === 'detail' && <MLFinding f={sel} editing={editing} setField={setField} />}
-            {innerTab === 'diskusi' && <MLDiscussionThread items={discussions[selId]} onAdd={(m: any) => addDiscussion(selId, m)} />}
+            {innerTab === 'diskusi' && <MLDiscussionThread items={discussions[selId]} onAdd={(m: any) => addDiscussion(selId, m)} canWrite={canWrite} blockReason={blockReason} />}
           </div>
         </Panel>
       ) : <Panel><div className="muted" style={{ padding: 18 }}>Pilih temuan dari daftar di kiri.</div></Panel>}
 
       {sel && (
         <div style={{ display: 'grid', gap: 12 }}>
-          <MLDecisionPanel f={sel} onDecide={(stage: any, note: any) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} />
+          <MLDecisionPanel f={sel} onDecide={(stage: any, note: any) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} canWrite={canWrite} blockReason={blockReason} />
           <Panel title="Klasifikasi (SA 265)">
             <div style={{ display: 'grid', gap: 7, fontSize: 12, padding: '2px 0' }}>
               <div className="row jb ac"><span className="muted">Severitas</span><Badge kind={(ML_SEV_KIND as any)[sel.sev]}>{sel.sev}</Badge></div>
@@ -391,7 +393,12 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
       <div className="doc-paper" style={{ background: '#fff', maxWidth: 760, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
         <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #0c2430', gap: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div>
+            {/* ML-4 — nama firma dari SSOT `AMS.FIRM`, sama seperti payload ekspor di
+                berkas ini. Dulu harfiah: satu berkas, dua kebiasaan, dan yang harfiah
+                justru yang sampai ke klien. Warna memakai token peran ISIAN
+                (`--navy-solid`) — bukan `--navy`, yang di tema gelap menjadi abu terang
+                dan tak terbaca di atas kertas yang tetap putih. */}
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--navy-solid)', whiteSpace: 'nowrap', lineHeight: 1.25 }}>{AMS.FIRM.name}</div>
             <div style={{ fontSize: 11, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div>
           </div>
           <div className="mono" style={{ fontSize: 11, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
@@ -505,6 +512,18 @@ function ManagementLetter() {
   const { activeClient, activeEngagement } = useFirm();
   const nav = useNav();
   const persist = useAmsPersist;
+  /* ML-1 — pelaku catatan diskusi & keputusan dari SESI. Ketiga situs tulis dulu
+     menstempel 'Linda Wijaya (Manager)': satu nama kolega nyata pada setiap jejak,
+     siapa pun yang menekan tombolnya. Pola = `glActor`/`glWriteAllowed`
+     (firm_gl_actor.ts) yang sudah menutup cacat identik di Firm GL, AP/AR, Pajak
+     Firma & Audit Internal — tanpa sesi, aksi tulisnya TIDAK DIJALANKAN, bukan
+     dicatat atas nama fallback. `useCurrentAuditor()` sengaja tak dipakai: jaring
+     `AMS.USER`-nya benar untuk memfilter "milik saya", tetapi untuk ATRIBUSI TULIS
+     ia justru cacat yang sama. */
+  const auth = useAuth();
+  const actor = mlActor(auth && auth.user);
+  const canWrite = mlWriteAllowed(actor);
+  const writeBlockReason = mlWriteBlockReason(actor);
   const [findings, setFindings] = persist('mgmtletter.findings.v2', ML_FINDINGS_SEED);
   const [discussions, setDiscussions] = persist('mgmtletter.discussions.v2', ML_DISCUSSIONS_SEED);
   const [tab, setTab] = useStateF3('workflow');
@@ -515,22 +534,19 @@ function ManagementLetter() {
 
   const setField = (id: any, k: any, v: any) => setFindings((list: any) => list.map((f: any) => f.id === id ? { ...f, [k]: v } : f));
   const setStage = (id: any, stage: any, note: any) => {
-    setFindings((list: any) => list.map((f: any) => f.id === id ? {
-      ...f,
-      stage,
-      decisionDate: stage === 'diskusi' ? '' : today(),
-      decisionBy: stage === 'diskusi' ? '' : 'Linda Wijaya (Manager)',
-      decisionNote: stage === 'diskusi' ? '' : note,
-    } : f));
+    if (!mlWriteAllowed(actor) || !actor) return;
+    const decision = mlDecisionFields({ actor, stage, note, today: today() });
+    setFindings((list: any) => list.map((f: any) => f.id === id ? { ...f, stage, ...decision } : f));
     if (stage !== 'diskusi' && note) {
-      const stamp = {
-        d: today(), who: 'Linda Wijaya', role: 'auditor', org: 'Manager Audit',
-        note: 'KEPUTUSAN: ' + (stage === 'final' ? 'Masuk Final ML' : 'Tuntas — dikeluarkan dari surat akhir') + '. ' + note,
-      };
+      const stamp = mlDecisionStamp({ actor, stage, note, today: today() });
       setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), stamp] }));
     }
   };
-  const addDiscussion = (id: any, m: any) => setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), m] }));
+  const addDiscussion = (id: any, m: any) => {
+    if (!mlWriteAllowed(actor) || !actor) return;
+    const note = mlDiscussionNote({ actor, speaker: m.speaker, note: m.note, today: today() });
+    setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), note] }));
+  };
 
   const finalCount = findings.filter((f: any) => f.stage === 'final').length;
   const pendingCount = findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length;
@@ -553,7 +569,7 @@ function ManagementLetter() {
             amsExportPdf({
               kind: 'mgmt-letter', scope: 'engagement', scopeId: activeEngagement?.id,
               fileName: `Surat Manajemen - ${activeClient?.name || 'Klien'}.pdf`,
-              firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
+              firm: AMS.FIRM.name,
               title: 'Surat Manajemen (Management Letter) — Audit ' + (activeEngagement?.fy || ''),
               refNo: 'SA 265 · 260 · ' + (activeEngagement?.id || ''),
               meta: [activeClient?.name || '', activeEngagement?.id || '', dateStr],
@@ -667,6 +683,8 @@ function ManagementLetter() {
             setFilter={setFilter}
             editing={editing}
             setEditing={setEditing}
+            canWrite={canWrite}
+            blockReason={writeBlockReason}
           />
         )}
 
