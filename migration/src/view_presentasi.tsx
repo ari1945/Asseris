@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn } from './ui';
 import { ML_FINDINGS_SEED } from './view_final3';
+import { mlIsIllustrative } from './mgmtletter_record';
 /* Tahap 8 — mesin opini dibaca via ESM dari view_opinion_parts (berbagi
    chunk), bukan window.AMSOpinion yang hanya terisi setelah parts dimuat. */
 import { AMSOpinion } from './view_opinion_parts';
@@ -52,16 +53,24 @@ function prData(firm: any) {
   const pbcBy = pbc.reduce((m: any, p: any) => { m[p.status] = (m[p.status] || 0) + 1; return m; }, {});
 
   const seed = (typeof ML_FINDINGS_SEED !== 'undefined') ? ML_FINDINGS_SEED : [];
-  const findings = prLoadLS('mgmtletter.findings.v2', seed) || seed;
-  const finalF = findings.filter((f: any) => f.stage === 'final');
+  /* Kunci ini BERLINGKUP PERIKATAN sejak arc mgmtletter (AMS_PERSIST_SCOPE), jadi
+     alamat cache-nya `ams.v1.engagement.<engId>.<key>` — sama seperti opinionDoc di
+     bawah. Membacanya tanpa lingkup (cara lama) selalu meleset ke alamat pra-W6 yang
+     tak pernah ditulis, sehingga dek ini diam-diam memakai seed pada SETIAP perikatan. */
+  const findings = prLoadLS('engagement.' + engId + '.mgmtletter.findings.v2', seed) || seed;
+  /* Opsi C — baris peraga TIDAK masuk dek yang dipresentasikan ke klien. Ia menyebut
+     nama & keputusan yang tak pernah dibuat siapa pun; di layar internal ia berpita
+     peringatan, di sini ia tak punya tempat sama sekali. */
+  const real = findings.filter((f: { illustrative?: boolean }) => !mlIsIllustrative(f));
+  const finalF = real.filter((f: any) => f.stage === 'final');
   const finSummary = {
-    total: findings.length,
+    total: real.length,
     final: finalF.length,
     sig: finalF.filter((f: any) => f.sev === 'Significant').length,
     def: finalF.filter((f: any) => f.sev === 'Deficiency').length,
     obs: finalF.filter((f: any) => f.sev === 'Observation').length,
-    tuntas: findings.filter((f: any) => f.stage === 'tuntas').length,
-    diskusi: findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length,
+    tuntas: real.filter((f: any) => f.stage === 'tuntas').length,
+    diskusi: real.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length,
   };
   /* urut keparahan: Significant → Deficiency → Observation */
   const sevRank = { Significant: 0, Deficiency: 1, Observation: 2 };

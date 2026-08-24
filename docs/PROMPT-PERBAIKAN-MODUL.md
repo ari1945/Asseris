@@ -116,7 +116,16 @@ ATURAN KERAS (melanggar = pekerjaan ditolak):
      teks harfiah. Jangan pernah merakit RegExp dari string di dalam uji gerbang.
    - toMatchObject({p: /regex/}) SELALU lolos.
    - menguji keberadaan simbol, bukan perilaku.
+   Dan gerbang PEMINDAI SUMBER punya kerapuhan sendiri (mgmtletter, 2026-08-24):
+   /nama\s*\(/ tidak cocok dengan `nama<T>(` begitu satu situs diberi argumen tipe,
+   jadi ia memerah oleh perbaikan tipe yang sah. Tulis /nama\s*(?:<[^>]*>)?\s*\(/.
+   Pindai juga irisan yang BENAR: buang komentar dulu (berkas ini rutin mengutip pola
+   lama sebagai catatan sejarah), dan pisahkan DATA SEED dari kode hidup sebelum
+   menghitung apa pun.
    Uji yang belum pernah kamu lihat MERAH bukan gerbang.
+   CATATAN `git stash`: aman HANYA di worktree milikmu sendiri. Di direktori kerja
+   utama ia mencabut perubahan tracked sesi lain. Di sana, falsifikasi dengan cara
+   lain: tulis gerbangnya LEBIH DULU dan jalankan sebelum menyentuh kode.
 8. MESIN MEMBANTAH, BUKAN MENGISI. Kalau modul menyajikan kesimpulan/angka yang
    seharusnya lahir dari pekerjaan auditor, dan pekerjaan itu belum dilakukan —
    jawabannya BUKAN mengisi nilai "yang benar". Mengarang jawaban benar mengulang

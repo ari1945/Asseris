@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Seg, Stat } from './ui';
 import { DEFICIENCIES, DEF_SEED, DEFICIENCY_ML_LINK, LEVEL_KIND, reconcileGovernanceComms, type GovCommRow, type PendingFinding } from './canon_deficiency';
 import { amsExportPdf } from './export_pdf';
 import { amsDateIso } from './clock_ssot';
-import { mlActor, mlDecisionFields, mlDecisionStamp, mlDiscussionNote, mlWriteAllowed, mlWriteBlockReason } from './mgmtletter_record';
+import { mlActor, mlClearIllustrative, mlDecisionFields, mlDecisionStamp, mlDiscussionNote, mlIsIllustrative, mlLetterBlockReason, mlLetterFindings, mlLetterSplit, mlMarkIllustrative, mlMarkIllustrativeThreads, mlWriteAllowed, mlWriteBlockReason } from './mgmtletter_record';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)
@@ -18,7 +18,12 @@ import { mlActor, mlDecisionFields, mlDecisionStamp, mlDiscussionNote, mlWriteAl
 const { useState: useStateF3, useMemo: useMemoF3 } = React;
 
 /* ---------------- Findings (sumber data awal) ---------------- */
-const ML_FINDINGS_SEED = [
+/* Opsi C — baris di bawah adalah ALAT PERAGA: ia menyebut orang-orang nyata di roster
+   firma dan memuat enam KEPUTUSAN atas nama mereka. `mlMarkIllustrative` menandainya
+   di satu tempat sehingga penandanya terlihat di layar, baris bertanda dikecualikan
+   dari surat & ekspor, dan penandanya hilang begitu baris benar-benar disunting.
+   Isi seed sengaja tidak disentuh — yang berubah hanya statusnya. */
+const ML_FINDINGS_SEED = mlMarkIllustrative([
   {
     id: 'ML-01', title: 'Penilaian nilai realisasi neto (NRV) persediaan belum konsisten terdokumentasi',
     sev: 'Significant', area: 'Persediaan', ref: 'PSAK 14 ¶9, 28–33', pic: 'Manajer Akuntansi', target: 'Q2 2026', respStatus: 'Setuju',
@@ -102,10 +107,10 @@ const ML_FINDINGS_SEED = [
     rec: 'Konfirmasi ulang ke ekspedisi dan periksa tanggal Bill of Lading untuk seluruh transaksi material akhir tahun.',
     resp: 'Manajemen menyediakan Bill of Lading lengkap. Dua transaksi terkonfirmasi sesuai periode; satu transaksi senilai Rp 180 juta dipindahkan ke periode berikutnya melalui AJE-07 (telah dikoreksi).',
   },
-];
+]);
 
 /* ---------------- Discussion threads (jejak diskusi klien-auditor) ---------------- */
-const ML_DISCUSSIONS_SEED = {
+const ML_DISCUSSIONS_SEED = mlMarkIllustrativeThreads({
   'ML-01': [
     { d: '2026-02-19', who: 'Citra Halim', role: 'auditor', org: 'Senior Auditor', note: 'Temuan disampaikan kepada Manajer Akuntansi pada exit meeting awal. Diminta tanggapan tertulis paling lambat 26 Feb 2026.' },
     { d: '2026-02-26', who: 'Dewi Kartika', role: 'client', org: 'Manajer Akuntansi (Klien)', note: 'Tanggapan tertulis: setuju atas temuan. SOP NRV akan disusun bersama tim pelaporan keuangan. Target implementasi Q2 2026. Mohon kalimat pada management letter tidak menggunakan kata "lemah".' },
@@ -144,7 +149,7 @@ const ML_DISCUSSIONS_SEED = {
     { d: '2026-03-02', who: 'Yanti Suryani', role: 'client', org: 'Manajer Penjualan (Klien)', note: 'Bill of Lading sudah dilampirkan ke folder bersama. Mohon ditelaah.' },
     { d: '2026-03-02', who: 'Rudi Gunawan', role: 'auditor', org: 'Engagement Partner', note: 'KEPUTUSAN: TUNTAS. Dari 3 transaksi, 2 terkonfirmasi sesuai periode pengakuan; 1 (Rp 180 jt) dipindahkan via AJE-07. Tidak ada defisiensi sistemik. Temuan TIDAK masuk Final ML.' },
   ],
-};
+});
 
 /* ---------------- Constants & helpers ---------------- */
 const ML_SEV_KIND = { Significant: 'red', Deficiency: 'amber', Observation: 'blue' };
@@ -169,6 +174,18 @@ const idDate = (s: any) => {
 };
 const today = () => amsDateIso();
 
+/* ---------------- Pita peraga (Opsi C) ---------------- */
+/* Satu komponen, dipakai di tiap tempat baris peraga muncul — bukan tiga salinan
+   kalimat yang bisa berpisah diam-diam. */
+function MLIllustrativeBand() {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 11px', marginBottom: 10, borderRadius: 7, background: 'var(--amber-bg)', border: '1px solid var(--amber)', color: 'var(--ink-2)', fontSize: 12, lineHeight: 1.5 }}>
+      <I.alert size={13} />
+      <span><b>Contoh — belum ada keputusan nyata.</b> Baris ini berasal dari data peraga dan menyebut nama beserta keputusan yang tidak pernah dibuat siapa pun. Ia dikecualikan dari surat &amp; ekspor sampai Anda menyuntingnya atau mengambil keputusan sendiri.</span>
+    </div>
+  );
+}
+
 /* ---------------- Finding body (six-section block) ---------------- */
 function MLFinding({ f, editing, setField, idx, total }: any) {
   return (
@@ -176,6 +193,7 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
       {(typeof idx === 'number') && (
         <div className="mono" style={{ fontSize: 11, color: '#9aa7b0', letterSpacing: '.08em', marginBottom: 8 }}>TEMUAN {idx + 1} DARI {total}</div>
       )}
+      {mlIsIllustrative(f) && <MLIllustrativeBand />}
       <div className="row jb ac" style={{ marginBottom: 6, gap: 10 }}>
         <span style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
         <Badge kind={(ML_SEV_KIND as any)[f.sev]}>{f.sev}</Badge>
@@ -227,6 +245,7 @@ function MLDiscussionThread({ items, onAdd, canWrite, blockReason }: any) {
                   <span className="mono tiny muted">{idDate(m.d)}</span>
                 </div>
                 <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>{m.note}</div>
+                {mlIsIllustrative(m) && <div className="tiny" style={{ marginTop: 4, color: 'var(--amber)', fontWeight: 700 }}>Contoh — catatan peraga, bukan jejak nyata</div>}
               </div>
               {!isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-3)', color: 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800, border: '1px solid var(--line)' }}>K</div>}
             </div>
@@ -310,7 +329,13 @@ function MLFindingList({ findings, selId, onSel, filter, onFilter }: any) {
             <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, marginBottom: 4 }}>{f.title}</div>
             <div className="row jb ac">
               <span className="tiny muted">{f.area}</span>
-              <Badge kind={(ML_STAGE as any)[f.stage].kind}>{(ML_STAGE as any)[f.stage].label}</Badge>
+              <span className="row gap6 ac">
+                {/* <Badge> membuang prop selain children/kind/dot, jadi `title` harus
+                    menempel pada pembungkusnya — bukan pada Badge, tempat ia akan
+                    hilang diam-diam. */}
+                {mlIsIllustrative(f) && <span title="Baris peraga — dikecualikan dari surat & ekspor sampai disunting"><Badge kind="amber">Contoh</Badge></span>}
+                <Badge kind={(ML_STAGE as any)[f.stage].kind}>{(ML_STAGE as any)[f.stage].label}</Badge>
+              </span>
             </div>
           </div>
         ))}
@@ -378,12 +403,21 @@ function MLWorkflowFull(props: any) {
 
 /* ---------------- Letter preview ---------------- */
 function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing, setField, allFindings }: any) {
-  const visible = viewMode === 'final' ? findings.filter((f: any) => f.stage === 'final') : findings.filter((f: any) => f.stage !== 'tuntas');
+  /* Opsi C — surat memuat HANYA pernyataan yang benar-benar dibuat seseorang.
+     Baris peraga disaring di sini, dan jumlah yang tersaring dilaporkan (bukan
+     hilang diam-diam) lewat `mlLetterBlockReason`. */
+  /* Bentuk minimal yang dibutuhkan saringan + tanggal surat. `findings` datang
+     sebagai prop tak-bertipe, jadi parameter tipe dinyatakan di sini agar `reduce`
+     di bawah tetap bertipe (tanpa menambah `any` baru). */
+  type MlRow = { stage?: string; illustrative?: boolean; decisionDate?: unknown };
+  const letterSplit = mlLetterSplit<MlRow>(findings, viewMode);
+  const visible = letterSplit.kept;
+  const letterBlock = mlLetterBlockReason(visible.length, letterSplit.droppedIllustrative);
   const excluded = allFindings.filter((f: any) => f.stage === 'tuntas');
   /* P0-fix: tanggal surat FINAL diambil dari keputusan final TERAKHIR di antara
      temuan yang masuk surat (decisionDate data, bukan literal '14 Maret 2026'
      yang membekukan tanggal dan menipu di revisi berikutnya). Fallback: hari ini. */
-  const finalDate = visible.reduce((mx: string | null, f: { decisionDate?: unknown }) => {
+  const finalDate = visible.reduce((mx: string | null, f: MlRow) => {
     const d = typeof f.decisionDate === 'string' ? f.decisionDate : null;
     if (!d) return mx;
     return mx == null || d > mx ? d : mx;
@@ -433,7 +467,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
                 <b style={{ color: '#0c2430' }}>{f.title}</b> <span style={{ color: '#7a8893' }}>— {f.sev} · {f.area}</span>
               </li>
             ))}
-            {!visible.length && <li style={{ color: '#a0acb5', fontStyle: 'italic' }}>Tidak ada temuan untuk dilaporkan.</li>}
+            {!visible.length && <li style={{ color: '#a0acb5', fontStyle: 'italic' }}>{letterBlock || 'Tidak ada temuan untuk dilaporkan.'}</li>}
           </ol>
         </div>
 
@@ -532,11 +566,14 @@ function ManagementLetter() {
   const [editing, setEditing] = useStateF3(false);
   const [previewMode, setPreviewMode] = useStateF3('final');
 
-  const setField = (id: any, k: any, v: any) => setFindings((list: any) => list.map((f: any) => f.id === id ? { ...f, [k]: v } : f));
+  /* Opsi C — menyunting baris peraga menjadikannya kertas kerja NYATA, jadi
+     penandanya dicabut di situs yang sama. Selama ia masih bertanda, baris tak
+     pernah sampai ke surat; sesudah disunting, ia tunduk aturan biasa. */
+  const setField = (id: any, k: any, v: any) => setFindings((list: any) => list.map((f: any) => f.id === id ? mlClearIllustrative({ ...f, [k]: v }) : f));
   const setStage = (id: any, stage: any, note: any) => {
     if (!mlWriteAllowed(actor) || !actor) return;
     const decision = mlDecisionFields({ actor, stage, note, today: today() });
-    setFindings((list: any) => list.map((f: any) => f.id === id ? { ...f, stage, ...decision } : f));
+    setFindings((list: any) => list.map((f: any) => f.id === id ? mlClearIllustrative({ ...f, stage, ...decision }) : f));
     if (stage !== 'diskusi' && note) {
       const stamp = mlDecisionStamp({ actor, stage, note, today: today() });
       setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), stamp] }));
@@ -547,6 +584,13 @@ function ManagementLetter() {
     const note = mlDiscussionNote({ actor, speaker: m.speaker, note: m.note, today: today() });
     setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), note] }));
   };
+
+  /* Opsi C — ekspor tunduk saringan yang SAMA dengan surat di layar. Dua rantai
+     filter yang mengerjakan hal sama adalah cara mereka berpisah diam-diam; di sini
+     keduanya memanggil `mlLetterSplit`, yang mengembalikan isi DAN jumlah yang
+     dibuang sekaligus sehingga tak ada logika tahap yang perlu diulang. */
+  const exportSplit = mlLetterSplit<{ stage?: string; illustrative?: boolean }>(findings, previewMode);
+  const exportBlock = mlLetterBlockReason(exportSplit.kept.length, exportSplit.droppedIllustrative);
 
   const finalCount = findings.filter((f: any) => f.stage === 'final').length;
   const pendingCount = findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length;
@@ -561,9 +605,10 @@ function ManagementLetter() {
           <Badge kind="blue">SA 265 · SA 260</Badge>
           <Badge kind={pendingCount ? 'amber' : 'green'}>{finalCount} masuk · {pendingCount} diskusi</Badge>
           {tab === 'preview' && <Seg options={[{ value: 'final', label: 'Surat Final' }, { value: 'draft', label: 'Draft Internal' }]} value={previewMode} onChange={setPreviewMode} />}
-          {tab === 'preview' && <Btn sm onClick={() => {
+          {tab === 'preview' && <Btn sm disabled={!!exportBlock} title={exportBlock || undefined} onClick={() => {
+            if (exportBlock) return;
             type Mlf = { stage: string; title: string; sev: string; area: string; cond?: string; cause?: string; criteria?: string; effect?: string; rec?: string; resp?: string; pic?: string; target?: string; decisionDate?: string };
-            const visible: Mlf[] = previewMode === 'final' ? findings.filter((f: Mlf) => f.stage === 'final') : findings.filter((f: Mlf) => f.stage !== 'tuntas');
+            const visible: Mlf[] = mlLetterFindings(findings as Mlf[], previewMode);
             const finalDate = visible.reduce((mx: string | null, f: { decisionDate?: unknown }) => { const d = typeof f.decisionDate === 'string' ? f.decisionDate : null; if (!d) return mx; return mx == null || d > mx ? d : mx; }, null as string | null);
             const dateStr = previewMode === 'final' ? (finalDate ? idDate(finalDate) : idDate(today())) : 'DRAFT — ' + idDate(today());
             amsExportPdf({

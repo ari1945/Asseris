@@ -145,3 +145,98 @@ export function mlDecisionStamp(a: {
     today: a.today,
   });
 }
+
+/* ============================================================
+   Opsi C (keputusan Ari, 2026-08-24) — baris ILUSTRATIF ditandai, bukan dibuang.
+
+   Seed modul ini memuat 7 temuan dan 24 catatan diskusi yang menyebut orang-orang
+   NYATA di roster firma — 'Linda Wijaya (Manager)', 'Rudi Gunawan (Partner)',
+   'Citra Halim' — beserta enam KEPUTUSAN atas nama mereka. Baris itu adalah alat
+   peraga, tetapi begitu pengguna menyunting satu temuan, SELURUH dokumen tertulis
+   ke StateDoc perikatan sebagai kertas kerja, dan tak ada apa pun pada barisnya yang
+   membedakannya dari jejak nyata.
+
+   Karena itu: baris seed membawa penanda `illustrative`, penanda itu TERLIHAT di
+   layar, baris bertanda DIKECUALIKAN dari surat & ekspor, dan penandanya HILANG
+   begitu baris itu benar-benar disunting atau diputuskan oleh manusia.
+
+   Penanda dipasang di SATU tempat (pembungkus di bawah), bukan disulam ke 31 objek:
+   baris seed baru ikut tertandai tanpa perlu diingat, dan isi seed itu sendiri tidak
+   disentuh sama sekali.
+   ============================================================ */
+
+/** Baris yang berasal dari seed peraga dan belum disentuh manusia. */
+export interface MlIllustrative { illustrative?: boolean }
+
+/** Tandai seluruh baris sebagai ilustratif (dipakai pada deklarasi seed). */
+export function mlMarkIllustrative<T extends object>(rows: readonly T[]): (T & { illustrative: true })[] {
+  return rows.map((r) => ({ ...r, illustrative: true as const }));
+}
+
+/** Idem untuk peta utas diskusi (`{ [findingId]: note[] }`). */
+export function mlMarkIllustrativeThreads<T extends object>(
+  threads: Record<string, readonly T[]>,
+): Record<string, (T & { illustrative: true })[]> {
+  const out: Record<string, (T & { illustrative: true })[]> = {};
+  for (const k of Object.keys(threads)) out[k] = mlMarkIllustrative(threads[k]);
+  return out;
+}
+
+/** Apakah baris ini masih peraga? */
+export function mlIsIllustrative(row: MlIllustrative | null | undefined): boolean {
+  return !!(row && row.illustrative);
+}
+
+/**
+ * Cabut penanda peraga — dipanggil saat baris BENAR-BENAR disunting atau diputuskan.
+ * Penanda dihapus, bukan disetel `false`, supaya bentuk baris nyata identik dengan
+ * baris yang tak pernah punya penanda.
+ */
+export function mlClearIllustrative<T extends MlIllustrative>(row: T): T {
+  if (!row || !row.illustrative) return row;
+  const { illustrative: _drop, ...rest } = row;
+  return rest as T;
+}
+
+/** Hasil penyaringan surat: yang masuk, dan berapa yang dibuang karena peraga. */
+export interface MlLetterSplit<T> {
+  kept: T[];
+  /** Jumlah baris yang LOLOS tahap tetapi dibuang karena masih peraga. */
+  droppedIllustrative: number;
+}
+
+/**
+ * Temuan yang boleh masuk SURAT/EKSPOR: sesuai tahap, dan bukan peraga.
+ *
+ * `mode` mengikuti pratinjau modul — 'final' hanya temuan ber-tahap `final`,
+ * 'draft' semua kecuali yang sudah dituntaskan.
+ *
+ * Mengembalikan KEDUANYA (isi + jumlah yang dibuang) dalam satu panggilan, supaya
+ * pemanggil tak perlu mengulang logika tahap untuk menghitung selisihnya. Dua rantai
+ * filter yang mengerjakan hal sama adalah cara mereka berpisah diam-diam.
+ */
+export function mlLetterSplit<T extends MlIllustrative & { stage?: string }>(
+  findings: readonly T[],
+  mode: string,
+): MlLetterSplit<T> {
+  const byStage = mode === 'final'
+    ? findings.filter((f) => f.stage === 'final')
+    : findings.filter((f) => f.stage !== 'tuntas');
+  const kept = byStage.filter((f) => !mlIsIllustrative(f));
+  return { kept, droppedIllustrative: byStage.length - kept.length };
+}
+
+/** Pintasan bila jumlah yang dibuang tak dibutuhkan. */
+export function mlLetterFindings<T extends MlIllustrative & { stage?: string }>(
+  findings: readonly T[],
+  mode: string,
+): T[] {
+  return mlLetterSplit(findings, mode).kept;
+}
+
+/** Alasan surat/ekspor kosong, atau '' bila ada isinya. */
+export function mlLetterBlockReason(kept: number, dropped: number): string {
+  if (kept > 0) return '';
+  if (dropped > 0) return 'Seluruh temuan pada layar ini masih baris peraga — sunting atau putuskan lebih dulu agar surat memuat pernyataan yang benar-benar dibuat seseorang';
+  return 'Belum ada temuan yang memenuhi syarat untuk surat ini';
+}

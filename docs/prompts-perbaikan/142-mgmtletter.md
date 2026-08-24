@@ -257,3 +257,43 @@ menandai 13 situs padahal hanya 3 yang jalur tulis.
 dulu berikut aturan "tanpa sesi tidak menulis"; (2) bullet baru **lingkup persistensi
 adalah identitas**; (3) gerbang diganti dari "kop berbeda" menjadi **"tulis di A →
 buka B → ISI-nya tidak ada"**, plus gerbang pelaku dua-sesi dan aturan mengiris seed.
+
+---
+
+## Lanjutan — Opsi C dilaksanakan (keputusan Ari, 2026-08-24)
+
+Batas 1 prompt ini ("JANGAN menyentuh 10 kemunculan di seed; kalau menurutmu perlu
+dicabut, tulis USULAN dan berhenti") dihormati pada putaran pertama: usulan ditulis,
+pekerjaan berhenti. Ari kemudian memilih **Opsi C**, dan itu dikerjakan pada commit
+berikutnya di cabang yang sama.
+
+### Yang ditemukan saat melaksanakannya
+
+1. **Cakupan seed lebih luas dari premis prompt.** Prompt menyebut 10 kemunculan
+   `'Linda Wijaya'`. Seed sebenarnya juga memuat `'Rudi Gunawan (Partner)'` (2
+   keputusan), `'Citra Halim'` (5 catatan), dan nama pihak klien — total 7 temuan dan
+   24 catatan. Menandai "sepuluh situs" akan meninggalkan separuh masalahnya.
+   **Pelajaran untuk penulis prompt berikutnya:** angka hasil grep atas SATU nama
+   bukan ukuran sebuah kelas cacat.
+2. **Penanda dipasang di deklarasi, bukan disulam ke 31 objek.**
+   `mlMarkIllustrative(...)` / `mlMarkIllustrativeThreads(...)` membungkus seed —
+   isinya tak disentuh, baris seed baru ikut tertandai tanpa perlu diingat, dan
+   gerbang MENOLAK penanda yang diketik manual (`illustrative:` di irisan seed harus 0).
+3. **Pembaca kedua yang tak disebut sensus mana pun.** `view_presentasi.tsx` — dek
+   yang dipresentasikan KEPADA KLIEN — membaca kunci yang sama, jadi temuan peraga
+   akan tayang di sana sebagai fakta. Ia juga membaca alamat **tak-berlingkup**
+   (`prLoadLS('mgmtletter.findings.v2')`), yang sejak W6 tak pernah ditulis siapa pun,
+   sehingga dek itu diam-diam memakai seed pada SETIAP perikatan. Keduanya diperbaiki.
+   **Pelajaran:** memindahkan lingkup sebuah kunci WAJIB diikuti sensus pembacanya —
+   `grep -rn "<key>"` di seluruh `migration/src`, bukan hanya modul pemiliknya.
+4. **Gerbang sumber saya sendiri memerah karena perbaikan tipe saya sendiri.**
+   `/mlLetterFindings\s*\(/` tidak cocok dengan `mlLetterFindings<MlRow>(` begitu satu
+   situs diberi argumen tipe. Itu perilaku yang BENAR dari sebuah gerbang — ia menagih
+   janji, bukan mengikuti kode — tetapi regex pemindai sumber harus mengizinkan
+   argumen tipe opsional sejak awal: `/nama\s*(?:<[^>]*>)?\s*\(/`.
+5. **Dua `(f: any)` baru melewati baseline suppression dan MEMBUKA seluruh berkas**
+   (63 error dari satu berkas, bukan 2). Perbaikannya bukan menaikkan baseline
+   melainkan mencabut duplikasinya: rantai filter kedua di view digantikan
+   `mlLetterSplit` yang mengembalikan isi DAN jumlah yang dibuang sekaligus — yang
+   kebetulan juga menutup pola "dua rantai yang bisa berpisah diam-diam" yang
+   digerbangi arc ini sendiri.

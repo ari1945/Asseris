@@ -36,6 +36,8 @@ import { amsDateIso } from './clock_ssot';
 import {
   mlActor, mlActorLabel, mlDiscussionNote, mlDecisionFields, mlDecisionStamp,
   mlWriteAllowed, mlWriteBlockReason,
+  mlMarkIllustrative, mlMarkIllustrativeThreads, mlIsIllustrative, mlClearIllustrative,
+  mlLetterFindings, mlLetterSplit, mlLetterBlockReason,
 } from './mgmtletter_record';
 
 const VIEW = join(__dirname, 'view_final3.tsx');
@@ -305,5 +307,124 @@ describe('ML-4 · nama firma pada surat berasal dari identitas firma', () => {
     expect(baris.length).toBeGreaterThan(0);
     const berhex = baris.filter((l) => /color:\s*'#[0-9a-fA-F]{3,8}'/.test(l));
     expect(berhex, 'hex harfiah pada baris kop surat: ' + berhex.join(' | ')).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------
+   ML-5 · Opsi C — baris peraga ditandai, dikecualikan, dan penandanya
+   HILANG begitu manusia benar-benar menyentuhnya.
+   (Keputusan Ari 2026-08-24 atas docs/usulan-mgmtletter-seed-identitas.md.)
+   ------------------------------------------------------------------ */
+describe('ML-5 · seed peraga tidak menyamar sebagai kertas kerja', () => {
+  const PERAGA = { id: 'ML-01', stage: 'final', title: 'x', illustrative: true };
+  const NYATA: { id: string; stage: string; title: string; illustrative?: boolean } = { id: 'ML-99', stage: 'final', title: 'y' };
+
+  it('pembungkus menandai SETIAP baris, tanpa mengubah isinya', () => {
+    const rows = mlMarkIllustrative([{ id: 'a', who: 'Linda Wijaya' }, { id: 'b' }]);
+    expect(rows.every((r) => r.illustrative === true)).toBe(true);
+    expect(rows[0].who).toBe('Linda Wijaya');
+    expect(rows.length).toBe(2);
+  });
+
+  it('pembungkus utas menandai catatan di SETIAP temuan', () => {
+    const t = mlMarkIllustrativeThreads({ 'ML-01': [{ note: 'a' }, { note: 'b' }], 'ML-02': [{ note: 'c' }] });
+    expect(Object.keys(t)).toEqual(['ML-01', 'ML-02']);
+    expect(t['ML-01'].every((n) => n.illustrative === true)).toBe(true);
+    expect(t['ML-02'][0].illustrative).toBe(true);
+  });
+
+  it('baris peraga TIDAK masuk surat, baris nyata masuk', () => {
+    const kept = mlLetterFindings([PERAGA, NYATA], 'final');
+    expect(kept.map((f) => f.id)).toEqual(['ML-99']);
+  });
+
+  it('saringan tahap tetap berlaku DI ATAS saringan peraga', () => {
+    const tuntas = { id: 'ML-98', stage: 'tuntas', title: 'z' };
+    expect(mlLetterFindings([NYATA, tuntas], 'final').map((f) => f.id)).toEqual(['ML-99']);
+    expect(mlLetterFindings([NYATA, tuntas], 'draft').map((f) => f.id)).toEqual(['ML-99']);
+  });
+
+  it('surat yang kosong KARENA peraga menjelaskan sebabnya, bukan diam', () => {
+    const alasan = mlLetterBlockReason(0, 7);
+    expect(alasan).toContain('peraga');
+    expect(mlLetterBlockReason(3, 4)).toBe('');
+    /* kosong tanpa peraga = kalimat yang BERBEDA; keduanya tak boleh tertukar */
+    expect(mlLetterBlockReason(0, 0)).not.toBe(alasan);
+    expect(mlLetterBlockReason(0, 0)).not.toBe('');
+  });
+
+  it('menyunting MENCABUT penanda — dan menghapus fieldnya, bukan menyetel false', () => {
+    const sesudah = mlClearIllustrative({ ...PERAGA, title: 'disunting manusia' });
+    expect(mlIsIllustrative(sesudah)).toBe(false);
+    expect('illustrative' in sesudah).toBe(false);
+    /* baris nyata lewat tanpa disentuh (identitas objek dipertahankan) */
+    expect(mlClearIllustrative(NYATA)).toBe(NYATA);
+  });
+
+  it('sesudah disunting ia masuk surat', () => {
+    const disunting = mlClearIllustrative({ ...PERAGA });
+    expect(mlLetterFindings([disunting], 'final').map((f) => f.id)).toEqual(['ML-01']);
+  });
+
+  it('SUMBER — kedua seed dibungkus di deklarasinya, bukan disulam per-objek', () => {
+    const k = viewSrc();
+    expect(k).toMatch(/const ML_FINDINGS_SEED = mlMarkIllustrative\(\[/);
+    expect(k).toMatch(/const ML_DISCUSSIONS_SEED = mlMarkIllustrativeThreads\(\{/);
+    /* penanda tidak boleh diketik satu per satu — itu yang bisa terlupa pada baris baru */
+    const manual = [...irisanSeed().matchAll(/illustrative\s*:/g)].length;
+    expect(manual, 'penanda disulam manual ' + manual + 'x').toBe(0);
+  });
+
+  it('SUMBER — penanda dicabut di KEDUA situs sunting (field & keputusan)', () => {
+    const hidup = irisanHidup();
+    const cabut = [...hidup.matchAll(/mlClearIllustrative\s*\(/g)].length;
+    expect(cabut, 'mlClearIllustrative dipakai ' + cabut + 'x, seharusnya 2').toBe(2);
+  });
+
+  it('SUMBER — surat DAN ekspor memakai saringan yang sama (bukan dua rantai filter)', () => {
+    const hidup = irisanHidup();
+    /* Argumen tipe opsional (`mlLetterSplit<MlRow>(`) harus ikut terhitung — versi
+       pertama gerbang ini memakai /mlLetterFindings\s*\(/ dan langsung MERAH begitu
+       satu situs diberi parameter tipe. */
+    const pakai = [...hidup.matchAll(/ml(?:LetterSplit|LetterFindings)\s*(?:<[^>]*>)?\s*\(/g)].length;
+    expect(pakai, 'saringan surat dipakai ' + pakai + 'x, minimal 2 (surat + ekspor)').toBeGreaterThanOrEqual(2);
+    expect(hidup).toMatch(/disabled=\{!!exportBlock\}/);
+  });
+
+  it('SUMBER — dek Presentasi membaca alamat BERLINGKUP dan membuang baris peraga', () => {
+    const pr = tanpaKomentar(readFileSync(join(__dirname, 'view_presentasi.tsx'), 'utf8'));
+    expect(pr, 'dek masih membaca alamat tak-berlingkup').not.toMatch(/prLoadLS\('mgmtletter\./);
+    expect(pr).toMatch(/engagement\.' \+ engId \+ '\.mgmtletter\.findings\.v2/);
+    expect(pr).toMatch(/mlIsIllustrative\s*\(/);
+  });
+});
+
+/* ML-5b — jumlah yang DIBUANG dilaporkan dari saringan yang sama, bukan dihitung
+   ulang oleh pemanggil (rantai kedua yang bisa berpisah diam-diam). */
+describe('ML-5b · saringan surat melaporkan sendiri apa yang ia buang', () => {
+  const rows = [
+    { id: 'a', stage: 'final', illustrative: true },
+    { id: 'b', stage: 'final' },
+    { id: 'c', stage: 'tuntas', illustrative: true },
+    { id: 'd', stage: 'diskusi' },
+  ];
+
+  it("mode 'final': satu masuk, satu dibuang karena peraga", () => {
+    const r = mlLetterSplit(rows, 'final');
+    expect(r.kept.map((f) => f.id)).toEqual(['b']);
+    expect(r.droppedIllustrative).toBe(1);
+  });
+
+  it("mode 'draft': yang tuntas tidak dihitung sebagai 'dibuang karena peraga'", () => {
+    const r = mlLetterSplit(rows, 'draft');
+    expect(r.kept.map((f) => f.id)).toEqual(['b', 'd']);
+    /* 'c' gugur karena TAHAP, bukan karena peraga — kalau ia ikut terhitung,
+       kalimat alasan akan menyalahkan peraga atas keputusan auditor. */
+    expect(r.droppedIllustrative).toBe(1);
+  });
+
+  it('pintasan mlLetterFindings sepakat dengan mlLetterSplit', () => {
+    expect(mlLetterFindings(rows, 'final')).toEqual(mlLetterSplit(rows, 'final').kept);
+    expect(mlLetterFindings(rows, 'draft')).toEqual(mlLetterSplit(rows, 'draft').kept);
   });
 });

@@ -486,7 +486,7 @@
   },
   "src/view_final3.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 61
+      "count": 59
     }
   },
   "src/view_firm.tsx": {
