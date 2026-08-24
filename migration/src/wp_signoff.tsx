@@ -79,6 +79,14 @@ const WP_MODULE_MAP = {
   /* modul dokumentasi audit (SA 230) — kesimpulan kelengkapan & perakitan berkas */
   sa230:   { ref: 'sa230',  requiredEvidence: ['Memo dokumentasi audit (SA 230)', 'Daftar simak perakitan & retensi berkas final'] },
   /* modul prosedur SA (seri 500 · bukti audit) */
+  /* SA 510 — saldo awal. Modul `opening` sebelumnya TIDAK terdaftar di sini, tetapi
+     menampilkan blok "Sign-off" sendiri berisi tiga nama personel dan tanggal dengan
+     dua di antaranya `done: true`: tanda tangan yang tak pernah ada, tanpa otorisasi,
+     tanpa jejak audit, sama untuk setiap perikatan. Mendaftarkannya MENGGESER penyebut
+     rekap kelengkapan WP (satu WP baru, berstatus belum-dimulai) — sama seperti entri
+     `wtb` di atas, itu benar dan bukan regresi: saldo awal memang kertas kerja yang
+     harus ditandatangani sebelum finalisasi. */
+  opening: { ref: 'opening', requiredEvidence: ['Laporan keuangan audited TA-1 / kertas kerja auditor pendahulu', 'Penelusuran saldo akhir TA-1 ke saldo awal periode kini (SA 510 ¶6)', 'Bukti perbandingan kebijakan akuntansi antar-periode (¶6(b))'] },
   sa501:   { ref: 'sa501',  requiredEvidence: ['Observasi persediaan', 'Konfirmasi litigasi & klaim'] },
   sa520:   { ref: 'sa520',  requiredEvidence: ['Ekspektasi & ambang investigasi analitis', 'Investigasi varians signifikan'] },
   sa530:   { ref: 'sa530',  requiredEvidence: ['Penentuan ukuran sampel', 'Evaluasi hasil & proyeksi salah saji'] },
