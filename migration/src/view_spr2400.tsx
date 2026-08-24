@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -10,19 +11,58 @@ import { amsDateLongId } from './clock_ssot';
 
 /* ============================================================
    Asseris — SPR 2400 · Perikatan Reviu atas LK Historis
-   Deep methodology: kontinum keyakinan (audit vs reviu vs
-   kompilasi), desain prosedur inquiry & analitis, pemicu
-   prosedur tambahan, materialitas & kecukupan bukti, serta
-   bentuk simpulan keyakinan negatif. Tertaut ke perikatan
-   reviu langsung (REV-2025-022).
+
+   LAPISAN METODOLOGI/STANDAR. Isi standar (kontinum keyakinan, desain
+   prosedur ¶45–57, pemicu prosedur tambahan, bentuk simpulan ¶86–96) memang
+   literal di sini — itu materi standar, bukan fakta perikatan.
+
+   Yang TIDAK boleh literal adalah FAKTA PERIKATAN. Sebelumnya berkas ini
+   mengetik sendiri materialitas reviu, nama akuntan publik penanda tangan,
+   dan id perikatan — padahal ketiganya sudah punya catatan kanonik:
+
+     · materialitas / tolok ukur / mat. pelaksanaan → `AMS.REVIEW_2400_PLAN`
+       (dirender modul `review2400` sebagai "Materialitas Reviu"; salinan di
+       sini akan membusuk diam-diam begitu rencana reviu berubah)
+     · identitas & simpulan terekam                → `AMS.REVIEW_2400`
+     · rekan perikatan                             → registri `AMS.NONAUDIT`
+
+   Catatan sengaja TIDAK memakai `useMateriality()`: hook itu membaca
+   `useFirm().activeEngagement`, yaitu perikatan AUDIT aktif — entitas yang
+   BERBEDA dari perikatan reviu yang ditautkan modul ini. Memakainya akan
+   menampilkan materialitas entitas lain di bawah judul reviu.
+
+   Angka perikatan HIDUP di modul `review2400`; modul ini menautkannya dan
+   menyatakan bahwa yang ditampilkan adalah REKAMAN, bukan kertas kerja.
+   Gerbang: `spr2400_conventions.test.ts`.
    ============================================================ */
 const { useState: useState2400 } = React;
 
-/* ---- Kontinum tingkat keyakinan ---- */
+/* Tipe struktural MINIMAL — BUKAN `any`. `AMS.REVIEW_2400` & kawan-kawan
+   lolos lewat index signature `[k: string]: unknown` di `AmsData`, jadi
+   penyempitannya dilakukan di sini (pola yang sama dipakai `useMateriality()`
+   di contexts.tsx). Satu `:any` baru di berkas ini meng-un-suppress seluruh
+   berkas pada ratchet ESLint. */
+type RevInquiry = { q: string; resp: string; done: boolean };
+type RevRecord = { id: string; client: string; fy: string; framework: string; inquiries: RevInquiry[]; conclusion: string };
+type RevPlan = { materiality: number; benchmark: string; pm: number };
+type NonAuditRow = { id: string; partner?: string; manager?: string };
+
+const revRecord = (): RevRecord | null => (AMS.REVIEW_2400 as RevRecord | undefined) || null;
+const revPlan = (): RevPlan | null => (AMS.REVIEW_2400_PLAN as RevPlan | undefined) || null;
+const revPartner = (id: string): string => {
+  const rows = (AMS.NONAUDIT as NonAuditRow[] | undefined) || [];
+  const hit = rows.find((r) => r.id === id);
+  return (hit && hit.partner) || '';
+};
+
+/* ---- Kontinum tingkat keyakinan ----
+   `color` = kind Badge (kelas `b-*`, di mana `gray` memang ada). `bar` =
+   token CSS UTUH untuk isian batang — dienumerasi, bukan dirakit runtime,
+   supaya pemindai token statis benar-benar bisa melihatnya. */
 const ASSUR_CONTINUUM = [
-  { k: 'Audit (SA 200+)', level: 'Memadai', pct: 95, color: 'blue', proc: 'Risk assessment, uji pengendalian, prosedur substantif menyeluruh', concl: 'Opini positif ("menyajikan secara wajar")' },
-  { k: 'Reviu (SPR 2400)', level: 'Terbatas', pct: 60, color: 'teal', proc: 'Terutama inquiry & prosedur analitis', concl: 'Simpulan negatif ("tidak ada hal yang menjadi perhatian")', here: true },
-  { k: 'Kompilasi (SPSJL 4410)', level: 'Tanpa', pct: 8, color: 'gray', proc: 'Penyusunan informasi tanpa verifikasi', concl: 'Tanpa simpulan asurans' },
+  { k: 'Audit (SA 200+)', level: 'Memadai', pct: 95, color: 'blue', bar: 'var(--blue)', proc: 'Risk assessment, uji pengendalian, prosedur substantif menyeluruh', concl: 'Opini positif ("menyajikan secara wajar")' },
+  { k: 'Reviu (SPR 2400)', level: 'Terbatas', pct: 60, color: 'teal', bar: 'var(--teal)', proc: 'Terutama inquiry & prosedur analitis', concl: 'Simpulan negatif ("tidak ada hal yang menjadi perhatian")', here: true },
+  { k: 'Kompilasi (SPSJL 4410)', level: 'Tanpa', pct: 8, color: 'gray', bar: 'var(--ink-4)', proc: 'Penyusunan informasi tanpa verifikasi', concl: 'Tanpa simpulan asurans' },
 ];
 
 /* ---- Prosedur reviu (desain) ---- */
@@ -42,10 +82,26 @@ const ADD_TRIGGERS = [
   { t: 'Fluktuasi analitis signifikan tanpa penjelasan wajar', ref: '¶56', action: 'Inquiry lanjutan & evaluasi bukti pendukung.' },
 ];
 
+/* ---- Kriteria evaluasi kecukupan bukti (¶55) ----
+   Ini KRITERIA, bukan status. Sebelumnya keempatnya dipasangkan flag
+   true/true/true/false yang tak punya sumber mana pun dan terbaca sebagai
+   status perikatan. Penilaiannya dilakukan di kertas kerja perikatan reviu. */
+const EVID_CRITERIA = [
+  'Bukti memadai untuk menyimpulkan tidak ada salah saji material yang teridentifikasi (¶55)',
+  'Prosedur analitis & inquiry menghasilkan dasar simpulan yang masuk akal (¶47–48)',
+  'Inkonsistensi/anomali ditindaklanjuti hingga tuntas (¶50, ¶56)',
+  'Representasi tertulis manajemen diperoleh (¶61)',
+];
+
 /* ============================================================ */
 function SPR2400View() {
   const [tab, setTab] = useState2400('kontinum');
   const nav = useNav();
+  const R = revRecord();
+
+  /* Drawer AI Co-pilot global (didaftarkan App). Sebelumnya tombol ini tak
+     punya handler sama sekali — mati, tetapi tetap diumumkan pembaca layar. */
+  const openCopilot = () => { if (window.__amsOpenCopilot) window.__amsOpenCopilot(); };
 
   const tabs = [
     { id: 'kontinum', label: 'Kontinum Keyakinan' },
@@ -60,7 +116,7 @@ function SPR2400View() {
         <div className="row gap8 ac">
           <Badge kind="teal" dot>Keyakinan Terbatas</Badge>
           <Btn sm onClick={() => nav('review2400')}><I.search2 size={13} /> Perikatan Langsung</Btn>
-          <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
+          <Btn sm variant="primary" onClick={openCopilot}><I.sparkle size={14} /> AI Assist</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -79,9 +135,14 @@ function SPR2400View() {
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Bentuk Opini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Simpulan negatif</div></div>
             <div style={{ flex: 1 }} />
+            {/* "Tertaut", BUKAN "Aktif": modul ini lapisan standar & tidak
+                ter-scope ke perikatan mana pun. Ia menautkan satu perikatan
+                reviu — dan menyebut id itu dari rekamannya, bukan mengetiknya. */}
             <div style={{ textAlign: 'right' }}>
-              <div className="tiny muted upper" style={{ marginBottom: 3 }}>Perikatan Aktif</div>
-              <Badge kind="blue">REV-2025-022</Badge>
+              <div className="tiny muted upper" style={{ marginBottom: 3 }}>Perikatan Reviu Tertaut</div>
+              {R
+                ? <><Badge kind="blue">{R.id}</Badge><div className="tiny muted" style={{ marginTop: 3 }}>{R.client} · {R.fy}</div></>
+                : <span className="tiny muted">Tidak ada perikatan reviu tercatat</span>}
             </div>
           </div>
         </Panel>
@@ -114,7 +175,7 @@ function F2400Continuum() {
             {ASSUR_CONTINUUM.map((c, i) => (
               <div key={i} className="panel" style={{ padding: 13, boxShadow: 'none', borderColor: c.here ? 'var(--teal)' : 'var(--line)', borderWidth: c.here ? 2 : 1, background: c.here ? 'var(--teal-bg)' : 'transparent' }}>
                 <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{c.k}</div><Badge kind={c.color}>{c.level}</Badge></div>
-                <div style={{ margin: '10px 0 6px', height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 3, background: `var(--${c.color === 'gray' ? 'ink-4' : c.color})` }} /></div>
+                <div style={{ margin: '10px 0 6px', height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 3, background: c.bar }} /></div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 8 }}>{c.proc}</div>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)', whiteSpace: 'normal', height: 'auto', lineHeight: 1.4, padding: '4px 8px' }}>{c.concl}</div>
               </div>
@@ -170,6 +231,7 @@ function F2400Continuum() {
 /* ---------------- Tab: Prosedur Reviu ---------------- */
 function F2400Proc() {
   const tk = (t: any) => t === 'Analitis' ? 'purple' : 'teal';
+  const R = revRecord();
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -207,7 +269,7 @@ function F2400Proc() {
           </div>
         </Panel>
         <Panel title="Lihat di Perikatan Langsung">
-          <NavRow2400 to="review2400" label="REV-2025-022 · Analitis & Inquiry" />
+          <NavRow2400 to="review2400" label={R ? `${R.id} · Analitis & Inquiry` : 'Perikatan reviu · Analitis & Inquiry'} />
           <p className="tiny muted" style={{ margin: '8px 0 0', lineHeight: 1.5 }}>Prosedur analitis & inquiry yang dilaksanakan beserta tindak lanjutnya tersedia pada workspace perikatan reviu.</p>
         </Panel>
       </div>
@@ -215,47 +277,88 @@ function F2400Proc() {
   );
 }
 
-function NavRow2400({ to, label }: any) {
+/* Kontrol NATIVE: sebelumnya `<div onClick>` — tak bisa dituju keyboard dan
+   tak diumumkan sebagai kontrol oleh pembaca layar. */
+type NavRow2400Props = { to: string; label: string };
+function NavRow2400({ to, label }: NavRow2400Props) {
   const nav = useNav();
   return (
-    <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
+    <button
+      type="button"
+      onClick={() => nav(to)}
+      className="row jb ac"
+      style={{ width: '100%', textAlign: 'left', fontFamily: 'inherit', fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, background: 'transparent', color: 'inherit', cursor: 'pointer' }}
+    >
       <span className="row ac gap8"><span style={{ color: 'var(--teal)' }}><I.search2 size={14} /></span>{label}</span>
       <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
-    </div>
+    </button>
   );
 }
 
 /* ---------------- Tab: Materialitas & Bukti ---------------- */
 function F2400Evidence() {
+  const { fmt } = AMS;
+  const nav = useNav();
+  const R = revRecord();
+  const P = revPlan();
+  const inq = (R && R.inquiries) || [];
+  const inqDone = inq.filter((x) => x.done).length;
+
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Materialitas dalam Reviu (¶43–44)</h3></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55 }}>Konsep materialitas diterapkan serupa dengan audit — namun digunakan untuk merancang prosedur reviu & mengevaluasi apakah laporan keuangan secara keseluruhan bebas dari salah saji material.</p>
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-              <KvBox label="Materialitas (Rp jt)" v="900" accent="var(--navy)" />
-              <KvBox label="Tolok Ukur" v="1% pendapatan" accent="var(--teal)" />
-              <KvBox label="Mat. Pelaksanaan" v="675" />
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55 }}>Konsep materialitas diterapkan serupa dengan audit — namun digunakan untuk merancang prosedur reviu &amp; mengevaluasi apakah laporan keuangan secara keseluruhan bebas dari salah saji material.</p>
+            {P ? (
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                <KvBox label="Materialitas Reviu" v={`Rp ${fmt(P.materiality / 1e6, 0)} jt`} accent="var(--navy)" />
+                <KvBox label="Tolok Ukur" v={P.benchmark} accent="var(--teal)" />
+                <KvBox label="Mat. Pelaksanaan" v={`Rp ${fmt(P.pm / 1e6, 0)} jt`} />
+              </div>
+            ) : (
+              <div className="tiny muted" style={{ lineHeight: 1.5 }}>Rencana reviu belum tercatat — materialitas tidak tersedia. Modul ini tidak menetapkan angka sendiri.</div>
+            )}
+            <p className="tiny muted" style={{ margin: '10px 0 0', lineHeight: 1.55 }}>
+              Angka di atas adalah <b>rencana reviu yang tercatat</b> untuk {R ? <>{R.id} · {R.client}</> : 'perikatan reviu tertaut'} — bukan materialitas perikatan audit mana pun. Penetapan &amp; pengerjaannya ada di modul perikatan reviu.
+            </p>
+            <div style={{ marginTop: 10 }}>
+              <Btn sm onClick={() => nav('review2400')}><I.search2 size={13} /> Buka perikatan reviu</Btn>
             </div>
           </div>
         </Panel>
 
         <Panel noBody>
-          <div className="panel-h"><h3>Kecukupan Bukti untuk Keyakinan Terbatas (¶55)</h3></div>
-          <div style={{ padding: '8px 14px 14px', display: 'grid', gap: 8 }}>
-            {[
-              ['Bukti memadai untuk menyimpulkan tidak ada salah saji material yang teridentifikasi', true],
-              ['Prosedur analitis & inquiry menghasilkan dasar simpulan yang masuk akal', true],
-              ['Inkonsistensi/anomali ditindaklanjuti hingga tuntas', true],
-              ['Representasi tertulis manajemen diperoleh (¶61)', false],
-            ].map((r, i) => (
-              <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
-                <span style={{ flex: '0 0 auto', marginTop: 1, color: r[1] ? 'var(--green)' : 'var(--amber)' }}>{r[1] ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <span style={{ fontSize: 12, lineHeight: 1.45 }}>{r[0]}</span>
-              </div>
-            ))}
+          <div className="panel-h">
+            <h3>Kecukupan Bukti untuk Keyakinan Terbatas (¶55)</h3>
+            <div style={{ flex: 1 }} />
+            {inq.length > 0 && <Badge kind={inqDone === inq.length ? 'green' : 'amber'}>{inqDone}/{inq.length} inquiry terjawab</Badge>}
+          </div>
+          <div style={{ padding: '8px 14px 14px' }}>
+            {/* KRITERIA — tanpa flag status. Penilaian ada di kertas kerja. */}
+            <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kriteria evaluasi — dinilai di kertas kerja perikatan</div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {EVID_CRITERIA.map((t, i) => (
+                <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
+                  <span aria-hidden="true" style={{ flex: '0 0 auto', marginTop: 1, color: 'var(--ink-4)' }}>—</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.45 }}>{t}</span>
+                </div>
+              ))}
+            </div>
+            {inq.length > 0 && (
+              <>
+                <div className="tiny muted upper" style={{ margin: '14px 0 8px' }}>Status inquiry manajemen (rekaman perikatan)</div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {inq.map((q, i) => (
+                    <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
+                      <span style={{ flex: '0 0 auto', marginTop: 1, color: q.done ? 'var(--green)' : 'var(--amber)' }}>{q.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.45 }}>{q.q}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </Panel>
       </div>
@@ -275,51 +378,96 @@ function F2400Evidence() {
   );
 }
 
-/* ---------------- Tab: Bentuk Simpulan ---------------- */
+/* ---------------- Tab: Bentuk Simpulan ----------------
+   Nada warna DIENUMERASI sebagai token utuh. Sebelumnya dirakit runtime
+   (`var(--` + kunci + `)`) dengan salah satu kunci bernilai `gray` — dan
+   `--gray` TIDAK PERNAH ADA di stylesheet mana pun, sehingga opsi keempat
+   gagal DIAM (substitusi custom property yang gagal → deklarasi invalid →
+   warna jatuh ke warisan, latar transparan). Perakitan runtime juga tak
+   terbaca pemindai statis apa pun, termasuk `css_tokens.test.ts`. */
 const CONCL_2400 = [
-  { k: 'green', l: 'Tanpa Modifikasian', ref: '¶86', d: 'Tidak ada hal yang menjadi perhatian yang menyebabkan auditor percaya LK tidak disajikan secara wajar.' },
-  { k: 'amber', l: 'Dengan Pengecualian', ref: '¶94', d: 'Dampak hal tertentu material tetapi tidak pervasif terhadap laporan keuangan.' },
-  { k: 'red', l: 'Merugikan (Adverse)', ref: '¶95', d: 'Dampak salah saji material & pervasif — LK tidak disajikan secara wajar.' },
-  { k: 'gray', l: 'Tidak Menyatakan Simpulan', ref: '¶96', d: 'Pembatasan lingkup material & pervasif; bukti tidak cukup untuk menyimpulkan.' },
+  { id: 'unmodified', badge: 'green', fg: 'var(--green)', bg: 'var(--green-bg)', l: 'Tanpa Modifikasian', ref: '¶86', d: 'Tidak ada hal yang menjadi perhatian yang menyebabkan auditor percaya LK tidak disajikan secara wajar.', txt: 'Berdasarkan reviu kami, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya bahwa laporan keuangan tidak menyajikan secara wajar, dalam semua hal yang material, sesuai dengan SAK.' },
+  { id: 'qualified', badge: 'amber', fg: 'var(--amber)', bg: 'var(--amber-bg)', l: 'Dengan Pengecualian', ref: '¶94', d: 'Dampak hal tertentu material tetapi tidak pervasif terhadap laporan keuangan.', txt: 'Kecuali untuk dampak hal yang diuraikan dalam paragraf Basis, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya laporan keuangan tidak disajikan secara wajar sesuai SAK.' },
+  { id: 'adverse', badge: 'red', fg: 'var(--red)', bg: 'var(--red-bg)', l: 'Merugikan (Adverse)', ref: '¶95', d: 'Dampak salah saji material & pervasif — LK tidak disajikan secara wajar.', txt: 'Berdasarkan reviu kami, karena signifikansi hal yang diuraikan, laporan keuangan tidak menyajikan secara wajar sesuai dengan SAK.' },
+  { id: 'disclaimer', badge: 'gray', fg: 'var(--ink-3)', bg: 'var(--surface-3)', l: 'Tidak Menyatakan Simpulan', ref: '¶96', d: 'Pembatasan lingkup material & pervasif; bukti tidak cukup untuk menyimpulkan.', txt: 'Karena signifikansi hal yang diuraikan, kami tidak memperoleh bukti yang cukup sebagai dasar simpulan reviu; oleh karena itu kami tidak menyatakan simpulan.' },
 ];
 
 function F2400Concl() {
-  const [sel, setSel] = useState2400(0);
-  const c = CONCL_2400[sel];
+  const R = revRecord();
+  /* Simpulan TEREKAM perikatan — pemilih di bawah adalah alat belajar
+     metodologi, dan pratinjau WAJIB menyatakan mana yang mana (preseden:
+     field `basis` pada modul Treasury). */
+  const rekamId = (R && R.conclusion) || '';
+  const rekam = CONCL_2400.find((x) => x.id === rekamId) || null;
+  const [sel, setSel] = useState2400(rekam ? rekam.id : CONCL_2400[0].id);
+  const c = CONCL_2400.find((x) => x.id === sel) || CONCL_2400[0];
+  const simulasi = !rekam || c.id !== rekam.id;
+  const partner = R ? revPartner(R.id) : '';
+
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1.3fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Bentuk Simpulan Reviu</h3><div style={{ flex: 1 }} /><Badge kind="teal">Keyakinan negatif</Badge></div>
-        <div style={{ padding: 14, display: 'grid', gap: 8 }}>
-          {CONCL_2400.map((x, i) => (
-            <div key={i} onClick={() => setSel(i)} className="panel" style={{ padding: '11px 13px', cursor: 'pointer', boxShadow: 'none', borderColor: sel === i ? `var(--${x.k})` : 'var(--line)', borderWidth: sel === i ? 2 : 1, background: sel === i ? `var(--${x.k}-bg)` : 'transparent' }}>
-              <div className="row jb ac">
-                <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid var(--${x.k})`, background: sel === i ? `var(--${x.k})` : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12, fontWeight: 700 }}>{x.l}</span></div>
-                <span className="mono tiny" style={{ color: `var(--${x.k})`, fontWeight: 700 }}>{x.ref}</span>
-              </div>
-              <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.45, paddingLeft: 22 }}>{x.d}</div>
-            </div>
-          ))}
-        </div>
+        {/* radiogroup NATIVE (fieldset + input[type=radio]): panah keyboard,
+            semantik grup, dan nama aksesibel didapat gratis. Sebelumnya
+            `<div onClick>` dengan lingkaran radio yang hanya digambar. */}
+        <fieldset style={{ border: 0, margin: 0, padding: 14, display: 'grid', gap: 8 }}>
+          <legend className="tiny muted upper" style={{ padding: 0, marginBottom: 4 }}>Pilih bentuk simpulan untuk melihat elemen laporannya</legend>
+          {CONCL_2400.map((x) => {
+            const on = sel === x.id;
+            return (
+              <label key={x.id} className="panel" style={{ display: 'block', padding: '11px 13px', cursor: 'pointer', boxShadow: 'none', borderColor: on ? x.fg : 'var(--line)', borderWidth: on ? 2 : 1, background: on ? x.bg : 'transparent' }}>
+                <div className="row jb ac">
+                  <span className="row ac gap8">
+                    <input type="radio" name="spr2400-concl" value={x.id} checked={on} onChange={() => setSel(x.id)} />
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{x.l}</span>
+                    {rekam && rekam.id === x.id && <Badge kind="blue">Terekam</Badge>}
+                  </span>
+                  <span className="mono tiny" style={{ color: x.fg, fontWeight: 700 }}>{x.ref}</span>
+                </div>
+                <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.45, paddingLeft: 22 }}>{x.d}</div>
+              </label>
+            );
+          })}
+        </fieldset>
       </Panel>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Elemen Laporan Reviu (¶86)</h3><div style={{ flex: 1 }} /><Badge kind={c.k}>{c.l}</Badge></div>
+        <div className="panel-h"><h3>Elemen Laporan Reviu (¶86)</h3><div style={{ flex: 1 }} /><Badge kind={c.badge}>{c.l}</Badge></div>
         <div style={{ padding: 18 }}>
+          {/* BASIS — apa yang sedang ditampilkan, dan apa yang terekam. */}
+          <div className="row gap8 ac" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
+            {simulasi
+              ? <Badge kind="amber" dot>Simulasi metodologi — bukan simpulan perikatan</Badge>
+              : <Badge kind="blue" dot>Simpulan terekam perikatan</Badge>}
+            <span className="tiny muted">
+              {rekam && R
+                ? <>Simpulan terekam {R.id}: <b>{rekam.l}</b>{partner ? <> · rekan perikatan (registri): <b>{partner}</b></> : null}</>
+                : <>Tidak ada simpulan terekam pada perikatan reviu tertaut.</>}
+            </span>
+          </div>
+          {/* Hex di dalam `.doc-paper` mensimulasikan kertas cetak putih dan
+              SENGAJA tidak ikut tema — di luar lingkup PR ini, dilaporkan. */}
           <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN REVIU PRAKTISI INDEPENDEN</div>
-            <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Berdasarkan Standar Perikatan Reviu (SPR) 2400</div>
+            <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Templat elemen — Standar Perikatan Reviu (SPR) 2400</div>
             <div style={{ fontWeight: 700, color: '#0c2430', margin: '0 0 4px' }}>Tanggung Jawab Praktisi</div>
-            <p style={{ margin: '0 0 10px' }}>Reviu dilaksanakan sesuai SPR 2400 — terutama terdiri dari inquiry & prosedur analitis. Lingkupnya jauh lebih sempit dibanding audit sehingga <b>tidak menyatakan opini audit</b>.</p>
+            <p style={{ margin: '0 0 10px' }}>Reviu dilaksanakan sesuai SPR 2400 — terutama terdiri dari inquiry &amp; prosedur analitis. Lingkupnya jauh lebih sempit dibanding audit sehingga <b>tidak menyatakan opini audit</b>.</p>
             <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 4px' }}>Simpulan — {c.l}</div>
-            <p style={{ margin: 0 }}>{sel === 0
-              ? 'Berdasarkan reviu kami, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya bahwa laporan keuangan tidak menyajikan secara wajar, dalam semua hal yang material, sesuai dengan SAK.'
-              : sel === 1
-              ? 'Kecuali untuk dampak hal yang diuraikan dalam paragraf Basis, tidak ada hal yang menjadi perhatian kami yang menyebabkan kami percaya laporan keuangan tidak disajikan secara wajar sesuai SAK.'
-              : sel === 2
-              ? 'Berdasarkan reviu kami, karena signifikansi hal yang diuraikan, laporan keuangan tidak menyajikan secara wajar sesuai dengan SAK.'
-              : 'Karena signifikansi hal yang diuraikan, kami tidak memperoleh bukti yang cukup sebagai dasar simpulan reviu; oleh karena itu kami tidak menyatakan simpulan.'}</p>
-            <div style={{ marginTop: 22, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}><b>Sari Dewanti, CPA</b> · Akuntan Publik<br /><span className="tiny" style={{ color: '#7a8893' }}>Jakarta, {amsDateLongId()}</span></div>
+            <p style={{ margin: 0 }}>{c.txt}</p>
+            {/* TIDAK ditandatangani. Sebelumnya blok ini mencetak nama seorang
+                akuntan publik nyata sebagai tanda tangan atas simpulan yang
+                dipilih dari pemilih di sebelah — atestasi yang dikarang.
+                Laporan reviu diterbitkan dari kertas kerja perikatan, bukan
+                dari halaman metodologi. */}
+            <div style={{ marginTop: 22, paddingTop: 10, borderTop: '1px solid #e0e5ea', fontSize: 11 }}>
+              <div style={{ fontWeight: 700 }}>Elemen yang dilengkapi saat penerbitan (¶86)</div>
+              <div className="tiny" style={{ color: '#7a8893', marginTop: 4, lineHeight: 1.6 }}>
+                Nama &amp; tanda tangan praktisi · nomor registrasi akuntan publik · alamat kantor · tanggal laporan.
+                Templat ini <b>tidak ditandatangani</b> — penandatanganan dilakukan pada kertas kerja perikatan reviu.
+              </div>
+              <div className="tiny" style={{ color: '#7a8893', marginTop: 6 }}>Templat dilihat: Jakarta, {amsDateLongId()}</div>
+            </div>
           </div>
         </div>
       </Panel>
