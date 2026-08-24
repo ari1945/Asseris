@@ -5,7 +5,11 @@
 > maupun manusia yang mengeksekusi perbaikan.
 >
 > **Sumber kebenaran yang dirujuk template ini** (jangan salin isinya ke sini — tautkan saja):
-> - Rubrik & hasil kedalaman: [`PRD-RINGKASAN-KEDALAMAN-E9.md`](PRD-RINGKASAN-KEDALAMAN-E9.md)
+> - **Kedalaman terkini per modul (PAKAI INI, bukan E-9 mentah):**
+>   [`KEDALAMAN-158-MODUL-TERKINI.md`](KEDALAMAN-158-MODUL-TERKINI.md) — skor 0–5,
+>   plafon L0–L5, kolom ⚠ (cacat terbukti hidup), dan §6 daftar modul yang skornya
+>   diketahui MENGECILKAN keadaan.
+> - Rubrik & hasil kedalaman (baseline, 2026-08-13): [`PRD-RINGKASAN-KEDALAMAN-E9.md`](PRD-RINGKASAN-KEDALAMAN-E9.md)
 > - Program sistemik A–F + 12 modul terdangkal: [`PRD-USULAN-PENGEMBANGAN-E9-KEDALAMAN.md`](PRD-USULAN-PENGEMBANGAN-E9-KEDALAMAN.md)
 > - Kandidat per-temuan K-01..K-05: [`PRD-KATALOG-EVALUASI-158-MODUL.md`](PRD-KATALOG-EVALUASI-158-MODUL.md)
 > - Aturan repo: [`../CLAUDE.md`](../CLAUDE.md) · gerbang: [`../BUILD.md`](../BUILD.md) §R-7
@@ -39,6 +43,37 @@ L5 siklus hidup penuh (server + rantai audit + sign-off/SoD + ekspor tersegel).
 > kode sekarang.** Mengirim agen memperbaiki cacat yang sudah tertutup menghasilkan
 > perubahan tanpa dasar, dan itu lebih mahal daripada tidak mengerjakan apa pun.
 
+### 0.1 · Mengisi parameter dari tabel kedalaman
+
+BLOK-B minta `<L_SEKARANG>`, `<L_TARGET>`, `<temuan>`, `<program>`. Ambil dari
+[`KEDALAMAN-158-MODUL-TERKINI.md`](KEDALAMAN-158-MODUL-TERKINI.md) §3:
+
+| Kolom tabel | Isi slot template |
+|---|---|
+| **Ceil / Plafon** | `<L_SEKARANG>` |
+| **Sekarang (skor)** | penentu `<L_TARGET>`: skor < 2,0 → naik satu level plafon · skor 2,0–3,0 → **tutup gap ke plafon yang sudah ada**, bukan naik level · skor > 3,0 → cukup BLOK-E satu titik |
+| **⚠n** | wajib jadi butir pertama `<temuan>`; literalnya ada di §4 |
+| status `※` basi / arc mendarat | **jangan kirim prompt** sebelum baca ulang kodenya |
+| §6 "mengecilkan" (`↑`) | investigasi WAJIB membaca mesin di luar berkas view |
+| Plafon **L4⚠️** | wajib adendum C-B (key firm-scope = P0) |
+| Plafon **L0/L1** | wajib adendum C-G (kertas kerja atau referensi?) |
+
+**Pemilihan adendum** — maksimal dua per prompt; lebih dari dua = pecah PR.
+C-J tidak dihitung, ia selalu ikut.
+
+| Gejala di modul | Adendum |
+|---|---|
+| Tombol unduh/cetak mati; `amsPrintDoc` untuk output klien | C-A |
+| Literal `20xx-xx-xx`; tabel tarif sendiri; key firm-scope | C-B |
+| Badge "Terverifikasi" tanpa `audit.verify`; tulis lokal | C-C |
+| `<span onClick>` sebagai toggle; tombol ikon tanpa label | C-D |
+| Angka laporan tak bergerak saat jurnal diposting; angka "plug" | C-E |
+| Chip tautan modul tak memanggil `nav()` | C-F |
+| Plafon L0/L1; isi seluruhnya hardcode | C-G |
+| Nama orang/firma/nomor dokumen literal di view atau ekspor | **C-H** |
+| `X ? kanon : SEED`; register tanpa pembaca render | **C-I** |
+| Menyentuh lint / worktree / berkas baru | **C-J** (selalu) |
+
 ---
 
 ## BLOK-A · Preamble tetap (salin apa adanya)
@@ -71,6 +106,33 @@ ATURAN KERAS (melanggar = pekerjaan ditolak):
 6. Kontrol form NATIVE (<Switch>/<Check> dari ui.tsx), bukan <span onClick>.
    Skala tipografi hanya 8 ukuran (lantai 11px, dilarang setengah langkah).
    Warna lewat token CSS var, bukan hex. `:any` baru = lint merah.
+7. FALSIFIKASI GERBANGMU SENDIRI. Setelah menulis uji, buktikan ia bisa MERAH pada
+   kode LAMA: `git stash && npm test -- <berkas uji>` -> harus GAGAL -> `git stash pop`.
+   Gerbang yang lolos "vakum" sudah terjadi TIGA kali di repo ini:
+   - regex yang DIRAKIT dari string/template literal kehilangan escape-nya. Urutan
+     backslash-b di dalam template literal JS, atau lewat heredoc shell, mendarat
+     sebagai byte BACKSPACE = pola yang tak pernah cocok. `cat -A` TIDAK
+     menampakkannya. Tulis regex sebagai literal /.../ , atau pakai toContain untuk
+     teks harfiah. Jangan pernah merakit RegExp dari string di dalam uji gerbang.
+   - toMatchObject({p: /regex/}) SELALU lolos.
+   - menguji keberadaan simbol, bukan perilaku.
+   Uji yang belum pernah kamu lihat MERAH bukan gerbang.
+8. MESIN MEMBANTAH, BUKAN MENGISI. Kalau modul menyajikan kesimpulan/angka yang
+   seharusnya lahir dari pekerjaan auditor, dan pekerjaan itu belum dilakukan —
+   jawabannya BUKAN mengisi nilai "yang benar". Mengarang jawaban benar mengulang
+   cacat yang sedang dicabut, hanya dengan pengarang berbeda. Yang benar: panel
+   KOSONG + kontrol pengisinya, atau mesin yang MEMBANTAH (menyatakan datanya belum
+   ada / urutannya mustahil). Bantahan itu ikut TERSEGEL dalam ekspor.
+   Konsekuensi: mencabut data karangan sering MEWAJIBKAN menambah kontrol yang
+   hilang — kalau tidak, data karangan cuma bertukar jadi panel MATI.
+   Gerbang untuk ini hanya boleh memaku urutan yang MUSTAHIL (mis. persetujuan
+   bertanggal sebelum bantuan diberikan), bukan menebak isi yang benar.
+9. CABANG KERJA != CABANG PR. Jalankan `git log --oneline origin/master..HEAD` dan
+   `git status --short` SEBELUM mulai. Direktori kerja utama repo ini rutin memegang
+   commit arc LAIN yang belum punya PR, dan berkas `M` milik sesi paralel. Kirim
+   lewat cabang BARU dari origin/master + cherry-pick, verify ulang di atas master
+   terkini. Jangan menumpang cabang yang isinya bukan milikmu, dan jangan menyebut
+   nomor baris berkas yang sedang `M`.
 
 GERBANG SELESAI (jalankan dari root, tempelkan outputnya):
    npm run verify
@@ -233,6 +295,77 @@ Jangan mulai coding sebelum jawabannya jelas. Menambah form ke modul yang seharu
 dihapus adalah kerugian ganda.
 ```
 
+### C-H · Identitas karangan (pelaku, dokumen, entitas)
+
+Pola cacat dengan sebaran terbesar di repo ini (~94 situs/79 berkas hanya untuk nama
+firma). Tempel untuk modul mana pun yang menghasilkan memo, kertas kerja, bukti
+potong, faktur, atau ekspor tersegel.
+
+```
+ADENDUM IDENTITAS
+Cari SEMUA identitas di modul ini dan buktikan asal tiap satu:
+  grep -n "Wijaya|Hartono|Linda|CPA|KAP |ENG-20|FY20|NPWP" <view>
+
+- Nama pelaku (penyusun/peninjau/penandatangan) HANYA dari sesi: useCurrentAuditor().
+  PERINGATAN: useCurrentAuditor() JATUH KEMBALI ke AMS.USER. Untuk ATRIBUSI TULIS
+  fallback itu SALAH. Periksa preseden repo TERKINI; jangan meniru modul tetangga
+  tanpa memeriksa — meniru `useFirm().firm.name` (yang tak pernah ada) sudah
+  melahirkan tiga tombol ekspor mati permanen.
+- Nama firma/klien/perikatan dari konteks (useFirm/useAudit), bukan literal.
+  Literal 'ENG-2025-014'/'FY2025' adalah perikatan BAWAAN seed, sehingga cacatnya
+  TAK TERLIHAT pada perikatan default. Uji WAJIB memakai perikatan KEDUA.
+- Nomor dokumen (faktur, bukti potong, nomor KK) TIDAK BOLEH diturunkan dari panjang
+  array atau indeks — nomornya bergeser saat data bergerak dan menabrak nomor lama.
+- Nama pihak ketiga (auditor pendahulu, vendor, pegawai) yang masuk ke output
+  TERSEGEL: kalau datanya tidak ada di repo, BERHENTI dan tanya. Jangan mengarang.
+- Anotasi tipe INLINE di call-site bisa MENGARANG bentuk objek sehingga tsc ikut diam
+  dan sel memo selalu kosong. Ambil tipe dari sumbernya, jangan tulis ulang di
+  parameter callback.
+- Gerbang: buka modul pada DUA perikatan berbeda -> identitas di payload ekspor harus
+  BERBEDA. Gerbang yang hanya memeriksa "ada nama" tidak membuktikan apa pun.
+```
+
+### C-I · Fallback ke seed karangan
+
+```
+ADENDUM FALLBACK
+Cari pola `X ? kanon : SEED` dan `ctx.x || BAWAAN` di view DAN di mesin yang dipanggil.
+
+- Fallback ke data karangan LEBIH BURUK daripada tanpa fallback: modul terlihat hidup,
+  angkanya tidak. Inilah cara ARC-014 bertahan melewati tiga PR.
+- Cacatnya sering di PEMANGGIL, bukan mesin: pemanggil tak mengirim kunci ctx, lalu
+  mesin `ctx.x || bawaan` diam-diam memakai seed.
+- Larik KOSONG adalah truthy. `rows.length ? kanon : seed` berbeda dari `rows || seed`.
+  Sebagian mesin repo ini JATUH KE SINGLETON saat diberi larik kosong (wtbRows([])),
+  jadi "membuktikan ketiadaan" lewat input kosong justru MENGULANG cacatnya.
+- Telusuri sampai SITUS RENDER sebelum menyebut sebuah register "hidup". Register yang
+  punya pembaca di mesin tapi nol pembaca di view adalah kode mati — dan repo ini
+  tidak punya gerbang variabel mati yang akan menangkapnya.
+- "Dipertahankan sebagai referensi" = mekanisme agar data salah bertahan. Cabut, lalu
+  tulis uji yang MENAGIH janji pencabutannya sendiri.
+- Gerbang: matikan sumber kanon -> modul harus KOSONG atau MEMBANTAH, bukan
+  menampilkan seed.
+```
+
+### C-J · Higiene gerbang repo (ikut di SETIAP prompt)
+
+```
+ADENDUM GERBANG REPO
+- `npm run lint` bisa exit 2 TANPA mencetak satu error pun bila hitungan `:any` TURUN.
+  Itu bukan kegagalan kodemu — sinkronkan: `npm run lint:any-baseline`.
+- eslint-suppressions.json adalah berkas BERSAMA lintas arc. Bila direktori kerja
+  memegang perubahan arc lain, JANGAN jalankan lint:any-baseline lalu commit seluruh
+  berkas. Stage bedah: `git show HEAD:<berkas>` -> sunting -> `git hash-object -w` +
+  `git update-index --cacheinfo`.
+- Impor ke berkas UNTRACKED = commit takkan build. Verifikasi sebelum kirim:
+  `git write-tree` lalu `git ls-tree` — pastikan berkas barunya benar-benar masuk.
+- Bila direktori kerja utama MERAH oleh arc lain, verify di worktree segar.
+  PERINGATAN: `ensure-prisma-client` di worktree MERACUNI pohon utama lewat junction
+  server/node_modules — pakai `npm ci` NYATA untuk server/, junction hanya untuk
+  root/migration/e2e. Lepas junction dengan `cmd /c rmdir` SEBELUM `git worktree remove`.
+- `tail` menelan exit code `npm run verify`. Jangan menyimpulkan hijau dari ekor log.
+```
+
 ---
 
 ## BLOK-D · Definisi Selesai (tempel di akhir setiap prompt)
@@ -315,3 +448,9 @@ mesin kedua, dan dua sumber kebenaran lebih buruk daripada satu yang salah.
 | Key firm-scope untuk data perikatan | Kebocoran isolasi W7.5 |
 | Naik dua level dalam satu PR | Tak bisa direviu; gagal parsial jadi tak terdeteksi |
 | Mengirim `master` merah | Melanggar R-7 |
+| `new RegExp` dirakit dari string di dalam uji gerbang | Escape hilang → pola tak pernah cocok → uji hijau di atas kode rusak (terjadi 3×) |
+| Mengisi jawaban "yang benar" untuk pekerjaan yang belum dilakukan | Mengulang cacat karangan dengan pengarang berbeda; mesin harus MEMBANTAH |
+| Mencabut data karangan tanpa menambah kontrol pengisinya | Data karangan bertukar jadi panel MATI |
+| Menguji hanya pada perikatan bawaan (`ENG-2025-014`) | Cacat isolasi tak terlihat pada perikatan default |
+| `commit` di cabang kerja yang memegang arc orang lain | Commit-mu ikut menyandera arc yang belum punya PR |
+| Menyimpulkan verify hijau dari ekor log | `tail` menelan exit code |
