@@ -82,6 +82,9 @@ const MODULE_PHASE_RAW: Record<string, LegacyPhase> = {
 
   /* --- Eksekusi: prosedur substantif inti --- */
   wtb: 'Eksekusi',
+  /* SA 510 — saldo awal. Pekerjaan intinya (tie-out saldo akhir audited TA-1 →
+     saldo awal periode kini) bersandar pada WTB, jadi ia hidup di fase yang sama. */
+  opening: 'Eksekusi',
   aje: 'Eksekusi',
   analytical: 'Eksekusi',
   sa520: 'Eksekusi',            // prosedur analitis

@@ -1,9 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { PRIOR_YEAR } from './data_part1';
 import { useAudit, useAuth, useFirm, useAmsPersist, useInitialTab, useNav } from './contexts';
-import { tieOutPriorYear, TIE_LABEL } from './prior_year';
+import { tieOutPriorYear, TIE_LABEL, SOFP_GROUPS } from './prior_year';
 import type { TieResult, TieRow } from './prior_year';
+import { WpPanel, useWpSignoff } from './wp_signoff';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -22,41 +24,59 @@ import { buildOpeningBlocks, buildOpeningSheets, openingMemoMeta, openingMemoRef
    ============================================================ */
 const { useState: useStateOPN } = React;
 
-/* ---- static reference data ---- */
-const OB_TRANSITION = { '1-2300': 13_100_000_000, '2-1500': -3_050_000_000, '2-2200': -10_050_000_000 };
-const OB_SOFP_GROUPS = ['Aset Lancar', 'Aset Tidak Lancar', 'Liabilitas Jk. Pendek', 'Liabilitas Jk. Panjang', 'Ekuitas'];
+/* ---- referensi statis ----
+   ATURAN BERKAS INI (O1): apa pun yang ditulis di sini adalah TEMPLAT — pertanyaan,
+   prosedur yang disarankan, kondisi standar. TIDAK ADA JAWABAN. Kolom hasil, kolom
+   bukti-yang-diperoleh, dan flag "konsisten" dulu berdiri di sini sebagai konstanta
+   modul: identik untuk setiap klien dan setiap perikatan, dirender sebagai badge
+   hijau "Memadai". Auditor yang membuka modul ini melihat prosedur atas persediaan,
+   piutang, aset tetap, sewa, dan imbalan kerja sudah dinilai memadai sebelum ia
+   mengerjakan apa pun. Angka salah bisa dikoreksi; catatan bahwa bukti telah
+   diperoleh padahal tidak, adalah dokumentasi palsu. */
 
-const OB_SPECIFIC = [
+/* Pustaka prosedur yang DISARANKAN atas saldo awal akun yang lazim signifikan
+   (SA 510 ¶6). Bukan daftar pekerjaan yang telah dilakukan, dan bukan penilaian
+   risiko perikatan ini: `risk` adalah risiko yang LAZIM melekat pada saldo awal
+   akun tersebut, dipakai untuk mengurutkan perhatian. Penilaian risiko perikatan
+   ini ada di tab "Penilaian Tahun Pertama" (mesin `openingScore`). */
+const OB_PROC_LIBRARY = [
   { id: 'C', acct: 'Persediaan', lead: 'C', assertion: 'Keberadaan · Penilaian', risk: 'Signifikan',
-    proc: 'Telaah hasil stock opname & valuasi persediaan akhir TA-1, lalu uji roll-back pergerakan ke saldo awal TA kini. Bandingkan metode kos (rata-rata tertimbang) antar-periode.',
-    evidence: 'KKP auditor TA lalu C-1…C-4; Berita Acara Opname 28 Des 2024; rekap mutasi Jan 2025', result: 'Memadai', wp: 'C(OB)' },
+    proc: 'Telaah hasil stock opname & valuasi persediaan akhir TA-1, lalu uji roll-back pergerakan ke saldo awal TA kini. Bandingkan metode kos antar-periode.',
+    needs: 'Berita acara opname penutup TA-1 · kertas kerja uji NRV · rekap mutasi periode antara · KKP persediaan auditor TA lalu' },
   { id: 'B', acct: 'Piutang Usaha & CKPN', lead: 'B', assertion: 'Keberadaan · Penilaian', risk: 'Signifikan',
     proc: 'Telaah konfirmasi & aging schedule TA-1; uji penerimaan kas subsequent atas saldo awal piutang; evaluasi dasar CKPN (PSAK 71) pembukaan.',
-    evidence: 'Konfirmasi B-2 TA lalu; mutasi penerimaan Jan–Mar 2025; model ECL pembukaan', result: 'Memadai', wp: 'B(OB)' },
+    needs: 'Aging piutang penutup TA-1 · jawaban konfirmasi TA lalu · bukti penerimaan kas setelah tanggal neraca · model ECL pembukaan' },
   { id: 'E', acct: 'Aset Tetap & Akm. Penyusutan', lead: 'E', assertion: 'Keberadaan · Hak', risk: 'Moderat',
     proc: 'Rekonsiliasi register aset tetap ke saldo awal harga perolehan & akumulasi penyusutan; uji eksistensi sampel aset material; verifikasi kebijakan & umur ekonomis konsisten.',
-    evidence: 'Register aset tetap audited TA-1; KKP E-1/E-3; bukti kepemilikan sampel', result: 'Memadai', wp: 'E(OB)' },
+    needs: 'Register aset tetap penutup TA-1 · bukti kepemilikan sampel · kebijakan penyusutan & umur ekonomis kedua periode' },
   { id: 'F', acct: 'Aset Hak-Guna & Liabilitas Sewa', lead: 'F', assertion: 'Kelengkapan · Penilaian', risk: 'Signifikan',
-    proc: 'Evaluasi perhitungan penerapan awal PSAK 73 per 1 Jan 2025 (identifikasi sewa, masa sewa, tingkat diskonto inkremental). Saldo awal timbul dari transisi — bukan dibawa dari TA-1.',
-    evidence: 'Memo transisi PSAK 73; daftar kontrak sewa; perhitungan present value', result: 'Dalam Proses', wp: 'F(OB)' },
+    proc: 'Evaluasi perhitungan penerapan awal PSAK 73 pada tanggal neraca awal (identifikasi sewa, masa sewa, tingkat diskonto inkremental). Bila diterapkan retrospektif modifikasian, saldo awal timbul dari transisi — bukan dibawa dari TA-1.',
+    needs: 'Memo transisi PSAK 73 · daftar kontrak sewa · perhitungan nilai kini & dasar tingkat diskonto' },
   { id: 'H', acct: 'Liabilitas Imbalan Kerja', lead: 'H', assertion: 'Penilaian', risk: 'Moderat',
     proc: 'Telaah laporan aktuaria pembukaan & kewajaran asumsi (tingkat diskonto, kenaikan gaji, mortalita) dibanding TA-1; verifikasi kontinuitas saldo.',
-    evidence: 'Laporan aktuaria 31 Des 2024 (audited); rekonsiliasi liabilitas', result: 'Memadai', wp: 'H(OB)' },
+    needs: 'Laporan aktuaria penutup TA-1 · rekonsiliasi liabilitas · data karyawan pendukung' },
 ];
 
-const OB_POLICY = [
-  { area: 'Penilaian persediaan', prior: 'Rata-rata tertimbang', cur: 'Rata-rata tertimbang', ok: true },
-  { area: 'Penyusutan aset tetap', prior: 'Garis lurus', cur: 'Garis lurus', ok: true },
-  { area: 'Pengakuan pendapatan', prior: 'PSAK 72 (5 langkah)', cur: 'PSAK 72 (5 langkah)', ok: true },
-  { area: 'CKPN piutang', prior: 'PSAK 71 — ECL', cur: 'PSAK 71 — ECL', ok: true },
-  { area: 'Akuntansi sewa', prior: 'PSAK 30 (sewa operasi)', cur: 'PSAK 73 (right-of-use)', ok: false, note: 'Penerapan standar baru (bukan inkonsistensi) — dampak transisi diungkapkan dalam CALK.' },
-  { area: 'Imbalan kerja', prior: 'PSAK 24', cur: 'PSAK 24', ok: true },
+/* Area kebijakan akuntansi yang wajib DIBANDINGKAN antar-periode (SA 510 ¶6(b)).
+   Pertanyaannya tetap ada; jawabannya tidak — perbandingan kebijakan periode lalu
+   vs periode kini adalah temuan perikatan, bukan konstanta aplikasi. */
+const OB_POLICY_AREAS = [
+  { area: 'Penilaian persediaan', ask: 'Dasar kos (FIFO / rata-rata tertimbang) & dasar NRV — sama dengan TA-1?' },
+  { area: 'Penyusutan aset tetap', ask: 'Metode, umur ekonomis & nilai residu — sama dengan TA-1?' },
+  { area: 'Pengakuan pendapatan', ask: 'Identifikasi kewajiban pelaksanaan & saat pengakuan (PSAK 72) — sama dengan TA-1?' },
+  { area: 'CKPN piutang', ask: 'Pendekatan ECL, segmentasi & matriks provisi (PSAK 71) — sama dengan TA-1?' },
+  { area: 'Akuntansi sewa', ask: 'Standar yang diterapkan & metode transisi bila berubah (PSAK 73 C5–C13) — sama dengan TA-1?' },
+  { area: 'Imbalan kerja', ask: 'Metode aktuaria & perlakuan pengukuran kembali (PSAK 24) — sama dengan TA-1?' },
 ];
 
+/* Kondisi SA 510 ¶10–13 — kutipan standar. Kolom "status" (clear/watch) beserta
+   catatan "Tidak ditemukan salah saji saldo awal; carry-forward terverifikasi"
+   DICABUT: ketiganya adalah kesimpulan perikatan, dan ketiganya tampil hijau
+   bahkan ketika belum ada satu pun sumber TA-1 untuk dibandingkan. */
 const OB_OPINION_MATRIX = [
-  { cond: 'Bukti audit cukup & tepat atas saldo awal tidak dapat diperoleh', mod: 'WDP / Tidak Menyatakan Pendapat', ref: '¶10', status: 'clear', note: 'Bukti memadai diperoleh untuk seluruh saldo awal signifikan.' },
-  { cond: 'Saldo awal mengandung salah saji yang berdampak material thd periode berjalan', mod: 'WDP / Tidak Wajar', ref: '¶11', status: 'clear', note: 'Tidak ditemukan salah saji saldo awal; carry-forward terverifikasi.' },
-  { cond: 'Kebijakan akuntansi tidak konsisten / perubahan tidak dipertanggungjawabkan & diungkapkan', mod: 'WDP / Tidak Wajar', ref: '¶12', status: 'watch', note: 'Konsisten. Perubahan ke PSAK 73 merupakan penerapan standar baru, diungkapkan memadai.' },
+  { cond: 'Bukti audit cukup & tepat atas saldo awal tidak dapat diperoleh', mod: 'WDP / Tidak Menyatakan Pendapat', ref: '¶10' },
+  { cond: 'Saldo awal mengandung salah saji yang berdampak material thd periode berjalan', mod: 'WDP / Tidak Wajar', ref: '¶11' },
+  { cond: 'Kebijakan akuntansi tidak konsisten / perubahan tidak dipertanggungjawabkan & diungkapkan', mod: 'WDP / Tidak Wajar', ref: '¶12' },
 ];
 
 /* ============================================================ */
@@ -64,11 +84,29 @@ interface OBState {
   engType: 'lanjutan' | 'awal';
   factors: AssessmentFactor[];
   predSteps: Record<string, boolean>;
+  /* Nama KAP pendahulu — DIISI AUDITOR. Dulu literal 'KAP Sutrisno, Bambang &
+     Rekan' di badan komponen, dan ia TIDAK berhenti di layar: `buildMemoInput`
+     mengirimnya lewat `predecessorName` ke `openingMemoMeta`, sehingga memo PDF/
+     XLSX TERSEGEL menamai satu kantor akuntan tertentu sebagai auditor pendahulu
+     klien mana pun yang sedang dibuka. */
+  predName: string;
   safeguards: string;
+  /* WARISAN — hanya DIBACA. Kesimpulan auditor kini disimpan di rantai kertas
+     kerja kanonik (`wpState['opening'].conclusion`, lewat `WpConclusion`):
+     satu tempat, dengan disposisi terstruktur, pelaku, dan tanggal. Field ini
+     dipertahankan supaya nilai yang sudah ter-persist di `opening.v1` tidak
+     hilang dari memo tersegel. */
   conclusion: string;
   concluded: boolean;
 }
-const defaultOB = (): OBState => ({ engType: 'lanjutan', factors: OB_RISK_FACTORS(), predSteps: {}, safeguards: '', conclusion: '', concluded: false });
+const defaultOB = (): OBState => ({ engType: 'lanjutan', factors: OB_RISK_FACTORS(), predSteps: {}, predName: '', safeguards: '', conclusion: '', concluded: false });
+
+/* Tanggal neraca awal = hari pertama tahun buku perikatan. Dulu literal
+   "1 Jan 2025" — benar hanya untuk satu siklus. */
+function openingDateLabel(cycle: string): string {
+  const m = /(\d{4})/.exec(cycle || '');
+  return m ? `1 Jan ${m[1]}` : '—';
+}
 
 function OpeningBalance() {
   const { fmt } = AMS;
@@ -79,6 +117,12 @@ function OpeningBalance() {
   const [tab, setTab] = useInitialTab('opening', 'konteks');
   const [st, setSt] = useAmsPersist('opening.v1', defaultOB);
   const s: OBState = st;
+  /* Pengalaman TA-1 per klien — registri yang SAMA yang ditulis modul Keberlanjutan
+     (`useAmsPersist('priorYear', PRIOR_YEAR)`). Dulu modul ini menuliskan sendiri
+     badge hijau "Wajar Tanpa Modifikasian" dan KvBox "Opini TA-1: WTP" sebagai
+     literal — salah untuk C-031 (WDP) dan C-040 (WTP-EoM), dan justru pada dua
+     klien itulah saldo awal paling perlu dicurigai (SA 510 ¶9). */
+  const [priorYearMap] = useAmsPersist('priorYear', PRIOR_YEAR);
 
   const engType: 'lanjutan' | 'awal' = s.engType === 'awal' ? 'awal' : 'lanjutan';
   const factors: AssessmentFactor[] = (s.factors && s.factors.length) ? s.factors : OB_RISK_FACTORS();
@@ -114,30 +158,56 @@ function OpeningBalance() {
     { id: 'konteks', label: 'Konteks & Strategi' },
     { id: 'nilai', label: 'Penilaian Tahun Pertama' },
     { id: 'trace', label: 'Penelusuran Saldo' },
-    { id: 'proc', label: 'Prosedur Spesifik' },
+    /* "Prosedur Spesifik" → "Prosedur (Saran)": labelnya ikut menjanjikan bahwa
+       isinya prosedur perikatan ini. Isinya pustaka. */
+    { id: 'proc', label: 'Prosedur (Saran)' },
     { id: 'policy', label: 'Konsistensi Kebijakan' },
     { id: 'opini', label: 'Kesimpulan & Opini' },
   ];
 
-  const predecessor = engType === 'awal'
-    ? { name: 'KAP Sutrisno, Bambang & Rekan', note: 'Auditor pendahulu — izin akses KKP diperoleh' }
-    : { name: '— (diaudit sendiri TA lalu)', note: 'Tidak ada auditor pendahulu' };
-
   // Info klien perikatan aktif untuk memo tersegel.
   const engId = (firm && firm.activeEngagementId) || '';
   const eng = ((firm && firm.engagements) || []).find((e: { id: string; clientId?: string; partner?: string; fy?: string }) => e.id === engId);
-  const client = ((firm && firm.clients) || []).find((c: { id: string; name?: string; partner?: string }) => c.id === (eng && eng.clientId));
+  const client = ((firm && firm.clients) || []).find((c: { id: string; name?: string; partner?: string; since?: number }) => c.id === (eng && eng.clientId));
   const clientName = (client && client.name) || 'Klien';
   const partnerName = (eng && eng.partner) || (client && client.partner) || '';
-  const cycle = (eng && eng.fy) || 'FY2025';
+  const cycle = (eng && eng.fy) || '';
   const firmName = ((AMS as { FIRM?: { name?: string } }).FIRM || {}).name || 'Kantor Akuntan Publik';
+
+  /* Pengalaman TA-1 klien ini — dibaca, tidak dikarang. Kosong = belum dicatat. */
+  const py: { fy?: string; opinion?: string; findings?: number; findingsNote?: string; uncorrected?: number } =
+    (priorYearMap as Record<string, { fy?: string; opinion?: string; findings?: number; findingsNote?: string; uncorrected?: number }>)[(client && client.id) || ''] || {};
+  const priorOpinion = py.opinion || '';
+  /* WTP = tanpa modifikasi. Apa pun selain itu adalah opini termodifikasi dan
+     memerlukan pertimbangan atas saldo awal (SA 510 ¶9). */
+  const priorClean = priorOpinion === 'WTP';
+  const tenure = (client && typeof client.since === 'number' && cycle && /(\d{4})/.test(cycle))
+    ? Number(/(\d{4})/.exec(cycle)?.[1]) - client.since + 1 : 0;
+
+  /* Auditor pendahulu — nama & status akses berasal dari isian auditor pada
+     perikatan ini, bukan dari nama KAP yang ditulis di dalam kode. */
+  const predName = (s.predName || '').trim();
+  const predecessor = engType === 'awal'
+    ? { name: predName || '— belum diisi —', note: predName ? 'Auditor pendahulu perikatan tahun pertama' : 'Nama auditor pendahulu belum diisi (SA 510 ¶6)' }
+    : { name: '— (diaudit sendiri TA lalu)', note: 'Tidak ada auditor pendahulu' };
+  const setPredName = (v: string) => setSt((p: OBState) => ({ ...p, predName: v }));
+
+  /* Kesimpulan auditor = rantai kertas kerja kanonik, dengan jatuh-balik ke nilai
+     warisan `opening.v1`. Sebelum arc ini `s.conclusion` DIKIRIM ke memo tersegel
+     tetapi tak ada satu pun kontrol yang bisa mengisinya — memo selalu jatuh ke
+     kalimat bawaan `buildOpeningBlocks`. */
+  const wpOb = useWpSignoff('opening');
+  const wpConcl: { text?: string; disposition?: string; by?: string; at?: string } | null = wpOb.conclusion || null;
+  const obConclusionText = ((wpConcl && wpConcl.text) || s.conclusion || '').trim();
 
   const [busyExport, setBusyExport] = useStateOPN(false);
   const buildMemoInput = (): OpeningMemoInput => ({
     client: clientName, clientId: (client && client.id) || engId, partner: partnerName, cycle, engType,
-    predecessorName: predecessor.name, score, verdict: rv.l, factors, safeguards: s.safeguards,
+    /* Hanya nama yang benar-benar diketik auditor yang boleh tersegel. Kosong
+       → `openingMemoMeta` mencetak '—', bukan placeholder layar. */
+    predecessorName: engType === 'awal' ? predName : '', score, verdict: rv.l, factors, safeguards: s.safeguards,
     predecessorSteps: PREDECESSOR_STEPS.map((step) => ({ label: step.label, done: !!(s.predSteps || {})[step.id] })),
-    conclusion: s.conclusion, date: AMS.TODAY,
+    conclusion: obConclusionText, date: AMS.TODAY,
   });
   const doExport = async (kind: 'pdf' | 'xlsx') => {
     if (busyExport) return;
@@ -175,9 +245,13 @@ function OpeningBalance() {
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Auditor Pendahulu</div><div style={{ fontWeight: 700, fontSize: 12, maxWidth: 200 }}>{predecessor.name}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Opini TA Lalu (2024)</div><div style={{ marginTop: 2 }}><Badge kind="green">Wajar Tanpa Modifikasian</Badge></div></div>
+            <div><div className="tiny muted upper">Opini TA Lalu{py.fy ? ' (' + py.fy + ')' : ''}</div><div style={{ marginTop: 2 }}>{
+              priorOpinion
+                ? <Badge kind={priorClean ? 'green' : 'amber'}>{priorOpinion}</Badge>
+                : <span className="tiny muted">belum dicatat</span>
+            }</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tgl Neraca Awal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>1 Jan 2025</div></div>
+            <div><div className="tiny muted upper">Tgl Neraca Awal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{openingDateLabel(cycle)}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Kesimpulan Saldo Awal</div>
@@ -188,12 +262,12 @@ function OpeningBalance() {
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'konteks' && <OBContext engType={engType} predecessor={predecessor} predSteps={s.predSteps || {}} toggleStep={toggleStep} readiness={readiness} canEdit={canEdit} />}
+        {tab === 'konteks' && <OBContext engType={engType} predecessor={predecessor} predName={predName} setPredName={setPredName} predSteps={s.predSteps || {}} toggleStep={toggleStep} readiness={readiness} canEdit={canEdit} py={py} priorOpinion={priorOpinion} priorClean={priorClean} tenure={tenure} score={score} rv={rv} />}
         {tab === 'nilai' && <OBAssessment engType={engType} factors={factors} score={score} rv={rv} patchFactor={patchFactor} safeguards={s.safeguards} setSafeguards={setSafeguards} canEdit={canEdit} readiness={readiness} />}
         {tab === 'trace' && <OBTrace wtb={wtb} fmt={fmt} priorYearBalances={priorYearBalances} nav={nav} />}
-        {tab === 'proc' && <OBProcedures fmt={fmt} />}
+        {tab === 'proc' && <OBProcedures nav={nav} />}
         {tab === 'policy' && <OBPolicy />}
-        {tab === 'opini' && <OBConclusion concluded={s.concluded} verdict={rv} score={score} />}
+        {tab === 'opini' && <OBConclusion concluded={s.concluded} obVerdict={obVerdict} score={score} rv={rv} wpConcl={wpConcl} conclusionText={obConclusionText} canEdit={canEdit} nav={nav} memoRef={openingMemoRefNo(buildMemoInput())} />}
 
       </div></div>
     </>
@@ -201,7 +275,7 @@ function OpeningBalance() {
 }
 
 /* ---------------- Tab: Konteks & Strategi ---------------- */
-function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, canEdit }: any) {
+function OBContext({ engType, predecessor, predName, setPredName, predSteps, toggleStep, readiness, canEdit, py, priorOpinion, priorClean, tenure, score, rv }: any) {
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -255,20 +329,30 @@ function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, can
           </Panel>
         ) : (
           <Panel noBody>
-            <div className="panel-h"><h3>Strategi Saldo Awal — Perikatan Lanjutan</h3><div style={{ flex: 1 }} /><Badge kind="green">Tahun ke-10</Badge></div>
+            <div className="panel-h"><h3>Strategi Saldo Awal — Perikatan Lanjutan</h3><div style={{ flex: 1 }} />{tenure > 0 && <Badge kind="green">Tahun ke-{tenure}</Badge>}</div>
             <div style={{ padding: 14 }}>
+              {/* Dulu paragraf ini menyatakan opini TA-1 (WTP) dan menyimpulkan
+                  "risiko saldo awal rendah" — dua kesimpulan tetap, untuk klien mana pun.
+                  Kini opini dibaca dari registri, dan tingkat risikonya berasal dari
+                  penilaian berbobot yang benar-benar diisi auditor. */}
               <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
-                Saldo awal TA 2025 berasal dari laporan keuangan 2024 yang <b>diaudit sendiri oleh KAP ini</b> dengan opini
-                Wajar Tanpa Modifikasian. Risiko saldo awal rendah; fokus prosedur diarahkan pada:
+                Saldo awal berasal dari laporan keuangan periode lalu yang <b>diaudit sendiri oleh KAP ini</b>
+                {priorOpinion
+                  ? <> dengan opini <b>{priorOpinion}</b>{!priorClean && <> — opini termodifikasi; hal yang menyebabkan modifikasi wajib dipertimbangkan atas saldo awal (SA 510 ¶9)</>}.</>
+                  : <>. Opini periode lalu belum dicatat pada registri klien.</>}
+                {py.uncorrected ? <> Salah saji tak dikoreksi TA-1 tercatat sebesar Rp {Math.round((py.uncorrected || 0) / 1e6).toLocaleString('id-ID')} jt — telusuri dampaknya pada saldo awal.</> : null}
+                {py.findingsNote ? <> Temuan TA-1: {py.findingsNote}.</> : null} Fokus prosedur diarahkan pada:
               </p>
               <div style={{ display: 'grid', gap: 6 }}>
                 {[
-                  'Verifikasi carry-forward saldo akhir audited 2024 → saldo awal 2025 (lihat tab Penelusuran).',
-                  'Evaluasi dampak penerapan awal PSAK 73 terhadap saldo pembukaan (transisi 1 Jan 2025).',
+                  'Verifikasi carry-forward saldo akhir audited TA-1 → saldo awal periode kini (lihat tab Penelusuran).',
+                  'Evaluasi dampak penerapan awal standar baru terhadap saldo pembukaan, bila ada.',
                   'Konfirmasi konsistensi kebijakan akuntansi material (lihat tab Konsistensi Kebijakan).',
                 ].map((t, i) => (
+                  /* Bulatan hijau ✓ diganti bulatan netral: ketiganya adalah RENCANA
+                     fokus, dan tanda centang membacanya sebagai sudah dikerjakan. */
                   <div key={i} className="row gap8 ac" style={{ fontSize: 12 }}>
-                    <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.checkCircle size={15} /></span>{t}
+                    <span style={{ color: 'var(--ink-4)', flex: '0 0 auto' }}><I.circle size={13} /></span>{t}
                   </div>
                 ))}
               </div>
@@ -280,25 +364,41 @@ function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, can
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Profil Auditor Pendahulu">
           <div style={{ display: 'grid', gap: 8 }}>
-            <KvBox label="KAP" v={predecessor.name} />
+            {/* Nama KAP pendahulu DIKETIK auditor. Nilai ini tersegel ke memo
+                SA 510, jadi ia tak boleh berasal dari kode. */}
+            <label className="field" style={{ gap: 3 }}>
+              <span className="tiny muted upper">KAP Pendahulu</span>
+              <input className="input" value={predName} disabled={!canEdit || engType !== 'awal'}
+                onChange={(e: { target: { value: string } }) => setPredName(e.target.value)}
+                placeholder={engType === 'awal' ? 'Nama KAP auditor pendahulu…' : 'Tidak berlaku — perikatan lanjutan'}
+                style={{ width: '100%', fontSize: 12, padding: '5px 8px', background: canEdit && engType === 'awal' ? 'var(--surface)' : 'var(--surface-2)' }} />
+            </label>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <KvBox label="Akses KKP" v={engType === 'awal' ? 'Diperoleh' : 'N/A'} accent={engType === 'awal' ? 'var(--green)' : 'var(--ink-3)'} />
-              <KvBox label="Opini TA-1" v="WTP" accent="var(--green)" />
+              {/* "Diperoleh" dulu tetap, tanpa memandang apakah langkah izinnya
+                  ditandai. Kini ia CERMIN dari langkah `consent` di daftar SA 510 ¶6. */}
+              <KvBox label="Akses KKP" v={engType !== 'awal' ? 'N/A' : (predSteps.consent ? 'Diperoleh' : 'Belum')}
+                accent={engType !== 'awal' ? 'var(--ink-3)' : (predSteps.consent ? 'var(--green)' : 'var(--amber)')} />
+              <KvBox label={'Opini ' + (py.fy || 'TA-1')} v={priorOpinion || '—'}
+                accent={priorOpinion ? (priorClean ? 'var(--green)' : 'var(--amber)') : 'var(--ink-3)'} />
             </div>
             <div className="tiny muted" style={{ lineHeight: 1.4 }}>{predecessor.note}.</div>
           </div>
         </Panel>
         <Panel title="Penilaian Risiko Saldo Awal">
-          <div style={{ display: 'grid', gap: 9 }}>
-            {[
-              { k: 'Risiko Inheren', v: engType === 'awal' ? 'Moderat' : 'Rendah', c: engType === 'awal' ? 'var(--amber)' : 'var(--green)' },
-              { k: 'Risiko Pengendalian', v: 'Rendah', c: 'var(--green)' },
-              { k: 'Area Pertimbangan Tinggi', v: 'Sewa (PSAK 73)', c: 'var(--amber)' },
-            ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, paddingBottom: 8, borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
-                <span className="muted">{r.k}</span><span style={{ fontWeight: 700, color: r.c }}>{r.v}</span>
-              </div>
-            ))}
+          {/* Tiga baris tetap ("Risiko Inheren: Rendah · Risiko Pengendalian: Rendah ·
+              Area Pertimbangan Tinggi: Sewa") DICABUT: itu kesimpulan penilaian risiko,
+              ditulis sebagai konstanta, sementara mesin penilaian berbobot yang
+              sesungguhnya sudah ada satu tab di sebelahnya. */}
+          <div className="row ac jb" style={{ marginBottom: 8 }}>
+            <span className="tiny muted upper">Skor tertimbang</span>
+            <div className="row ac gap8">
+              <span style={{ fontSize: 19, fontWeight: 800, color: 'var(--' + rv.k + ')' }}>{score.toFixed(2)}</span>
+              <span className={'badge b-' + rv.k} style={{ fontSize: 11, padding: '2px 8px' }}>{rv.l}</span>
+            </div>
+          </div>
+          <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+            Diturunkan dari {OB_RISK_FACTORS().length} faktor berbobot yang dinilai auditor pada tab
+            <b> Penilaian Tahun Pertama</b>. Skor bawaan 3 = belum dinilai, bukan "risiko sedang" yang terbukti.
           </div>
         </Panel>
       </div>
@@ -380,9 +480,12 @@ function OBAssessment({ engType, factors, score, rv, patchFactor, safeguards, se
 
 /* ---------------- Tab: Penelusuran Saldo ---------------- */
 function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
-  const rows = wtb.filter((r: any) => OB_SOFP_GROUPS.includes(r.group));
+  /* Lingkup dari `prior_year.SOFP_GROUPS` — daftar yang SAMA yang dipakai mesin
+     tie-out. Dulu berkas ini menyalinnya sebagai `OB_SOFP_GROUPS`: dua daftar
+     untuk satu lingkup, yang bisa menyimpang tanpa ada yang tahu. */
+  const rows = wtb.filter((r: any) => SOFP_GROUPS.includes(r.group));
   let totClose = 0, totOpen = 0, totDiff = 0;
-  const grouped = OB_SOFP_GROUPS.map(g => ({ g, items: rows.filter((r: any) => r.group === g) })).filter(x => x.items.length);
+  const grouped = SOFP_GROUPS.map(g => ({ g, items: rows.filter((r: any) => r.group === g) })).filter(x => x.items.length);
   let matched = 0, transition = 0;
 
   /* PR-4c — pembanding INDEPENDEN. Sebelumnya kolom "Saldo Akhir TA-1 (Audited)" dan
@@ -408,7 +511,7 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
       )}
       <div className="panel" style={{ margin: '0', padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, fontSize: 12 }}>
         <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> Carry-forward cocok</span>
-        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> Saldo timbul dari transisi PSAK 73 (1 Jan 2025)</span>
+        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> Nihil di TA-1, bersaldo berjalan — periksa penerapan standar baru</span>
       </div>
       <table className="dtbl">
         <thead><tr>
@@ -421,18 +524,26 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
             <React.Fragment key={g}>
               <tr className="group-row"><td colSpan={7}>{g}</td></tr>
               {items.map((r: any) => {
-                const isT = (OB_TRANSITION as any)[r.code] != null;
+                /* O4 — `OB_TRANSITION` DICABUT. Tiga saldo rupiah (1-2300 13.100 jt ·
+                   2-1500 −3.050 jt · 2-2200 −10.050 jt) ditulis sebagai konstanta dan
+                   MENIMPA kolom "Saldo Awal TA Kini", sehingga tabel menampilkan saldo
+                   awal yang tak ada di neraca saldo perikatan mana pun — dan tak ada di
+                   mesin sewa (`leasePortfolio`) juga. Yang tersisa di sini hanya fakta
+                   yang bisa dibaca: akun posisi keuangan yang saldo awalnya NOL tetapi
+                   bersaldo pada periode berjalan mungkin timbul dari penerapan standar
+                   baru — itu ditandai sebagai PERTANYAAN, bukan diisi dengan angka. */
                 const t = bySrc.get(r.code);
+                const opening = r.ly;
+                /* Kandidat transisi: tak ada yang dibawa dari TA-1, tapi ada saldo
+                   berjalan. Butuh skedul transisi dari auditor — belum dimuat. */
+                const isT = !opening && !!r.unadj;
                 /* Sumber ada → pakai saldo audited TA-1 yang sesungguhnya. Tanpa sumber,
                    kolom kiri dikosongkan (—) alih-alih menyalin `ly` dan mengklaim cocok. */
-                const priorClose: number | null = tie.hasSource
-                  ? (t && t.priorClose != null ? t.priorClose : null)
-                  : (isT ? 0 : null);
-                const opening = isT ? (OB_TRANSITION as any)[r.code] : r.ly;
+                const priorClose: number | null = tie.hasSource && t && t.priorClose != null ? t.priorClose : null;
                 /* Selisih diambil dari mesin, tidak dihitung ulang di sini — dulu kedua
                    permukaan memakai rumus sendiri dan menghasilkan angka berbeda untuk
                    akun yang sama (drawer WTB: sebesar saldo; di sini: "—"). */
-                const diff = isT ? 0 : (t ? t.diff : 0);
+                const diff = t ? t.diff : 0;
                 totClose += priorClose || 0; totOpen += opening; totDiff += diff;
                 if (isT) transition++; else if (tie.hasSource && t && t.status === 'tied') matched++;
                 return (
@@ -444,7 +555,7 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
                     <td className="num mono">{fmt(opening / 1e6, 0)}</td>
                     <td className="num mono" style={{ color: diff === 0 ? 'var(--ink-4)' : 'var(--amber)' }}>{diff === 0 ? '—' : fmt(diff / 1e6, 0)}</td>
                     <td>{isT
-                      ? <Badge kind="amber">Transisi PSAK 73</Badge>
+                      ? <span title="Saldo awal nihil pada TB berjalan namun akun bersaldo periode kini. Bila ini penerapan awal standar (mis. PSAK 73 retrospektif modifikasian), muat skedul transisinya — aplikasi tidak mengarang saldo pembukaannya."><Badge kind="amber">Transisi? belum dimuat</Badge></span>
                       : !tie.hasSource
                         ? <span className="tiny muted">— tak dapat diverifikasi —</span>
                         : t && t.status === 'tied'
@@ -459,8 +570,8 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
         </tbody>
         <tfoot><tr>
           <td colSpan={3}>{tie.hasSource
-            ? `Total — ${matched} cocok · ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${transition} transisi`
-            : `Total — ${transition} transisi · sisanya TAK DAPAT DIVERIFIKASI (belum ada sumber TA-1)`}</td>
+            ? `Total — ${matched} cocok · ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${transition} kandidat transisi`
+            : `Total — ${transition} kandidat transisi · sisanya TAK DAPAT DIVERIFIKASI (belum ada sumber TA-1)`}</td>
           <td className="num mono">{fmt(totClose / 1e6, 0)}</td>
           <td className="num mono">{fmt(totOpen / 1e6, 0)}</td>
           <td className="num mono" style={{ color: totDiff === 0 ? 'var(--ink-4)' : 'var(--amber)' }}>{fmt(totDiff / 1e6, 0)}</td>
@@ -480,9 +591,9 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
               <span style={{ color: fg, flex: '0 0 auto' }}>{clean ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <span style={{ fontSize: 12, lineHeight: 1.4 }}>{
                 !tie.hasSource
-                  ? 'Penelusuran belum dapat disimpulkan — belum ada sumber saldo audited TA-1 sebagai pembanding independen (SA 510 ¶6). Saldo transisi PSAK 73 diuji terpisah (Prosedur Spesifik — Lead F).'
+                  ? `Penelusuran belum dapat disimpulkan — belum ada sumber saldo audited TA-1 sebagai pembanding independen (SA 510 ¶6).${transition ? ` ${transition} akun bersaldo nihil di TA-1 namun bersaldo periode kini — muat skedul transisinya bila berasal dari penerapan standar baru.` : ''}`
                   : clean
-                    ? `Seluruh ${tie.tied} saldo awal dalam lingkup tertelusur ke TA-1 audited. Selisih tersisa hanya dari pengakuan transisi PSAK 73 yang diuji terpisah (Prosedur Spesifik — Lead F).`
+                    ? `Seluruh ${tie.tied} saldo awal dalam lingkup tertelusur ke TA-1 audited.${transition ? ` ${transition} akun bersaldo nihil di TA-1 namun bersaldo periode kini — periksa apakah timbul dari penerapan standar baru dan muat skedul transisinya.` : ''}`
                     : `Penelusuran belum tuntas — ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${tie.orphan} hilang dari TB berjalan. Jelaskan atau selesaikan sebelum menyimpulkan saldo awal dapat diandalkan.`
               }</span>
             </div>
@@ -493,24 +604,40 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
   );
 }
 
-/* ---------------- Tab: Prosedur Spesifik ---------------- */
-function OBProcedures({ fmt }: any) {
+/* ---------------- Tab: Prosedur yang Disarankan ---------------- */
+function OBProcedures({ nav }: { nav: ((id: string, o?: { from?: string }) => void) | null }) {
   const [selId, setSelId] = useStateOPN('C');
-  const sel = OB_SPECIFIC.find(s => s.id === selId);
+  const sel = OB_PROC_LIBRARY.find(s => s.id === selId);
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Prosedur Audit Spesifik atas Saldo Awal Signifikan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{OB_SPECIFIC.length} akun</span></div>
+        <div className="panel-h"><h3>Prosedur yang Disarankan atas Saldo Awal (pustaka SA 510)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{OB_PROC_LIBRARY.length} akun</span></div>
+        {/* Judul dan spanduk ini adalah inti perbaikan O1: tab ini DULU berjudul
+            "Prosedur Audit Spesifik atas Saldo Awal Signifikan" dan menyajikan kolom
+            "Hasil: Memadai" untuk setiap klien. */}
+        <div className="row ac gap8" style={{ margin: '10px 14px', padding: '9px 11px', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 6 }}>
+          <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
+          <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>
+            Daftar ini <b>saran</b>, bukan catatan pekerjaan. Ia sama untuk setiap perikatan dan tidak mencatat apa
+            yang sudah dikerjakan, bukti apa yang ada di tangan, atau kesimpulan apa pun. Pelaksanaan, bukti, dan
+            kesimpulan didokumentasikan pada kertas kerja lead schedule dan pada blok kertas kerja di tab
+            <b> Kesimpulan &amp; Opini</b>.
+          </span>
+        </div>
         <table className="dtbl">
-          <thead><tr><th style={{ width: 44 }}>Lead</th><th>Akun</th><th>Asersi</th><th>Risiko</th><th style={{ width: 110 }}>Hasil</th></tr></thead>
+          <thead><tr><th style={{ width: 44 }}>Lead</th><th>Akun</th><th>Asersi</th><th style={{ width: 110 }}>Risiko Umum</th></tr></thead>
           <tbody>
-            {OB_SPECIFIC.map(s => (
-              <tr key={s.id} className={s.id === selId ? 'sel' : ''} onClick={() => setSelId(s.id)} style={{ cursor: 'pointer' }}>
+            {OB_PROC_LIBRARY.map(s => (
+              <tr key={s.id} className={s.id === selId ? 'sel' : ''}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{s.lead}</td>
-                <td style={{ fontWeight: 600 }} className="truncate">{s.acct}</td>
+                {/* O3 — baris dulu `<tr onClick>` bergaya pointer: tak fokusabel,
+                    tak menanggapi Enter/Space. Kontrol pemilihnya kini native. */}
+                <td style={{ padding: 0 }}>
+                  <button className="ob-procrow" aria-pressed={s.id === selId} onClick={() => setSelId(s.id)}
+                    title={'Lihat prosedur yang disarankan — ' + s.acct}>{s.acct}</button>
+                </td>
                 <td className="tiny muted">{s.assertion}</td>
                 <td><Badge kind={s.risk === 'Signifikan' ? 'red' : 'amber'}>{s.risk}</Badge></td>
-                <td><Badge kind={s.result === 'Memadai' ? 'green' : 'amber'}>{s.result}</Badge></td>
               </tr>
             ))}
           </tbody>
@@ -519,130 +646,177 @@ function OBProcedures({ fmt }: any) {
       {sel && (
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
-            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Lead {sel.lead}</span><Badge kind={sel.result === 'Memadai' ? 'green' : 'amber'}>{sel.result}</Badge></div>
+            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Lead {sel.lead}</span><Badge kind="blue">Saran</Badge></div>
             <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{sel.acct}</div>
             <div className="tiny muted">{sel.assertion}</div>
           </div>
           <div style={{ padding: 14 }}>
-            <div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur</div>
+            <div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur yang disarankan</div>
             <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.proc}</p>
-            <div className="tiny muted upper" style={{ marginBottom: 4 }}>Bukti Diperoleh</div>
-            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>{sel.evidence}</p>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-              <KvBox label="Tingkat Risiko" v={sel.risk} accent={sel.risk === 'Signifikan' ? 'var(--red)' : 'var(--amber)'} />
-              <KvBox label="Hasil" v={sel.result} accent={sel.result === 'Memadai' ? 'var(--green)' : 'var(--amber)'} />
+            {/* "Bukti Diperoleh" → "Bukti yang perlu diperoleh". Nama dokumen
+                bertanggal ("Berita Acara Opname 28 Des 2024") dicabut: tanggal itulah
+                yang membuat daftar berhenti jadi saran dan mulai menyatakan bahwa
+                dokumennya ada di tangan. */}
+            <div className="tiny muted upper" style={{ marginBottom: 4 }}>Bukti yang perlu diperoleh</div>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>{sel.needs}</p>
+            <div style={{ marginBottom: 12 }}>
+              <KvBox label="Risiko umum saldo awal akun ini" v={sel.risk} accent={sel.risk === 'Signifikan' ? 'var(--red)' : 'var(--amber)'} />
             </div>
-            <Btn sm variant="primary" style={{ width: '100%' }}><I.flask size={14} /> Buka WP {sel.wp}</Btn>
+            {/* O2 — tombol dulu tanpa `onClick` dan menjanjikan WP 'C(OB)'/'F(OB)':
+                rujukan yang tak ada di register kertas kerja mana pun. Kini ia hidup,
+                menuju modul Working Papers, tanpa menyebut rujukan yang dikarang. */}
+            <Btn sm variant="primary" style={{ width: '100%' }} onClick={() => nav && nav('workpapers', { from: 'opening' })}>
+              <I.flask size={14} /> Buka Working Papers
+            </Btn>
           </div>
         </Panel>
       )}
+      <style>{`
+        .ob-procrow { display:block; width:100%; text-align:left; background:none; border:0; font:inherit; font-weight:600; color:inherit; padding:7px 9px; cursor:pointer; }
+        .ob-procrow:hover { background:var(--surface-2); }
+        .ob-procrow:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+        .ob-procrow[aria-pressed="true"] { color:var(--blue); }
+      `}</style>
     </div>
   );
 }
 
 /* ---------------- Tab: Konsistensi Kebijakan ---------------- */
 function OBPolicy() {
-  const inconsistent = OB_POLICY.filter(p => !p.ok).length;
   return (
     <Panel noBody>
-      <div className="panel-h"><h3>Evaluasi Konsistensi Kebijakan Akuntansi</h3><div style={{ flex: 1 }} /><span className="tiny muted">{OB_POLICY.length - inconsistent} konsisten · {inconsistent} perubahan standar</span></div>
+      <div className="panel-h"><h3>Konsistensi Kebijakan Akuntansi — Area yang Wajib Dibandingkan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{OB_POLICY_AREAS.length} area</span></div>
+      {/* Tabel ini DULU menjawab pertanyaannya sendiri: kolom "Kebijakan TA-1" dan
+          "Kebijakan TA Kini" berisi kebijakan yang ditulis di dalam kode, dan kolom
+          "Penilaian" menyimpulkan "Konsisten" — untuk setiap klien, sebelum ada yang
+          membandingkan apa pun. Yang tersisa: pertanyaannya. */}
+      <div className="row ac gap8" style={{ margin: '10px 14px', padding: '9px 11px', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 6 }}>
+        <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.scale size={15} /></span>
+        <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>
+          SA 510 ¶6(b) menuntut bukti bahwa kebijakan akuntansi yang tercermin dalam saldo awal diterapkan
+          konsisten pada periode kini, dan bahwa perubahan telah dipertanggungjawabkan &amp; diungkapkan memadai.
+          Perbandingan kebijakan adalah temuan perikatan — aplikasi tidak menyediakan jawabannya. Dokumentasikan
+          hasilnya pada kesimpulan auditor di tab <b>Kesimpulan &amp; Opini</b>.
+        </span>
+      </div>
       <table className="dtbl">
-        <thead><tr><th>Area Kebijakan</th><th>Kebijakan TA-1 (2024)</th><th>Kebijakan TA Kini (2025)</th><th style={{ width: 150 }}>Penilaian</th></tr></thead>
+        <thead><tr><th style={{ width: 220 }}>Area Kebijakan</th><th>Yang harus dibandingkan antar-periode</th></tr></thead>
         <tbody>
-          {OB_POLICY.map((p, i) => (
+          {OB_POLICY_AREAS.map((p, i) => (
             <tr key={i}>
               <td style={{ fontWeight: 600 }}>{p.area}</td>
-              <td className="tiny muted">{p.prior}</td>
-              <td className="tiny">{p.cur}</td>
-              <td>{p.ok
-                ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={13} /> Konsisten</span>
-                : <Badge kind="amber">Standar Baru</Badge>}
-              </td>
+              <td className="tiny" style={{ whiteSpace: 'normal', lineHeight: 1.45 }}>{p.ask}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
-          <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.scale size={15} /></span>
-          <span style={{ fontSize: 12, lineHeight: 1.45 }}><b>Akuntansi sewa — PSAK 30 → PSAK 73.</b> Bukan inkonsistensi kebijakan, melainkan penerapan standar baru secara modified retrospective per 1 Jan 2025. Dampak transisi diakui pada saldo pembukaan dan diungkapkan dalam CALK — tidak memerlukan modifikasi opini.</span>
-        </div>
-      </div>
     </Panel>
   );
 }
 
 /* ---------------- Tab: Kesimpulan & Opini ---------------- */
-function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdict: { k: string; l: string }; score: number }) {
+function OBConclusion({ concluded, obVerdict, score, rv, wpConcl, conclusionText, canEdit, nav, memoRef }: {
+  concluded: boolean; obVerdict: { k: string; l: string; t: string }; score: number; rv: { k: string; l: string };
+  wpConcl: { text?: string; disposition?: string; by?: string; at?: string } | null;
+  conclusionText: string; canEdit: boolean;
+  nav: ((id: string, o?: { from?: string }) => void) | null; memoRef: string;
+}) {
+  const kesimpulan = (conclusionText || '').trim();
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Matriks Dampak terhadap Opini (SA 510 ¶10–13)</h3><div style={{ flex: 1 }} /></div>
+          <div className="panel-h"><h3>Matriks Dampak terhadap Opini (SA 510 ¶10–13)</h3><div style={{ flex: 1 }} /><span className="tiny muted">kutipan standar</span></div>
+          {/* Kolom "Status" (Bersih/Pantau) DICABUT. Ia menjawab ketiga kondisi ini
+              dengan catatan "Bukti memadai diperoleh untuk seluruh saldo awal
+              signifikan" dan "Tidak ditemukan salah saji saldo awal; carry-forward
+              terverifikasi" — hijau bahkan pada perikatan yang belum punya satu pun
+              sumber TA-1 untuk dibandingkan. */}
           <table className="dtbl">
-            <thead><tr><th style={{ width: 44 }}>Ref</th><th>Kondisi</th><th style={{ width: 180 }}>Potensi Modifikasi</th><th style={{ width: 90 }}>Status</th></tr></thead>
+            <thead><tr><th style={{ width: 44 }}>Ref</th><th>Kondisi</th><th style={{ width: 200 }}>Potensi Modifikasi</th></tr></thead>
             <tbody>
               {OB_OPINION_MATRIX.map((m, i) => (
                 <tr key={i}>
                   <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{m.ref}</td>
-                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 12 }}>{m.cond}<div className="tiny muted" style={{ marginTop: 3 }}>{m.note}</div></td>
+                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 12 }}>{m.cond}</td>
                   <td className="tiny">{m.mod}</td>
-                  <td>{m.status === 'clear' ? <Badge kind="green">Bersih</Badge> : <Badge kind="amber">Pantau</Badge>}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.5 }}>
+            Apakah salah satu kondisi ini berlaku pada perikatan ini adalah pertimbangan auditor — nyatakan pada
+            kesimpulan di bawah. Aplikasi tidak menilainya untuk Anda.
+          </div>
         </Panel>
 
         <Panel title="Kesimpulan Auditor">
           <div className="row ac gap8" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
-            <span className={'badge b-' + (verdict ? verdict.k : 'green')} style={{ fontSize: 11, padding: '2px 8px' }}>{verdict ? verdict.l : 'Saldo Awal Andal'}</span>
-            <span className="tiny muted">Skor risiko saldo awal {typeof score === 'number' ? score.toFixed(2) : '—'} / 5,00</span>
+            <span title={obVerdict.t}><Badge kind={obVerdict.k} dot>{obVerdict.l}</Badge></span>
+            <span className="tiny muted">Skor risiko saldo awal {typeof score === 'number' ? score.toFixed(2) : '—'} / 5,00 · {rv.l}</span>
             {concluded ? <Badge kind="green" dot>Disimpulkan</Badge> : <Badge kind="amber">Draf — belum disimpulkan</Badge>}
           </div>
-          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
-            Berdasarkan prosedur yang dilaksanakan, kami memperoleh bukti audit yang cukup dan tepat bahwa
-            <b> saldo awal per 1 Januari 2025 tidak mengandung salah saji yang berdampak material</b> terhadap
-            laporan keuangan periode berjalan, dan kebijakan akuntansi telah diterapkan secara konsisten.
-            Pengakuan transisi PSAK 73 atas Aset Hak-Guna dan Liabilitas Sewa telah dievaluasi terpisah dan
-            diungkapkan memadai. <b>Tidak diperlukan modifikasi opini</b> sehubungan dengan saldo awal.
-          </p>
-          <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={16} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Saldo awal dapat diandalkan — siap dirujuk ke kesimpulan audit & laporan auditor.</span></div>
-          </div>
+          {/* Paragraf tetap ("kami memperoleh bukti audit yang cukup dan tepat bahwa
+              saldo awal … tidak mengandung salah saji … Tidak diperlukan modifikasi
+              opini") DICABUT. Ia adalah kesimpulan audit yang ditulis aplikasi atas
+              nama auditor, tampil untuk setiap klien, termasuk berdampingan dengan
+              badge "Belum Dapat Disimpulkan" di kepala halaman.
+              `conclusion` sudah ada di `OBState` dan sudah dikirim ke memo tersegel —
+              tetapi TAK ADA satu pun kontrol yang bisa mengisinya, sehingga memo selalu
+              jatuh ke kalimat bawaan. Kotak di bawah ini menutup kabel yang putus itu. */}
+          <div className="tiny muted upper" style={{ marginBottom: 4 }}>Kesimpulan atas saldo awal (SA 510 ¶10–13) — masuk ke memo tersegel</div>
+          {kesimpulan ? (
+            <>
+              <p style={{ margin: '0 0 8px', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{kesimpulan}</p>
+              <div className="row ac gap8">
+                {wpConcl && wpConcl.disposition && <Badge kind={wpConcl.disposition === 'Memadai' ? 'green' : wpConcl.disposition === 'Perlu tindak lanjut' ? 'amber' : 'red'} dot>{wpConcl.disposition}</Badge>}
+                {wpConcl && wpConcl.by && <span className="tiny muted">{wpConcl.by} · {wpConcl.at}</span>}
+              </div>
+            </>
+          ) : (
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+              <I.alert size={11} style={{ verticalAlign: -1 }} /> Belum ada kesimpulan tertulis. Tulis pada blok
+              <b> Kertas Kerja Saldo Awal</b> di samping{canEdit ? '' : ' (perlu kewenangan sunting kertas kerja)'} —
+              satu tempat, dengan disposisi, pelaku, dan tanggal. Sampai itu diisi, memo tersegel hanya mencetak
+              ringkasan skor, bukan kesimpulan auditor.
+            </div>
+          )}
         </Panel>
       </div>
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Tautan Kertas Kerja">
+          {/* Empat baris statis dengan rujukan 'C(OB)' · 'F(OB)' · 'A-512' — tak satu
+              pun ada di register kertas kerja — diganti tautan ke modul yang NYATA.
+              'A-510' dipertahankan karena itu memang nomor referensi memo ini
+              (`openingMemoRefNo`). */}
           <div style={{ display: 'grid', gap: 6 }}>
+            <div className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+              <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.doc size={14} /></span>Memo Saldo Awal (modul ini)</span>
+              <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{memoRef}</span>
+            </div>
             {[
-              { t: 'Penelusuran carry-forward', wp: 'A-510' },
-              { t: 'Prosedur persediaan (OB)', wp: 'C(OB)' },
-              { t: 'Memo transisi PSAK 73', wp: 'F(OB)' },
-              { t: 'Konsistensi kebijakan', wp: 'A-512' },
-            ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+              { t: 'Neraca saldo & sumber TA-1', id: 'wtb' },
+              { t: 'Register kertas kerja', id: 'workpapers' },
+              { t: 'Sewa — PSAK 73', id: 'psak73' },
+            ].map((r) => (
+              <button key={r.id} className="ob-wplink" onClick={() => nav && nav(r.id, { from: 'opening' })} title={'Buka ' + r.t}>
                 <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.doc size={14} /></span>{r.t}</span>
-                <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.wp}</span>
-              </div>
+                <I.arrowRight size={13} />
+              </button>
             ))}
           </div>
+          <style>{`
+            .ob-wplink { display:flex; justify-content:space-between; align-items:center; width:100%; font:inherit; font-size:12px; color:inherit; text-align:left; padding:7px 9px; border:1px solid var(--line-soft); border-radius:6px; background:none; cursor:pointer; }
+            .ob-wplink:hover { background:var(--surface-2); }
+            .ob-wplink:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+          `}</style>
         </Panel>
-        <Panel title="Sign-off">
-          <div style={{ display: 'grid', gap: 9 }}>
-            {[
-              { role: 'Disiapkan', who: 'Dimas Raharjo', when: '06 Mar', done: true },
-              { role: 'Direview', who: 'Anindya Pramesti', when: '09 Mar', done: true },
-              { role: 'Disetujui Partner', who: 'Hartono Wijaya', when: '—', done: false },
-            ].map((s, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, paddingBottom: 8, borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
-                <div><div className="tiny muted upper">{s.role}</div><div style={{ fontWeight: 600 }}>{s.who}</div></div>
-                {s.done ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> {s.when}</span> : <Badge kind="amber">Menunggu</Badge>}
-              </div>
-            ))}
-          </div>
-        </Panel>
+        {/* Blok "Sign-off" DULU memuat tiga nama personel dan tanggal, dua di antaranya
+            `done: true` — padahal `opening` tak pernah terdaftar di `WP_MODULE_MAP`
+            dan tak punya rantai sign-off sama sekali. Kini modul ini terdaftar dan
+            memakai rantai kanonik: penanda tangan nyata, dengan otorisasi & jejak audit. */}
+        <WpPanel moduleId="opening" title="Kertas Kerja Saldo Awal — Sign-off & Bukti" />
       </div>
     </div>
   );
