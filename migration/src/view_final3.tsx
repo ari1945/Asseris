@@ -517,6 +517,10 @@ function MLStatStrip({ findings }: any) {
     final: findings.filter((f: any) => f.stage === 'final').length,
     tuntas: findings.filter((f: any) => f.stage === 'tuntas').length,
     sig: findings.filter((f: any) => f.sev === 'Significant' && f.stage === 'final').length,
+    /* Opsi C — tanpa sel ini bilah berbunyi "Masuk Final ML: 4" sementara suratnya
+       KOSONG dan tombol ekspor terkunci: dua angka untuk satu keadaan, dan yang
+       terlihat justru yang salah. Bilah menjelaskan kontradiksinya sendiri. */
+    peraga: findings.filter((f: { illustrative?: boolean }) => mlIsIllustrative(f)).length,
   };
   return (
     <Panel noBody>
@@ -528,6 +532,7 @@ function MLStatStrip({ findings }: any) {
           ['Masuk Final ML', c.final, 'var(--blue)'],
           ['Tuntas (Dikeluarkan)', c.tuntas, 'var(--green)'],
           ['Signifikan di Final', c.sig, 'var(--red)'],
+          ...(c.peraga ? [['Masih Peraga (tak masuk surat)', c.peraga, 'var(--amber)']] : []),
         ].map(([l, n, color], i) => (
           <div key={l} style={{ flex: 1, padding: '11px 12px', textAlign: 'center', borderLeft: i ? '1px solid var(--line-soft)' : 0 }}>
             <div className="mono" style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1.1 }}>{n}</div>
@@ -592,6 +597,7 @@ function ManagementLetter() {
   const exportSplit = mlLetterSplit<{ stage?: string; illustrative?: boolean }>(findings, previewMode);
   const exportBlock = mlLetterBlockReason(exportSplit.kept.length, exportSplit.droppedIllustrative);
 
+  const illustrativeCount = findings.filter((f: { illustrative?: boolean }) => mlIsIllustrative(f)).length;
   const finalCount = findings.filter((f: any) => f.stage === 'final').length;
   const pendingCount = findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length;
 
@@ -604,6 +610,7 @@ function ManagementLetter() {
         <div className="row gap8 ac">
           <Badge kind="blue">SA 265 · SA 260</Badge>
           <Badge kind={pendingCount ? 'amber' : 'green'}>{finalCount} masuk · {pendingCount} diskusi</Badge>
+          {illustrativeCount > 0 && <span title="Baris peraga tidak masuk surat maupun ekspor sampai disunting atau diputuskan"><Badge kind="amber">{illustrativeCount} peraga</Badge></span>}
           {tab === 'preview' && <Seg options={[{ value: 'final', label: 'Surat Final' }, { value: 'draft', label: 'Draft Internal' }]} value={previewMode} onChange={setPreviewMode} />}
           {tab === 'preview' && <Btn sm disabled={!!exportBlock} title={exportBlock || undefined} onClick={() => {
             if (exportBlock) return;

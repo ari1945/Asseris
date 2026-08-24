@@ -428,3 +428,20 @@ describe('ML-5b · saringan surat melaporkan sendiri apa yang ia buang', () => {
     expect(mlLetterFindings(rows, 'draft')).toEqual(mlLetterSplit(rows, 'draft').kept);
   });
 });
+
+/* ML-5c — layar tidak boleh MEMBANTAH dirinya: bila surat kosong karena peraga,
+   hitungan tahap yang tetap besar harus disertai angka yang menjelaskannya. */
+describe('ML-5c · bilah statistik menjelaskan kontradiksinya sendiri', () => {
+  it('SUMBER — jumlah peraga dihitung dan ditampilkan, di bilah maupun SubBar', () => {
+    const hidup = irisanHidup();
+    expect(hidup).toMatch(/peraga:\s*findings\.filter/);
+    expect(hidup).toContain('Masih Peraga');
+    expect(hidup).toMatch(/illustrativeCount/);
+  });
+
+  it('SUMBER — tooltip menempel pada pembungkus, bukan pada <Badge> yang membuangnya', () => {
+    const hidup = irisanHidup();
+    const badgeTitle = [...hidup.matchAll(/<Badge[^>]*\stitle=/g)].length;
+    expect(badgeTitle, '<Badge title=…> ' + badgeTitle + 'x — prop itu dibuang ui.tsx').toBe(0);
+  });
+});
