@@ -242,4 +242,98 @@ test.describe('Tahap 9 — aksesibilitas (axe) & smoke keyboard', () => {
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
   });
+
+  // Modul `orgchart` (Struktur Organisasi). Sampai 2026-08-21 simpul bagan
+  // adalah <span onClick> dan kartu anggota tab "Divisi" <div onClick>: SELURUH
+  // interaksi modul — memilih orang untuk melihat detailnya — mustahil tanpa
+  // tetikus, dan keduanya menggagalkan axe. Uji ini memaku bentuk NATIVE-nya
+  // dan membuktikan Enter benar-benar berdampak (aria-pressed + panel detail).
+  test('smoke keyboard: simpul bagan organisasi <button>, Enter memilih orangnya', async ({ page }) => {
+    await login(page, USERS.manager);
+    await gotoModule(page, 'orgchart');
+
+    const node = page.locator('.org-node').nth(1);   // seorang bawahan, bukan puncak
+    await expect(node).toBeVisible();
+    await expect(node).toHaveJSProperty('tagName', 'BUTTON');
+
+    const nama = ((await node.getAttribute('title')) || '').replace(/^Pilih /, '').split(' \u2014 ')[0];
+    expect(nama.length, 'simpul bagan tanpa judul yang menyebut orangnya').toBeGreaterThan(0);
+
+    // Hadir di pohon aksesibilitas dengan nama orangnya — persis yang dulu gagal.
+    const byRole = page.getByRole('button', { name: new RegExp(nama.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
+    await expect(byRole.first()).toBeVisible();
+
+    await node.focus();
+    await expect(node).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(node).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.view-pad')).toContainText(nama);
+
+    await scanAndAssert(page, 'struktur organisasi (bagan)');
+  });
+
+  // Tab "Divisi" dulu menurunkan daftar divisi dari `Object.keys(DEPT_HEAD)`
+  // (4 kepala divisi) alih-alih dari nilai `dept` pada ORG (5 divisi), sehingga
+  // Managing Partner — satu-satunya anggota 'Kepemimpinan Firma' — TIDAK PERNAH
+  // muncul, tanpa satu pun tanda bahwa ada yang tidak terhitung.
+  test('tab Divisi: divisi tanpa kepala tetap tampil & kartunya dapat dipilih keyboard', async ({ page }) => {
+    await login(page, USERS.manager);
+    await gotoModule(page, 'orgchart');
+    await page.getByRole('button', { name: 'Divisi', exact: true }).click();
+    await page.waitForTimeout(300);
+
+    await expect(page.locator('.view-pad')).toContainText('Kepemimpinan Firma');
+    await expect(page.locator('.view-pad')).toContainText('kepala divisi belum ditetapkan');
+
+    const kartu = page.locator('.org-member').first();
+    await expect(kartu).toHaveJSProperty('tagName', 'BUTTON');
+    await kartu.focus();
+    await expect(kartu).toBeFocused();
+    await kartu.press('Enter');
+    await expect(kartu).toHaveAttribute('aria-pressed', 'true');
+
+    await scanAndAssert(page, 'struktur organisasi (divisi)');
+  });
+
+  // Modul `succession` (Suksesi & Karier). Sampai 2026-08-21 memilih peran kunci
+  // — satu-satunya interaksi utama modul — hanya mungkin lewat <tr onClick>:
+  // baris tabel tidak fokusable dan tidak menanggapi Enter/Space.
+  // Modul butuh CAP.HR_MODULE_VIEW → login sebagai Partner.
+  test('smoke keyboard: peran kunci dipilih lewat <button>, Enter mengubah panel kandidat', async ({ page }) => {
+    await login(page, USERS.partner);
+    await gotoModule(page, 'succession');
+
+    const baris = page.locator('.pc-rowbtn').nth(1);   // bukan peran yang sudah terpilih
+    await expect(baris).toBeVisible();
+    await expect(baris).toHaveJSProperty('tagName', 'BUTTON');
+
+    const nama = ((await baris.getAttribute('title')) || '').replace(/^Pilih peran /, '');
+    expect(nama.length, 'tombol peran tanpa judul yang menyebut perannya').toBeGreaterThan(0);
+
+    await baris.focus();
+    await expect(baris).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(baris).toHaveAttribute('aria-pressed', 'true');
+    // panel kandidat di kanan benar-benar berpindah ke peran itu
+    await expect(page.locator('.view-pad')).toContainText(nama);
+
+    await scanAndAssert(page, 'suksesi & karier (peta suksesi)');
+  });
+
+  // Kontradiksi klaim-vs-bukti dulu disampaikan lewat satu glyph "⚠" tanpa nama
+  // aksesibel, dengan penjelasan yang hanya hidup di atribut `title` pada <span>
+  // non-fokusabel. Sekarang ia teks: klaim, turunan, dan pemblokir ter-enumerasi.
+  test('kontradiksi kesiapan disampaikan sebagai teks, bukan glyph', async ({ page }) => {
+    await login(page, USERS.partner);
+    await gotoModule(page, 'succession');
+
+    const pad = page.locator('.view-pad');
+    await expect(pad).toContainText('Klaim Dibantah Bukti');            // KPI
+    await expect(pad).toContainText('Klaim kesiapan yang dibantah bukti'); // daftar
+    await expect(pad).toContainText('Data mengklaim');
+    await expect(pad).toContainText('bukti menurunkan');
+    await expect(pad, 'makna tidak boleh dibawa glyph telanjang').not.toContainText('⚠');
+
+    await scanAndAssert(page, 'suksesi & karier (kontradiksi)');
+  });
 });
