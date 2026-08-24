@@ -594,11 +594,6 @@
       "count": 37
     }
   },
-  "src/view_invprop.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "src/view_isak35.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 66
