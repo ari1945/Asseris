@@ -354,10 +354,10 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: '#bcd6e4' }}>Status: {eomOn ? 'Disertakan' : 'Tidak ada'}</span></div>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+            <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>Status: {eomOn ? 'Disertakan' : 'Tidak ada'}</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Penekanan Suatu Hal (Emphasis of Matter)</div>
-            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--on-dark-muted)' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Contoh Pemicu</div>

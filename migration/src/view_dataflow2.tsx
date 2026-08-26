@@ -105,10 +105,10 @@ function DFPropagasi() {
         <div className="panel-h"><h3>Sumber Kebenaran Tunggal</h3><div style={{ flex: 1 }} /><span className="tiny muted">satu master → banyak konsumen (referensial)</span></div>
         <div style={{ padding: '18px 16px' }} className="row gap12 ac">
           <div style={{ flex: '0 0 200px', textAlign: 'center' }}>
-            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', borderRadius: 12, padding: '16px 14px' }}>
+            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', borderRadius: 12, padding: '16px 14px' }}>
               <I.building size={26} />
               <div style={{ fontSize: 13, fontWeight: 700, marginTop: 6 }}>Master Klien & Perikatan</div>
-              <div className="tiny" style={{ color: '#bcd6e4' }}>CRM + Engagement</div>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>CRM + Engagement</div>
             </div>
           </div>
           <div style={{ flex: '0 0 auto', color: 'var(--ink-4)' }}><I.arrowRight size={22} /></div>

@@ -466,12 +466,12 @@ function T23Detail({ r, onClose, nav, toggle, onExportBukti, exporting }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <I.receipt size={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono tiny" style={{ color: '#bcd6e4' }}>{r.id}</div>
+            <div className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.id}</div>
             <div style={{ fontWeight: 700, fontSize: 15, marginTop: 2 }}>{r.name}</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>Bukti Potong Unifikasi · Coretax DJP · Masa {r.masaLabel}</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Bukti Potong Unifikasi · Coretax DJP · Masa {r.masaLabel}</div>
           </div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
@@ -552,8 +552,8 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

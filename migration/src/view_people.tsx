@@ -122,11 +122,11 @@ function HCM() {
           </Panel>
 
           <Panel noBody>
-            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '16px 18px', display: 'flex', gap: 13, alignItems: 'center' }}>
+            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px', display: 'flex', gap: 13, alignItems: 'center' }}>
               <Avatar name={person.name} size={48} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div>
-                <div className="tiny" style={{ color: '#bcd6e4' }}>{person.role} · {person.cert}</div>
+                <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{person.role} · {person.cert}</div>
               </div>
               <Badge kind={person.status === 'Aktif' ? 'green' : 'amber'}>{person.status}</Badge>
             </div>
@@ -177,8 +177,8 @@ function StaffForm({ onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(STAFF_FORM_INIT)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Karyawan Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke direktori SDM</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Karyawan Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Tambah ke direktori SDM</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
@@ -344,8 +344,8 @@ function SkpForm({ staff, onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(SKP_FORM_INIT)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah satuan kredit pendidikan profesional</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Tambah satuan kredit pendidikan profesional</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
@@ -701,9 +701,9 @@ function IndepDrawer({ d, lvl, rec, period, unattributed, canWrite, canFirmAdmin
       isDirty={() => rotDraft.trim() !== ''}
       bodyStyle={{ padding: 18 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Avatar name={d.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Deklarasi Independensi · {per}</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}

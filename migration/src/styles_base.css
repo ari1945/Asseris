@@ -117,6 +117,11 @@
   --on-dark-chip:      rgba(255,255,255,.14);
   --on-dark-track:     rgba(255,255,255,.16);
   --on-dark-danger-bg: rgba(255,107,87,.24);
+  /* Latar bahaya di atas mempunyai PASANGAN DEPAN sendiri: --on-dark-danger
+     (#ff9b8a) dirancang untuk navy polos dan hanya mencapai 3,92:1 di atas
+     chip merah-tersemu ini — di bawah AA. Nada yang benar sudah dipakai di
+     view_mytasks, tinggal diberi nama. */
+  --on-dark-danger-fg: #ffd2c9;
 
   /* Type */
   --ui:   'Inter', -apple-system, system-ui, sans-serif;

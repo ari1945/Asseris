@@ -597,16 +597,16 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
       <div className="grid" style={{ gap: 14 }}>
         {/* hero kesimpulan */}
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '18px 20px' }}>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '18px 20px' }}>
             <div className="row jb ac" style={{ marginBottom: 5 }}>
-              <span className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Manajemen Mutu (SMM 1 ¶53–¶54)</span>
+              <span className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Manajemen Mutu (SMM 1 ¶53–¶54)</span>
               <span className="row ac gap8">
                 <Badge kind={attestComplete ? 'green' : attestVoidedRoles(attestLinks).length ? 'red' : 'amber'}>
                   {attestComplete ? 'Diatestasi'
                     : attestVoidedRoles(attestLinks).length ? 'Atestasi gugur — kesimpulan berubah'
                     : 'Menunggu atestasi'}
                 </Badge>
-                <span className="mono tiny" style={{ color: '#9fc0d2' }}>{period}</span>
+                <span className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>{period}</span>
               </span>
             </div>
             <div className="row ac gap12" style={{ marginBottom: 8 }}>

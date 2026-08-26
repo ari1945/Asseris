@@ -421,7 +421,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         <button className="side-collapse-btn" onClick={onToggle} title={collapsed ? 'Perluas' : 'Ciutkan'}>
           <I.chevron size={16} style={{ transform: collapsed ? 'none' : 'rotate(180deg)', transition: '.15s' }} />
         </button>
-        {!collapsed && <span>v4.2 · Enterprise · <span style={{ color: '#4db8ff' }}>●</span> Online</span>}
+        {!collapsed && <span>v4.2 · Enterprise · <span style={{ color: 'var(--on-dark-accent)' }}>●</span> Online</span>}
       </div>
     </nav>
   );

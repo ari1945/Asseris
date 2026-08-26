@@ -23,7 +23,7 @@
      2. Di dalam panel berlatar gelap, setiap `color:` harus `var(--…)`.
         Aturan (1) sendirian tak cukup: ia buta pada nada BARU yang belum
         pernah jadi token (persis keempat varian di atas).
-     3. Setiap `var(--on-dark-*)` yang dipakai benar-benar terdefinisi.
+     3. Setiap rujukan var() ke `--on-dark-*` benar-benar terdefinisi.
         Token salah ketik gagal DIAM — `var(--on-dark-mutedd)` tidak error,
         ia hanya menghasilkan warna kosong. Tanpa (3), mengganti hex dengan
         token justru bisa memperburuk keadaan. (Pola dari cockpit_conventions.)
@@ -59,11 +59,24 @@ const kanal = (c: number): number => {
   const s = c / 255;
   return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
 };
-const lum = (hex: string): number => {
+const rgbOf = (hex: string): number[] => {
   let h = hex.slice(1);
   if (h.length === 3) h = h.split('').map((c) => c + c).join('');
   const n = parseInt(h.slice(0, 6), 16);
-  return 0.2126 * kanal((n >> 16) & 255) + 0.7152 * kanal((n >> 8) & 255) + 0.0722 * kanal(n & 255);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const lum = (hex: string): number => {
+  const [r, g, b] = rgbOf(hex);
+  return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b);
+};
+/* Rona (HSL) — dipakai untuk MEMBATASI lingkup gerbang, bukan mengubah warna. */
+const rona = (hex: string): number => {
+  const [r, g, b] = rgbOf(hex).map((v) => v / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!d) return -1;
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h *= 60;
+  return h < 0 ? h + 360 : h;
 };
 
 /* ============================================================
@@ -116,11 +129,40 @@ describe('§5 — warna teks di atas latar gelap harus token', () => {
   const AMBANG = 0.15;
   const TOKEN_GELAP = /var\(--(navy-700|navy-600|navy-800|navy-solid|blue-solid|navy)\)/;
 
+  /* LINGKUP — hanya panel gelap ber-rona NAVY/BIRU, satu-satunya rona yang
+     keluarga --on-dark-* benar-benar layani. Repo juga memuat panel gelap
+     ber-rona UNGU (#3d2a73), HIJAU (#0b5d3b), MERAH (#5a1410), TEAL dan AMBER,
+     yang teks mutednya diberi nada SENADA: #d6cdf0 #d4c8ee · #bfe3cf ·
+     #b9e0e3 #bfe3e0 · #f0c9c4 #f0d4cf · #e8d6a8 #ecdcb0 (16 situs, 5 rona).
+     Memaksa mereka ke --on-dark-muted yang kebiruan BUKAN perbaikan — itu
+     meratakan keselarasan rona yang disengaja. Keluarga token ber-rona adalah
+     keputusan DESAIN tersendiri; sampai ia ada, gerbang ini sengaja tidak
+     mengklaim wilayah itu ketimbang mengundang perbaikan yang salah. */
+  /* Jendela rona diukur, bukan ditebak. Henti gelap yang dipakai repo:
+       navy  #013143 196,4° · #024661 197,1° · #013a52 197,8° · #002C3F 198,1°
+             #005f8a 198,7° · #005085 203,9° · #0d1d29 205,7° · #0a1620 207,3°
+       teal  #0a6b73 184,6° · #063b40 185,2°
+       hijau #127a4e 154,6° · #0b5d3b 155,1°
+       ungu  #3d2a73 255,6° · #5b3fa6 256,3°
+       merah #5a1410   3,2° · #8a2a1e   6,7°
+     Navy menempati 196,4–207,3. Batas 192–230 memberi margin ~11° ke teal di
+     bawah dan ~25° ke ungu di atas. Upaya pertama (185) MELESET: ia menyeret
+     panel teal view_sa705 masuk lingkup — 185,2 lolos ambang tipis 0,2°. */
+  const NAVY = (hex: string): boolean => {
+    const h = rona(hex);
+    return h >= 192 && h <= 230;
+  };
+
   const bukaPanelGelap = (ln: string): boolean => {
     const m = ln.match(/background:\s*'?([^';]*linear-gradient\([^)]*\))/i);
     if (!m) return false;
     const stops = [...m[1].matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((x) => x[0]);
-    if (stops.some((s) => lum(s) < AMBANG)) return true;
+    const gelap = stops.filter((s) => lum(s) < AMBANG);
+    /* `some`, bukan `every`: satu baris bisa memuat DUA gradien lewat ternari
+       (view_sa230 memakai hijau saat `ready`, navy saat tidak). Panel seperti
+       itu SANGGUP tampil navy, jadi teksnya wajib bekerja di atas navy —
+       `every` akan mengeluarkannya dari lingkup justru karena ia campuran. */
+    if (gelap.length) return gelap.some(NAVY);
     return TOKEN_GELAP.test(m[1]);
   };
 
@@ -155,7 +197,7 @@ describe('§5 — warna teks di atas latar gelap harus token', () => {
     const pelanggar = sumber().flatMap(warnaMentahDiPanelGelap);
     expect(
       pelanggar,
-      `warna mentah di panel gelap (pakai var(--on-dark-*)):\n  ${pelanggar.join('\n  ')}`,
+      `warna mentah di panel gelap (pakai token --on-dark-*):\n  ${pelanggar.join('\n  ')}`,
     ).toEqual([]);
   });
 });
@@ -163,7 +205,7 @@ describe('§5 — warna teks di atas latar gelap harus token', () => {
 /* ============================================================
    3 — token yang dipakai harus terdefinisi
    ============================================================ */
-describe('§5 — setiap var(--on-dark-*) terdefinisi di stylesheet', () => {
+describe('§5 — setiap rujukan var() ke --on-dark-* terdefinisi di stylesheet', () => {
   it('nol token on-dark yang dirujuk tapi tak pernah didefinisikan', () => {
     const css = readdirSync(DIR)
       .filter((f) => f.endsWith('.css'))

@@ -87,7 +87,7 @@ function CfDetailPanel(props: any) {
 
   return (
     <Panel noBody>
-      <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
+      <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 15px' }}>
         <div className="row ac gap8" style={{ marginBottom: 4 }}>
           <span className="mono" style={{ fontWeight: 700 }}>{sel.id}</span>
           <Badge kind={(CONF_TYPES as any)[sel.type].k}>{sel.type}</Badge>
@@ -95,7 +95,7 @@ function CfDetailPanel(props: any) {
           <Badge kind={(STATUS_KIND as any)[sel.status]}>{sel.status}</Badge>
         </div>
         <div style={{ fontWeight: 700, fontSize: 15 }}>{sel.party}</div>
-        <div className="tiny" style={{ color: '#bcd6e4' }}>Dikirim {sel.sent} · jatuh tempo {sel.due} · {sel.days} hari berjalan</div>
+        <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Dikirim {sel.sent} · jatuh tempo {sel.due} · {sel.days} hari berjalan</div>
       </div>
       <div style={{ padding: 14, maxHeight: 'calc(100vh - 250px)', overflow: 'auto' }}>
         {/* method / channel / contact */}

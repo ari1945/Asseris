@@ -233,11 +233,11 @@ function PDPView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#024661)', color: '#fff', padding: '14px 16px' }}>
-                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Pejabat Pelindungan Data</div>
+                  <div style={{ background: 'linear-gradient(120deg,#013a52,#024661)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                    <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Pejabat Pelindungan Data</div>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>{P.dpo.name}</div>
-                    <div className="tiny" style={{ color: '#bcd6e4', marginTop: 2, lineHeight: 1.45 }}>{P.dpo.role}</div>
-                    <div className="mono tiny" style={{ color: '#9fc1d4', marginTop: 8 }}>{P.dpo.contact}</div>
+                    <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 2, lineHeight: 1.45 }}>{P.dpo.role}</div>
+                    <div className="mono tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 8 }}>{P.dpo.contact}</div>
                   </div>
                   <div style={{ padding: 14 }}>
                     <div className="tiny muted" style={{ lineHeight: 1.55 }}>DPO mengoordinasikan kepatuhan PDP: penilaian dampak, pemenuhan hak subjek data, dan notifikasi insiden ke Lembaga PDP — sebagai titik kontak independen.</div>
@@ -296,12 +296,12 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <I.shield size={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono tiny" style={{ color: '#bcd6e4' }}>{r.id}</div>
+            <div className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.id}</div>
             <div style={{ fontWeight: 700, fontSize: 15, marginTop: 2 }}>{r.activity}</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>RoPA · Ps. 31 UU PDP</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>RoPA · Ps. 31 UU PDP</div>
           </div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>

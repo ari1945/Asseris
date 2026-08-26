@@ -469,7 +469,7 @@ function AjeDrill({ a, fmt, nav, locked, onSelect }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
-        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
           <div className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{a.id}</span>
             <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
@@ -781,7 +781,7 @@ function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPos
       {/* right — summary + tax + conclusion */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '16px 18px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
             <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 5 }}>Unadjusted Rp {jt(pbtUnadj)} jt · {posted.length} penyesuaian posted</div>
@@ -1038,7 +1038,7 @@ function AjeApprovals() {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Menunggu Keputusan</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1, marginTop: 3 }}>{pending.length}</div>
             <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 2 }}>
