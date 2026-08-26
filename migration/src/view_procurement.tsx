@@ -229,13 +229,26 @@ function Procurement() {
   );
 }
 
+/* Baris master vendor dulu `<tr onClick>`: tidak masuk urutan tab, tidak
+   menanggapi Enter/Space, tidak diumumkan sebagai kontrol — sementara membuka
+   Vendor 360 adalah interaksi UTAMA modul ini. Kini kontrol NATIVE di dalam sel
+   pertama; gaya tombol direset agar tampilan tabel tak berubah, plus cincin
+   fokus. Pola sama dengan `.pc-rowbtn` (view_pc_org) & `.ia-rowbtn`
+   (view_internalaudit). */
+const PROC_BTN_CSS = `
+.proc-rowbtn{ display:inline-flex; align-items:center; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.proc-rowbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:4px; }
+.proc-rowbtn[aria-pressed="true"]{ text-decoration:underline; }
+`;
+
 /* ---------- tabel Vendor 360 (master diperkaya) ---------- */
 function ProcVendorTable({ B, P, vSel, setVSel }: any) {
   const total = P.concentration().total;
   return (
     <div>
+      <style>{PROC_BTN_CSS}</style>
       <div className="panel" style={{ padding: '10px 13px', margin: '12px 14px 0', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-        <div className="tiny" style={{ lineHeight: 1.5 }}><I.users size={13} style={{ verticalAlign: -2, color: 'var(--blue)' }} /> Klik vendor untuk membuka <b>Vendor 360</b> — identitas master, kontrak (Legal), PO & faktur, lisensi, kinerja SLA & modul yang mengonsumsinya. Semua dari satu record.</div>
+        <div className="tiny" style={{ lineHeight: 1.5 }}><I.users size={13} style={{ verticalAlign: -2, color: 'var(--blue)' }} /> Pilih <b>ID vendor</b> untuk membuka <b>Vendor 360</b> — identitas master, kontrak (Legal), PO & faktur, lisensi, kinerja SLA & modul yang mengonsumsinya. Semua dari satu record.</div>
       </div>
       <table className="dtbl zebra">
         <thead><tr>
@@ -243,8 +256,11 @@ function ProcVendorTable({ B, P, vSel, setVSel }: any) {
         </tr></thead>
         <tbody>
           {B.VENDORS.map((v: any) => (
-            <tr key={v.id} onClick={() => setVSel(v)} style={{ cursor: 'pointer' }} className={vSel && vSel.id === v.id ? 'sel' : ''}>
-              <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</td>
+            <tr key={v.id} className={vSel && vSel.id === v.id ? 'sel' : ''}>
+              <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>
+                <button type="button" className="proc-rowbtn" aria-pressed={!!vSel && vSel.id === v.id}
+                  title={'Buka Vendor 360 — ' + v.name} onClick={() => setVSel(v)}>{v.id}</button>
+              </td>
               <td><div style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</div><div className="tiny muted mono">{v.npwp} · sejak {v.since}</div></td>
               <td className="tiny">{v.cat}</td>
               <td className="num">{boJt(v.ytd)}</td>
