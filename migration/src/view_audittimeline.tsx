@@ -298,7 +298,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
             return (
               <div key={i} style={{ height: mode === 'klien' ? phaseRowH : ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderBottom: '1px solid var(--line-soft)', background: mode === 'klien' ? 'var(--surface)' : 'var(--surface-3)' }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: c, flex: '0 0 10px' }} />
-                <span style={{ fontWeight: 700, fontSize: mode === 'klien' ? 12.5 : 11, textTransform: mode === 'klien' ? 'none' : 'uppercase', letterSpacing: mode === 'klien' ? 0 : '.04em', color: 'var(--navy)' }}>{r.g.ph.name}</span>
+                <span style={{ fontWeight: 700, fontSize: mode === 'klien' ? 'var(--fs-md)' : 'var(--fs-xs)', textTransform: mode === 'klien' ? 'none' : 'uppercase', letterSpacing: mode === 'klien' ? 0 : '.04em', color: 'var(--navy)' }}>{r.g.ph.name}</span>
               </div>
             );
           }

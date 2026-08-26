@@ -333,7 +333,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
   const FIRM: any = AMS.FIRM;
   const Line = ({ label, v, sub, neg, bold, sign }: any) => (
     <div className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
-      <span style={{ fontSize: bold ? 12.5 : 12, fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>
+      <span style={{ fontSize: bold ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>
       <span className="mono" style={{ fontSize: bold ? 13 : 12, fontWeight: bold ? 700 : 500, color: neg ? 'var(--red)' : bold ? 'var(--navy)' : 'var(--ink)' }}>{sign === false ? '' : neg ? '− ' : ''}Rp {fmt(v, 0)}</span>
     </div>
   );

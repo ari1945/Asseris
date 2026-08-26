@@ -417,7 +417,7 @@ function RailChip({ label, value, strong, align, last }: any) {
   return (
     <div style={{ padding: '7px 16px 7px 0', marginRight: last ? 0 : 16, borderRight: last ? 'none' : '1px solid var(--line)', textAlign: align || 'left' }}>
       <div className="tiny muted upper" style={{ fontSize: 11, letterSpacing: '.06em' }}>{label}</div>
-      <div className="mono" style={{ fontWeight: 700, fontSize: strong ? 14 : 12.5, color: strong ? 'var(--blue)' : 'var(--ink)' }}>{value}</div>
+      <div className="mono" style={{ fontWeight: 700, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: strong ? 'var(--blue)' : 'var(--ink)' }}>{value}</div>
     </div>
   );
 }

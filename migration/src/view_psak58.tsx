@@ -80,11 +80,11 @@ function MeasureRow({ label, v, sc, cite, sub, total, neg, memo }: any) {
       borderTop: total ? '1.5px solid var(--navy)' : (sub ? '1px solid var(--line)' : '1px solid var(--line-soft)'),
       background: total ? 'var(--blue-050)' : 'transparent',
     }}>
-      <td style={{ padding: total ? '9px 8px' : '6px 8px', fontSize: total ? 12.5 : 12, fontWeight: strong ? 700 : 400, color: strong ? 'var(--ink)' : 'var(--ink-2)', lineHeight: 1.3 }}>
+      <td style={{ padding: total ? '9px 8px' : '6px 8px', fontSize: total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: strong ? 700 : 400, color: strong ? 'var(--ink)' : 'var(--ink-2)', lineHeight: 1.3 }}>
         {label}{cite && <span className="mono tiny" style={{ color: 'var(--ink-4)', fontWeight: 600, marginLeft: 6 }}>{cite}</span>}
         {memo && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 6 }}>{memo}</span>}
       </td>
-      <td className="mono" style={{ textAlign: 'right', padding: total ? '9px 8px' : '6px 8px', whiteSpace: 'nowrap', fontSize: total ? 12.5 : 12, fontWeight: strong ? 700 : 500, color: v === 0 ? 'var(--ink-4)' : (neg ? 'var(--red)' : (strong ? 'var(--navy)' : 'var(--ink)')) }}>
+      <td className="mono" style={{ textAlign: 'right', padding: total ? '9px 8px' : '6px 8px', whiteSpace: 'nowrap', fontSize: total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: strong ? 700 : 500, color: v === 0 ? 'var(--ink-4)' : (neg ? 'var(--red)' : (strong ? 'var(--navy)' : 'var(--ink)')) }}>
         {v === 0 ? '—' : (neg ? '(' + sc(Math.abs(v)) + ')' : sc(v))}
       </td>
     </tr>
