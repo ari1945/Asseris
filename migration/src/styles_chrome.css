@@ -77,11 +77,17 @@
   padding: 3px 8px 3px 4px; border-radius: 20px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
 }
+/* Ukuran huruf inisial TIDAK diatur di sini: ia bergantung pada diameter
+   avatar, jadi komponen `Avatar` (ui.tsx) memancarkan kelas `fs-*` sesuai
+   anggota skala §5 terdekat. Menaruh `font-size` di sini akan MENGALAHKAN
+   kelas itu — styles_chrome.css dimuat sesudah styles_base.css dan
+   spesifisitasnya sama. Satu-satunya pemakai `.avatar` di luar komponen
+   (view_home_cockpit.tsx) menetapkan ukurannya sendiri. */
 .avatar {
   width: 24px; height: 24px; border-radius: 50%;
   background: linear-gradient(135deg,#2f7bb0,#013a52);
   display: grid; place-items: center; color: #fff;
-  font-size: 11px; font-weight: 700;
+  font-weight: 700;
 }
 .user-chip .u-name { font-size: 12px; font-weight: 600; line-height: 1.1; }
 .user-chip .u-role { font-size: 11px; color: var(--on-navy); }

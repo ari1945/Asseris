@@ -5,6 +5,7 @@ import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Stat } from './ui';
+import { fsTier } from './fs_tier';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -27,11 +28,15 @@ const TPL_STATUS = {
 };
 const tplDateID = (s: any) => { const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
 
+/* Label format (DOCX/XLSX/PDF/PPTX) di dalam lencana. Proporsi 0,185
+   dipertahankan sebagai NIAT desain, lalu didaratkan ke anggota skala §5:
+   pada size default 38 hasilnya 7,03px — di bawah lantai 11px — sehingga
+   mendarat di `--fs-xs` (11px). Lihat `fsTier` di fs_tier.ts. */
 function FmtBadge({ fmt, size = 38 }: any) {
   const c = (FMT_COLOR as any)[fmt] || 'var(--ink-3)';
   return (
     <div style={{ width: size, height: size * 1.21, borderRadius: 5, background: c + '18', color: c, display: 'grid', placeItems: 'center', flex: '0 0 ' + size + 'px', position: 'relative' }}>
-      <I.doc size={size * 0.53} /><span style={{ position: 'absolute', bottom: size * 0.08, fontSize: size * 0.185, fontWeight: 800, letterSpacing: '.02em' }}>{fmt}</span>
+      <I.doc size={size * 0.53} /><span className={'fs-' + fsTier(size * 0.185)} style={{ position: 'absolute', bottom: size * 0.08, fontWeight: 800, letterSpacing: '.02em', lineHeight: 1 }}>{fmt}</span>
     </div>
   );
 }

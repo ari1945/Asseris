@@ -318,7 +318,7 @@ function CRDokumen({ ctx }: any) {
                   <td className="truncate" style={{ maxWidth: 190 }}>{d.name}<div className="tiny muted">{d.eng} · v{d.ver}</div></td>
                   <td><Badge kind={(CR_CLASS_KIND as any)[d.classification] || 'gray'}>{d.classification}</Badge></td>
                   <td className="mono tiny" style={{ color: d.valid ? 'var(--ink-4)' : 'var(--red)' }}>{crShort(d.liveHash)}</td>
-                  <td className="tiny"><div className="row ac gap6"><Avatar name={d.signer} size={18} />{d.signer}</div></td>
+                  <td className="tiny"><div className="row ac gap6"><Avatar name={d.signer} size={20} />{d.signer}</div></td>
                   <td>{d.legalHold ? <span className="chip tiny" style={{ color: 'var(--red)' }}><I.lock size={10} /> {d.wormLabel}</span> : <span className="chip tiny">{d.wormLabel}</span>}</td>
                   <td>{d.valid ? <Badge kind="green"><I.lock size={10} /> Tersegel</Badge> : <Badge kind="red"><I.alert size={10} /> Mismatch</Badge>}</td>
                 </tr>

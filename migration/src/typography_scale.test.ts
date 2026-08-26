@@ -27,12 +27,30 @@
    lalu memeriksa SETIAP literal angka di dalamnya — termasuk kedua cabang
    ternari.
 
+   UKURAN TERHITUNG — KINI DIJAGA (dulu dikecualikan):
+   Sampai PR sebelumnya gerbang ini melewati setiap ekspresi yang memuat `*`
+   atau `/`, karena dua situs se-repo masih memikulnya dan memasukkannya akan
+   memerahkan master. Keduanya sudah ditutup:
+
+     ui.tsx        Avatar    fontSize: size * 0.4    → 6,4px pada diameter 16
+     view_misc2    FmtBadge  fontSize: size * 0.185  → 7,03px pada size 38
+
+   Keduanya kini memancarkan KELAS `fs-*` (nilainya `var(--fs-*)`) lewat
+   `fsTier` di fs_tier.ts: proporsinya tetap, hasilnya mendarat di anggota skala.
+   Pengecualiannya dicabut, jadi kelas cacat ini benar-benar dijaga.
+
+   DUA BENTUK diperiksa, karena satu saja tak cukup:
+     1. LITERAL — setiap angka di dalam ekspresi `fontSize` (kedua cabang
+        ternari termasuk) harus anggota skala. Ini menangkap `size * 0.4`,
+        yang memuat literal 0,4.
+     2. BENTUK  — ekspresi `fontSize` tak boleh mengandung `*` atau `/` sama
+        sekali. Perlu terpisah karena `fontSize: size * ratio` tak memuat SATU
+        PUN literal angka: sensus literal akan hijau di atasnya.
+
    BATAS YANG DINYATAKAN (jangan diklaim lebih):
-   - Ukuran yang DIHITUNG dari dimensi lain (`fontSize: size * 0.4`) TIDAK
-     dijaga di sini. Itu kelas cacat terpisah; `cockpit_conventions.test.ts`
-     menjaganya untuk cockpit saja. Dua situs se-repo masih memikulnya
-     (`ui.tsx` Avatar, `view_misc2.tsx` FmtBadge) — sengaja dibiarkan, lihat
-     catatan PR. Menambahkannya ke sini akan MEMERAHKAN master.
+   - Gerbang ini membaca TEKS berkas, bukan aliran nilai. `const fs = size *
+     0.4;` lalu `fontSize: fs` akan lolos. Yang dijaga adalah bentuk di situs
+     `fontSize:` itu sendiri.
    - `export_pdf.ts` dikecualikan: `fontSize` di sana adalah POIN jsPDF, bukan
      piksel CSS, dan tidak tunduk pada skala ini.
    ============================================================ */
@@ -64,6 +82,10 @@ const kode = (f: string): string =>
 const NILAI = /fontSize:\s*([^,}\n]+)/g;
 const ANGKA = /(?<![\w.])(\d+(?:\.\d+)?)(?![\w.]*\s*[*/])/g;
 
+/* Bentuk terhitung: apa pun yang mengalikan/membagi di situs `fontSize:`.
+   Diperiksa terpisah dari literal — lihat "DUA BENTUK" di kepala berkas. */
+const TERHITUNG = /[*/]/;
+
 type Pelanggaran = { berkas: string; ekspresi: string; nilai: number };
 
 const sensus = (): Pelanggaran[] => {
@@ -71,8 +93,6 @@ const sensus = (): Pelanggaran[] => {
   for (const f of berkasSumber()) {
     for (const m of kode(f).matchAll(NILAI)) {
       const ekspresi = m[1].trim();
-      /* ukuran terhitung: kelas terpisah, lihat BATAS di kepala berkas */
-      if (/[*/]/.test(ekspresi)) continue;
       for (const a of ekspresi.matchAll(ANGKA)) {
         const nilai = Number(a[1]);
         if (!DIIZINKAN.has(nilai)) out.push({ berkas: f, ekspresi, nilai });
@@ -108,6 +128,30 @@ describe('§5 — skala tipografi mengikat di SELURUH migration/src', () => {
     const nakal = sensus();
     const ringkas = [...new Set(nakal.map((p) => `${p.berkas}: ${p.ekspresi}`))];
     expect(nakal.length, `${nakal.length} pelanggaran:\n  ${ringkas.join('\n  ')}`).toBe(0);
+  });
+
+  it('nol fontSize yang DIHITUNG dari dimensi lain (se-repo, bukan cockpit saja)', () => {
+    /* `size * 0.4` (Avatar) & `size * 0.185` (FmtBadge) mendarat di 6,4px dan
+       7,03px — di bawah lantai. Keduanya kini lewat kelas `fs-*`. Bentuk ini
+       diperiksa sendiri karena `size * ratio` nol literal angka. */
+    const terhitung: string[] = [];
+    for (const f of berkasSumber()) {
+      for (const m of kode(f).matchAll(NILAI)) {
+        const ekspresi = m[1].trim();
+        if (TERHITUNG.test(ekspresi)) terhitung.push(`${f}: ${ekspresi}`);
+      }
+    }
+    expect([...new Set(terhitung)]).toEqual([]);
+  });
+
+  it('sensus BENTUK itu benar-benar melihat pola terhitung (bukan regex mati)', () => {
+    /* uji-atas-uji: kalau TERHITUNG putus, uji di atas jadi hijau palsu. */
+    const contoh = "style={{ fontSize: size * ratio, color: 'red' }}";
+    const m = [...contoh.matchAll(NILAI)];
+    expect(m).toHaveLength(1);
+    expect(TERHITUNG.test(m[0][1].trim())).toBe(true);
+    /* dan sensus LITERAL memang buta pada bentuk ini — sebab ia ada */
+    expect([...m[0][1].matchAll(ANGKA)]).toHaveLength(0);
   });
 
   it('nol ukuran di bawah lantai 11px', () => {
