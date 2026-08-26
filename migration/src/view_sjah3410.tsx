@@ -22,9 +22,20 @@ import { amsDateLongId } from './clock_ssot';
 
    SUMBER KEBENARAN TUNGGAL: AMS.ghgEngine(exec). Seluruh angka
    emisi DIHITUNG dari aktivitas × faktor — tak ada hardcode. Status
-   uji & prosedur disimpan di ams.v1.ghg3410.exec & dibaca lintas modul
-   (Asurans Lain · Katalog SJAH 3000 · Portofolio Jasa · Matriks
-   Kepatuhan).
+   uji & prosedur disimpan BERLINGKUP PERIKATAN (registri AMS_PERSIST_SCOPE di
+   contexts.tsx → ams.v1.engagement.<engId>.ghg3410.exec); sebelumnya kunci ini
+   jatuh ke lingkup FIRMA, sehingga prosedur yang ditandai selesai pada satu
+   perikatan terbaca sebagai pekerjaan yang sudah dilakukan pada perikatan
+   klien lain.
+
+   CATATAN CACAT TERBUKA (di luar lingkup perbaikan isolasi). Baris ini dulu
+   berbunyi "& dibaca lintas modul"; itu TIDAK PERNAH benar. Modul hilir
+   (Asurans Lain · Katalog SJAH 3000 · Portofolio Jasa · Matriks Kepatuhan)
+   memanggil `ghgEngine()` TANPA argumen, dan cadangan di dalamnya membaca kunci
+   TAK-BERLINGKUP `ams.v1.ghg3410.exec` — kunci pra-W6 yang tak pernah lagi
+   ditulis aplikasi (satu-satunya penulis cache adalah `cacheWrite`, yang
+   beralamat scope+scopeId). Pembaca itu karena itu selalu memakai status seed,
+   bukan pekerjaan auditor, baik sebelum maupun sesudah perubahan lingkup ini.
    ============================================================ */
 const { useState: useS3410 } = React;
 
