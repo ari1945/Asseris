@@ -20,8 +20,20 @@ import { amsDateLongId } from './clock_ssot';
    SUMBER KEBENARAN TUNGGAL: AMS.proformaEngine(exec). Kolom
    "tidak disesuaikan" ditarik LIVE dari AMS_CANON (psak65/revenue);
    metodologi penyesuaian selaras AMS_CANON.psak22 & tarif AMS_CANON.RATE.
-   Status prosedur disimpan di ams.v1.pf3420.exec & dibaca lintas modul
-   (Asurans Lain · Katalog SJAH 3000 · Portofolio Jasa · Matriks Kepatuhan).
+   Status prosedur disimpan BERLINGKUP PERIKATAN (registri AMS_PERSIST_SCOPE di
+   contexts.tsx → ams.v1.engagement.<engId>.pf3420.exec); sebelumnya kunci ini
+   jatuh ke lingkup FIRMA, sehingga prosedur yang ditandai selesai pada satu
+   perikatan terbaca sebagai pekerjaan yang sudah dilakukan pada perikatan
+   klien lain.
+
+   CATATAN CACAT TERBUKA (di luar lingkup perbaikan isolasi). Baris ini dulu
+   berbunyi "& dibaca lintas modul"; itu TIDAK PERNAH benar. Modul hilir
+   (Asurans Lain · Katalog SJAH 3000 · Portofolio Jasa · Matriks Kepatuhan)
+   memanggil `proformaEngine()` TANPA argumen, dan cadangan di dalamnya membaca
+   kunci TAK-BERLINGKUP `ams.v1.pf3420.exec` — kunci pra-W6 yang tak pernah lagi
+   ditulis aplikasi (satu-satunya penulis cache adalah `cacheWrite`, yang
+   beralamat scope+scopeId). Pembaca itu karena itu selalu memakai status seed,
+   bukan pekerjaan auditor, baik sebelum maupun sesudah perubahan lingkup ini.
    ============================================================ */
 const { useState: usePF } = React;
 
