@@ -31,6 +31,42 @@ const gapLabel = (g: RevenueGap): string => (g === 'contract-unknown'
   ? 'nilai kontrak belum ditetapkan'
   : 'kemajuan belum terukur (jam/anggaran tak lengkap)');
 
+/**
+ * Bantahan yang menggantikan roll-forward kontrak.
+ *
+ * Sampai 2026-08-26 kedua panel di tab "Aset & Liabilitas Kontrak" mencetak
+ * saldo 1 Januari dan pergerakan periode yang dihitung dari faktor tetap atas
+ * saldo AKHIRNYA SENDIRI. Panel liabilitas memakai ×1,4 / ×0,9 / ×1,3 atas satu
+ * basis yang sama: 1,4 + 0,9 − 1,3 = 1,0, sehingga persamaannya menutup secara
+ * ALJABAR apa pun datanya — rekonsiliasi yang tak mungkin gagal bukan bukti.
+ * Panel aset memakai ×0,74 / ×0,32 / ×0,28 atas TIGA basis berbeda, sehingga ia
+ * tak menutup sama sekali: dengan seed 2026-08-26 selisihnya Rp 15,0 jt, dan
+ * selisih itu terbaca di layar karena ketiga barisnya ikut dicetak.
+ *
+ * Menggantinya dengan faktor lain yang "lebih masuk akal" hanya mengulang cacat
+ * yang sama dengan pengarang berbeda. Komponen yang benar tidak dapat
+ * DITURUNKAN: aset & liabilitas kontrak di sini adalah PENYAJIAN turunan
+ * (fee × kemajuan − tertagih), bukan akun buku besar — `FIRM_COA` tak memuat
+ * akun aset maupun liabilitas kontrak, dan tak ada satu pun jurnal
+ * pergerakannya. Saldo awal pun tak dapat direkonstruksi: tak ada jam pembuka
+ * per perikatan di repo (nol hasil untuk `openingRecognized`/`openingHrs`), dan
+ * register faktur hanya memuat faktur 2026 — diamnya register tentang 2025
+ * bukan bukti bahwa nol yang ditagih.
+ *
+ * Roll-forward yang MEMANG dapat ditutup ada di modul WIP (kontrol GL 1-300,
+ * `FIRMFIN.wip`): saldo awal & penambahannya fakta per-perikatan dan selisih
+ * yang tak terjelaskan dinyatakan sebagai alarm. Dasar pengukurannya nilai
+ * standar jam, BUKAN nilai kontrak PSAK 72 — dan `WIP_ENG.billed` membantah
+ * register faktur (ENG-2025-014: 1.200 jt vs 1.480 jt) — jadi ia bukan
+ * pengganti panel ini, melainkan bentuk yang harus ditiru bila komponennya ada.
+ */
+const NO_ROLLFWD = 'Roll-forward tidak dapat disusun: saldo per 1 Januari dan pergerakan periode berjalan '
+  + 'belum tersedia, dan tak ada taksiran yang dipasang menggantikannya. Saldo di atas DITURUNKAN dari '
+  + 'skedul pengakuan (fee klien × kemajuan terukur − tertagih), bukan dibukukan — bagan akun firma tak '
+  + 'punya akun aset maupun liabilitas kontrak, sehingga tak ada jurnal pergerakan yang dapat dienumerasi. '
+  + 'Agar panel ini dapat menutup dibutuhkan tiga hal yang belum ada: saldo kontrak per 1 Januari, '
+  + 'pendapatan diakui PERIODE BERJALAN terpisah dari kumulatif, dan tertagih periode berjalan.';
+
 const revIdBtnStyle: Record<string, string | number> = {
   background: 'none', border: 0, padding: '0', font: 'inherit', cursor: 'pointer',
   color: 'var(--blue)', fontWeight: 700, textAlign: 'left', width: '100%',
@@ -150,24 +186,18 @@ function FirmRevenue() {
 
           {tab === 'rollfwd' && (
             <div style={{ padding: 14 }}>
-              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Saldo awal (1 Jan) & komponen pergerakan berikut ILUSTRASI demo — faktor pembagi (×0,74/×0,32/…) disintesis agar menutup ke saldo akhir, BUKAN diturunkan dari buku besar (roadmap Ledger-based Reporting, Program E). Pada tabel di bawah, hanya <b>Ditagih</b> yang merupakan fakta: ia dibaca dari register faktur. <b>Diakui</b> adalah TURUNAN — fee klien × kemajuan yang diukur dari jam aktual terhadap anggaran (PSAK 72 ¶B18, berpagar) — sehingga aset & liabilitas kontrak yang diturunkan darinya ikut bergantung pada kelengkapan timesheet dan pada anggaran jam yang dipakai sebagai penyebut.</div>
+              <div className="tiny" style={{ marginBottom: 10, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Tab ini menyatakan POSISI kontrak per tanggal laporan, bukan roll-forward. Sampai 2026-08-26 kedua panel di bawah mencetak saldo 1 Januari & pergerakan periode yang dihitung dari faktor tetap atas saldo akhirnya sendiri: pada panel liabilitas persamaannya menutup secara ALJABAR apa pun datanya (×1,4 + ×0,9 − ×1,3 = ×1,0), dan pada panel aset — yang faktornya berdiri di atas tiga basis berbeda — ia tidak menutup sama sekali. Keduanya DICABUT, bukan diganti faktor lain (roadmap Ledger-based Reporting, Program E). Yang tersisa di layar ini adalah fakta dan turunannya: <b>Ditagih</b> dibaca dari register faktur. <b>Diakui</b> adalah TURUNAN — fee klien × kemajuan yang diukur dari jam aktual terhadap anggaran (PSAK 72 ¶B18, berpagar) — sehingga aset & liabilitas kontrak yang diturunkan darinya ikut bergantung pada kelengkapan timesheet dan pada anggaran jam yang dipakai sebagai penyebut.</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                <Panel title="Aset Kontrak — Roll-Forward" sub="unbilled receivable · PSAK 72">
+                <Panel title="Aset Kontrak — Saldo Akhir" sub="unbilled receivable · PSAK 72">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    <RowKv label="Saldo awal (1 Jan)" v={'Rp ' + fmt(totAsset * 0.74 / 1e6, 0) + ' jt'} />
-                    <RowKv label="+ Pendapatan diakui" v={'Rp ' + fmt(totRecognized * 0.32 / 1e6, 0) + ' jt'} />
-                    <RowKv label="− Direklas ke piutang (ditagih)" v={'(Rp ' + fmt(totBilled * 0.28 / 1e6, 0) + ' jt)'} />
-                    <div className="divider" />
                     <RowKv label="Saldo akhir aset kontrak" v={'Rp ' + fmt(totAsset / 1e6, 0) + ' jt'} strong />
+                    <div className="tiny muted" style={{ lineHeight: 1.5 }}>{NO_ROLLFWD}</div>
                   </div>
                 </Panel>
-                <Panel title="Liabilitas Kontrak — Roll-Forward" sub="deferred revenue · PSAK 72">
+                <Panel title="Liabilitas Kontrak — Saldo Akhir" sub="deferred revenue · PSAK 72">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    <RowKv label="Saldo awal (1 Jan)" v={'Rp ' + fmt(totLiab * 1.4 / 1e6, 0) + ' jt'} />
-                    <RowKv label="+ Tagihan dimuka diterima" v={'Rp ' + fmt(totLiab * 0.9 / 1e6, 0) + ' jt'} />
-                    <RowKv label="− Diakui sebagai pendapatan" v={'(Rp ' + fmt(totLiab * 1.3 / 1e6, 0) + ' jt)'} />
-                    <div className="divider" />
                     <RowKv label="Saldo akhir liabilitas kontrak" v={'Rp ' + fmt(totLiab / 1e6, 0) + ' jt'} strong />
+                    <div className="tiny muted" style={{ lineHeight: 1.5 }}>{NO_ROLLFWD}</div>
                   </div>
                 </Panel>
               </div>
