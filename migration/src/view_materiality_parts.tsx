@@ -534,7 +534,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   const Row = ({ label, value, strong }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)' }}>{value}</span>
     </div>
   );
   const SignBox = ({ k, title }: any) => {

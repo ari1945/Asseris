@@ -229,7 +229,7 @@ function FileDropField({ multiple = true, onFiles, hint, compact }: any) {
       onDragLeave={(e: any) => { e.preventDefault(); setDrag(false); }}
       onDrop={(e: any) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer && e.dataTransfer.files); }}>
       <span className="filedrop-ic"><I.upload size={compact ? 16 : 20} /></span>
-      <div style={{ fontSize: compact ? 12 : 12.5, fontWeight: 700 }}>Tarik berkas atau klik untuk memilih</div>
+      <div style={{ fontSize: compact ? 'var(--fs-sm)' : 'var(--fs-md)', fontWeight: 700 }}>Tarik berkas atau klik untuk memilih</div>
       <div className="tiny muted">{hint || 'PDF · XLSX · DOCX · CSV · PNG/JPG · maks ' + EV_MAX_MB + ' MB'}</div>
       <input ref={ref} type="file" multiple={multiple} style={{ display: 'none' }}
         onChange={(e: any) => { handle(e.target.files); e.target.value = ''; }} />

@@ -74,7 +74,7 @@ function P22Kv({ label, v, strong, accent, indent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)', paddingLeft: indent ? 12 : 0 }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
     </div>
   );
 }

@@ -500,8 +500,8 @@ function WtbGrouping({ pm }: any) {
 
   const ReconRow = ({ label, value, accent, strong, top, plain }: any) => (
     <div className="row ac jb" style={{ padding: '7px 0', borderTop: top ? '2px solid var(--line-strong)' : '1px solid var(--line-soft)' }}>
-      <span style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--navy)' : 'var(--ink-2)', fontSize: strong ? 13 : 12.5 }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, color: accent || 'var(--ink)', fontSize: strong ? 14 : 12.5 }}>{plain ? value : 'Rp ' + value + ' M'}</span>
+      <span style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--navy)' : 'var(--ink-2)', fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)' }}>{label}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, color: accent || 'var(--ink)', fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)' }}>{plain ? value : 'Rp ' + value + ' M'}</span>
     </div>
   );
 
