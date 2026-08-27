@@ -183,7 +183,7 @@ function F710Type({ mode, setMode }: { mode: string; setMode: (m: string) => voi
       </Panel>
 
       <Panel noBody>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
           <Badge kind={mode === t.key ? t.color : 'gray'}>{mode === t.key ? 'Diterapkan' : 'Pratinjau'}</Badge>
           <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>{t.h}</div>
         </div>

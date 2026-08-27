@@ -142,13 +142,13 @@ function Governance() {
 
         {/* Annual evaluation conclusion — centerpiece of SMM 1 */}
         <div className="panel" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
-          <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 42, height: 42, borderRadius: 11, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: '0 0 42px' }}><I.shield size={22} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SMM Tahunan — Periode {evalPeriod}</div>
               {/* Nama penandatangan HANYA dari rantai atestasi. Sebelumnya
                   `ev.by`/`ev.approvedBy` seed ditampilkan sebagai fakta. */}
-              <div className="tiny" style={{ color: '#bcd6e4' }}>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>
                 {attestLinks.map((l, i) => (
                   <span key={l.roleId}>
                     {i > 0 && ' · '}
@@ -376,8 +376,8 @@ function GovCompDetail({ c, metric, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[COMPONENT_STATUS_LABEL[st]]}>{COMPONENT_STATUS_LABEL[st]}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>SMM 1 {c.ref}</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[COMPONENT_STATUS_LABEL[st]]}>{COMPONENT_STATUS_LABEL[st]}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>SMM 1 {c.ref}</div></div>
           <button className="top-btn" onClick={onClose} aria-label="Tutup rincian komponen" title="Tutup"><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'grid', gap: 14, alignContent: 'start' }}>

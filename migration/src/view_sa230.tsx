@@ -287,9 +287,9 @@ function D2Ikhtisar({ C }: any) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div style={{ background: ready ? 'linear-gradient(125deg,#0b5d3b,#127a4e)' : 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Kelengkapan Dokumentasi</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Kelengkapan Dokumentasi</div>
             <div className="mono" style={{ fontSize: 34, fontWeight: 700, lineHeight: 1 }}>{agg.docPct}%</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>{ready ? 'Siap dirakit menjadi berkas final' : `${agg.blocking} hal menghambat finalisasi`}</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>{ready ? 'Siap dirakit menjadi berkas final' : `${agg.blocking} hal menghambat finalisasi`}</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
             <D2Gate ok={agg.noReviewer.length === 0} label="Seluruh KK memiliki pereviu & tanggal" v={`${agg.total - agg.noReviewer.length}/${agg.total}`} />
@@ -574,10 +574,10 @@ function D2Signifikan({ C }: any) {
       {/* kanan — diskusi & pengecualian */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Hal Signifikan Aktif</div>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Hal Signifikan Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{risks.length}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{risks.filter((r: any) => r.fraud).length} terkait kecurangan</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 4 }}>{risks.filter((r: any) => r.fraud).length} terkait kecurangan</div>
           </div>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 7 }}>
             <div className="row jb ac"><span className="tiny">Catatan reviu terbuka (¶10)</span><span className="mono" style={{ fontWeight: 700, color: notes.length ? 'var(--amber)' : 'var(--green)' }}>{notes.length}</span></div>
@@ -673,9 +673,9 @@ function D2Penyimpangan({ C, arc }: { C: any; arc: Sa230ArchiveState }) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div style={{ background: excRows.length ? 'linear-gradient(125deg,#013a52,#005085)' : 'linear-gradient(125deg,#0b5d3b,#127a4e)', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Inkonsistensi Aktif</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Inkonsistensi Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{inkonsistensi.length}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{excRows.reduce((a: any, r: any) => a + r.exc, 0)} pengecualian prosedur</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 4 }}>{excRows.reduce((a: any, r: any) => a + r.exc, 0)} pengecualian prosedur</div>
           </div>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 8 }}>
             <D2Gate ok={true} label="Penyimpangan ketentuan SA" v="Nihil" />
@@ -874,7 +874,7 @@ function D2Perakitan({ C, arc, doc, patch }: { C: any; arc: Sa230ArchiveState; d
       {/* kanan — retensi, kepemilikan, kerahasiaan */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,var(--navy-solid),var(--blue-solid))', color: '#fff', padding: '16px 18px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-solid),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
             <div className="tiny" style={{ opacity: .78, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{arc.retentionYears} tahun</div>
             <div className="tiny" style={{ opacity: .7, marginTop: 5 }}>{arc.retentionUntil ? `s.d. ${d2fmtDate(arc.retentionUntil)}` : 'jam retensi mulai setelah berkas dikunci'}</div>
@@ -1048,12 +1048,12 @@ function D2Keterkaitan({ C }: any) {
           {/* HUB */}
           <div className="d2net-hub">
             <div className="d2net-node">
-              <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Standar Audit</div>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Standar Audit</div>
               <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>230</div>
-              <div className="tiny" style={{ color: '#cfe0ea', marginTop: 4, fontWeight: 600 }}>Dokumentasi Audit</div>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 4, fontWeight: 600 }}>Dokumentasi Audit</div>
               <div style={{ height: 1, background: 'rgba(255,255,255,.18)', margin: '11px 0' }} />
-              <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: ready ? '#7ee2b0' : '#ffd27a' }}>{agg.docPct}%</div>
-              <div className="tiny" style={{ color: '#9fc0d2', marginTop: 2 }}>kelengkapan dokumentasi</div>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: ready ? 'var(--on-dark-ok)' : 'var(--on-dark-warn)' }}>{agg.docPct}%</div>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 2 }}>kelengkapan dokumentasi</div>
             </div>
             <div className="d2net-flow tiny muted">Hulu menetapkan <b>apa</b> yang didokumentasikan; Hilir memakai dokumentasi sebagai <b>bukti</b> kelengkapan & dasar opini.</div>
           </div>

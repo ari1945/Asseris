@@ -329,15 +329,15 @@ function WPDrill({ it, onClose }: any) {
       bodyStyle={{ background: 'var(--surface-2)' }}
       header={(
         <>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
             <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15 }}>{ref}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>{it[1]}</div>
-              <div className="tiny" style={{ color: '#bcd6e4' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>
+              <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>
             </div>
             <div className="row ac gap8">
               <Badge kind={status === 'Reviewed' ? 'green' : status === 'In Review' ? 'blue' : status === 'In Progress' ? 'amber' : 'gray'}>{status}</Badge>
-              <button className="top-btn" aria-label="Tutup kertas kerja" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+              <button className="top-btn" aria-label="Tutup kertas kerja" onClick={onClose} style={{ color: 'var(--on-dark-fg)' }}><I.x size={18} /></button>
             </div>
           </div>
           <div style={{ padding: '0 16px', background: 'var(--surface)', borderBottom: '1px solid var(--line)', flex: '0 0 auto' }}>

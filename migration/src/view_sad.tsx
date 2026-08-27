@@ -562,10 +562,10 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
       {/* right — comparison & conclusion */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Agregat Tidak Dikoreksi ({method === 'rollover' ? 'Neto, L/R' : 'Neto, Neraca'})</div>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Agregat Tidak Dikoreksi ({method === 'rollover' ? 'Neto, L/R' : 'Neto, Neraca'})</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {fmt(absNet / 1e6, 0)} jt</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Bruto Rp {fmt(evalGross / 1e6, 0)} jt · {calc.uncorr.length} item tidak dikoreksi</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>Bruto Rp {fmt(evalGross / 1e6, 0)} jt · {calc.uncorr.length} item tidak dikoreksi</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>
             <RowKv label="% dari Overall Materiality" v={(absNet / om * 100).toFixed(0) + '%'} strong />
@@ -641,8 +641,8 @@ function TabQualitative({ quals, toggleQual, qualCount }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Faktor Kualitatif Relevan</div>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Faktor Kualitatif Relevan</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{qualCount} / {quals.length}</div>
           </div>
           <div style={{ padding: '12px 14px' }}>

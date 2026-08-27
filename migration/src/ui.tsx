@@ -314,13 +314,13 @@ function StubView({ moduleId }: any) {
   return (
     <div className="view-pad" style={{ minHeight: '100%' }}>
       <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center' }}>
             <IconC size={26} />
           </div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 700 }}>{m.label}</div>
-            <div style={{ fontSize: 12, color: '#bcd6e4' }}>{m.group}</div>
+            <div style={{ fontSize: 12, color: 'var(--on-dark-muted)' }}>{m.group}</div>
           </div>
           <div style={{ flex: 1 }} />
           <Badge kind="amber">Module Scaffolded</Badge>

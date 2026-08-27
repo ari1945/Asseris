@@ -140,8 +140,8 @@ function EQRWorkflow() {
 
           {/* detail */}
           <Panel noBody>
-            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 18px' }}>
-              <div className="row jb ac"><div><div style={{ fontSize: 15, fontWeight: 700 }}>{r.client}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.id} · {r.eng} · Partner {r.partner} · Reviewer {r.reviewer.split(',')[0]}</div></div>{r.cleared ? <Badge kind="green"><I.checkCircle size={12} /> Gerbang Lolos</Badge> : <Badge kind="amber">Gerbang Terkunci</Badge>}</div>
+            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 18px' }}>
+              <div className="row jb ac"><div><div style={{ fontSize: 15, fontWeight: 700 }}>{r.client}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.id} · {r.eng} · Partner {r.partner} · Reviewer {r.reviewer.split(',')[0]}</div></div>{r.cleared ? <Badge kind="green"><I.checkCircle size={12} /> Gerbang Lolos</Badge> : <Badge kind="amber">Gerbang Terkunci</Badge>}</div>
             </div>
             <div style={{ padding: 16 }}>
               {/* Kelayakan & penunjukan reviewer (SMM 2 ¶18–20) */}

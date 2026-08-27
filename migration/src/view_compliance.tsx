@@ -336,13 +336,13 @@ function ComplianceView({ stdId }: any) {
             {/* meta + progress */}
             <div className="grid" style={{ gap: 12 }}>
               <Panel noBody>
-                <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 16px 14px' }}>
+                <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 16px 14px' }}>
                   <div className="row ac jb">
                     <Badge kind="blue" >{stLabel.split('·')[0].trim()}</Badge>
                     <Badge kind={meta.risk === 'High' ? 'red' : meta.risk === 'Medium' ? 'amber' : 'green'}>{meta.risk}</Badge>
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>{meta.mat || stLabel}</div>
-                  <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>{cfg.obj}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--on-dark-muted)' }}>{cfg.obj}</p>
                 </div>
                 <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
                   <Donut segments={[{ value: done, color: '#1f7a4d' }, { value: (counts.pending || 0), color: '#e7ebef' }, { value: (counts.na || 0), color: '#c3cad2' }]} size={84} thickness={12}

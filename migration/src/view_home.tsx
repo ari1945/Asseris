@@ -157,17 +157,17 @@ function HomeView() {
     <div className="view-scroll"><div className="view-pad" style={{ display: 'grid', gap: 14 }}>
 
       {/* hero / sapaan */}
-      <div className="panel" style={{ padding: '18px 20px', background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="panel" style={{ padding: '18px 20px', background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 19, fontWeight: 800 }}>Selamat datang, {hmFirstName(user.name)}</div>
-          <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', marginTop: 3 }}>
             {role}{isFirmOps ? ' · Operasi Firma' : isOversight ? ' · Oversight Portofolio' : ' · Ruang Kerja Perikatan'}
           </div>
         </div>
         <div className="row gap8">
-          {!isFirmOps && <Btn sm onClick={() => nav('tasks', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.check size={14} /> My Tasks</Btn>}
-          {isOversight && <Btn sm onClick={() => nav('personal', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.users size={14} /> Data Personal</Btn>}
-          {isOversight && <Btn sm onClick={() => nav('dashboard', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.dashboard size={14} /> Firm Dashboard</Btn>}
+          {!isFirmOps && <Btn sm onClick={() => nav('tasks', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', border: 'none' }}><I.check size={14} /> My Tasks</Btn>}
+          {isOversight && <Btn sm onClick={() => nav('personal', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', border: 'none' }}><I.users size={14} /> Data Personal</Btn>}
+          {isOversight && <Btn sm onClick={() => nav('dashboard', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', border: 'none' }}><I.dashboard size={14} /> Firm Dashboard</Btn>}
         </div>
       </div>
 

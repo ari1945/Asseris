@@ -388,11 +388,11 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Buku Besar (GL)</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>Detail transaksi per akun untuk drill sub-ledger nyata · kolom: Kode · Tanggal · Uraian · Dokumen · Jumlah (atau Debit/Kredit)</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Detail transaksi per akun untuk drill sub-ledger nyata · kolom: Kode · Tanggal · Uraian · Dokumen · Jumlah (atau Debit/Kredit)</div>
           </div>
           {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -545,11 +545,11 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.layers size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Saldo Audited TA-1 (SA 510)</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>Sumber INDEPENDEN untuk menelusuri saldo awal — tanpa ini, kolom "TA Lalu" tak dapat diverifikasi terhadap apa pun</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Sumber INDEPENDEN untuk menelusuri saldo awal — tanpa ini, kolom "TA Lalu" tak dapat diverifikasi terhadap apa pun</div>
           </div>
           {locked ? <Badge kind="amber">Terkunci</Badge> : !canEdit ? <Badge kind="amber">Hanya-baca</Badge> : null}
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -705,11 +705,11 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
         </div>
       )}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.target size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Pemetaan Bagan Akun → CoA Standar</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>Petakan akun klien ke kode standar agar engine PSAK & FS Generator mengenalinya. Akun yang dipetakan ke kode sama digabung.</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Petakan akun klien ke kode standar agar engine PSAK & FS Generator mengenalinya. Akun yang dipetakan ke kode sama digabung.</div>
           </div>
           {!canMap && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -899,11 +899,11 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.upload size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Neraca Saldo Klien</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>Tempel dari Excel/CSV · tab/titik-koma/koma · kolom: Kode · Nama · TA Lalu · Unadjusted · AJE (atau Debit/Kredit)</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Tempel dari Excel/CSV · tab/titik-koma/koma · kolom: Kode · Nama · TA Lalu · Unadjusted · AJE (atau Debit/Kredit)</div>
           </div>
           {locked ? <Badge kind="amber">Berkas terarsip — terkunci</Badge>
             : !hasCap ? <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge> : null}
@@ -1316,9 +1316,9 @@ function WtbDrill({ row, onClose, nav }: any) {
       size="lg"
       onClose={onClose}
       header={(<>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
           <Badge kind="blue" title={LEAD_SRC_TITLE[row.leadSrc || ''] || undefined}>WP {row.lead}{row.leadSrc === 'guess' ? '?' : ''}</Badge>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>

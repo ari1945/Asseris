@@ -112,17 +112,17 @@ function KnowledgeBase() {
 
         {/* HERO + pencarian */}
         <Panel noBody style={{ overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '20px 22px' }}>
+          <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 22px' }}>
             <div className="row jb ac wrap" style={{ gap: 12 }}>
               <div style={{ minWidth: 280, flex: 1 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
-                <div style={{ fontSize: 12, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
+                <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
               </div>
               <div className="row gap14" style={{ flexShrink: 0 }}>
                 {[['SA', all.filter((a: any) => a.type === 'SA').length], ['PSAK', all.filter((a: any) => kbFamily(a.type) === 'PSAK').length], ['Editorial', authored]].map(([l, n]) => (
                   <div key={l} style={{ textAlign: 'right' }}>
                     <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{n}</div>
-                    <div className="tiny" style={{ color: '#9fc2d4' }}>{l}</div>
+                    <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{l}</div>
                   </div>
                 ))}
               </div>
@@ -334,17 +334,17 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
       size="xl"
       onClose={onClose}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', flex: '0 0 48px' }}><I.book size={24} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8" style={{ marginBottom: 4 }}>
               <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{reg.code}</span>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{fw.label}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)', fontSize: 11 }}>{fw.label}</span>
             </div>
             <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.25 }}>{reg.title}</div>
-            <div style={{ color: '#bcd6e4', marginTop: 6, fontSize: 13 }}>{reg.phase} · {c.read || 5} mnt baca · {c.level || 'Inti'}</div>
+            <div style={{ color: 'var(--on-dark-muted)', marginTop: 6, fontSize: 13 }}>{reg.phase} · {c.read || 5} mnt baca · {c.level || 'Inti'}</div>
           </div>
-          <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={20} /></button>
+          <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: 'var(--on-dark-fg)' }}><I.x size={20} /></button>
         </div>
       )}
       footer={(

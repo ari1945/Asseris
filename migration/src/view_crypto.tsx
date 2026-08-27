@@ -394,10 +394,10 @@ function CRDocDrawer({ d, onClose, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
-            <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{d.id} · v{d.ver}</span>
-            <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+            <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--on-dark-muted)' }}>{d.id} · v{d.ver}</span>
+            <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: 'var(--on-dark-fg)' }}><I.x size={18} /></button>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{d.name}</div>
           <div className="row ac gap6" style={{ marginTop: 8 }}>

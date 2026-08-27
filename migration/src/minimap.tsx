@@ -43,7 +43,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   @keyframes mm-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   .mm-head { display: flex; align-items: center; gap: 11px; padding: 13px 16px;
-    background: linear-gradient(135deg, var(--navy-600, #013049), var(--navy-solid)); color: #fff; flex: 0 0 auto; }
+    background: linear-gradient(135deg, var(--navy-600, #013049), var(--navy-solid)); color: var(--on-dark-fg); flex: 0 0 auto; }
   .mm-head .mm-h-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.13); display: grid; place-items: center; }
   .mm-head .mm-h-t { font-size: 15px; font-weight: 700; }
   .mm-head .mm-h-s { font-size: 11px; opacity: .72; }
