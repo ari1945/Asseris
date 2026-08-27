@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useAuth, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, BadgeBtn, Btn, Overlay, Panel, Seg, Stat, Tabs } from './ui';
@@ -9,9 +9,22 @@ import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 import { CAP } from './rbac';
 import { accountLedger, currentBalances, mergeSeedJournals, statements, trialBalance } from './firm_ledger';
+import type { CoaAccount, GlJournal, LedgerRow } from './firm_ledger';
+import { useBankRecon } from './use_bank_recon';
 import { useInvoiceRegister } from './use_invoices';
-import { arOpenInvoices, arOutstanding as arOutstandingOf, arOverdue as arOverdueOf } from './canon_invoices';
-import type { GlJournal, LedgerRow } from './firm_ledger';
+import { arOpenInvoices } from './canon_invoices';
+import type { InvoiceRecord } from './canon_invoices';
+import { useFirmApRegister } from './use_firm_ap';
+import { useFirmCoa } from './use_firm_coa';
+import { daysLabel, dpoDays, dsoDays } from './apar_ratios';
+import type { PlBasis } from './apar_ratios';
+import { amsExportXlsx } from './export_xlsx';
+import {
+  buildJournalExport, buildLedgerExport, buildStatementsExport, buildTrialBalanceExport,
+  reconStatusLabel, statementExportGate,
+} from './firm_gl_export';
+import type { ReconRow, StatementGate } from './firm_gl_export';
+import { glActor, glWriteAllowed, glWriteBlockReason } from './firm_gl_actor';
 
 /* ============================================================
    Asseris — Firm General Ledger + AP/AR (Package F)
@@ -43,7 +56,17 @@ function FirmGL() {
   const auth = useAuth();
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* G3 — pelaku jejak dari SESI, bukan seed. Dulu berbunyi
+       `const who = (AMS.USER && AMS.USER.name) || 'Pengguna';`
+     dan AMS.USER adalah data seed: siapa pun yang menekan "Posting", jejak `GL_POST`
+     mencatat nama yang sama — dan bila seed kosong, sebuah literal. Posting jurnal
+     menggeser SELURUH angka keuangan firma, jadi jejak yang salah orang di sini lebih
+     buruk daripada tak ada jejak: ia terbaca seolah-olah terbukti.
+     Bila sesi tak menyediakan identitas, aksi tulisnya TIDAK dijalankan (lihat
+     `glWriteAllowed`, firm_gl_actor.ts) — bukan dicatat atas nama fallback. */
+  const who = glActor(auth && auth.user);
+  const bolehTulis = glWriteAllowed(canEdit, who);
+  const alasanTakBolehTulis = glWriteBlockReason(canEdit, who);
 
   const acctName = (c: any) => (coa.find((a: any) => a.code === c) || {}).name || c;
   const posted = gl.filter((j: any) => j.posted);
@@ -72,14 +95,52 @@ function FirmGL() {
   // ---- financial statements from TB (turunan jurnal, bukan seed) ----
   const byType = (t: any) => coa.filter((a: any) => a.type === t);
 
+  /* ---- G1 · status rekonsiliasi akun kontrol ----
+     Sampai sekarang modul ini merender neraca firma dan berhenti di situ: tak ada satu
+     pun rujukan ke `FIRMFIN.reconciliations()`, padahal mesin itu ada, teruji, dan
+     sudah dipakai Firm Finance untuk MENGUNCI ekspornya. Pembaca neraca karena itu tak
+     pernah diberi tahu apakah akun kontrolnya menutup.
+
+     ctx-nya harus LENGKAP, kalau tidak mesinnya jatuh ke seed statis (jebakan #241):
+       · `coa`        — saldo TURUNAN jurnal terposting, bukan `coa[].bal` seed;
+       · `reconLines` — pencocokan di modul Rekonsiliasi Bank ikut menggeser residual Kas.
+     COA turunan dirakit di sini dari `gl` yang SUDAH dipegang komponen ini, bukan lewat
+     `useFirmCoa()`: hook itu membuka instance `useAmsPersist('firmgl')` kedua di pohon
+     yang sama, dan dua salinan state yang hidup bersamaan bisa menyimpang. Angkanya
+     identik secara konstruksi — fungsi dan input yang sama. */
+  const { engagements, clients } = useFirm();
+  const { lines: reconLines } = useBankRecon();
+  /* A1 — sub-buku yang HIDUP. Tanpa `invoices`/`firmap`, `invOf`/`apOf` jatuh ke
+     seed: sisi kontrol GL bergerak mengikuti jurnal terposting sementara sisi
+     sub-buku diam, sehingga baris `1-200`/`2-100` tak dapat berubah oleh tindakan
+     pengguna mana pun — dan gerbang Q-2 yang bersandar padanya hanya memberi rasa
+     aman. Kunci ini juga dikirim `view_firmfinance.tsx`; kedua layar merender
+     baris yang sama dan wajib menjawab sama.
+     Keduanya lewat PINTU KANONIK-nya masing-masing (`use_invoices.ts` #275 dan
+     `use_firm_ap.ts`), bukan `useAmsPersist` mentah: `useServerState` tak punya
+     broadcast lintas-instance (gotcha arc #237). */
+  const { register: invoices } = useInvoiceRegister();
+  const { register: firmap } = useFirmApRegister();
+  const coaDerived = useMemoF1(() => coa.map((a: CoaAccount) => ({ ...a, bal: balOf(a.code) })), [coa, balMap]);
+  const recon: ReconRow[] = useMemoF1(
+    () => FIRMFIN.reconciliations({
+      engagements, clients, coa: coaDerived, reconLines, invoices, firmap,
+    }) as ReconRow[],
+    [engagements, clients, coaDerived, reconLines, invoices, firmap],
+  );
+  /* Ambangnya TETAP tunggal (RECON_TOLERANCE, data_firmfin.ts:26) — gerbang ini hanya
+     MEMBACA `status` yang sudah ditentukan mesinnya. Label artefak mengikuti tab aktif
+     supaya pesan penguncian menyebut berkas yang benar; keputusan blokirnya identik. */
+  const gate = useMemoF1(() => statementExportGate(recon, fmt, EXPORT_LABEL[tab] || 'Laporan Keuangan'), [recon, tab]);
+
   const togglePost = (id: any) => {
-    if (!canEdit) return;
+    if (!glWriteAllowed(canEdit, who)) return;
     const j = gl.find((x: GlJournal) => x.id === id);
     setGl((list: any) => list.map((x: GlJournal) => x.id === id ? { ...x, posted: !x.posted } : x));
     logActivity && logActivity({ who, action: 'GL_POST', detail: `Jurnal ${id} ${j && j.posted ? 'dibatalkan posting' : 'diposting'}${j && j.desc ? ' · ' + j.desc : ''}` });
   };
   const addJV = (entry: any) => {
-    if (!canEdit) return;
+    if (!glWriteAllowed(canEdit, who)) return;
     /* Nomor berikutnya = tertinggi yang ADA + 1. Dulu `'JV-0' + (313 + gl.length)`:
        dengan 6 jurnal seed, jurnal baru pertama sudah melompat ke JV-0319, dan
        penambahan jurnal seed apa pun melompatkannya lebih jauh lagi. Menurunkannya
@@ -101,14 +162,68 @@ function FirmGL() {
     { id: 'coa', label: 'Bagan Akun', count: coa.length },
   ];
 
+  /* ---- G2 · ekspor tersegel per tab ----
+     Modul ini tak punya satu pun ekspor sampai sekarang: empat tab data, nol kertas
+     kerja yang bisa dikeluarkan. Payload-nya dibangun modul MURNI (`firm_gl_export`)
+     dari objek yang sama dengan yang dirender — `gl` · `ledger` · `tb` · `stmts` —
+     jadi tak ada salinan angka kedua yang bisa menyimpang dari layar.
+
+     Identitas firma dari SSOT (`AMS.FIRM`), bukan literal: 59 call-site ekspor lain di
+     repo ini pernah menyegel nama firma yang diketik tangan. */
+  const firmName = ((AMS.FIRM as { name?: string } | undefined) || {}).name || 'Kantor Akuntan Publik';
+  const [exporting, setExporting] = useStateF1('');
+  const exportLabel = EXPORT_LABEL;
+  const terkunci = GATED_EXPORTS.includes(tab) && gate.blocked;
+  const onExport = async () => {
+    if (exporting) return;
+    setExporting(tab);
+    try {
+      if (tab === 'journal') {
+        await amsExportXlsx(buildJournalExport({ gl, acctName, firmName, fmt }));
+      } else if (tab === 'ledger') {
+        await amsExportXlsx(buildLedgerExport({
+          acct: ledger.acct, opening: ledger.opening, closing: ledger.closing, rows: ledger.rows,
+          totalDr: ledger.totalDr, totalCr: ledger.totalCr, acctName, firmName, fmt,
+        }));
+      } else if (tab === 'tb') {
+        /* Q-2 diperluas (Ari, 2026-08-22): Neraca Saldo membawa saldo akun kontrol
+           yang SAMA dengan yang dinyatakan tak menutup, jadi ia ikut terkunci —
+           kalau tidak, pemblokiran LK bisa diakali lewat pintu sebelah. */
+        const built = buildTrialBalanceExport({
+          rows: tb.rows, totalDr, totalCr, balanced, recon, postedCount: posted.length, firmName, fmt,
+        });
+        if (built.blocked || !built.model) return;
+        await amsExportXlsx(built.model);
+      } else if (tab === 'statements') {
+        /* Q-2 (Ari, 2026-08-16): laporan keuangan yang akun kontrolnya menyisakan
+           selisih tanpa pemilik TIDAK boleh keluar tersegel. Ditegakkan DI SINI —
+           `buildStatementsExport` tak mengembalikan model apa pun saat terkunci,
+           jadi tak ada berkas yang dapat ditulis meskipun tombolnya tertekan. */
+        const built = buildStatementsExport({
+          coa, balances: balMap, st: stmts, recon, postedCount: posted.length, firmName, fmt,
+        });
+        if (built.blocked || !built.model) return;
+        await amsExportXlsx(built.model);
+      }
+    } finally {
+      setExporting('');
+    }
+  };
+
   return (
     <>
       <SubBar moduleId="firmgl" right={
         <div className="row gap8 ac">
           <span className="tiny mono" style={{ color: balanced ? 'var(--green)' : 'var(--red)' }}>● {balanced ? 'Balanced' : 'Out of balance'}</span>
-          {canEdit
+          {!!exportLabel[tab] && (
+            <Btn sm onClick={onExport}
+              disabled={!!exporting || terkunci}
+              title={terkunci ? gate.reason : 'Ekspor ' + exportLabel[tab] + ' sebagai XLSX tersegel'}>
+              <I.download size={13} /> {exporting === tab ? 'Menyiapkan…' : 'Ekspor ' + exportLabel[tab]}</Btn>
+          )}
+          {bolehTulis
             ? <Btn sm variant="primary" onClick={() => setForm(true)}><I.plus size={14} /> Jurnal Baru</Btn>
-            : <span className="chip tiny muted" title="Posting jurnal dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> Read-only</span>}
+            : <span className="chip tiny muted" title={alasanTakBolehTulis}><I.lock size={11} /> Read-only</span>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -136,7 +251,7 @@ function FirmGL() {
                     <td className="tiny mono muted">{j.dr} {acctName(j.dr).slice(0, 18)}</td>
                     <td className="tiny mono muted">{j.cr} {acctName(j.cr).slice(0, 18)}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(j.amount / 1e6, 0)} jt</td>
-                    <td>{canEdit
+                    <td>{bolehTulis
                       ? <BadgeBtn
                           kind={j.posted ? 'green' : 'amber'}
                           /* Nama aksesibel diawali teks pil yang terlihat (WCAG 2.5.3
@@ -195,6 +310,10 @@ function FirmGL() {
           {tab === 'tb' && (
             <>
               <div className="tiny" style={{ padding: '6px 12px', background: 'var(--surface-2)', color: 'var(--ink-3)' }}><I.link2 size={12} /> Dihitung dari {posted.length} jurnal terposting — posting/batal posting jurnal langsung menggeser saldo.</div>
+              {/* Neraca saldo yang diekspor membawa saldo akun kontrol yang sama dengan
+                  laporan keuangan, jadi ia tunduk gerbang yang sama — dan alasannya
+                  ditampilkan di sini, bukan hanya sebagai tombol mati di bilah atas. */}
+              <div style={{ padding: '10px 12px 0' }}><ReconBand recon={recon} gate={gate} fmt={fmt} /></div>
               <table className="dtbl">
               <thead><tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th className="num">Debit</th><th className="num">Kredit</th></tr></thead>
               <tbody>
@@ -215,6 +334,11 @@ function FirmGL() {
 
           {tab === 'statements' && (
             <div style={{ padding: 14 }}>
+              {/* G1 — laporan keuangan firma TIDAK lagi keluar tanpa menyebut apakah
+                  rekonsiliasinya menutup. Angka & status datang seluruhnya dari
+                  `FIRMFIN.reconciliations()`; tak ada perhitungan ulang dan tak ada
+                  ambang kedua di layar ini. */}
+              <ReconBand recon={recon} gate={gate} fmt={fmt} />
               <div className="row gap8 ac" style={{ marginBottom: 12 }}><Seg options={[{ value: 'pl', label: 'Laba Rugi' }, { value: 'bs', label: 'Neraca' }]} value={stmt} onChange={setStmt} /><span className="tiny muted">FY2025 · dihitung dari {posted.length} jurnal terposting · Rp jt</span></div>
               {stmt === 'pl' ? (
                 <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 14, alignItems: 'start' }}>
@@ -268,8 +392,12 @@ function FirmGL() {
                       </tbody>
                     </table>
                   </Panel>
-                  <div className="tiny" style={{ gridColumn: '1 / -1', color: Math.abs(totAset - (totLiab + totEkuitas)) < 1e6 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
-                    {Math.abs(totAset - (totLiab + totEkuitas)) < 1e6 ? '✓ Neraca seimbang — Aset = Liabilitas + Ekuitas' : 'Neraca tidak seimbang'}
+                  {/* SSOT: `statements()` sudah memutuskan seimbang/tidak dengan
+                      toleransinya sendiri. Menyalin ulang perbandingannya di sini berarti
+                      dua ambang untuk satu pertanyaan — dan yang satu bisa bergeser
+                      tanpa yang lain ikut. */}
+                  <div className="tiny" style={{ gridColumn: '1 / -1', color: stmts.balanced ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
+                    {stmts.balanced ? '✓ Neraca seimbang — Aset = Liabilitas + Ekuitas' : 'Neraca tidak seimbang'}
                   </div>
                 </div>
               )}
@@ -297,6 +425,77 @@ function FirmGL() {
       </div></div>
       {form && <FirmJVForm coa={coa} onClose={() => setForm(false)} onPost={(e: any) => { addJV(e); setForm(false); }} />}
     </>
+  );
+}
+
+/* ---- Artefak yang tunduk gerbang Q-2 ----
+   SATU daftar, bukan dua rantai `tab === '…'` yang bisa berpisah diam-diam: tombol,
+   handler ekspor, dan pita penjelasnya semua membacanya dari sini.
+
+   `tb` dan `statements` terkunci karena keduanya PERNYATAAN POSISI yang membawa saldo
+   akun kontrol yang sedang tak menutup — Neraca Saldo tersegel bisa dipakai sebagai
+   kertas kerja dan melewati peringatan yang hanya hidup di tab Laporan Keuangan
+   (keputusan Ari 2026-08-22, memperluas Q-2 PRD prd-firm-erp-deepening §11).
+
+   `journal` dan `ledger` TIDAK: keduanya jejak transaksi, bukan pernyataan posisi —
+   dan justru itulah bahan yang dibutuhkan untuk MENELUSURI selisih yang mengunci
+   kedua artefak lainnya. Mengunci alat penelusuran karena hasilnya belum menutup akan
+   membuat selisihnya makin sulit ditutup. */
+const GATED_EXPORTS = ['tb', 'statements'];
+const EXPORT_LABEL: Record<string, string> = {
+  journal: 'Jurnal Umum', ledger: 'Buku Besar', tb: 'Neraca Saldo', statements: 'Laporan Keuangan',
+};
+
+/* Pita status rekonsiliasi — SATU komponen, dirender di tab Neraca Saldo maupun
+   Laporan Keuangan. Dua salinan tabel yang sama adalah cara paling murah untuk
+   membuat dua layar menjawab beda soal pertanyaan yang sama. */
+function ReconBand({ recon, gate, fmt }: {
+  recon: ReconRow[];
+  gate: StatementGate;
+  fmt: (n: number, d?: number) => string;
+}) {
+  return (
+    <div style={{ marginBottom: 12, border: '1px solid var(--line)', borderRadius: 4, overflow: 'hidden' }}>
+      <div className="row ac jb" style={{ padding: '7px 12px', background: gate.blocked ? 'var(--red-bg)' : 'var(--surface-2)', color: gate.blocked ? 'var(--red)' : 'var(--ink-2)' }}>
+        <span className="tiny" style={{ fontWeight: 700 }}>
+          {gate.blocked
+            ? <><I.alert size={12} /> Rekonsiliasi TIDAK menutup — ekspor neraca saldo & laporan keuangan dikunci</>
+            : <><I.check size={12} /> Seluruh akun kontrol yang direkonsiliasi menutup</>}
+        </span>
+        <span className="tiny">Sumber: Peta Sumber Kebenaran (FIRMFIN) · satu ambang untuk seluruh aplikasi</span>
+      </div>
+      <table className="dtbl">
+        <thead><tr><th>Akun kontrol</th><th>Pos</th><th>Pemilik sub-buku</th><th className="num">Kontrol GL</th><th className="num">Sub-buku</th><th className="num">Selisih</th><th className="num">Jembatan</th><th className="num">Sisa</th><th>Status</th></tr></thead>
+        <tbody>
+          {recon.map((r: ReconRow) => (
+            <tr key={r.key}>
+              <td className="mono tiny">{r.glCode}</td>
+              <td style={{ fontWeight: 600 }}>{r.label}</td>
+              <td className="tiny muted">{r.ownerLabel}</td>
+              <td className="num">{fmt(r.control / 1e6, 0)}</td>
+              <td className="num">{fmt(r.sub / 1e6, 0)}</td>
+              <td className="num">{fmt(r.recon / 1e6, 0)}</td>
+              <td className="num">{fmt(r.bridgeTotal / 1e6, 0)}</td>
+              <td className="num" style={{ fontWeight: 700, color: r.status === 'open' ? 'var(--red)' : 'var(--ink-3)' }}>{fmt(r.residual / 1e6, 0)}</td>
+              <td><Badge kind={r.status === 'tied' ? 'green' : r.status === 'bridged' ? 'blue' : 'red'}>{reconStatusLabel(r.status)}</Badge></td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot><tr><td colSpan={9} className="tiny">Rp juta · selisih = kontrol GL − sub-buku · sisa = bagian selisih yang tak dijelaskan komponen jembatan bernama mana pun</td></tr></tfoot>
+      </table>
+      {gate.blocked && (
+        <div className="tiny" style={{ padding: '8px 12px', background: 'var(--red-bg)', color: 'var(--red)', fontWeight: 600 }}>
+          {gate.reason} — perbaiki di modul pemilik sub-buku sebelum berkas ini dikeluarkan sebagai kertas kerja. Jurnal Umum &amp; Buku Besar tetap dapat diekspor untuk menelusurinya.
+        </div>
+      )}
+      {/* Cakupan dinyatakan apa adanya: daftar ini DITURUNKAN dari baris rekonsiliasi,
+          dan klausa aset tetap hanya muncul bila 1-400 memang tak ada di dalamnya —
+          bukan kalimat yang diketik lalu jadi basi. */}
+      <div className="tiny muted" style={{ padding: '6px 12px' }}>
+        Cakupan rekonsiliasi: {gate.coveredCodes.join(' · ') || '—'}. Akun buku besar di luar daftar ini belum punya register rekonsiliasi, jadi baris di atas tidak menyatakan apa pun tentangnya
+        {!gate.coveredCodes.some((c: string) => c.includes('1-400')) && <> — termasuk <span className="mono">1-400 Aset Tetap</span></>}.
+      </div>
+    </div>
   );
 }
 
@@ -394,11 +593,16 @@ function FirmAPAR() {
   const { fmt } = AMS;
   const nav = useNav();
   const [tab, setTab] = useStateF1('ap');
-  const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
-  /* SATU PINTU register faktur (`use_invoices.ts`). Sampai 2026-08-21 baris ini
-     membaca literal seed sementara modul Billing menulis dokumen persist
-     `invoices`: melunasi faktur di sana tak pernah menggeser satu angka pun di
-     layar ini — padahal layar ini berkata "AR tersinkron dari modul Billing". */
+  const { register: ap, setRegister: setAp } = useFirmApRegister();
+  /* A2 — piutang dibaca dari register yang DITULIS modul Billing, bukan dari seed
+     `AMS.INVOICES`. Dulu keduanya register terpisah untuk satu konsep: menerbitkan
+     faktur, menandainya lunas, atau mengubah jatuh temponya di Billing tidak terlihat
+     sama sekali di layar ini — padahal di sinilah Piutang Outstanding, DSO, Posisi
+     Neto dihitung, dan di sinilah baris rekonsiliasi `1-200` dimiliki
+     (`owner: 'apar'`).
+     Lewat PINTU KANONIK `useInvoiceRegister()` (#275), bukan `useAmsPersist('invoices')`
+     mentah — alasannya sama dengan yang membuat pintu itu ada: `useServerState` tak
+     punya broadcast lintas-instance (gotcha arc #237). */
   const { register: ar } = useInvoiceRegister();
   const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
   /* SoD finansial (Program E): pembayaran utang = FIRMFIN_EDIT (server capForWrite
@@ -406,29 +610,54 @@ function FirmAPAR() {
   const auth = useAuth();
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRMFIN_EDIT));
   const { logActivity } = useAudit();
-  const who = (AMS.USER && AMS.USER.name) || 'Pengguna';
+  /* A4 — pelaku jejak dari SESI. Dulu `(AMS.USER && AMS.USER.name) || 'Pengguna'`:
+     `AMS.USER` adalah data seed, jadi jejak `AP_PAY` mencatat nama yang tak
+     berhubungan dengan siapa pun yang menekan tombol — atau sebuah literal. Bila
+     identitas sesi tak tersedia, pembayarannya TIDAK dijalankan; ia bukan dicatat
+     atas nama fallback (lihat firm_gl_actor.ts).
+     Catatan: `useCurrentAuditor()` (contexts.tsx:280) TIDAK dipakai di sini — ia
+     sengaja jatuh kembali ke `AMS.USER.name`, yang persis cacat ini. */
+  const who = glActor(auth && auth.user);
+  const bolehBayar = glWriteAllowed(canEdit, who);
+  const alasanTakBolehBayar = glWriteBlockReason(canEdit, who);
 
-  const apOutstanding = ap.filter((x: any) => x.status !== 'Paid').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
-  const apOverdue = ap.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
-  const arOutstanding = arOutstandingOf(ar);
-  const arOverdue = arOverdueOf(ar);
+  /* Angka sub-buku dari MESIN yang memiliki baris rekonsiliasinya (`FIRMFIN.arAging`
+     / `FIRMFIN.ap`), bukan penjumlahan kedua di view. Sebelumnya layar ini memakai
+     `status !== 'Paid' && status !== 'Draft'` sementara Billing memakai
+     `Σ ditagih − Σ terkumpul`: dua rumus untuk satu konsep, yang berselisih pada
+     faktur draft ber-uang-muka dan faktur berstatus Paid yang belum lunas penuh.
+     Kini keduanya membaca `arAging().open` — satu register, satu angka. */
+  const { engagements, clients } = useFirm();
+  const { coa: firmCoa } = useFirmCoa();
+  const finCtx = useMemoF1(
+    () => ({ engagements, clients, coa: firmCoa, invoices: ar, firmap: ap }),
+    [engagements, clients, firmCoa, ar, ap],
+  );
+  const arSub = useMemoF1(() => FIRMFIN.arAging(finCtx), [finCtx]);
+  const apSub = useMemoF1(() => FIRMFIN.ap(finCtx), [finCtx]);
+  const apOutstanding = apSub.open;
+  const apOverdue = apSub.overdue;
+  const arOutstanding = arSub.open;
+  /* “Jatuh tempo lewat” di layar ini berbasis STATUS, sejajar dengan AP di sebelahnya.
+     `arSub.overdue` berbasis TANGGAL dan menjawab lain (per klok SSOT 2026-03-09:
+     410 jt vs 1.170 jt) — menyatukan kedua definisi itu di luar lingkup arc ini. */
+  const arOverdue = ar.filter((x: InvoiceRecord) => x.status === 'Overdue').reduce((s: number, x: InvoiceRecord) => s + (x.amount - x.paid), 0);
   const netPosition = arOutstanding - apOutstanding;
   const payAp = (id: any) => {
-    if (!canEdit) return;
+    if (!glWriteAllowed(canEdit, who)) return;
     const x = ap.find((r: { id: string }) => r.id === id);
     setAp((list: any) => list.map((r: { id: string; amount: number }) => r.id === id ? { ...r, paid: r.amount, status: 'Paid' } : r));
     logActivity && logActivity({ who, action: 'AP_PAY', detail: `Pembayaran ${id} ${x ? '· ' + x.vendor : ''} lunas` });
   };
 
-  // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
-  /* Cadangan `|| { revenue: 11_300_000_000, … }` DICABUT 2026-08-23: `FIRMFIN.pl()`
-     selalu mengembalikan objek, jadi cabang itu MATI — sementara angkanya adalah
-     salinan beku kontrol GL yang baru saja bergerak lewat JV-0321. Cadangan ke data
-     karangan lebih buruk daripada tanpa cadangan (pelajaran ARC-014). */
-  const FFp = (FIRMFIN as any).pl();
-  const annualRev = FFp.revenue, annualPurch = FFp.totalExpense - FFp.salary;
-  const dso = Math.round(arOutstanding / annualRev * 365);
-  const dpo = Math.round(apOutstanding / annualPurch * 365);
+  /* A5 — DSO/DPO atas basis laba-rugi NYATA. Dulu `FIRMFIN.pl()` dipanggil tanpa ctx
+     (jatuh ke seed COA) dengan fallback laporan laba rugi yang diketik tangan; bila
+     basisnya tak tersedia, rasionya tetap tampil di atas angka karangan. Kini basisnya
+     diturunkan dari jurnal terposting, dan basis yang tak dapat dipakai menghasilkan
+     `null` — yang dirender sebagai pernyataan, bukan sebagai angka. */
+  const plBasis: PlBasis = useMemoF1(() => FIRMFIN.pl({ coa: firmCoa }), [firmCoa]);
+  const dso = dsoDays(arOutstanding, plBasis);
+  const dpo = dpoDays(apOutstanding, plBasis);
 
   // 30/60/90 payment requirement projection for AP
   const payReq = [30, 60, 90].map(d => {
@@ -437,6 +666,9 @@ function FirmAPAR() {
     return { d, v };
   });
 
+  /* Hitungan tab AR lewat kanon `arOpenInvoices`, bukan filter status yang dirakit
+     ulang di sini — rumus kedua untuk satu konsep persis cacat yang blok komentar di
+     atas jelaskan. */
   const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter((x: any) => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: arOpenInvoices(ar).length }];
 
   const apRows = ap.map((x: any) => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
@@ -447,8 +679,8 @@ function FirmAPAR() {
       <SubBar moduleId="apar" right={<div className="row gap8 ac"><Btn sm onClick={() => nav('firmgl')}><I.ledger size={13} /> Ke GL</Btn><span className="chip tiny muted" title="Read-only — entri tagihan/faktur dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(arOutstanding / 1e6, 0) + ' jt'} label={'Piutang Outstanding · DSO ' + dso + ' hr'} accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(apOutstanding / 1e6, 0) + ' jt'} label={'Utang Outstanding · DPO ' + dpo + ' hr'} accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(arOutstanding / 1e6, 0) + ' jt'} label={'Piutang Outstanding · ' + daysLabel('DSO', dso)} accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(apOutstanding / 1e6, 0) + ' jt'} label={'Utang Outstanding · ' + daysLabel('DPO', dpo)} accent="var(--amber)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={(netPosition >= 0 ? '+' : '') + 'Rp ' + fmt(netPosition / 1e6, 0) + ' jt'} label="Posisi Neto" accent={netPosition >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt((apOverdue + arOverdue) / 1e6, 0) + ' jt'} label="Total Jatuh Tempo Lewat" accent="var(--red)" /></div></Panel>
         </div>
@@ -469,9 +701,9 @@ function FirmAPAR() {
                       <td className="mono tiny" style={{ color: x.status === 'Overdue' ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(x.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td className="tiny mono" style={{ color: x.dOver > 0 ? 'var(--red)' : 'var(--ink-4)' }}>{x.out > 0 ? (x.dOver > 0 ? x.dOver + 'h' : agingBucket(x.dOver).l.replace('Belum jatuh tempo', 'lancar')) : '—'}</td>
                       <td><Badge kind={(APAR_STATUS as any)[x.status]}>{x.status}</Badge></td>
-                      <td>{x.status !== 'Paid' && (canEdit
+                      <td>{x.status !== 'Paid' && (bolehBayar
                         ? <button className="btn sm" style={{ height: 22 }} onClick={() => payAp(x.id)}>Bayar</button>
-                        : <span className="tiny muted" title="Pembayaran dibatasi peran Finance Firma / Partner (SoD finansial)"><I.lock size={11} /> kunci</span>)}</td>
+                        : <span className="tiny muted" title={alasanTakBolehBayar}><I.lock size={11} /> kunci</span>)}</td>
                     </tr>
                   ))}
                 </tbody>

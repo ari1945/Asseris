@@ -501,7 +501,7 @@
   },
   "src/view_firmgl.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 68
+      "count": 61
     }
   },
   "src/view_firmops.tsx": {

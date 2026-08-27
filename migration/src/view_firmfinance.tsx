@@ -12,6 +12,7 @@ import { useFirmWip } from './use_firm_wip';
 import { useFirmCoa } from './use_firm_coa';
 import { useBankRecon } from './use_bank_recon';
 import { useInvoiceRegister } from './use_invoices';
+import { useFirmApRegister } from './use_firm_ap';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -49,7 +50,14 @@ function FirmFinance() {
      menggeser satu bucket pun di sini. Register faktur kini disalurkan lewat
      pintu tunggal, sejajar dengan `coa` (#241) dan `reconLines`. */
   const { register: invoices } = useInvoiceRegister();
-  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines, invoices }), [engagements, clients, coa, reconLines, invoices]);
+  /* Sub-buku UTANG, sejajar `invoices` di atas. Tanpa kunci ini `FIRMFIN.ap()` jatuh
+     ke seed `AMS.FIRM_AP`: sisi sub-buku baris rekonsiliasi `2-100` beku sementara
+     sisi kontrol GL-nya bergerak mengikuti jurnal terposting. Kunci yang SAMA
+     dikirim `view_firmgl.tsx` — kedua layar merender baris rekonsiliasi yang sama
+     dan mengunci ekspor dengan gerbang yang sama; ctx yang berbeda akan membuat
+     keduanya menjawab beda untuk pertanyaan yang satu. */
+  const { register: firmap } = useFirmApRegister();
+  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines, invoices, firmap }), [engagements, clients, coa, reconLines, invoices, firmap]);
   /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
      WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
   const { wip: wipLive } = useFirmWip();
