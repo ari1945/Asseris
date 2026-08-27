@@ -541,7 +541,7 @@
   },
   "src/view_framework.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 30
+      "count": 12
     }
   },
   "src/view_fsgen.tsx": {

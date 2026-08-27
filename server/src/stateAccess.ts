@@ -29,6 +29,7 @@ export const FIRM_STATE_READ_KEYS = new Set([
   'ethicsOverride.v1', 'trainingAttendance.v1', 'payrollRun', 'payrollSent.v1',
   'staffExtra', 'pc.cands', 'pc.onboard', 'pc.enroll', 'pipeline', 'invoices',
   'firmgl', 'firmap', 'firmtax', 'bankrecon', 'bankFeed', 'taxFeed', 'wip.adj',
+  'framework.judgements.v1',
   'integrations3', 'importmode', 'settings', 'settingsTab', 'rbacConfig',
 
   // Legacy client keys that are still intentionally persisted at firm scope.

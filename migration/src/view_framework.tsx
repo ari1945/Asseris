@@ -1,9 +1,15 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts';
+import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
+import {
+  fwDetermine, fwUmkmTier, fwPortfolio, FW_SALES_CEIL, FW_CAP_CEIL,
+  FW_JUDGEMENT_KOSONG, FW_JUDGEMENT_LABEL,
+  type FwEntity, type FwInput, type FwResult, type Tri, type FwCode,
+  type FwJudgement, type FwJudgements,
+} from './fw_canon';
 
 /* ============================================================
    Asseris — Penentu Kerangka Pelaporan Berjenjang
@@ -28,61 +34,60 @@ import { Badge, Btn, Panel } from './ui';
    ============================================================ */
 const { useState: useStateFW, useMemo: useMemoFW, useEffect: useEffectFW } = React;
 
-const FW_SALES_CEIL = 50e9;   /* batas atas penjualan tahunan UMKM (Rp 50 miliar) */
-const FW_CAP_CEIL = 10e9;     /* batas atas modal usaha UMKM, di luar tanah & bangunan (Rp 10 miliar) */
-
-/* metadata kerangka */
-const FW_META = {
-  'SAK':      { label: 'SAK', full: 'SAK — Standar Akuntansi Keuangan (PSAK berbasis IFRS)', short: 'PSAK penuh', accent: '#005085', tint: 'rgba(0,80,133,.10)', opinion: 'SA 700 — kerangka bertujuan umum penyajian wajar', who: 'Entitas dengan akuntabilitas publik' },
-  'SAK EP':   { label: 'SAK EP', full: 'SAK Entitas Privat (efektif 1 Jan 2025, pengganti SAK ETAP)', short: 'Entitas Privat', accent: '#0a6b73', tint: 'var(--teal-bg)', opinion: 'SA 700 — kerangka bertujuan umum penyajian wajar', who: 'Entitas tanpa akuntabilitas publik' },
-  'SAK EMKM': { label: 'SAK EMKM', full: 'SAK Entitas Mikro, Kecil, dan Menengah', short: 'Mikro–Menengah', accent: '#5b3fa6', tint: 'var(--purple-bg)', opinion: 'SA 700/800 — basis akuntansi sesuai SAK EMKM', who: 'UMKM tanpa akuntabilitas publik' },
+/* metadata kerangka — hanya urusan TAMPILAN (warna, label, teks).
+   Ambang & logika penetapan ada di `fw_canon.ts`. */
+interface FwMeta {
+  label: string; full: string; short: string;
+  accent: string; text: string; fg: string; tint: string;
+  opinion: string; who: string;
+}
+const FW_META: Record<FwCode, FwMeta> = {
+  'SAK':      { label: 'SAK', full: 'SAK — Standar Akuntansi Keuangan (PSAK berbasis IFRS)', short: 'PSAK penuh', accent: 'var(--blue-solid)', text: 'var(--blue)', fg: 'var(--b-blue-fg)', tint: 'var(--blue-100)', opinion: 'SA 700 — kerangka bertujuan umum penyajian wajar', who: 'Entitas dengan akuntabilitas publik' },
+  'SAK EP':   { label: 'SAK EP', full: 'SAK Entitas Privat (efektif 1 Jan 2025, pengganti SAK ETAP)', short: 'Entitas Privat', accent: 'var(--teal-solid)', text: 'var(--teal)', fg: 'var(--b-teal-fg)', tint: 'var(--teal-bg)', opinion: 'SA 700 — kerangka bertujuan umum penyajian wajar', who: 'Entitas tanpa akuntabilitas publik' },
+  'SAK EMKM': { label: 'SAK EMKM', full: 'SAK Entitas Mikro, Kecil, dan Menengah', short: 'Mikro–Menengah', accent: 'var(--purple-solid)', text: 'var(--purple)', fg: 'var(--b-purple-fg)', tint: 'var(--purple-bg)', opinion: 'SA 700/800 — basis akuntansi sesuai SAK EMKM', who: 'UMKM tanpa akuntabilitas publik' },
 };
-const FW_ORDER = ['SAK', 'SAK EP', 'SAK EMKM'];
+const FW_ORDER: readonly FwCode[] = ['SAK', 'SAK EP', 'SAK EMKM'];
 
 /* ---- format Rupiah dalam miliar/triliun ---- */
-function fwRp(v: any) {
+function fwRp(v: number | null) {
+  if (v === null) return '—';
   if (v >= 1e12) return 'Rp ' + (v / 1e12).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' T';
   if (v >= 1e9) return 'Rp ' + (v / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' M';
   return 'Rp ' + (v / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + ' jt';
 }
 
-/* ---- tingkat UMKM dari modal usaha (PP 7/2021) ---- */
-function fwUmkmTier(cap: any, sales: any) {
-  if (cap > FW_CAP_CEIL || sales > FW_SALES_CEIL) return 'Besar';
-  if (cap > 5e9 || sales > 15e9) return 'Menengah';
-  if (cap > 1e9 || sales > 2e9) return 'Kecil';
-  return 'Mikro';
+/* Kontrol ringkas di dalam baris tabel — supaya pertanyaan yang menahan
+   penetapan dapat dijawab DI TEMPAT. Tanpa ini portofolio hanya mengeluh
+   "belum dinilai" tanpa memberi jalan menjawabnya, dan keadaan jujur berubah
+   menjadi jalan buntu. */
+function FWTriMini({ label, value, onChange }: { label: string; value: Tri; onChange: (v: Tri) => void }) {
+  const opsi: ReadonlyArray<readonly [string, Tri]> = [['Ya', true], ['Tidak', false]];
+  return (
+    <div style={{ display: 'grid', gap: 3, marginBottom: 6 }}>
+      <div className="tiny" style={{ color: 'var(--ink-3)', lineHeight: 1.35 }}>{label}</div>
+      <div className="row gap8" style={{ gap: 4 }}>
+        {opsi.map(([teks, v]) => (
+          <button key={teks} onClick={() => onChange(v)} aria-pressed={value === v}
+            style={{
+              fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, cursor: 'pointer',
+              border: '1px solid ' + (value === v ? 'var(--blue)' : 'var(--line)'),
+              background: value === v ? 'var(--blue-100)' : 'var(--surface)',
+              color: value === v ? 'var(--b-blue-fg)' : 'var(--ink-2)',
+            }}>{teks}</button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /* ============================================================
-   MESIN PENENTU — satu sumber kebenaran (dipakai kandidat & portofolio)
-   ============================================================ */
-function fwDetermine(e: any) {
-  if (e.listed) return { fw: 'SAK', gate: 1, branch: 'pa', why: 'Tercatat / dalam proses pendaftaran di pasar modal — memiliki akuntabilitas publik (emiten/perusahaan publik).' };
-  if (e.fiduciary) return { fw: 'SAK', gate: 1, branch: 'pa', why: 'Menguasai aset dalam kapasitas fidusia bagi sekelompok besar masyarakat sebagai salah satu usaha utamanya (lembaga jasa keuangan).' };
-  const byCap = e.capital <= FW_CAP_CEIL;
-  const bySales = e.sales <= FW_SALES_CEIL;
-  const umkm = byCap && bySales;
-  if (!umkm) return { fw: 'SAK EP', gate: 2, branch: 'big', why: 'Tanpa akuntabilitas publik, namun melampaui ambang UMKM (entitas besar) → wajib SAK EP.' };
-  if (e.complex || e.elect) return { fw: 'SAK EP', gate: 3, branch: 'ep', why: e.elect && !e.complex ? 'Memenuhi kriteria UMKM, tetapi entitas memilih naik ke SAK EP secara sukarela.' : 'Memenuhi kriteria UMKM, namun kompleksitas transaksi / kebutuhan pengguna LK menuntut kerangka SAK EP.' };
-  return { fw: 'SAK EMKM', gate: 3, branch: 'emkm', why: 'Tanpa akuntabilitas publik, memenuhi kriteria UMKM, dan kebutuhan pelaporan sederhana → SAK EMKM.' };
-}
+   PORTOFOLIO & MESIN — keduanya kini milik `fw_canon.ts`.
 
-/* ============================================================
-   PORTOFOLIO — atribut entitas (disintesis dari CLIENTS + kompilasi UMKM).
-   Framework dihitung lewat fwDetermine → membuktikan SSOT lintas-portofolio.
+   Sebelumnya berkas ini memikul `fwDetermine` DAN larik `FW_PORTFOLIO`
+   berisi 9 entri literal yang membayangi `AMS.CLIENTS` — dua di antaranya
+   membantah sumbernya. Modul ini sekarang hanya MENGGAMBAR; angka dan
+   keputusan datang dari kanon.
    ============================================================ */
-const FW_PORTFOLIO = [
-  { id: 'C-014', name: 'PT Sentosa Makmur Tbk', sector: 'Manufaktur · Consumer Goods', listed: true, fiduciary: false, sales: 1.21e12, capital: 4.1e11, complex: true, elect: false, eng: 'Audit LK · FY2025' },
-  { id: 'C-031', name: 'PT Bumi Hijau Agrindo Tbk', sector: 'Agribisnis · Perkebunan', listed: true, fiduciary: false, sales: 7.4e11, capital: 2.6e11, complex: true, elect: false, eng: 'Audit LK · FY2025' },
-  { id: 'C-040', name: 'PT Mandiri Sejahtera Finance', sector: 'Jasa Keuangan · Multifinance', listed: true, fiduciary: true, sales: 9.8e11, capital: 5.2e11, complex: true, elect: false, eng: 'Audit LK · FY2025' },
-  { id: 'C-063', name: 'PT Graha Properti Investama Tbk', sector: 'Properti & Real Estate', listed: true, fiduciary: false, sales: 8.6e11, capital: 6.1e11, complex: true, elect: false, eng: 'Audit LK · FY2025' },
-  { id: 'C-022', name: 'PT Cahaya Logistik Nusantara', sector: 'Transportasi & Logistik', listed: false, fiduciary: false, sales: 9.5e10, capital: 4.0e10, complex: false, elect: false, eng: 'Reviu SPR 2400 · FY2025' },
-  { id: 'C-058', name: 'PT Samudra Pangan Lestari', sector: 'Manufaktur · F&B', listed: false, fiduciary: false, sales: 6.2e10, capital: 2.2e10, complex: false, elect: false, eng: 'Audit LK · FY2025' },
-  { id: 'C-052', name: 'PT Karya Beton Perkasa', sector: 'Konstruksi & Material', listed: false, fiduciary: false, sales: 3.8e10, capital: 9.0e9, complex: true, elect: false, eng: 'Audit LK (proposal) · FY2025' },
-  { id: 'C-047', name: 'PT Teknologi Andalan Digital', sector: 'Teknologi · SaaS', listed: false, fiduciary: false, sales: 1.8e10, capital: 6.0e9, complex: true, elect: false, eng: 'Agreed-Upon Procedures · FY2025' },
-  { id: 'CMP-071', name: 'PT Sinar Kreatif Mandiri (UMKM)', sector: 'Perdagangan · Ritel Kreatif', listed: false, fiduciary: false, sales: 4.2e9, capital: 1.5e9, complex: false, elect: false, eng: 'Kompilasi SPSJL 4410 · FY2025' },
-];
 
 /* ---- matriks pembanding tiga kerangka ---- */
 const FW_COMPARE = [
@@ -115,13 +120,22 @@ function FWStat({ value, label, sub, accent }: any) {
   );
 }
 
-function FWChip({ fw, sm }: any) {
-  const m = (FW_META as any)[fw];
+function FWChip({ fw, sm }: { fw: FwCode | null; sm?: boolean }) {
+  /* Kerangka yang belum disimpulkan digambar sebagai keadaan tersendiri —
+     BUKAN chip kosong dan bukan chip kerangka mana pun. */
+  if (!fw) return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700,
+      fontSize: sm ? 11 : 12, padding: sm ? '3px 8px' : '4px 10px', borderRadius: 20,
+      color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1px dashed var(--line-strong)', whiteSpace: 'nowrap',
+    }}>Belum disimpulkan</span>
+  );
+  const m = FW_META[fw];
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700,
       fontSize: sm ? 11 : 12, padding: sm ? '3px 8px' : '4px 10px', borderRadius: 20,
-      color: m.accent, background: m.tint, border: '1px solid ' + m.accent + '33', whiteSpace: 'nowrap',
+      color: m.fg, background: m.tint, border: '1px solid color-mix(in srgb, ' + m.accent + ' 20%, transparent)', whiteSpace: 'nowrap',
     }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.accent }} />{m.label}
     </span>
@@ -144,11 +158,34 @@ function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }: an
   );
 }
 
+/* Kontrol pertimbangan penilai — TIGA keadaan, bukan dua.
+   "Belum" harus dapat dipilih dan harus menjadi keadaan awal: kontrol dua-keadaan
+   memaksa jawaban palsu sejak render pertama, dan jawaban palsu itulah yang
+   dulu diam-diam menetapkan kerangka. */
+function FWTri({ label, hint, value, onChange }: { label: string; hint?: string; value: Tri; onChange: (v: Tri) => void }) {
+  const opsi: ReadonlyArray<readonly [string, Tri]> = [['Ya', true], ['Tidak', false], ['Belum', null]];
+  return (
+    <div className="row jb ac" style={{ gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
+        {hint && <div className="tiny" style={{ color: 'var(--ink-4)', marginTop: 2, lineHeight: 1.4 }}>{hint}</div>}
+      </div>
+      <div className="seg" style={{ flex: '0 0 auto' }}>
+        {opsi.map(([teks, v]) => (
+          <button key={teks} className={value === v ? 'on' : ''} onClick={() => onChange(v)}
+            aria-pressed={value === v}>{teks}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* slider ukuran usaha dengan penanda ambang */
 function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
-  const pct = Math.min(100, (value / max) * 100);
+  const v = value === null ? 0 : value;
+  const pct = Math.min(100, (v / max) * 100);
   const ceilPct = Math.min(100, (ceil / max) * 100);
-  const over = value > ceil;
+  const over = value !== null && value > ceil;
   return (
     <div style={{ padding: '10px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -156,7 +193,7 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
         <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: over ? 'var(--amber)' : 'var(--green)' }}>{fwRp(value)}</span>
       </div>
       <div style={{ position: 'relative' }}>
-        <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={value}
+        <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={v}
           onChange={(e: any) => onChange(Number(e.target.value))}
           style={{ width: '100%', accentColor: over ? 'var(--amber)' : 'var(--teal)' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red-solid)', opacity: .7, pointerEvents: 'none' }} />
@@ -178,7 +215,7 @@ function FWGateNode({ n, q, active, dim, accent }: any) {
       boxShadow: active ? '0 1px 8px rgba(7,30,42,.08)' : 'none',
     }}>
       <div className="row ac gap8">
-        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100,#e2edf4)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
+        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{q}</span>
       </div>
     </div>
@@ -200,7 +237,7 @@ function FWBranch({ label, taken, dim, accent }: any) {
 
 function FWTree({ result }: any) {
   const g = result.gate, b = result.branch;
-  const A = { 1: '#005085', 2: '#0a6b73', 3: '#5b3fa6' };
+  const A = { 1: 'var(--blue-solid)', 2: 'var(--teal-solid)', 3: 'var(--purple-solid)' };
   return (
     <div style={{ display: 'grid', gap: 7 }}>
       {/* Gate 1 */}
@@ -219,6 +256,9 @@ function FWTree({ result }: any) {
   );
 }
 
+/** Satu baris tabel portofolio: entitas + hasil penentuan + tingkat usaha. */
+type FwRow = FwEntity & FwResult & { tier: string };
+
 /* ============================================================
    VIEW UTAMA
    ============================================================ */
@@ -226,26 +266,46 @@ function FrameworkView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
-  /* kandidat aktif — default prospek baru bertipe menengah */
-  const DEFAULT = { id: 'NEW', name: 'PT Mitra Andalan Sejahtera', sector: 'Perdagangan Umum', listed: false, fiduciary: false, sales: 28e9, capital: 7e9, complex: false, elect: false, eng: 'Calon klien · onboarding' };
-  const [cand, setCand] = useStateFW(() => loader('ams.framework.cand', DEFAULT));
+  /* Kandidat aktif — prospek baru yang BELUM DINILAI. Ketiga pertimbangan
+     sengaja mulai dari `null` (belum dijawab), bukan `false`: alat ini
+     menirukan penilaian sungguhan, dan penilaian sungguhan dimulai dari
+     tidak tahu. Angka ukuran usaha boleh berangka karena ia dugaan awal
+     yang memang disunting lewat slider. */
+  const DEFAULT: FwEntity = {
+    id: 'NEW', name: 'PT Mitra Andalan Sejahtera', sector: 'Perdagangan Umum',
+    listed: false, ...FW_JUDGEMENT_KOSONG, sales: 28e9, capital: 7e9,
+    eng: 'Calon klien · onboarding', engId: null, figuresAvailable: true,
+  };
+  const [candRaw, setCand] = useStateFW(() => loader('ams.framework.cand.v2', DEFAULT));
+  const cand: FwEntity = candRaw as FwEntity;
   const [picked, setPicked] = useStateFW('NEW');
+  /* Jawaban pertimbangan per klien — SSOT server, lingkup firma
+     (`capForWrite` = ENGAGEMENT_MANAGE, allowlist di server/stateAccess.ts). */
+  const [judgements, setJudgements] = useAmsPersist('framework.judgements.v1', {});
+  const jawab = (clientId: string, field: keyof FwJudgement, v: Tri) =>
+    setJudgements((d: FwJudgements) => ({ ...d, [clientId]: { ...(d || {})[clientId], [field]: v } }));
 
-  useEffectFW(() => { try { localStorage.setItem('ams.framework.cand', JSON.stringify(cand)); } catch (e) {} }, [cand]);
+  useEffectFW(() => { try { localStorage.setItem('ams.framework.cand.v2', JSON.stringify(cand)); } catch (e) {} }, [cand]);
 
-  const set = (patch: any) => setCand((c: any) => ({ ...c, ...patch }));
-  const loadEntity = (ent: any) => {
+  const set = (patch: Partial<FwEntity>) => setCand((c: FwEntity) => ({ ...c, ...patch }));
+  const loadEntity = (ent: FwEntity) => {
     setPicked(ent.id);
     setCand({ ...ent });
   };
 
-  const result = useMemoFW(() => fwDetermine(cand), [cand]);
-  const m = (FW_META as any)[result.fw];
+  const result: FwResult = useMemoFW(() => fwDetermine(cand as FwInput), [cand]);
+  /* `m` null selama kerangka belum dapat disimpulkan — tiap pembaca menjaganya. */
+  const m = result.fw ? FW_META[result.fw] : null;
   const umkmTier = fwUmkmTier(cand.capital, cand.sales);
 
-  /* hitung sebaran portofolio (lewat fungsi penentu yang sama — SSOT) */
-  const portfolio = useMemoFW(() => FW_PORTFOLIO.map(e => ({ ...e, ...fwDetermine(e), tier: fwUmkmTier(e.capital, e.sales) })), []);
-  const counts = FW_ORDER.map(k => ({ k, n: portfolio.filter((p: any) => p.fw === k).length }));
+  /* Portofolio firma — dirakit dari CLIENTS + neraca saldo di `fw_canon`,
+     lalu dinilai lewat fungsi penentu yang SAMA (SSOT). */
+  const roster: FwEntity[] = useMemoFW(() => fwPortfolio((judgements || {}) as FwJudgements), [judgements]);
+  const portfolio: FwRow[] = useMemoFW(
+    () => roster.map((e): FwRow => ({ ...e, ...fwDetermine(e), tier: fwUmkmTier(e.capital, e.sales) })),
+    [roster]);
+  const counts = FW_ORDER.map(k => ({ k, n: portfolio.filter(p => p.fw === k).length }));
+  const belum = portfolio.filter(p => p.fw === null).length;
 
   return (
     <>
@@ -262,11 +322,11 @@ function FrameworkView() {
 
           {/* ---------- ringkasan ---------- */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
-            <FWStat value={m.label} label="Kerangka kandidat" sub={cand.name} accent={m.accent} />
-            <FWStat value={counts[0].n} label="Portofolio · SAK" sub="akuntabilitas publik" accent={FW_META['SAK'].accent} />
-            <FWStat value={counts[1].n} label="Portofolio · SAK EP" sub="entitas privat" accent={FW_META['SAK EP'].accent} />
-            <FWStat value={counts[2].n} label="Portofolio · SAK EMKM" sub="mikro–menengah" accent={FW_META['SAK EMKM'].accent} />
-            <FWStat value={'1 Jan 2025'} label="SAK EP efektif" sub="menggantikan SAK ETAP" accent="var(--navy)" />
+            <FWStat value={m ? m.label : 'Belum'} label="Kerangka kandidat" sub={cand.name} accent={m ? m.text : 'var(--ink-3)'} />
+            <FWStat value={counts[0].n} label="Portofolio · SAK" sub="akuntabilitas publik" accent={FW_META['SAK'].text} />
+            <FWStat value={counts[1].n} label="Portofolio · SAK EP" sub="entitas privat" accent={FW_META['SAK EP'].text} />
+            <FWStat value={counts[2].n} label="Portofolio · SAK EMKM" sub="mikro–menengah" accent={FW_META['SAK EMKM'].text} />
+            <FWStat value={belum} label="Belum dapat disimpulkan" sub="pertimbangan penilai belum dijawab" accent={belum ? 'var(--amber)' : 'var(--green)'} />
           </div>
 
           {/* ---------- penentu interaktif + verdict ---------- */}
@@ -279,7 +339,7 @@ function FrameworkView() {
                   <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
                     <button onClick={() => loadEntity(DEFAULT)}
                       style={fwPickBtn(picked === 'NEW')}>+ Entitas baru</button>
-                    {FW_PORTFOLIO.map(e => (
+                    {roster.map(e => (
                       <button key={e.id} onClick={() => loadEntity(e)} style={fwPickBtn(picked === e.id)} title={e.name}>
                         {e.name.replace(/^PT /, '').replace(/ \(UMKM\)$/, '')}
                       </button>
@@ -302,71 +362,100 @@ function FrameworkView() {
               <Panel noBody>
                 <div style={{ padding: '12px 14px' }}>
                   <div className="row ac gap8" style={{ marginBottom: 4 }}>
-                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#005085', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>1</span>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--blue-solid)', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>1</span>
                     <span style={{ fontSize: 13, fontWeight: 700 }}>Uji akuntabilitas publik</span>
                   </div>
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Bila salah satu terpenuhi, entitas <b>wajib</b> menggunakan SAK (PSAK berbasis IFRS).</p>
                   <FWToggle label="Terdaftar / dalam proses pendaftaran di pasar modal"
                     hint="Emiten / perusahaan publik — menerbitkan instrumen di pasar publik."
-                    value={cand.listed} onChange={(v: any) => set({ listed: v })} />
-                  <FWToggle label="Menguasai aset dalam kapasitas fidusia (usaha utama)"
+                    value={cand.listed} onChange={(v: boolean) => set({ listed: v })} />
+                  <FWTri label="Menguasai aset dalam kapasitas fidusia (usaha utama)"
                     hint="Bank, asuransi, dana pensiun, sekuritas, multifinance, reksa dana."
-                    value={cand.fiduciary} onChange={(v: any) => set({ fiduciary: v })} />
+                    value={cand.fiduciary} onChange={v => set({ fiduciary: v })} />
                 </div>
               </Panel>
 
               <Panel noBody>
-                <div style={{ padding: '12px 14px', opacity: result.gate >= 2 ? 1 : .55, pointerEvents: result.gate >= 2 ? 'auto' : 'none' }}>
+                <div style={{ padding: '12px 14px', opacity: (result.gate ?? 0) >= 2 ? 1 : .55, pointerEvents: (result.gate ?? 0) >= 2 ? 'auto' : 'none' }}>
                   <div className="row ac gap8" style={{ marginBottom: 4 }}>
-                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#0a6b73', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>2</span>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--teal-solid)', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>2</span>
                     <span style={{ fontSize: 13, fontWeight: 700 }}>Uji ambang UMKM</span>
                     <span className="tiny muted">UU 20/2008 jo. PP 7/2021 · di luar tanah & bangunan</span>
                   </div>
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Melebihi salah satu ambang → entitas <b>besar</b> → SAK EP. Di bawah keduanya → lanjut ke uji kompleksitas.</p>
-                  <FWSlider label="Penjualan tahunan" value={cand.sales} onChange={(v: any) => set({ sales: v })} max={120e9} ceil={FW_SALES_CEIL} unit="50 M" />
-                  <FWSlider label="Modal usaha (ekuitas usaha)" value={cand.capital} onChange={(v: any) => set({ capital: v })} max={20e9} ceil={FW_CAP_CEIL} unit="10 M" />
+                  <FWSlider label="Penjualan tahunan" value={cand.sales} onChange={(v: number) => set({ sales: v })} max={120e9} ceil={FW_SALES_CEIL} unit="50 M" />
+                  <FWSlider label="Modal usaha (ekuitas usaha)" value={cand.capital} onChange={(v: number) => set({ capital: v })} max={20e9} ceil={FW_CAP_CEIL} unit="10 M" />
                 </div>
               </Panel>
 
               <Panel noBody>
-                <div style={{ padding: '12px 14px', opacity: result.gate >= 3 ? 1 : .55, pointerEvents: result.gate >= 3 ? 'auto' : 'none' }}>
+                <div style={{ padding: '12px 14px', opacity: (result.gate ?? 0) >= 3 ? 1 : .55, pointerEvents: (result.gate ?? 0) >= 3 ? 'auto' : 'none' }}>
                   <div className="row ac gap8" style={{ marginBottom: 4 }}>
-                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#5b3fa6', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>3</span>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--purple-solid)', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center' }}>3</span>
                     <span style={{ fontSize: 13, fontWeight: 700 }}>Pertimbangan pengguna & kompleksitas</span>
                   </div>
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Entitas UMKM <b>boleh memilih</b> kerangka yang lebih tinggi. Bila ada kompleksitas atau pengguna canggih → SAK EP; jika tidak → SAK EMKM.</p>
-                  <FWToggle label="Transaksi kompleks / pengguna LK canggih"
+                  <FWTri label="Transaksi kompleks / pengguna LK canggih"
                     hint="Instrumen keuangan, sewa material, konsolidasi, kreditur bank besar, rencana go-public."
-                    value={cand.complex} onChange={(v: any) => set({ complex: v })} />
-                  <FWToggle label="Entitas memilih naik ke SAK EP (sukarela)"
+                    value={cand.complex} onChange={v => set({ complex: v })} />
+                  <FWTri label="Entitas memilih naik ke SAK EP (sukarela)"
                     hint="Pilihan strategis demi komparabilitas / akses pendanaan."
-                    value={cand.elect} onChange={(v: any) => set({ elect: v })} />
+                    value={cand.elect} onChange={v => set({ elect: v })} />
                 </div>
               </Panel>
             </div>
 
             {/* KANAN — verdict + pohon + implikasi */}
             <div style={{ display: 'grid', gap: 12 }}>
+              {m ? (
               <div className="panel" style={{ padding: 0, overflow: 'hidden', borderTop: '3px solid ' + m.accent }}>
                 <div style={{ padding: '16px 16px 14px', background: m.tint }}>
-                  <div className="tiny upper" style={{ color: m.accent, fontWeight: 700, letterSpacing: '.08em' }}>Kerangka pelaporan ditetapkan</div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: m.accent, letterSpacing: '-.02em', margin: '4px 0 2px' }}>{m.label}</div>
+                  <div className="tiny upper" style={{ color: m.fg, fontWeight: 700, letterSpacing: '.08em' }}>Kerangka pelaporan ditetapkan</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: m.fg, letterSpacing: '-.02em', margin: '4px 0 2px' }}>{m.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--ink-2)', fontWeight: 600 }}>{m.full}</div>
                 </div>
                 <div style={{ padding: '12px 16px' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8 }}>
-                    <span style={{ color: m.accent }}><I.checkCircle size={15} /></span>
+                    <span style={{ color: m.text }}><I.checkCircle size={15} /></span>
                     <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink)' }}>Dasar penetapan (Gerbang {result.gate})</span>
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.55 }}>{result.why}</p>
                 </div>
               </div>
+              ) : (
+              /* BELUM DISIMPULKAN — keadaan penuh, bukan kartu kosong. Menampilkan
+                 kerangka tebakan di sini persis cacat yang ditutup PR-1. */
+              <div className="panel" style={{ padding: 0, overflow: 'hidden', borderTop: '3px dashed var(--line-strong)' }}>
+                <div style={{ padding: '16px 16px 14px', background: 'var(--surface-2)' }}>
+                  <div className="tiny upper" style={{ color: 'var(--ink-3)', fontWeight: 700, letterSpacing: '.08em' }}>Kerangka pelaporan</div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--ink-2)', letterSpacing: '-.01em', margin: '4px 0 2px' }}>Belum dapat disimpulkan</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-2)', fontWeight: 600 }}>{result.why}</div>
+                </div>
+                <div style={{ padding: '12px 16px' }}>
+                  <div className="row ac gap8" style={{ marginBottom: 8 }}>
+                    <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>
+                    <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink)' }}>Menunggu jawaban (Gerbang {result.gate})</span>
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 5 }}>
+                    {result.pending.map((q, i) => (
+                      <li key={i} style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.5 }}>{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              )}
 
               <Panel title="Pohon keputusan">
                 <FWTree result={result} />
               </Panel>
 
               <Panel title="Implikasi mengikat" sub="keluaran → modul hilir">
+                {/* Implikasi MENGIKAT tidak dapat dinyatakan sebelum kerangkanya
+                    ditetapkan. Versi lama menurunkan bentuk opini dan kedalaman
+                    pengungkapan lewat ternari yang jatuh ke cabang EMKM ketika
+                    kerangkanya tak diketahui — menerbitkan konsekuensi dari
+                    keputusan yang belum pernah diambil. */}
+                {m ? (
                 <div style={{ display: 'grid', gap: 9 }}>
                   {[
                     { ic: 'doc', k: 'Jenis perikatan', v: cand.listed ? 'Audit LK (PIE) — rotasi AP 5 th' : (result.fw === 'SAK EMKM' ? 'Audit / Kompilasi (SPSJL 4410)' : 'Audit / Reviu LK') },
@@ -375,7 +464,7 @@ function FrameworkView() {
                     { ic: 'report', k: 'Profil FS Generator', v: m.short },
                   ].map((r, i) => (
                     <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
-                      {(() => { const IcC = (I as any)[r.ic] || I.doc; return <span style={{ color: m.accent, flex: '0 0 auto', marginTop: 1 }}><IcC size={14} /></span>; })()}
+                      {(() => { const IcC = (I as any)[r.ic] || I.doc; return <span style={{ color: m.text, flex: '0 0 auto', marginTop: 1 }}><IcC size={14} /></span>; })()}
                       <div style={{ minWidth: 0 }}>
                         <div className="tiny muted" style={{ fontWeight: 600 }}>{r.k}</div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{r.v}</div>
@@ -383,6 +472,13 @@ function FrameworkView() {
                     </div>
                   ))}
                 </div>
+                ) : (
+                <p className="tiny" style={{ margin: 0, color: 'var(--ink-3)', lineHeight: 1.55 }}>
+                  Jenis perikatan, bentuk opini, dan kedalaman pengungkapan mengikuti kerangka
+                  yang ditetapkan. Selesaikan uji di sebelah kiri lebih dulu — implikasi tidak
+                  diturunkan dari kerangka yang belum disimpulkan.
+                </p>
+                )}
                 <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
                   <div className="tiny muted upper" style={{ marginBottom: 6 }}>Standar perikatan terkait</div>
                   <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
@@ -405,7 +501,7 @@ function FrameworkView() {
                   <tr>
                     <th style={{ minWidth: 170 }}>Dimensi</th>
                     {FW_ORDER.map(k => (
-                      <th key={k} style={{ color: (FW_META as any)[k].accent }}>{(FW_META as any)[k].label}</th>
+                      <th key={k} style={{ color: (FW_META as any)[k].text }}>{(FW_META as any)[k].label}</th>
                     ))}
                   </tr>
                 </thead>
@@ -430,7 +526,7 @@ function FrameworkView() {
           </Panel>
 
           {/* ---------- penerapan portofolio ---------- */}
-          <Panel title="Penerapan ke portofolio firma" sub="klasifikasi dihitung satu fungsi penentu (SSOT) — konsisten ke FS Generator, Opini & Matriks Kepatuhan" noBody>
+          <Panel title="Penerapan ke portofolio firma" sub="identitas dari registri klien · ukuran usaha dari neraca saldo perikatan · klasifikasi lewat satu fungsi penentu" noBody>
             <div style={{ overflowX: 'auto' }}>
               <table className="fw-tbl">
                 <thead>
@@ -446,20 +542,31 @@ function FrameworkView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {portfolio.map((p: any) => (
+                  {portfolio.map((p: FwRow) => (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{p.name}<div className="tiny muted" style={{ fontWeight: 500 }}>{p.eng}</div></td>
                       <td>{p.sector}</td>
                       <td style={{ textAlign: 'center' }}>
-                        {p.listed || p.fiduciary
-                          ? <span style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 11 }}>{p.listed && p.fiduciary ? 'Emiten + LJK' : p.listed ? 'Emiten' : 'LJK fidusia'}</span>
-                          : <span className="tiny muted">—</span>}
+                        {p.listed || p.fiduciary === true
+                          ? <span style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 11 }}>{p.listed && p.fiduciary === true ? 'Emiten + LJK' : p.listed ? 'Emiten' : 'LJK fidusia'}</span>
+                          : p.fiduciary === null
+                            ? <span className="tiny" style={{ color: 'var(--amber)', fontWeight: 600 }}>belum dinilai</span>
+                            : <span className="tiny muted">—</span>}
                       </td>
                       <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.sales)}</td>
                       <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.capital)}</td>
                       <td style={{ textAlign: 'center' }}><span className="tiny" style={{ fontWeight: 600, color: p.tier === 'Besar' ? 'var(--ink-2)' : 'var(--teal)' }}>{p.tier}</span></td>
                       <td><FWChip fw={p.fw} sm /></td>
-                      <td className="tiny" style={{ color: 'var(--ink-3)', maxWidth: 230, lineHeight: 1.4 }}>{p.branch === 'pa' ? 'Akuntabilitas publik' : p.branch === 'big' ? 'Entitas besar (> ambang UMKM)' : p.branch === 'ep' ? 'UMKM → naik ke EP (kompleksitas)' : 'UMKM · pelaporan sederhana'}</td>
+                      <td className="tiny" style={{ color: 'var(--ink-3)', maxWidth: 230, lineHeight: 1.4 }}>
+                        {p.branch === 'pa' ? 'Akuntabilitas publik'
+                          : p.branch === 'big' ? 'Entitas besar (> ambang UMKM)'
+                          : p.branch === 'ep' ? 'UMKM → naik ke EP (kompleksitas)'
+                          : p.branch === 'emkm' ? 'UMKM · pelaporan sederhana'
+                          : p.pendingKeys.map(k => (k === 'figures'
+                              ? <div key={k} className="tiny" style={{ color: 'var(--ink-3)', lineHeight: 1.35 }}>Neraca saldo perikatan belum tersedia — tak dapat dijawab manual.</div>
+                              : <FWTriMini key={k} label={FW_JUDGEMENT_LABEL[k]} value={p[k]}
+                                  onChange={v => jawab(p.id, k, v)} />))}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -469,7 +576,7 @@ function FrameworkView() {
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}><I.alert size={14} /></span>
                 <p className="tiny" style={{ margin: 0, color: 'var(--ink-2)', lineHeight: 1.5 }}>
-                  <b>Catatan:</b> entitas SAK EMKM umumnya masuk perikatan <b>kompilasi (SPSJL 4410)</b>, bukan audit penuh — lihat PT Sinar Kreatif Mandiri. Salah pilih kerangka berdampak langsung pada jenis perikatan dan bentuk opini (SA 700/800), sehingga penetapan ini menjadi gerbang pada onboarding.
+                  <b>Modal usaha didekati dengan ekuitas neraca saldo.</b> PP 7/2021 mengecualikan tanah &amp; bangunan tempat usaha dari modal usaha; neraca saldo perikatan tidak memisahkan keduanya, sehingga angka di kolom itu adalah <b>aproksimasi yang diungkapkan</b>, bukan modal usaha menurut definisi peraturan. Klien tanpa perikatan berjalan tidak memiliki neraca saldo — kolomnya sengaja kosong, bukan nol. Salah pilih kerangka berdampak langsung pada jenis perikatan dan bentuk opini (SA 700/800), sehingga penetapan ini menjadi gerbang pada onboarding.
                 </p>
               </div>
             </div>
@@ -494,7 +601,7 @@ function fwPickBtn(on: any) {
   return {
     fontSize: 11, fontWeight: 600, padding: '5px 9px', borderRadius: 7, cursor: 'pointer',
     border: '1px solid ' + (on ? 'var(--blue)' : 'var(--line)'),
-    background: on ? 'var(--blue-100,#e2edf4)' : 'var(--surface-2)',
+    background: on ? 'var(--blue-100)' : 'var(--surface-2)',
     color: on ? 'var(--blue)' : 'var(--ink-2)', whiteSpace: 'nowrap',
   };
 }
@@ -519,4 +626,5 @@ if (window.LINEAGE) {
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { FW_PORTFOLIO, FrameworkView, fwDetermine };
+/* `fwDetermine` di-ekspor-ulang demi pemanggil lama; sumbernya `fw_canon.ts`. */
+export { FrameworkView, fwDetermine };
