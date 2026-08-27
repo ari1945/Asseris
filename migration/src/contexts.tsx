@@ -485,6 +485,21 @@ const AMS_PERSIST_SCOPE = {
      risiko berbobot, kesiapan komunikasi auditor pendahulu, pengaman & kesimpulan.
      Engagement-scope → capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
   'opening.v1': 'engagement',
+  /* Surat Manajemen (SA 265/260) — temuan & utas diskusi klien. Keduanya adalah
+     kertas kerja PER-KLIEN: kondisi, sebab, akibat, rekomendasi, tanggapan
+     manajemen, dan keputusan masuk/keluar Final ML. Namanya tak cocok
+     `PR4_ENGAGEMENT_KEY_RE` dan tak pernah terdaftar di sini, sehingga ia jatuh ke
+     lingkup FIRMA: temuan satu klien terbaca pada SELURUH perikatan, sementara kop
+     suratnya tetap mencetak nama klien AKTIF — kebocoran isolasi W7.5 yang menempel
+     langsung pada dokumen yang dikirim keluar. Kelas cacat yang sama dengan
+     goingconcern.v1/fraud.v1 di atas; efek keduanya pun sama: capForWrite firm-scope
+     = FIRM_ADMIN → suntingan Manajer/Senior gagal SENYAP.
+     Nama kunci SENGAJA tidak dinaikkan versinya: lingkup adalah bagian dari alamat
+     (`ams.v1.<scope>.<scopeId>.<key>`), jadi dokumen firma lama tidak tertimpa dan
+     tidak pula terbaca — ia ditinggalkan utuh, bukan dibuang. Menaikkan ke `.v3`
+     hanya akan menelantarkan alamat kedua tanpa manfaat apa pun. */
+  'mgmtletter.findings.v2': 'engagement',
+  'mgmtletter.discussions.v2': 'engagement',
   /* F1/PR-3 (PRD 2026-07-19) — kertas kerja yang dulu useState murni (HILANG saat
      reload) kini bertahan di server. Semua engagement-scope → capForWrite=WP_EDIT
      (semua auditor) + isolasi W7.5.
