@@ -3,6 +3,7 @@ import { AMS } from './data';
 import { evaluateLeaveRow, leaveLedgerOf } from './canon_leave';
 import { perfPersonOf } from './canon_perf';
 import { bpjsContribution } from './canon_bpjs';
+import { pplReqOn, pplYearOf, skpInYear } from './canon_ppl';
 import type { BpjsRegistry } from './canon_bpjs';
 import type { HolidayCalendar } from './canon_leave';
 import { useAmsPersist, useAuth } from './contexts';
@@ -116,7 +117,12 @@ function DataPersonalSaya() {
 
   const rosterA = AMS as { STAFF?: unknown; FIRM_STAFF?: unknown };
   const staff = [...arr<StaffRow>(rosterA.STAFF), ...arr<StaffRow>(rosterA.FIRM_STAFF)].find((s) => s.id === empId);
-  const req = (AMS as { CPE_REQ?: { annual: number; structured: number } }).CPE_REQ || { annual: 40, structured: 30 };
+  /* Tahap A-2 · R1 — ambang PPL dari registry berkunci masa berlaku. Fallback
+     literal `{ annual: 40, structured: 30 }` DICABUT: ia menjawab untuk tahun
+     mana pun tanpa pernah memilih, di layar yang dilihat pegawainya sendiri. */
+  const pplLook = pplReqOn(String(AMS.TODAY || ''));
+  const pplYear = pplYearOf(String(AMS.TODAY || ''));
+  const req = { annual: pplLook.value?.annual ?? 0, structured: pplLook.value?.structuredMin ?? 0 };
   const R = (AMS as { PAYROLL_RATES?: BpjsRegistry }).PAYROLL_RATES;
   const ethItems = arr<{ k: string }>((AMS as { ETHICS_ITEMS?: unknown }).ETHICS_ITEMS);
 
@@ -132,10 +138,12 @@ function DataPersonalSaya() {
   const pay = payAll[empId];
   const bal = balAll[empId];
   const myReqs = reqData.filter((r) => r.emp === empId);
-  const skpRecs: SkpRec[] = [...(cpeExtraAll[empId] || []), ...(cpeLogAll[empId] || [])];
+  /* "tahun ini" kini benar-benar berarti tahun PPL yang berlaku (SC-A3). */
+  const skpAll: SkpRec[] = [...(cpeExtraAll[empId] || []), ...(cpeLogAll[empId] || [])];
+  const skpRecs: SkpRec[] = pplYear == null ? [] : (skpInYear(skpAll, pplYear) as SkpRec[]);
   const skpTotal = skpRecs.reduce((a, r) => a + (r.skp || 0), 0);
   const skpStruct = skpRecs.filter((r) => r.type === 'Terstruktur').reduce((a, r) => a + (r.skp || 0), 0);
-  const skpOk = skpTotal >= req.annual && skpStruct >= req.structured;
+  const skpOk = !!pplLook.value && skpTotal >= req.annual && skpStruct >= req.structured;
   const myIndep = indepData.find((d) => d.id === empId);
   const myEthics = ethData[empId];
   const myCases = caseAll.filter((c) => c.staff === empId);

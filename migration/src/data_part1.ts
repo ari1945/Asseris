@@ -2,7 +2,9 @@
    Asseris — data part1 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { CPE_EXT, STAFF_EXT } from './data_roster';
-import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './canon_rotation';
+import { coolOffState, regimeOf as rotationRegimeOf, rotationRegimesRequired, rotationState } from './canon_rotation';
+import { SEED_TODAY, SEED_YEAR } from './data_clock';
+import { pplReqOn, pplYearOf } from './canon_ppl';
 
   const FIRM = {
     name: 'KAP Wijaya Hartono & Rekan',
@@ -526,13 +528,20 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
     { id: 'EMP-601', name: 'Teguh Prasetyo', role: 'Finance Firma', grade: 'Staf Firma', dept: 'Keuangan Firma', email: 'teguh.p@whr-cpa.id', joined: 2020, status: 'Aktif', firmOps: true },
   ];
 
-  /* ---- E: CPE/PPL requirement & records (annual 40 SKP; 20 terstruktur) ---- */
-  /* PMK 186/2021 Pasal 37 — ambang SSOT ada di `canon_ppl.PPL_REQ_PMK186`.
-     Nilai di sini adalah cermin untuk konsumen lama; `structured` dikoreksi
-     20 → 30 (angka 20 adalah materi wajib 4+16 DI DALAM yang terstruktur,
-     bukan minimum terstrukturnya). `unstructuredCap` sebelumnya tak ada
-     sama sekali, sehingga SKP tidak terstruktur berlebih ikut dihitung. */
-  const CPE_REQ = { annual: 40, structured: 30, unstructuredCap: 10, year: 2026 };
+  /* ---- E: CPE/PPL requirement & records ---- */
+  /* Cermin untuk konsumen lama — dan sejak Tahap A-2 SELURUHNYA turunan.
+     `year: 2026` dulu diketik di sini dan dibaca tiga modul lain sebagai tahun
+     atestasi firma; ambangnya SATU record tanpa masa berlaku. Kini keduanya
+     dipilih menurut tanggal: `pplReqOn(SEED_TODAY)` + `pplYearOf(SEED_TODAY)`.
+     Masa yang tak tercakup MELEMPAR — tak ada ambang diam-diam dari tahun lain. */
+  const CPE_PPL_LOOK = pplReqOn(SEED_TODAY);
+  if (!CPE_PPL_LOOK.value) throw new Error('data_part1: ' + CPE_PPL_LOOK.note);
+  const CPE_REQ = {
+    annual: CPE_PPL_LOOK.value.annual,
+    structured: CPE_PPL_LOOK.value.structuredMin,
+    unstructuredCap: CPE_PPL_LOOK.value.unstructuredCap,
+    year: pplYearOf(SEED_TODAY) as number,
+  };
   /* per staff: structured + unstructured hours logged this year */
   const CPE_LOG = {
     'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10', topic: 'akuntansi' }, { t: 'SMM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22', topic: 'pembinaan' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],
@@ -558,7 +567,8 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
      Lestari Handayani: `tenure: 2.5` tak dapat dinyatakan oleh register
      bertahun-buku. Dibulatkan KE ATAS (3) karena untuk gerbang kepatuhan,
      mengecilkan masa tugas berarti mengecilkan risiko rotasi. */
-  const ROTATION_YEAR = 2026;
+  /* Tahun rotasi = tahun berjalan jam benih (K-02), tidak diketik terpisah. */
+  const ROTATION_YEAR = SEED_YEAR;
   const AP_SIGNING_HISTORY = [
     { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2022 },
     { ap: 'EMP-001', client: 'PT Sentosa Makmur Tbk', year: 2023 },
@@ -603,11 +613,15 @@ import { coolOffState, regimeOf as rotationRegimeOf, rotationState } from './can
      bukan diketik. Konsumen lama (`view_people`, `data_licensing`, `view_pppk`)
      tetap membaca `d.tenure`/`d.cooloff` seperti sebelumnya — yang berubah
      adalah dari mana angkanya berasal. */
+  /* Tahap A-2 · R2 — rezim rotasi DIPILIH menurut tanggal (registry
+     `canon_rotation.ROTATION_REGISTRY`). Masa yang tak tercakup MELEMPAR:
+     batas rotasi adalah premis sebuah verdict, bukan angka pelengkap. */
+  const ROTATION_REGIMES = rotationRegimesRequired(SEED_TODAY);
   const INDEPENDENCE = INDEPENDENCE_BASE.map((d) => {
-    const regime = rotationRegimeOf({ sektorJK: !!d.sektorJK, listed: !!d.listed });
+    const regime = rotationRegimeOf({ sektorJK: !!d.sektorJK, listed: !!d.listed, regimes: ROTATION_REGIMES });
     const st = rotationState({
       ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY,
-      asOfYear: ROTATION_YEAR, sektorJK: !!d.sektorJK, listed: !!d.listed,
+      asOfYear: ROTATION_YEAR, sektorJK: !!d.sektorJK, listed: !!d.listed, regimes: ROTATION_REGIMES,
     });
     const cool = coolOffState({ ap: d.id, client: d.rotationClient, history: AP_SIGNING_HISTORY, asOfYear: ROTATION_YEAR, regime });
     return {

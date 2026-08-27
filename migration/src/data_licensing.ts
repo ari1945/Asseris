@@ -2,7 +2,7 @@
 import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 import { cpeFromTraining } from './cpe_training';
-import { pplStatusFromEntries } from './canon_ppl';
+import { pplReqOn, pplStatusFromEntries, pplYearOf, skpInYear } from './canon_ppl';
 
 /* Ambang rotasi AP (`rotTier`) PINDAH ke `canon_rotation.ts` — modul LEAF (nol
    impor). Alasannya bukan kerapian: `indep_approval.ts` dibaca JUGA oleh server
@@ -10,6 +10,7 @@ import { pplStatusFromEntries } from './canon_ppl';
    Modul aturan yang dipakai dua sisi tidak boleh menyeret lapisan data browser.
    Di-RE-EXPORT di sini supaya seluruh pengimpor lama tak tersentuh. */
 import { rotTier } from './canon_rotation';
+import type { RotTier } from './canon_rotation';
 export { rotTier };
 export type { RotTier } from './canon_rotation';
 
@@ -59,36 +60,56 @@ export type { RotTier } from './canon_rotation';
     /* kredit SKP otomatis dari pelatihan terkonfirmasi (admin/HR). Store firm-scope →
        cacheKey berlingkup 'ams.v1.firm.<FIRM_SCOPE_ID>.trainingAttendance.v1'. */
     const training = (cpeFromTraining(A().TRAINING_CATALOG, LS('firm.FIRM-WHR.trainingAttendance.v1', {}))[empId]) || [];
-    const recs = [...extra, ...training, ...base];
-    const st = pplStatusFromEntries(recs);
+    /* Tahap A-2 · SC-A1..SC-A3 — tahun & ambang DIPILIH menurut tanggal, dan
+       catatan disaring ke tahun itu. Dulu seluruh catatan dijumlahkan apa pun
+       tahunnya, terhadap ambang satu record tanpa masa berlaku. */
+    const today = String(AMS.TODAY || '');
+    const look = pplReqOn(today);
+    const year = pplYearOf(today);
+    const all = [...extra, ...training, ...base];
+    const recs = year == null ? [] : skpInYear(all, year);
+    /* Masa tak tercakup: TIDAK jatuh ke ambang bawaan. `pplStatusFromEntries`
+       punya nilai bawaan `PPL_REQ_PMK186`, dan memakainya di sini persis sama
+       dengan "yang terdekat" yang hendak dicabut arc ini. */
+    const st = look.value ? pplStatusFromEntries(recs, look.value) : null;
     return {
       /* `total` = SKP yang DAPAT DIPERHITUNGKAN (setelah cap), bukan jumlah mentah. */
-      total: st.countedTotal, structured: st.structured, recs, status: st,
+      total: st ? st.countedTotal : 0, structured: st ? st.structured : 0,
+      recs, status: st, covered: !!look.value, note: look.note,
     };
   }
 
   /* ---------- Izin Akuntan Publik diperkaya (HCM + CPE + Independence) ---------- */
   function apLicenses() {
-    const req = A().CPE_REQ || { annual: 40, structured: 30, year: 2026 };
+    /* Ambang PPL dari registry berkunci masa berlaku — fallback literal
+       `{ annual: 40, structured: 30, year: 2026 }` DICABUT: ia menjawab untuk
+       tahun mana pun tanpa pernah memilih. */
+    const look = pplReqOn(String(AMS.TODAY || ''));
+    const req = { annual: look.value?.annual ?? 0, structured: look.value?.structuredMin ?? 0 };
     const frac = yearFrac();
     const expectedYtd = Math.round(req.annual * frac);
     return (BO().AP_LICENSES || []).map((a: any) => {
       const s = staffById(a.emp) || {};
       const ind = indepById(a.emp) || {};
       const ppl = pplOf(a.emp);
-      const onPace = ppl.total >= expectedYtd;
-      const structOk = ppl.structured >= Math.round(req.structured * frac);
-      const tenure = ind.tenure || 0, limit = ind.rotationLimit || 5;
-      const rotState = rotTier(tenure, limit);
+      const onPace = ppl.covered && ppl.total >= expectedYtd;
+      const structOk = ppl.covered && ppl.structured >= Math.round(req.structured * frac);
+      /* Tahap A-2 · R2 — fallback `ind.rotationLimit || 5` DICABUT. Batas rotasi
+         berasal dari rezim yang dipilih registry (`canon_rotation`); AP tanpa
+         deklarasi independensi kini `tak-dinilai`, bukan diam-diam "Patuh". */
+      const tenure = ind.tenure || 0;
+      const limit: number | null = ind.rotationLimit != null ? ind.rotationLimit : null;
+      const rotState: RotTier = limit == null ? 'tak-dinilai' : rotTier(tenure, limit);
       return {
         ...a,
         empId: a.emp, ap: (s.name || a.emp) + (s.cert && /CPA/.test(s.cert) ? ', CPA' : ''),
         name: s.name || a.emp, role: s.role, grade: s.grade, cert: s.cert,
         ppl: ppl.total, pplStructured: ppl.structured, pplReq: req.annual, pplStructReq: req.structured,
-        expectedYtd, onPace, structOk, recs: ppl.recs,
+        expectedYtd, onPace, structOk, recs: ppl.recs, pplCovered: ppl.covered, pplNote: ppl.note,
         rotationClient: ind.rotationClient || '—', tenure, rotationLimit: limit, rotState,
+        rotationBasis: ind.rotationBasis || '',
         declared: !!ind.declared, conflicts: ind.conflicts || 0, listed: !!ind.listed,
-        status: rotState === 'due' ? 'Rotasi Wajib' : !onPace ? 'PPL di Bawah Laju' : 'Patuh',
+        status: rotState === 'tak-dinilai' ? 'Rotasi Tak Dapat Dinilai' : rotState === 'due' ? 'Rotasi Wajib' : !ppl.covered ? 'PPL Tak Dapat Dinilai' : !onPace ? 'PPL di Bawah Laju' : 'Patuh',
       };
     });
   }

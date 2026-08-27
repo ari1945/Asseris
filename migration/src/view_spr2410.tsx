@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { RATE as CIT_RATE } from './canon_base';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav, useMateriality } from './contexts';
 import { I } from './icons';
@@ -91,7 +92,7 @@ function SPR2410View() {
   /* ——— derivasi interim dari dataset audited (Rp juta) ——— */
   const jt = (v: any) => v / 1e6;
   const A = model.is;                                   // angka audited (penuh)
-  const etr = A.pbt.cy ? A.tax.cy / A.pbt.cy : 0.22;    // tarif efektif audited
+  const etr = A.pbt.cy ? A.tax.cy / A.pbt.cy : CIT_RATE;    // tarif efektif audited; cadangan = tarif statuter registry
   const ratio = (cy: any, py: any) => (py ? cy / py : 1);
 
   // komparatif interim 9 bln 2024 = audited FY2024 (.py) × musiman  → anchored ke komparatif audited

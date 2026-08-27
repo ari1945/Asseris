@@ -50,13 +50,27 @@
    adalah persis cacat yang dicabut `canon_fx.ts`, dan "di luar cakupan" adalah
    kesimpulan yang menenangkan yang tak dimiliki modul ini.
    ============================================================ */
-import { entityFigures } from './canon_base';
+import { ASOF_DATE, entityFigures } from './canon_base';
+import { globeMinRateRequired } from './canon_cit';
 import type { FigureBasis, WTB } from './canon_types';
 
 /* ---------- konstanta HUKUM (bukan angka klien) ---------- */
 
-/** Tarif pajak efektif minimum GloBE (%). OECD Pillar Two Model Rules Art. 5.2.1. */
-export const P2_MIN_RATE = 15;
+/**
+ * Tarif pajak efektif minimum GloBE (%) — DIPILIH registry menurut tanggal
+ * pelaporan (`canon_cit.GLOBE_MIN_REGISTRY`), bukan diketik.
+ *
+ * Tahap A-2 · R4. Ia dulu literal `15` — besaran regulatori keempat, yang lolos
+ * seluruh gerbang Tahap A dan justru ditemukan gerbang SENSUS, bukan oleh mata.
+ * Masa sebelum Tahun Pajak 2025 sengaja TIDAK tercakup: di sana angka ini tak
+ * boleh ada sama sekali, jadi perhitungannya BERHENTI alih-alih memakai tarif
+ * rezim lain. Pola sama dengan `canon_base.ts` untuk tarif PPh Badan (R3).
+ *
+ * Catatan pendaratan: literalnya hidup di `view_newdisc.tsx` ketika cabang ini
+ * ditulis; PR #321 memindahkannya ke berkas ini lebih dulu. Cacatnya ikut pindah,
+ * jadi perbaikannya menyusul ke sini.
+ */
+export const P2_MIN_RATE = globeMinRateRequired(ASOF_DATE);
 
 /** Ambang pendapatan konsolidasian tahunan untuk masuk cakupan GloBE (EUR).
  *  OECD Model Rules Art. 1.1.1; PMK 136/2024. */

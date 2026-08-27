@@ -53,6 +53,16 @@ describe('SC-8 — katalog menjawab pertanyaan bulan Januari', () => {
     expect(by['hari-libur']).toBe('warn');
     /* Kurs (2026-08-22): hasilnya DIBUKUKAN ke GL 5-600, jadi ia memblokir. */
     expect(by['kurs']).toBe('block');
+    /* Tahap A-2 — aturannya diperluas dari "uang" ke PREMIS SEBUAH KESIMPULAN:
+       tarif pajak & ambang GloBE menyangkut uang; kewajiban PPL dan batas rotasi
+       menyangkut verdict kepatuhan, yang juga tak punya jawaban separuh.
+       Kalender cuti tetap satu-satunya yang memperingatkan: hari kerja masih
+       berarti tanpa kalendernya, hanya kurang teliti. */
+    expect(by['pph-badan']).toBe('block');
+    expect(by['globe-min']).toBe('block');
+    expect(by['ppl']).toBe('block');
+    expect(by['rotasi-ap']).toBe('block');
+    expect(catalog.filter((c) => c.enforcement === 'warn').map((c) => c.id)).toEqual(['hari-libur']);
   });
 });
 
@@ -69,12 +79,18 @@ describe('katalog menceritakan keadaan yang sesungguhnya', () => {
     expect(at('2026-03-01').filter((r) => r.look.blocked).map((r) => r.id)).toEqual([]);
   });
 
-  it('tiga set belum dicocokkan hari ini — BPJS, TER & kurs, dan ketiganya berkata begitu', () => {
-    /* `kurs` menyusul 2026-08-22: angkanya adalah yang SUDAH dipakai pembukuan firma,
-       tetapi dasar kutipannya (kurs tengah BI vs KMK) belum dicocokkan. Belum
-       dicocokkan ≠ tak tercakup — ia tetap menghitung, dengan penanda. */
+  it('tujuh set belum dicocokkan hari ini — dan semuanya berkata begitu', () => {
+    /* `kurs` (#283, master): angkanya SUDAH dipakai pembukuan firma, tetapi dasar
+       kutipannya (kurs tengah BI vs KMK) belum dicocokkan. Belum dicocokkan ≠ tak
+       tercakup — ia tetap menghitung, dengan penanda.
+       Tahap A-2 menambah empat registry yang provenansnya BELUM ada (R1·R2·R3 +
+       GloBE). Menandainya `verified: true` akan mengarang pencocokan yang tak
+       pernah terjadi; daftar ini karena itu memanjang, dan itu yang benar. */
     const belum = at('2026-03-01').filter((r) => r.look.status === 'unverified').map((r) => r.id);
-    expect(belum.sort()).toEqual(['bpjs', 'kurs', 'ter']);
+    expect(belum.sort()).toEqual(['bpjs', 'globe-min', 'kurs', 'pph-badan', 'ppl', 'rotasi-ap', 'ter']);
+    for (const r of at('2026-03-01')) {
+      if (r.look.status === 'unverified') expect(r.look.note.length, r.id).toBeGreaterThan(40);
+    }
   });
 
   it('pada 2027-01-01 BPJS & kurs berhenti — dan hanya keduanya', () => {

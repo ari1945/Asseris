@@ -13,6 +13,7 @@ import {
   BUPOT_MASA, PROVENANCE_LABEL, PROVENANCE_TONE, bupotRows, pphSummaryRows,
 } from './firmtax_bupot';
 import type { Provenance } from './firmtax_bupot';
+import { citRatePct, citRateRequired } from './canon_cit';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Pajak Firma
@@ -115,18 +116,14 @@ function FirmTax() {
     { m: 'Jan', out: 1095, in: 340 }, { m: 'Feb', out: ppnOut / 1e6, in: ppnIn / 1e6 }, { m: 'Mar', out: 1240, in: 395 },
   ].map(r => ({ ...r, pay: r.out - r.in }));
 
-  /* Deferred tax — temporary differences × 22%
-     FT4 (TEMUAN TERTAUT, SENGAJA TIDAK DIPINDAHKAN) — 22% adalah tarif statuter yang
-     pernah berubah (25% → 22%, UU HPP) dan dapat berubah lagi. Salinannya sudah ada di
-     `canon_base.ts:7` (RATE, diekspor sebagai `AMS_CANON.RATE`) dan dibaca sebagai
-     fallback di `data_proforma.ts:129`. Rumah yang BENAR baginya adalah set bermasa
-     berlaku di `regrefCatalog()` dengan `enforcement: 'block'` — itu lingkup prompt
-     27-regref (R3), yang pada HEAD ini BELUM dikerjakan: `REGREF_EXPECTED_IDS` masih
-     berisi lima id (bpjs · ter · ptkp · biaya-jabatan · hari-libur), tanpa tarif PPh
-     badan. Karena itu salinan ini DIBIARKAN di tempatnya: memindahkannya ke berkas
-     data sebagai konstanta baru hanya akan menambah rumah ketiga yang harus dicabut
-     lagi nanti. Jangan menyalinnya lagi. */
-  const RATE = 0.22;
+  /* Tarif PPh Badan firma DIPILIH menurut tanggal (registry `canon_cit`), tidak
+     diketik: ia sudah pernah berubah 25%→22% dan akan berubah lagi. */
+  const CIT_RATE = citRateRequired(String(AMS.TODAY || ''));
+  const CIT_PCT = citRatePct(CIT_RATE);
+  /* Rekonsiliasi fiskal ilustratif firma — PPh terutang DITURUNKAN dari PKP×tarif,
+     bukan diketik ulang (dulu `1_267_200_000` = salinan kedua dari hasil kali). */
+  const FIRM_PKP = 5_760_000_000;
+  const FIRM_PPH = Math.round(FIRM_PKP * CIT_RATE);
   const tempDiff = [
     { item: 'Penyusutan aset tetap (komersial vs fiskal)', carry: 6_100_000_000, taxbase: 5_620_000_000, kind: 'taxable' },
     { item: 'Penyisihan WIP tak tertagih', carry: 1_395_000_000, taxbase: 0, kind: 'deductible' },
@@ -134,7 +131,7 @@ function FirmTax() {
     { item: 'Penyisihan penurunan nilai piutang', carry: 320_000_000, taxbase: 0, kind: 'deductible' },
   ].map(d => {
     const diff = Math.abs(d.carry - d.taxbase);
-    const dt = Math.round(diff * RATE) * (d.kind === 'deductible' ? 1 : -1); // DTA positive, DTL negative
+    const dt = Math.round(diff * CIT_RATE) * (d.kind === 'deductible' ? 1 : -1); // DTA positive, DTL negative
     return { ...d, diff, dt };
   });
   const netDeferred = tempDiff.reduce((s, d) => s + d.dt, 0);
@@ -286,8 +283,8 @@ function FirmTax() {
                         ['Laba komersial sebelum pajak', 5_640_000_000, false],
                         ['Koreksi positif (beban non-deductible)', 480_000_000, false],
                         ['Koreksi negatif (penghasilan final)', -360_000_000, false],
-                        ['Penghasilan Kena Pajak', 5_760_000_000, true],
-                        ['PPh Badan terutang (22%)', 1_267_200_000, false],
+                        ['Penghasilan Kena Pajak', FIRM_PKP, true],
+                        [`PPh Badan terutang (${CIT_PCT})`, FIRM_PPH, false],
                         ['Kredit pajak (PPh 25 + 23)', -1_152_000_000, false],
                         ['PPh Pasal 29 — Kurang Bayar', 115_200_000, true],
                       ].map(([l, v, bold]: any[]) => (
@@ -298,7 +295,7 @@ function FirmTax() {
                       ))}
                     </tbody>
                   </table>
-                  <div className="tiny muted" style={{ marginTop: 8 }}>dalam jutaan Rupiah · tarif PPh Badan 22% (UU HPP)</div>
+                  <div className="tiny muted" style={{ marginTop: 8 }}>dalam jutaan Rupiah · tarif PPh Badan {CIT_PCT} (UU HPP)</div>
                   <div className="tiny" style={{ marginTop: 6, padding: '7px 10px', background: 'var(--amber-bg)', borderRadius: 4, color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} /> Angka rekonsiliasi ini ILUSTRASI demo — belum diturunkan dari buku besar firma (roadmap Ledger-based Reporting, Program E). Saat penyusunan SPT 1771 tersambung ke GL, saldo akun akan mengalir otomatis.</div>
                 </Panel>
                 <div style={{ display: 'grid', gap: 12 }}>
@@ -347,15 +344,15 @@ function FirmTax() {
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 14, alignItems: 'start' }}>
                 <Panel title="Rekonsiliasi Beban Pajak" sub="FY2025 · Rp jt">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    <RowKv label="Beban pajak kini (PPh Badan 22%)" v={'Rp ' + fmt(1_267 , 0) + ' jt'} />
+                    <RowKv label={`Beban pajak kini (PPh Badan ${CIT_PCT})`} v={'Rp ' + fmt(FIRM_PPH / 1e6, 0) + ' jt'} />
                     <RowKv label="Beban/(manfaat) pajak tangguhan" v={(netDeferred >= 0 ? '(Rp ' + fmt(netDeferred / 1e6, 0) + ' jt)' : 'Rp ' + fmt(-netDeferred / 1e6, 0) + ' jt')} />
                     <div className="divider" />
-                    <RowKv label="Total beban pajak penghasilan" v={'Rp ' + fmt(1_267 - netDeferred / 1e6, 0) + ' jt'} strong />
+                    <RowKv label="Total beban pajak penghasilan" v={'Rp ' + fmt(FIRM_PPH / 1e6 - netDeferred / 1e6, 0) + ' jt'} strong />
                   </div>
                 </Panel>
                 <div className="panel" style={{ padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--blue)' }}><I.report size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>PSAK 46 — Pajak Penghasilan</span></div>
-                  <div className="tiny" style={{ lineHeight: 1.6 }}>Aset/liabilitas pajak tangguhan diukur dengan tarif <b>22%</b> yang berlaku saat beda temporer terpulihkan. DTA neto sebesar <b>Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</b> diakui karena firma memiliki laba kena pajak yang memadai untuk pemulihannya.</div>
+                  <div className="tiny" style={{ lineHeight: 1.6 }}>Aset/liabilitas pajak tangguhan diukur dengan tarif <b>{CIT_PCT}</b> yang berlaku saat beda temporer terpulihkan. DTA neto sebesar <b>Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</b> diakui karena firma memiliki laba kena pajak yang memadai untuk pemulihannya.</div>
                 </div>
               </div>
             </div>
