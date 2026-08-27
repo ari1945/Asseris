@@ -374,7 +374,7 @@ function EngagementMgmt() {
                             <Progress value={e.progress} color={phColor} /><span className="mono tiny" style={{ width: 26 }}>{e.progress}%</span>
                           </div>
                           <div className="row jb tiny muted">
-                            <span className="row ac gap6"><Avatar name={e.manager} size={18} />{e.manager.split(' ')[0]}</span>
+                            <span className="row ac gap6"><Avatar name={e.manager} size={20} />{e.manager.split(' ')[0]}</span>
                             <span className="mono" style={{ color: over > 0.95 ? 'var(--red)' : 'inherit' }}>{fmt(e.actualHrs)}/{fmt(e.budgetHrs)}h</span>
                           </div>
                         </div>

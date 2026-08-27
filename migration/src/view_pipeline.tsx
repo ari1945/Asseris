@@ -217,7 +217,7 @@ function SalesPipeline() {
                         <span className="badge" style={{ background: 'var(--surface-3)', color: o.prob >= 70 ? 'var(--green)' : o.prob >= 40 ? 'var(--amber)' : 'var(--ink-3)' }}>{o.prob}%</span>
                       </div>
                       <div className="row jb ac gap6" style={{ marginTop: 6 }}>
-                        <span className="row ac gap6"><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
+                        <span className="row ac gap6"><Avatar name={o.owner} size={20} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
                         <span className="row ac gap6">
                           {(() => {
                             const si = stallInfo(o, AMS.TODAY);

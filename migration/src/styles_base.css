@@ -153,6 +153,23 @@
   --shadow-lg: 0 8px 28px rgba(7,30,42,.18);
 }
 
+/* ---------- Utilitas skala §5 ----------
+   Untuk komponen yang ukuran hurufnya PROPORSIONAL terhadap dimensi lain
+   (inisial di dalam Avatar, label format di dalam FmtBadge). Komponen
+   menghitung proporsinya lalu MENDARATKANNYA di anggota skala lewat `fsTier`
+   (ui.tsx) dan memancarkan kelas di bawah ini. Dengan begitu `fontSize`
+   inline terhitung — yang menghasilkan 6,4px atau 7,03px dan menembus lantai
+   11px — tidak lagi diperlukan, dan gerbang typography_scale.test.ts dapat
+   melarangnya tanpa pengecualian. */
+.fs-xs { font-size: var(--fs-xs); }
+.fs-sm { font-size: var(--fs-sm); }
+.fs-md { font-size: var(--fs-md); }
+.fs-lg { font-size: var(--fs-lg); }
+.fs-xl { font-size: var(--fs-xl); }
+.fs-d1 { font-size: var(--fs-d1); }
+.fs-d2 { font-size: var(--fs-d2); }
+.fs-d3 { font-size: var(--fs-d3); }
+
 /* ---------- Dark theme ---------- */
 /* Kelas tema dipasang di <html>, BUKAN <body>. Dua sebab, keduanya terverifikasi
    di build produksi:

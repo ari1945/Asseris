@@ -404,7 +404,7 @@ function RN_Row({ n, active, onClick }: any) {
       </div>
       <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
       <div className="row ac gap6" style={{ marginTop: 6 }}>
-        <Avatar name={n.author} size={18} />
+        <Avatar name={n.author} size={20} />
         <span className="tiny muted truncate" style={{ maxWidth: 110 }}>{n.author.split(' ')[0]} → {n.to}</span>
         <div style={{ flex: 1 }} />
         <span className="chip tiny" style={{ height: 18, background: n.wp ? 'var(--teal-bg)' : 'var(--surface-3)', color: n.wp ? 'var(--teal)' : 'var(--ink-3)', maxWidth: 150 }}>
@@ -499,7 +499,7 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
         )}
         {/* meta strip */}
         <div className="row ac gap8" style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line-soft)', flexWrap: 'wrap' }}>
-          <RN_Meta label="Diangkat oleh" value={<span className="row ac gap6"><Avatar name={n.author} size={18} />{n.author}</span>} />
+          <RN_Meta label="Diangkat oleh" value={<span className="row ac gap6"><Avatar name={n.author} size={20} />{n.author}</span>} />
           <span className="vdivider" style={{ height: 26 }} />
           {editable && !firm.locked ? (
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
