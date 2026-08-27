@@ -336,7 +336,7 @@ function ComplianceView({ stdId }: any) {
             {/* meta + progress */}
             <div className="grid" style={{ gap: 12 }}>
               <Panel noBody>
-                <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 16px 14px' }}>
+                <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 16px 14px' }}>
                   <div className="row ac jb">
                     <Badge kind="blue" >{stLabel.split('·')[0].trim()}</Badge>
                     <Badge kind={meta.risk === 'High' ? 'red' : meta.risk === 'Medium' ? 'amber' : 'green'}>{meta.risk}</Badge>

@@ -382,7 +382,7 @@ function DataPersonalSaya() {
     <>
       <SubBar moduleId="personal" right={<Badge kind="blue">Data milik Anda saja</Badge>} />
       <div className="view-scroll"><div className="view-pad">
-        <div className="panel" style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px', display: 'flex', gap: 13, alignItems: 'center', marginBottom: 12 }}>
+        <div className="panel" style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px', display: 'flex', gap: 13, alignItems: 'center', marginBottom: 12 }}>
           <Avatar name={staff.name} size={46} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{staff.name}</div>

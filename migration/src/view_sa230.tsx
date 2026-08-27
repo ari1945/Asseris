@@ -286,7 +286,7 @@ function D2Ikhtisar({ C }: any) {
       {/* kanan — gerbang kesiapan + pintasan */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: ready ? 'linear-gradient(125deg,#0b5d3b,#127a4e)' : 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
+          <div style={{ background: ready ? 'linear-gradient(125deg,#0b5d3b,#127a4e)' : 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Kelengkapan Dokumentasi</div>
             <div className="mono" style={{ fontSize: 34, fontWeight: 700, lineHeight: 1 }}>{agg.docPct}%</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>{ready ? 'Siap dirakit menjadi berkas final' : `${agg.blocking} hal menghambat finalisasi`}</div>
@@ -574,7 +574,7 @@ function D2Signifikan({ C }: any) {
       {/* kanan — diskusi & pengecualian */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Hal Signifikan Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{risks.length}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 4 }}>{risks.filter((r: any) => r.fraud).length} terkait kecurangan</div>
@@ -672,7 +672,7 @@ function D2Penyimpangan({ C, arc }: { C: any; arc: Sa230ArchiveState }) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: excRows.length ? 'linear-gradient(125deg,#013a52,#005085)' : 'linear-gradient(125deg,#0b5d3b,#127a4e)', color: '#fff', padding: '14px 16px' }}>
+          <div style={{ background: excRows.length ? 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))' : 'linear-gradient(125deg,#0b5d3b,#127a4e)', color: '#fff', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Inkonsistensi Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{inkonsistensi.length}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 4 }}>{excRows.reduce((a: any, r: any) => a + r.exc, 0)} pengecualian prosedur</div>

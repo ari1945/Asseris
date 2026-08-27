@@ -307,7 +307,7 @@ function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, 
       {/* RIGHT — results */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Overall Materiality (OM)</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{rp(om)}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>= {fmt(bench.value / 1e9, 1)} M × {pct}% ({bench.label})</div>

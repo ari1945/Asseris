@@ -314,7 +314,7 @@ function StubView({ moduleId }: any) {
   return (
     <div className="view-pad" style={{ minHeight: '100%' }}>
       <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center' }}>
             <IconC size={26} />
           </div>

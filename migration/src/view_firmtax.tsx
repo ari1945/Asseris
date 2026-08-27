@@ -194,7 +194,7 @@ function FirmTax() {
                     return (
                       <div key={t.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
                         <div className="row" style={{ alignItems: 'flex-end', gap: 3, height: 100, width: '100%', justifyContent: 'center' }}>
-                          <div style={{ width: 14, height: (t.out / mx * 100) + '%', background: 'linear-gradient(180deg,#0a6b8a,#005085)', borderRadius: '3px 3px 0 0' }} title={'Keluaran ' + fmt(t.out, 0)} />
+                          <div style={{ width: 14, height: (t.out / mx * 100) + '%', background: 'linear-gradient(180deg,#0a6b8a,var(--blue-solid))', borderRadius: '3px 3px 0 0' }} title={'Keluaran ' + fmt(t.out, 0)} />
                           <div style={{ width: 14, height: (t.in / mx * 100) + '%', background: 'linear-gradient(180deg,#27b277,#1f9d63)', borderRadius: '3px 3px 0 0' }} title={'Masukan ' + fmt(t.in, 0)} />
                         </div>
                         <span className="tiny mono" style={{ color: 'var(--amber)', fontWeight: 700 }}>{fmt(t.pay, 0)}</span>

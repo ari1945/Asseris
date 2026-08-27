@@ -597,7 +597,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
       <div className="grid" style={{ gap: 14 }}>
         {/* hero kesimpulan */}
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '18px 20px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '18px 20px' }}>
             <div className="row jb ac" style={{ marginBottom: 5 }}>
               <span className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Manajemen Mutu (SMM 1 ¶53–¶54)</span>
               <span className="row ac gap8">

@@ -85,7 +85,7 @@
    (view_home_cockpit.tsx) menetapkan ukurannya sendiri. */
 .avatar {
   width: 24px; height: 24px; border-radius: 50%;
-  background: linear-gradient(135deg,#2f7bb0,#013a52);
+  background: linear-gradient(135deg,var(--blue-400),var(--navy-700));
   display: grid; place-items: center; color: #fff;
   font-weight: 700;
 }

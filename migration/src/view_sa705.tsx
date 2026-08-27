@@ -174,7 +174,7 @@ function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: out.color === 'green' ? 'linear-gradient(125deg,#0f3d28,#1f7a4d)' : out.color === 'amber' ? 'linear-gradient(125deg,#5a3d05,#9a6a00)' : 'linear-gradient(125deg,#5a1410,#b3261e)', color: '#fff', padding: '18px 18px 16px', textAlign: 'center' }}>
+          <div style={{ background: out.color === 'green' ? 'linear-gradient(125deg,#0f3d28,var(--green-solid))' : out.color === 'amber' ? 'linear-gradient(125deg,#5a3d05,#9a6a00)' : 'linear-gradient(125deg,#5a1410,var(--red-solid))', color: '#fff', padding: '18px 18px 16px', textAlign: 'center' }}>
             <div className="tiny upper" style={{ opacity: .8, letterSpacing: '.05em' }}>Jenis Opini</div>
             <div className="mono" style={{ fontSize: 34, fontWeight: 800, lineHeight: 1.1, margin: '6px 0 2px' }}>{out.short}</div>
             <div style={{ fontSize: 13, fontWeight: 700 }}>{out.label}</div>
@@ -354,7 +354,7 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>Status: {eomOn ? 'Disertakan' : 'Tidak ada'}</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Penekanan Suatu Hal (Emphasis of Matter)</div>
             <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--on-dark-muted)' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
@@ -376,7 +376,7 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
         </Panel>
 
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#063b40,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,#063b40,var(--teal-solid))', color: '#fff', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="teal">SA 706 ¶10</Badge><span className="mono tiny" style={{ color: '#b9e0e3' }}>Status: {(omOn ? 1 : 0) + (compOn ? 1 : 0)} paragraf</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Paragraf Hal Lain (Other Matter)</div>
             <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#b9e0e3' }}>Merujuk hal <b>selain</b> yang disajikan/diungkap dalam LK yang relevan bagi pemahaman pengguna atas audit, tanggung jawab auditor, atau laporan auditor.</p>

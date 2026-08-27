@@ -533,7 +533,7 @@ function SyariahView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#3a2a6b,#5b3fa6)', color: '#fff', padding: '14px 16px' }}>
+                  <div style={{ background: 'linear-gradient(120deg,#3a2a6b,var(--purple-solid))', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#d6cdf0', letterSpacing: '.05em', marginBottom: 8 }}>Kemajuan Audit Syariah</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>

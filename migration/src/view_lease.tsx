@@ -143,7 +143,7 @@ function LeaseCalculator() {
             {/* results + schedule */}
             <div className="grid" style={{ gap: 12 }}>
               <Panel noBody>
-                <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', gap: 26, flexWrap: 'wrap' }}>
+                <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', gap: 26, flexWrap: 'wrap' }}>
                   <div>
                     <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.07em' }}>Aset Hak-Guna (ROU)</div>
                     <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>Rp {fmt(pv)}</div>

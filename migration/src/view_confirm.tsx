@@ -87,7 +87,7 @@ function CfDetailPanel(props: any) {
 
   return (
     <Panel noBody>
-      <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 15px' }}>
+      <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 15px' }}>
         <div className="row ac gap8" style={{ marginBottom: 4 }}>
           <span className="mono" style={{ fontWeight: 700 }}>{sel.id}</span>
           <Badge kind={(CONF_TYPES as any)[sel.type].k}>{sel.type}</Badge>

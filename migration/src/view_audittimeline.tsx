@@ -162,7 +162,7 @@ function AuditTimeline() {
 
         {/* kop dokumen — tampil penuh di mode klien */}
         <Panel noBody style={{ marginBottom: 12, overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(125deg,#013143,#002C3F)', color: 'var(--on-dark-fg)', padding: mode === 'klien' ? '18px 20px' : '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18 }}>
+          <div style={{ background: 'linear-gradient(125deg,#013143,var(--navy-solid))', color: 'var(--on-dark-fg)', padding: mode === 'klien' ? '18px 20px' : '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18 }}>
             <div>
               {mode === 'klien' && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--on-dark-muted)', marginBottom: 6 }}>{firmName}</div>}
               <div style={{ fontSize: mode === 'klien' ? 19 : 15, fontWeight: 700, letterSpacing: '-.01em' }}>Jadwal &amp; Lini Masa Audit</div>

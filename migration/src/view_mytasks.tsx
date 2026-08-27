@@ -293,7 +293,7 @@ function MyTasks() {
           <div className="mt-split">
             <div>
               <Panel noBody style={{ marginBottom: 12 }}>
-                <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 20, background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', borderRadius: 'var(--radius) var(--radius) 0 0' }}>
+                <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 20, background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', borderRadius: 'var(--radius) var(--radius) 0 0' }}>
                   <Donut size={84} thickness={11}
                     segments={[{ value: stats.done, color: 'var(--on-dark-accent)' }, { value: Math.max(0, total - stats.done), color: 'rgba(255,255,255,.18)' }]}
                     center={<div><div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--mono)' }}>{donePct}%</div></div>} />

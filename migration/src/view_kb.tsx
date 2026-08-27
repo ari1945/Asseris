@@ -112,7 +112,7 @@ function KnowledgeBase() {
 
         {/* HERO + pencarian */}
         <Panel noBody style={{ overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 22px' }}>
+          <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '20px 22px' }}>
             <div className="row jb ac wrap" style={{ gap: 12 }}>
               <div style={{ minWidth: 280, flex: 1 }}>
                 <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
@@ -334,7 +334,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
       size="xl"
       onClose={onClose}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', flex: '0 0 48px' }}><I.book size={24} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8" style={{ marginBottom: 4 }}>

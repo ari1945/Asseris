@@ -58,10 +58,31 @@ const kode = (f: string): string =>
    separuh pasangan membuat satu garis mengikuti tema sementara pasangannya
    tidak — belang gelap-vs-terang di tema gelap. Itu regresi, bukan perbaikan;
    arsir perlu pasangan tokennya sendiri, dan itu keputusan desain tersendiri. */
-const gradien = (teks: string): string[] =>
-  [...teks.matchAll(/(repeating-)?linear-gradient\([^)]*\)/gi)]
-    .filter((m) => !m[1])
-    .map((m) => m[0]);
+/* Ekstraksi menghitung KEDALAMAN kurung, bukan `[^)]*`. Begitu henti gradien
+   menjadi token, isinya memuat kurung bersarang —
+
+       linear-gradient(125deg,var(--navy-700),var(--blue-solid))
+
+   — dan `[^)]*` berhenti di `)` milik `var(--navy-700)`, memotong sisanya.
+   Gerbang lalu BUTA pada segala sesuatu setelah token pertama: hex yang
+   dikembalikan di henti kedua tak akan pernah terlihat. Versi pertama uji ini
+   memang begitu, dan baru ketahuan lewat uji mutasi di bawah — bukan lewat
+   pembacaan ulang. */
+const gradien = (teks: string): string[] => {
+  const out: string[] = [];
+  const re = /(repeating-)?linear-gradient\(/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(teks)) !== null) {
+    let d = 1;
+    let i = m.index + m[0].length;
+    for (; i < teks.length && d > 0; i++) {
+      if (teks[i] === '(') d++;
+      else if (teks[i] === ')') d--;
+    }
+    if (d === 0 && !m[1]) out.push(teks.slice(m.index, i));
+  }
+  return out;
+};
 
 /* ============================================================
    1 — henti gradien yang bernilai token harus memakai tokennya
@@ -103,6 +124,19 @@ describe('§5 — henti gradien memakai token, bukan nilainya', () => {
     expect(n, 'tak satu pun linear-gradient ditemukan').toBeGreaterThanOrEqual(50);
   });
 
+  it('ekstraktor menangkap gradien SELURUHNYA, termasuk sesudah token bersarang', () => {
+    /* Regresi yang benar-benar terjadi: dgn `[^)]*` ekstraktor berhenti di `)`
+       milik var() pertama, sehingga henti KEDUA tak pernah diperiksa. Kalau
+       seseorang menyederhanakan ekstraktor kembali ke regex datar, uji ini
+       merah — bukan diam-diam lolos seperti sebelumnya. */
+    const contoh = "background: 'linear-gradient(125deg,var(--navy-700),#005085)', color: 'x'";
+    const g = gradien(contoh);
+    expect(g).toHaveLength(1);
+    expect(g[0], 'ekstraksi terpotong di var() pertama').toContain('#005085');
+    expect(g[0].endsWith(')')).toBe(true);
+    expect(gradien('repeating-linear-gradient(45deg,#eef1f4 0 5px,#e3e7ec 5px)'), 'repeating- harus dilewati').toEqual([]);
+  });
+
   it('nol henti gradien yang menulis nilai token secara mentah', () => {
     const pelanggar: string[] = [];
     for (const f of sumber()) {
@@ -110,7 +144,18 @@ describe('§5 — henti gradien memakai token, bukan nilainya', () => {
         for (const g of gradien(ln)) {
           for (const h of g.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) {
             const v = h[0].toLowerCase();
-            if (ISIAN[v]) pelanggar.push(`${f}:${i + 1} ${v} → var(${ISIAN[v]})`);
+            if (!ISIAN[v]) continue;
+            /* Hex yang menjadi ARGUMEN pemanggilan fungsi dikecualikan: gradien
+               di JS kadang dirakit dgn penolong warna (mis. ATL_tint, yang
+               menjalankan `parseInt(hex.slice(1),16)`). Memberinya
+               `var(--blue-solid)` menghasilkan NaN, bukan warna — jadi remedi
+               yang gerbang ini sarankan justru merusak. Gerbang yang menuntut
+               perbaikan mustahil adalah gerbang yang buruk; penolong semacam
+               itu perlu dibuat menerima token (atau diganti color-mix), dan
+               itu pekerjaan tersendiri. */
+            const sebelum = g.slice(0, h.index);
+            if (/\b[A-Za-z_$][\w$]*\(\s*['"]?$/.test(sebelum)) continue;
+            pelanggar.push(`${f}:${i + 1} ${v} → var(${ISIAN[v]})`);
           }
         }
       });

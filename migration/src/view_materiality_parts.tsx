@@ -324,7 +324,7 @@ function MatImpact({ om, pm, ctt, locked }: any) {
 
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
-            <div style={{ background: isMaterial ? 'linear-gradient(125deg,#7a1d18,#b3261e)' : 'linear-gradient(125deg,#0d4a2f,#1f7a4d)', color: '#fff', padding: '14px 16px' }}>
+            <div style={{ background: isMaterial ? 'linear-gradient(125deg,#7a1d18,var(--red-solid))' : 'linear-gradient(125deg,#0d4a2f,var(--green-solid))', color: '#fff', padding: '14px 16px' }}>
               <div className="tiny" style={{ opacity: .85, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Kesimpulan SA 450</div>
               <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{isMaterial ? 'Salah saji agregat MATERIAL' : 'Salah saji agregat tidak material'}</div>
               <div className="tiny" style={{ opacity: .9, marginTop: 5 }}>Agregat {_RP(matGross)} = {pctOfOM.toFixed(0)}% dari OM</div>
@@ -587,7 +587,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>OM Diusulkan</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>Terterapkan saat ini: {_RP(applied)}</div>

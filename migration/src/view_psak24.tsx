@@ -320,7 +320,7 @@ function PSAK24View() {
 
               {/* kesimpulan */}
               <Panel noBody>
-                <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                   <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — {avail ? 'Aktuaris Tersedia' : 'Tanpa Aktuaris'}</div>
                   <div className="row ac gap12">
                     <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>

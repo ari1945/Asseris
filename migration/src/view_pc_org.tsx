@@ -251,7 +251,7 @@ function OrgChart() {
 
           {view === 'chart' && (
             <Panel noBody>
-              <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
                 <Avatar name={person.name} size={44} />
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{person.role}</div></div>
               </div>

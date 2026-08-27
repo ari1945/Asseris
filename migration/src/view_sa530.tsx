@@ -351,7 +351,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '18px 18px 16px', textAlign: 'center' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '18px 18px 16px', textAlign: 'center' }}>
             <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em' }}>Ukuran Sampel Direkomendasikan</div>
             <div className="mono" style={{ fontSize: 34, fontWeight: 800, lineHeight: 1.1, margin: '6px 0 2px' }}>{calc.basic > 0 ? calc.n : '—'}</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>unit moneter terpilih</div>
