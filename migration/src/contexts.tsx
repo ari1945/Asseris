@@ -464,6 +464,16 @@ const AMS_PERSIST_SCOPE = {
   /* Audit Programme (RoMM → prosedur). Engagement-scope → capForWrite=WP_EDIT
      (semua auditor) + isolasi W7.5. Menyimpan daftar prosedur + status. */
   'programme.v1': 'engagement',
+  /* Properti Investasi (PSAK 13): mutasi roll-forward, sub-ledger per-properti,
+     beban operasi langsung & analisis sensitivitas. Ketiganya TIDAK ADA di neraca
+     saldo — hanya saldo awal/akhir (`1-2600`) & pendapatan sewa (`4-1500`) yang
+     kanonik — jadi sisanya masukan auditor dan WAJIB berlingkup perikatan: satu
+     dokumen per klien, bukan satu portofolio milik seluruh firma (cacat lama modul
+     ini). Namanya tak cocok `PR4_ENGAGEMENT_KEY_RE` (`psakd+|syariah|…`) sehingga
+     tanpa entri eksplisit ini ia jatuh ke lingkup FIRMA → capForWrite=FIRM_ADMIN →
+     suntingan Manajer/Senior gagal SENYAP, kelas cacat yang sama dengan
+     goingconcern.v1/fraud.v1 di atas. */
+  'invprop.v1': 'engagement',
   /* Related Parties (SA 550): pengungkapan/harga-pasar/konfirmasi RPT & status
      prosedur bertahan lintas reload (override per-id atas register kanon). */
   'relatedTxn.v1': 'engagement',
