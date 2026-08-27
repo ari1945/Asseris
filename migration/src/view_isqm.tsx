@@ -10,7 +10,7 @@ import { SMM1_OBJECTIVE_COUNT, objectivesForComponent, objectiveCoverage, effect
 import { smmDocCoverage, auditRetention, type RetentionPolicy } from './canon_smm_documentation';
 import { smmDocEvidence, evidencedElements, type DocEvidenceInput } from './canon_smm_doc_evidence';
 import { useFirmAttest } from './firm_attest';
-import { attestKeyFor } from './canon_firm_attest';
+import { smmEvalPeriod, soqmAnnualAttestKey, SOQM_ATTEST_UNSET_KEY, type SmmEvalPeriodInput } from './canon_smm_period';
 import { toolkitHomes } from './canon_smm_toolkit';
 import { SoqmToolkitMap } from './view_isqm_toolkit';
 import type { SmmComponentCode } from './canon_smm_refs';
@@ -92,8 +92,7 @@ function SOQM() {
   /* Dibaca BERTIPE — `const A: any = AMS` akan meng-un-suppress seluruh berkas
      terhadap ratchet no-explicit-any. */
   const AD = AMS as unknown as {
-    QM_EVAL?: { period?: string };
-    CPE_REQ?: { year?: number };
+    QM_EVAL?: SmmEvalPeriodInput;
     QM_ROLES?: DocEvidenceInput['roles'];
     QM_INSPECTIONS?: DocEvidenceInput['inspections'];
     QM_INSP_FINDINGS?: DocEvidenceInput['findings'];
@@ -101,8 +100,12 @@ function SOQM() {
     QM_DOC_RETENTION?: RetentionPolicy & { basis?: string };
     SMM_OBJECTIVE_WAIVERS?: readonly ObjectiveWaiver[];
   };
-  const smmPeriod: string = (AD.QM_EVAL || {}).period || 'Tahun Berjalan';
-  const smmAttest = useFirmAttest(attestKeyFor('soqmAnnualEval', smmPeriod, (AD.CPE_REQ || {}).year), smmPeriod);
+  /* Alamat atestasi = PERIODE YANG DICAKUP evaluasi SMM (¶53), diturunkan di
+     `canon_smm_period`. Bentuk lama menyodorkan `CPE_REQ.year` — tahun kewajiban
+     PPL Akuntan Publik — sebagai fallback tahun atestasi firma. */
+  const smmEval = smmEvalPeriod(AD.QM_EVAL);
+  const smmPeriod: string = smmEval.label;
+  const smmAttest = useFirmAttest(soqmAnnualAttestKey(smmEval) || SOQM_ATTEST_UNSET_KEY, smmPeriod);
   const docEvidence = smmDocEvidence({
     roles: AD.QM_ROLES,
     coverage: objectiveCoverage(risks as ObjectiveLinkedRisk[], AD.SMM_OBJECTIVE_WAIVERS || []),

@@ -55,22 +55,34 @@ export interface FaRole {
 }
 
 /**
- * Tahun 4-digit dari label periode.
+ * Tahun 4-digit dari label periode; `null` bila label tak memuat tahun.
  *
  * Kunci atestasi HARUS 4 digit agar lolos allow-list server. Label periode
  * tetap manusiawi dan ditampilkan apa adanya — yang dinormalisasi hanya
  * ALAMAT dokumennya.
+ *
+ * TIDAK ADA FALLBACK. Bentuk lama menerima `fallback?: number` dan, bila itu
+ * pun kosong, jatuh ke `new Date().getFullYear()`. Parameter itu adalah tempat
+ * sembunyi: ia hanya dieksekusi ketika label kehilangan tahunnya, sehingga
+ * nilai dari domain yang sama sekali lain dapat duduk di sana bertahun-tahun
+ * tanpa gejala — tiga modul SMM mengisinya dengan tahun kewajiban PPL
+ * (`CPE_REQ.year`, PMK 186/2021) sebagai tahun atestasi mutu firma. Pemanggil
+ * yang tahunnya berasal dari data memakai `attestKeyOf`; yang labelnya tak
+ * bertahun menghadapi `null` dan memutuskan sendiri, terbuka.
  */
-export function attestYear(period: string | null | undefined, fallback?: number): string {
+export function attestYear(period: string | null | undefined): string | null {
   const m = /(\d{4})/.exec(String(period || ''));
-  if (m) return m[1];
-  const y = fallback && Number.isFinite(fallback) ? Math.trunc(fallback) : new Date().getFullYear();
-  return String(y);
+  return m ? m[1] : null;
 }
 
-/** Kunci atestasi ber-alamat stabil: `<nama>.<tahun>`. */
-export function attestKeyFor(name: string, period: string | null | undefined, fallbackYear?: number): string {
-  return `${name}.${attestYear(period, fallbackYear)}`;
+/**
+ * Kunci atestasi dari TAHUN yang sudah ditentukan pemanggil: `<nama>.<tahun>`.
+ *
+ * Satu-satunya perakit alamat atestasi. Pemanggil yang tahunnya berasal dari
+ * data (bukan dari urai label) memakai ini — lihat `canon_smm_period`.
+ */
+export function attestKeyOf(name: string, year: number): string {
+  return `${name}.${Math.trunc(year)}`;
 }
 
 /* String kanonik yang MENGIKAT tanda tangan. Hanya isi yang bermakna

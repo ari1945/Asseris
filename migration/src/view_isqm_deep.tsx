@@ -5,7 +5,8 @@ import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { CAP } from './rbac';
 import { FirmAttestCard, useFirmAttest } from './firm_attest';
-import { attestKeyFor, attestChainLinks, attestChainComplete, attestVoidedRoles, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import { attestChainLinks, attestChainComplete, attestVoidedRoles, SOQM_ANNUAL_ROLES } from './canon_firm_attest';
+import { smmEvalPeriod, soqmAnnualAttestKey, SOQM_ATTEST_UNSET_KEY } from './canon_smm_period';
 import {
   objectiveCoverage, coverageByComponent, objectivesForComponent,
   SMM1_OBJECTIVE_COUNT, WAIVER_DEFECT_LABEL,
@@ -493,12 +494,23 @@ function SoqmInfoComm({ nav }: any) {
 function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: any) {
   const A: any = AMS;
   const master = A.QM_EVAL || {};
-  const period: string = master.period || 'Tahun Berjalan';
   /* Kunci ber-ALAMAT 4-digit. Bentuk lama menyisipkan label periode manusiawi
      ('1 Jan – 31 Des 2025'), yang ditolak allow-list baca server
      (/^firmAttest\.soqmAnnualEval\.\d{4}$/) — dan penolakan itu ditelan sebagai
-     "offline", sehingga atestasi tak pernah meninggalkan browser penandatangan. */
-  const attestKey = attestKeyFor('soqmAnnualEval', period, (A.CPE_REQ || {}).year);
+     "offline", sehingga atestasi tak pernah meninggalkan browser penandatangan.
+
+     Tahunnya kini datang dari PERIODE YANG DICAKUP evaluasi (¶53), diturunkan
+     di `canon_smm_period`. Bentuk lama menyodorkan `CPE_REQ.year` — tahun
+     kewajiban PPL Akuntan Publik (PMK 186/2021) — sebagai fallback tahun
+     atestasi firma: dua periode tanpa hubungan apa pun, dan begitu keduanya
+     berpisah atestasi lama menempel pada alamat yang salah. */
+  const smmEval = smmEvalPeriod(master);
+  const period: string = smmEval.label;
+  const attestAddress = soqmAnnualAttestKey(smmEval);
+  /* Periode tak dinyatakan ⇒ artefak TAK DAPAT DIALAMATKAN. Tidak ada jam lain
+     yang dipinjam; penandatanganan dikunci sampai periodenya ditetapkan. */
+  const attestAddressable = attestAddress !== null;
+  const attestKey = attestAddress || SOQM_ATTEST_UNSET_KEY;
   /* baca atestasi tersimpan (SSOT) utk hero KV — sinkron dgn FirmAttestCard
      yang merender editor (pola sama wp_signoff: dua hook, satu store). */
   const attest = useFirmAttest(attestKey, period);
@@ -630,14 +642,24 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
 
         {/* Atestasi pimpinan SOQM (SMM 1 ¶53) — kesimpulan tertulis + sign-off
             tersimpan (SSOT firmAttest), berdampingan dgn rekomendasi mesin ¶54. */}
-        <FirmAttestCard
-          attestKey={attestKey}
-          period={period}
-          roles={SOQM_ANNUAL_ROLES}
-          title="Kesimpulan & Atestasi Berjenjang (¶53 · ¶20)"
-          engineLabel={label}
-          placeholder="Kesimpulan pimpinan atas efektivitas SMM & dasar pertimbangan (SMM 1 ¶53)…"
-        />
+        {attestAddressable
+          ? <FirmAttestCard
+              attestKey={attestKey}
+              period={period}
+              roles={SOQM_ANNUAL_ROLES}
+              title="Kesimpulan & Atestasi Berjenjang (¶53 · ¶20)"
+              engineLabel={label}
+              placeholder="Kesimpulan pimpinan atas efektivitas SMM & dasar pertimbangan (SMM 1 ¶53)…"
+            />
+          : (
+            <div className="panel" style={{ padding: 14, boxShadow: 'none' }}>
+              <div className="tiny muted upper" style={{ fontWeight: 700, marginBottom: 6 }}>Kesimpulan &amp; Atestasi Berjenjang (¶53 · ¶20)</div>
+              <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, lineHeight: 1.5 }}>
+                <I.alert size={11} /> Periode yang dicakup evaluasi belum ditetapkan (SMM 1 ¶53), sehingga atestasi tak dapat dialamatkan.
+                Penandatanganan dikunci — tetapkan periode evaluasi lebih dulu.
+              </div>
+            </div>
+          )}
 
         {/* faktor keputusan ¶54 */}
         <Panel noBody>

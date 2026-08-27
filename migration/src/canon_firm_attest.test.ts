@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  attestYear, attestKeyFor, attestContentHash, attestCanonicalContent,
+  attestYear, attestKeyOf, attestContentHash, attestCanonicalContent,
   attestChainLinks, attestChainComplete, attestVoidedRoles, FA_LINK_LABEL,
   type FaRole, type FaState,
 } from './canon_firm_attest';
@@ -28,16 +28,24 @@ describe('attestYear — kunci yang lolos allow-list server', () => {
     expect(attestYear('2024')).toBe('2024');
   });
 
-  it('label tanpa tahun jatuh ke fallback, tetap 4 digit', () => {
-    expect(attestYear('Tahun Berjalan', 2026)).toBe('2026');
-    expect(attestYear('', 2023)).toBe('2023');
-    expect(attestYear(null, 2023)).toBe('2023');
+  it('label tanpa tahun MENOLAK menebak — tak ada fallback yang bisa diisi', () => {
+    /* Bentuk lama: `attestYear(period, fallback?)`, dan bila fallback pun kosong
+       ia jatuh ke `new Date().getFullYear()`. Parameter itu hanya hidup ketika
+       label kehilangan tahunnya — tempat sempurna bagi tahun dari domain lain
+       untuk duduk tanpa gejala. Tiga modul SMM mengisinya dengan tahun kewajiban
+       PPL sebagai tahun atestasi mutu firma. Sekarang tak ada tempatnya lagi. */
+    expect(attestYear('Tahun Berjalan')).toBeNull();
+    expect(attestYear('')).toBeNull();
+    expect(attestYear(null)).toBeNull();
+    expect(attestYear.length).toBe(1);
   });
 
   it('kunci yang dihasilkan cocok dengan regex allow-list server', () => {
     const re = /^firmAttest\.soqmAnnualEval\.\d{4}$/;
-    for (const p of ['1 Jan – 31 Des 2025', 'FY2026', 'Tahun Berjalan', '']) {
-      expect(re.test('firmAttest.' + attestKeyFor('soqmAnnualEval', p, 2026))).toBe(true);
+    for (const p of ['1 Jan – 31 Des 2025', 'FY2026', '2024']) {
+      const y = attestYear(p);
+      expect(y).not.toBeNull();
+      expect(re.test('firmAttest.' + attestKeyOf('soqmAnnualEval', Number(y)))).toBe(true);
     }
   });
 });
