@@ -2,6 +2,7 @@
 import React from 'react';
 import { useFirm, useAmsPersist } from './contexts';
 import { AMS } from './data';
+import { NO_ENGAGEMENT_ATTACH_MSG, canAttachToEngagement, uploadEngagementAttachment } from './attachment_scope';
 import { FileDropField } from './evidence';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
@@ -64,8 +65,14 @@ const EMPTY_ITEM: RepItemState = { status: 'requested', receivedDate: '', except
 function SA580View() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
+  /* TANPA fallback literal. `|| 'ENG-2025-014'` dulu dipakai sebagai scopeId
+     TULIS lampiran: tanpa perikatan aktif, surat representasi klien ini
+     mendarat di berkas audit klien lain — byte, SHA-256, retensi, jejak audit
+     dan semua. Jawaban yang benar adalah MENOLAK, bukan memilihkan perikatan
+     (lihat attachment_scope.ts). */
+  const engId = firm?.activeEngagement?.id || '';
   const [tab, setTab] = useState580('daftar');
+  const [attachErr, setAttachErr] = useState580('');
   /* engagement-scope (AMS_PERSIST_SCOPE: 'rep580.v1' → engagement) — isolasi W7.5,
      capForWrite=WP_EDIT. Seed = REP_ITEMS.got + metadata surat default. */
   const [doc, setDoc] = useAmsPersist('rep580.v1', seedRep580) as [Rep580Doc, SetDoc];
@@ -78,22 +85,20 @@ function SA580View() {
   const refusedCount = REP_ITEMS.filter(r => stOf(r.id).refused).length;
   const applicable = REP_ITEMS.filter(r => stOf(r.id).status !== 'na').length;
 
-  /* unggah surat bertandatangan → byte NYATA + SHA-256 (Attachment F0.1). Degradasi
-     anggun bila server absen: simpan metadata (nama/sha/ukuran) tanpa attachmentId. */
+  /* unggah surat bertandatangan → byte NYATA + SHA-256 (Attachment F0.1) lewat
+     SATU PINTU berlingkup perikatan. Degradasi anggun bila server absen: metadata
+     saja. Tanpa perikatan aktif: DITOLAK seluruhnya — tak ada byte, tak ada
+     metadata, karena keduanya akan mendarat di berkas audit yang salah. */
   const onLetterFiles = async (metas: DropMeta[]) => {
     const m = metas.find(x => x.ok);
     if (!m) return;
-    let attachmentId = ''; let sha = m.sha256; let size = m.sizeMB;
-    if (m.file && window.amsAttachmentUpload) {
-      try {
-        const up = await window.amsAttachmentUpload({
-          scope: 'engagement', scopeId: engId, collection: 'sa580', refId: 'rep-letter',
-          meta: { file: m.file, name: m.name, sha256: m.sha256 }, retentionClass: 'SA230/10y',
-        });
-        attachmentId = up.id; sha = up.sha256; size = +(up.size / 1048576).toFixed(1);
-      } catch (e) { /* server absen / ditolak: metadata-only */ }
-    }
-    patchLetter({ attachmentId, attachmentName: m.name, attachmentSha: sha, attachmentSizeMB: size });
+    const res = await uploadEngagementAttachment(engId, {
+      collection: 'sa580', refId: 'rep-letter', name: m.name,
+      sha256: m.sha256, sizeMB: m.sizeMB, file: m.file, retentionClass: 'SA230/10y',
+    });
+    if (!res.ok) { setAttachErr(res.reason); return; }
+    setAttachErr('');
+    patchLetter(res.ref);
   };
   const removeLetter = async () => {
     const id = doc.letter.attachmentId;
@@ -124,7 +129,7 @@ function SA580View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 580</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Representasi Tertulis</div>
-              <div className="tiny muted">{client} · {engId}</div>
+              <div className="tiny muted">{client} · {engId || 'tanpa perikatan aktif'}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Representasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{applicable} berlaku · {received} diperoleh</div></div>
@@ -149,7 +154,7 @@ function SA580View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'daftar' && <F580List doc={doc} setItem={setItem} received={received} applicable={applicable} />}
-        {tab === 'surat' && <F580Letter client={client} doc={doc} patchLetter={patchLetter} onLetterFiles={onLetterFiles} removeLetter={removeLetter} />}
+        {tab === 'surat' && <F580Letter client={client} doc={doc} patchLetter={patchLetter} onLetterFiles={onLetterFiles} removeLetter={removeLetter} canAttach={canAttachToEngagement(engId)} attachErr={attachErr} />}
         {tab === 'keandalan' && <F580Reliability doc={doc} refusedCount={refusedCount} />}
 
       </div></div>
@@ -255,7 +260,7 @@ function F580List({ doc, setItem, received, applicable }: { doc: Rep580Doc; setI
 }
 
 /* ---------------- Tab: Surat Representasi (dokumen) ---------------- */
-function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: { client: string; doc: Rep580Doc; patchLetter: PatchLetter; onLetterFiles: (m: DropMeta[]) => void; removeLetter: () => void }) {
+function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter, canAttach, attachErr }: { client: string; doc: Rep580Doc; patchLetter: PatchLetter; onLetterFiles: (m: DropMeta[]) => void; removeLetter: () => void; canAttach: boolean; attachErr: string }) {
   const L = doc.letter;
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
@@ -336,8 +341,11 @@ function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: {
           ) : (
             <div className="tiny muted" style={{ marginBottom: 9, lineHeight: 1.45 }}>Unggah surat representasi yang telah ditandatangani manajemen. Byte disimpan terenkripsi dengan SHA-256 nyata (retensi berkas final SA 230).</div>
           )}
-          {typeof FileDropField !== 'undefined'
+          {canAttach && typeof FileDropField !== 'undefined'
             ? <FileDropField compact multiple={false} hint="Surat representasi bertandatangan · PDF · maks 25 MB" onFiles={onLetterFiles} />
+            : null}
+          {!canAttach || attachErr
+            ? <div className="tiny" role="status" style={{ color: 'var(--red)', lineHeight: 1.45, marginTop: 6 }}>{attachErr || NO_ENGAGEMENT_ATTACH_MSG}</div>
             : null}
         </Panel>
       </div>

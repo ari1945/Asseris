@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAmsPersist, useFirm } from './contexts';
+import { NO_ENGAGEMENT_ATTACH_MSG, canAttachToEngagement, uploadEngagementAttachment } from './attachment_scope';
 import { FileDropField } from './evidence';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
@@ -62,8 +63,14 @@ const TIMING_LABEL: Record<OiTiming, string> = { before: 'Sebelum tgl laporan', 
 function SA720View() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
+  /* TANPA fallback literal. `|| 'ENG-2025-014'` dulu dipakai sebagai scopeId
+     TULIS lampiran: tanpa perikatan aktif, dokumen informasi lain klien ini
+     mendarat di berkas audit klien lain — byte, SHA-256, jejak audit dan
+     semua. Jawaban yang benar adalah MENOLAK, bukan memilihkan perikatan
+     (lihat attachment_scope.ts). */
+  const engId = firm?.activeEngagement?.id || '';
   const [tab, setTab] = useState720('lingkup');
+  const [attachErr, setAttachErr] = useState720('');
   const [selId, setSelId] = useState720('OI-2');
   /* engagement-scope (AMS_PERSIST_SCOPE: 'oi720.v1' → engagement) — isolasi W7.5. */
   const [doc, setDoc] = useAmsPersist('oi720.v1', seedOi720) as [Oi720Doc, SetOi];
@@ -82,17 +89,18 @@ function SA720View() {
   };
   const removeOi = (id: string) => { setDoc(d => ({ ...d, docs: d.docs.filter(x => x.id !== id) })); if (selId === id) setSelId('OI-1'); };
 
+  /* unggah lewat SATU PINTU berlingkup perikatan. Server absen ⇒ metadata saja
+     (perilaku F0.1). Tanpa perikatan aktif ⇒ DITOLAK seluruhnya: tak ada byte,
+     tak ada metadata, karena keduanya akan mendarat di berkas audit yang salah. */
   const onFiles = (id: string) => async (metas: DropMeta[]) => {
     const m = metas.find(x => x.ok);
     if (!m) return;
-    let attachmentId = ''; let sha = m.sha256; let size = m.sizeMB;
-    if (m.file && window.amsAttachmentUpload) {
-      try {
-        const up = await window.amsAttachmentUpload({ scope: 'engagement', scopeId: engId, collection: 'sa720', refId: id, meta: { file: m.file, name: m.name, sha256: m.sha256 } });
-        attachmentId = up.id; sha = up.sha256; size = +(up.size / 1048576).toFixed(1);
-      } catch (e) { /* server absen / ditolak: metadata-only */ }
-    }
-    setOi(id, { attachmentId, attachmentName: m.name, attachmentSha: sha, attachmentSizeMB: size });
+    const res = await uploadEngagementAttachment(engId, {
+      collection: 'sa720', refId: id, name: m.name, sha256: m.sha256, sizeMB: m.sizeMB, file: m.file,
+    });
+    if (!res.ok) { setAttachErr(res.reason); return; }
+    setAttachErr('');
+    setOi(id, res.ref);
   };
   const removeAttach = async (id: string, attId: string) => {
     if (attId && window.amsAttachmentRemove) { try { await window.amsAttachmentRemove(attId); } catch (e) { /* abaikan */ } }
@@ -126,7 +134,7 @@ function SA720View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 720</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Informasi Lain</div>
-              <div className="tiny muted">{client} · Laporan Tahunan · {engId}</div>
+              <div className="tiny muted">{client} · Laporan Tahunan · {engId || 'tanpa perikatan aktif'}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Komponen Info Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{docs.length} dokumen</div></div>
@@ -147,7 +155,7 @@ function SA720View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'lingkup' && <F720Scope docs={docs} selId={selId} setSelId={setSelId} setOi={setOi} addOi={addOi} removeOi={removeOi} />}
-        {tab === 'telaah' && <F720Review docs={docs} sel={sel} selId={selId} setSelId={setSelId} setOi={setOi} onFiles={onFiles} removeAttach={removeAttach} />}
+        {tab === 'telaah' && <F720Review docs={docs} sel={sel} selId={selId} setSelId={setSelId} setOi={setOi} onFiles={onFiles} removeAttach={removeAttach} canAttach={canAttachToEngagement(engId)} attachErr={attachErr} />}
         {tab === 'respons' && <F720Response docs={docs} misCount={misCount} />}
         {tab === 'status' && <F720Status docs={docs} repDoc={repDoc} />}
 
@@ -216,7 +224,7 @@ function F720Scope({ docs, selId, setSelId, setOi, addOi, removeOi }: { docs: Oi
 }
 
 /* ---------------- Tab: Telaah Inkonsistensi (temuan + disposisi + catatan + lampiran) ---------------- */
-function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach }: { docs: OiDoc[]; sel: OiDoc | undefined; selId: string; setSelId: (id: string) => void; setOi: (id: string, p: Partial<OiDoc>) => void; onFiles: (id: string) => (m: DropMeta[]) => void; removeAttach: (id: string, attId: string) => void }) {
+function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach, canAttach, attachErr }: { docs: OiDoc[]; sel: OiDoc | undefined; selId: string; setSelId: (id: string) => void; setOi: (id: string, p: Partial<OiDoc>) => void; onFiles: (id: string) => (m: DropMeta[]) => void; removeAttach: (id: string, attId: string) => void; canAttach: boolean; attachErr: string }) {
   return (
     <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -299,8 +307,11 @@ function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach }
                   </div>
                 </div>
               ) : null}
-              {typeof FileDropField !== 'undefined'
+              {canAttach && typeof FileDropField !== 'undefined'
                 ? <FileDropField compact multiple={false} hint="Dokumen informasi lain · PDF/DOCX · maks 25 MB" onFiles={onFiles(sel.id)} />
+                : null}
+              {!canAttach || attachErr
+                ? <div className="tiny" role="status" style={{ color: 'var(--red)', lineHeight: 1.45, marginTop: 6 }}>{attachErr || NO_ENGAGEMENT_ATTACH_MSG}</div>
                 : null}
             </div>
           </div>
