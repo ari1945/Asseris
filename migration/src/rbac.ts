@@ -153,6 +153,14 @@ export function capForWrite(scope: any, key: any) {
     // otoritatif firma. Tanpa cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → edit Manajer
     // gagal senyap. Keputusan keberlanjutan otoritatif tetap di key 'continuanceDecisions' (FIRM_ADMIN).
     if (key === 'priorYear') return ENGAGEMENT_MANAGE;
+    // 2026-08-27 (PRD Penentu Kerangka PR-2) — jawaban pertimbangan penetapan
+    // kerangka pelaporan (fidusia / kompleksitas / pilihan naik sukarela) per klien.
+    // SEJAJAR 'priorYear': pertimbangan kertas kerja tim perikatan (Partner/Manajer),
+    // BUKAN keputusan otoritatif firma — akseptasi otoritatif tetap 'continuanceDecisions'
+    // (FIRM_ADMIN). Tanpa cabang ini kunci jatuh ke FIRM_ADMIN dan seorang Manajer akan
+    // melihat jawabannya tersimpan di layar lalu hilang saat reload — kelas cacat yang
+    // sama persis dengan priorYear/pipeline di atas.
+    if (key === 'framework.judgements.v1') return ENGAGEMENT_MANAGE;
     // 2026-08-15 (PRD Sales Pipeline PR-1) — register peluang firma. Business
     // development adalah tugas Partner/Manajer, SEJAJAR dengan 'prospects' (intake
     // penerimaan): peluang yang matang menjadi prospek lewat tombol yang sama.

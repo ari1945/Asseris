@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { FSGEN } from './fsgen_model';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useNav, useAmsPersist } from './contexts';
+import { frameworkFor, fwProfile, fwAllowsPsak, type FwJudgements } from './fw_canon';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, LockBanner, Panel, Seg, Tabs } from './ui';
@@ -101,6 +102,13 @@ function FSGenerator() {
   const { fmt } = AMS;
   const { wtb, aje, ajeTotalPosted } = useAudit();
   const { activeClient, activeEngagement, locked } = useFirm();
+  /* D3 — kerangka pelaporan klien aktif. Sebelumnya modul ini MENGASUMSIKAN
+     SAK penuh: CALK memaku PSAK 1/24/71/72/73 apa pun kerangkanya, sehingga
+     entitas SAK EMKM (yang tak mengakui pajak tangguhan dan tak menerapkan
+     PSAK 71/72/73) tetap menerima catatan yang menyebut ketiganya. */
+  const [fwJudgements] = useAmsPersist('framework.judgements.v1', {});
+  const fwResult = frameworkFor(activeClient?.id || '', (fwJudgements || {}) as FwJudgements);
+  const fw = fwResult.fw;
   const nav = useNav();
   const [exporting, setExporting] = useStateFS(false);
 
@@ -371,7 +379,7 @@ function FSGenerator() {
                   </div>
                 )}
 
-                {tab === 'calk' && <CALK model={model} activeClient={activeClient} f0={f0} disclosures={disclosures} />}
+                {tab === 'calk' && <CALK model={model} activeClient={activeClient} f0={f0} disclosures={disclosures} fw={fw} />}
 
                 {tab === 'neraca' && !model.bs.balanced && <div style={{ marginTop: 14, color: '#b3261e', fontSize: 11, fontWeight: 600 }}>⚠ Neraca tidak seimbang — periksa pemetaan akun WTB.</div>}
 
@@ -458,9 +466,16 @@ function EquityStatement({ model, sc }: any) {
 }
 
 /* ---- Notes to the financial statements (CALK) ---- */
-function CALK({ model, activeClient, f0, disclosures }: any) {
+function CALK({ model, activeClient, f0, disclosures, fw }: any) {
   const arNet = model.bs.ca.find((l: any) => l.key === 'piutang');
+  const profil = fwProfile(fw);
+  /* Catatan yang merujuk PSAK yang TIDAK berlaku di kerangka ini tidak
+     diterbitkan. Daftar-putih ada di `fw_canon.fwProfile` — satu tempat,
+     dapat diperiksa sebagai kesatuan. Kerangka yang belum ditetapkan
+     menolak SELURUH rujukan PSAK: menerbitkan CALK bertanda PSAK dari
+     kerangka yang belum diputuskan persis cacat D3. */
   const note = (no: any, title: any, body: any, psak?: any) => (
+    psak && !fwAllowsPsak(fw, psak) ? null : (
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
@@ -468,12 +483,27 @@ function CALK({ model, activeClient, f0, disclosures }: any) {
       </div>
       <div style={{ fontSize: 12, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
+    )
   );
   const done = disclosures.filter((d: any) => d.done).length;
+  /* Tanpa kerangka, seluruh rujukan PSAK tertolak dan yang tersisa hanyalah
+     potongan catatan tanpa dasar — dokumen setengah jadi yang tampak sah.
+     Menolak menerbitkannya lebih jujur daripada menerbitkan sisanya. */
+  if (!profil) return (
+    <div style={{ padding: '18px 16px', border: '1px dashed var(--line-strong)', borderRadius: 10, background: 'var(--surface-2)' }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)', marginBottom: 5 }}>CALK belum dapat diterbitkan</div>
+      <p className="tiny" style={{ margin: 0, color: 'var(--ink-2)', lineHeight: 1.55 }}>
+        Kerangka pelaporan {activeClient?.name ? 'untuk ' + activeClient.name + ' ' : ''}belum ditetapkan,
+        sehingga dasar penyusunan dan standar yang berlaku belum diketahui. Selesaikan penetapan di
+        modul <b>Penentu Kerangka (SAK/EP/EMKM)</b> lebih dulu — catatan atas laporan keuangan
+        merujuk standar tertentu, dan rujukan itu tidak boleh ditebak.
+      </p>
+    </div>
+  );
   return (
     <div>
-      {note('1', 'Umum', `${activeClient?.name} ("Perusahaan") bergerak di bidang ${(activeClient?.industry || '').toLowerCase()}, berkedudukan di ${activeClient?.city}. Laporan keuangan disusun sesuai Standar Akuntansi Keuangan (SAK) di Indonesia${activeClient?.listed ? '; Perusahaan merupakan emiten yang tercatat di Bursa Efek Indonesia' : ''}.`)}
-      {note('2', 'Dasar Penyusunan', 'Laporan keuangan disusun atas dasar akrual dan konsep biaya historis, kecuali instrumen keuangan tertentu yang diukur pada nilai wajar. Mata uang penyajian dan fungsional adalah Rupiah.', 'PSAK 1')}
+      {note('1', 'Umum', `${activeClient?.name} ("Perusahaan") bergerak di bidang ${(activeClient?.industry || '').toLowerCase()}, berkedudukan di ${activeClient?.city}. Laporan keuangan disusun sesuai ${fw} di Indonesia${activeClient?.listed ? '; Perusahaan merupakan emiten yang tercatat di Bursa Efek Indonesia' : ''}.`)}
+      {note('2', 'Dasar Penyusunan', `Laporan keuangan disusun atas dasar akrual dan konsep biaya historis${profil.disclosureDepth === 'penuh' ? ', kecuali instrumen keuangan tertentu yang diukur pada nilai wajar' : ''}. Mata uang penyajian dan fungsional adalah Rupiah. Laporan keuangan terdiri atas ${profil.statements} komponen.`, 'PSAK 1')}
       {note('3', 'Ikhtisar Kebijakan Akuntansi Signifikan', 'Pengakuan pendapatan mengikuti PSAK 72 (pengalihan pengendalian), instrumen keuangan & penurunan nilai mengikuti PSAK 71 (expected credit loss), sewa mengikuti PSAK 73, dan imbalan kerja mengikuti PSAK 24.', 'PSAK 1')}
       {note('4', 'Kas dan Setara Kas', `Terdiri atas kas, bank, dan deposito jatuh tempo ≤ 3 bulan. Saldo per 31 Desember 2025 sebesar Rp ${f0(model.bs.ca.find((l: any) => l.key === 'kas').cy)} juta (2024: Rp ${f0(model.bs.ca.find((l: any) => l.key === 'kas').py)} juta).`)}
       {note('5', 'Piutang Usaha — Neto', `Disajikan neto setelah cadangan kerugian kredit ekspektasian (ECL). Piutang usaha neto Rp ${f0(arNet.cy)} juta (2024: Rp ${f0(arNet.py)} juta). Penambahan cadangan dibukukan melalui AJE berdasarkan model ECL per-tingkat (staging).`, 'PSAK 71')}
