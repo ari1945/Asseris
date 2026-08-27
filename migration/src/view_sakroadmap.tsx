@@ -199,12 +199,12 @@ function SAKRoadmapView() {
                 <div className="grid" style={{ gap: 12 }}>
                   {/* PSAK 118 (IFRS 18) spotlight */}
                   <Panel noBody>
-                    <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
+                    <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                       <div className="row ac gap8" style={{ marginBottom: 6 }}>
                         <span className="mono" style={{ border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 800 }}>PSAK 118</span>
                         <span style={{ fontSize: 12, fontWeight: 700 }}>adopsi IFRS 18</span>
                       </div>
-                      <div style={{ fontSize: 12, lineHeight: 1.55, color: '#dbe9f2' }}>Perubahan paling berdampak di horizon: menata ulang laporan laba rugi & mengatur pengungkapan MPM. Efektif <b style={{ color: '#fff' }}>1 Jan 2027</b>, retrospektif — komparatif FY2026 disajikan ulang.</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--on-dark-muted)' }}>Perubahan paling berdampak di horizon: menata ulang laporan laba rugi & mengatur pengungkapan MPM. Efektif <b style={{ color: 'var(--on-dark-fg)' }}>1 Jan 2027</b>, retrospektif — komparatif FY2026 disajikan ulang.</div>
                     </div>
                     <div style={{ padding: 14, display: 'grid', gap: 8 }}>
                       {[
@@ -336,13 +336,13 @@ function SAKRoadmapView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 118</div>
+                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                    <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 118</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
-                        <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{H.readiness207.length} langkah persiapan</div>
+                        <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 6 }}>{doneCount}/{H.readiness207.length} langkah persiapan</div>
                       </div>
                     </div>
                   </div>

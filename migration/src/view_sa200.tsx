@@ -204,10 +204,10 @@ function S200Skeptis() {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-          <div className="row ac gap8"><span><I.search2 size={18} /></span><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>¶15 · A18–A22</span></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+          <div className="row ac gap8"><span><I.search2 size={18} /></span><span className="mono tiny" style={{ color: 'var(--on-dark-muted)', fontWeight: 700 }}>¶15 · A18–A22</span></div>
           <div style={{ fontSize: 15, fontWeight: 700, marginTop: 6 }}>Skeptisisme Profesional</div>
-          <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>Sikap yang mencakup pikiran yang selalu mempertanyakan, waspada terhadap kondisi yang mungkin mengindikasikan salah saji, & penilaian kritis atas bukti audit.</p>
+          <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--on-dark-muted)' }}>Sikap yang mencakup pikiran yang selalu mempertanyakan, waspada terhadap kondisi yang mungkin mengindikasikan salah saji, & penilaian kritis atas bukti audit.</p>
         </div>
         <div style={{ padding: 14 }}>
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penerapan pada Engagement Ini</div>

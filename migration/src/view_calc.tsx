@@ -174,9 +174,9 @@ function ECLCalculator() {
 }
 
 /* ---- helpers bersama (dipakai lintas modul via import dari './view_calc') ---- */
-function Kv({ label, v }: any) { return <div><div className="tiny" style={{ color: '#9fc0d2' }}>{label}</div><div className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{v}</div></div>; }
+function Kv({ label, v }: any) { return <div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{label}</div><div className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{v}</div></div>; }
 function RowKv({ label, v, strong }: any) {
-  return <div className="row jb ac"><span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span><span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: strong ? 'var(--navy)' : 'inherit' }}>{v}</span></div>;
+  return <div className="row jb ac"><span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span><span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: strong ? 'var(--navy)' : 'inherit' }}>{v}</span></div>;
 }
 
 

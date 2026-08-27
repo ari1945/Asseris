@@ -333,16 +333,16 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
   const FIRM: any = AMS.FIRM;
   const Line = ({ label, v, sub, neg, bold, sign }: any) => (
     <div className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
-      <span style={{ fontSize: bold ? 12.5 : 12, fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>
+      <span style={{ fontSize: bold ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>
       <span className="mono" style={{ fontSize: bold ? 13 : 12, fontWeight: bold ? 700 : 500, color: neg ? 'var(--red)' : bold ? 'var(--navy)' : 'var(--ink)' }}>{sign === false ? '' : neg ? '− ' : ''}Rp {fmt(v, 0)}</span>
     </div>
   );
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={r.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>

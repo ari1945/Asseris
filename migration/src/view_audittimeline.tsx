@@ -162,16 +162,16 @@ function AuditTimeline() {
 
         {/* kop dokumen — tampil penuh di mode klien */}
         <Panel noBody style={{ marginBottom: 12, overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(125deg,#013143,#002C3F)', color: '#eaf2f7', padding: mode === 'klien' ? '18px 20px' : '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18 }}>
+          <div style={{ background: 'linear-gradient(125deg,#013143,#002C3F)', color: 'var(--on-dark-fg)', padding: mode === 'klien' ? '18px 20px' : '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18 }}>
             <div>
-              {mode === 'klien' && <div style={{ fontSize: 12, fontWeight: 600, color: '#9fb9c8', marginBottom: 6 }}>{firmName}</div>}
+              {mode === 'klien' && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--on-dark-muted)', marginBottom: 6 }}>{firmName}</div>}
               <div style={{ fontSize: mode === 'klien' ? 19 : 15, fontWeight: 700, letterSpacing: '-.01em' }}>Jadwal &amp; Lini Masa Audit</div>
-              <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
+              <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
             </div>
-            <div style={{ textAlign: 'right', fontSize: 11, color: '#9fb9c8', lineHeight: 1.7 }}>
-              <div>Perikatan <b style={{ color: '#eaf2f7' }} className="mono">{eng.id}</b></div>
-              <div>Partner <b style={{ color: '#eaf2f7' }}>{eng.partner || '—'}</b></div>
-              <div>Per <b style={{ color: '#eaf2f7' }}>{ATL_fmtY(today)}</b></div>
+            <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--on-dark-muted)', lineHeight: 1.7 }}>
+              <div>Perikatan <b style={{ color: 'var(--on-dark-fg)' }} className="mono">{eng.id}</b></div>
+              <div>Partner <b style={{ color: 'var(--on-dark-fg)' }}>{eng.partner || '—'}</b></div>
+              <div>Per <b style={{ color: 'var(--on-dark-fg)' }}>{ATL_fmtY(today)}</b></div>
             </div>
           </div>
         </Panel>
@@ -298,7 +298,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
             return (
               <div key={i} style={{ height: mode === 'klien' ? phaseRowH : ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderBottom: '1px solid var(--line-soft)', background: mode === 'klien' ? 'var(--surface)' : 'var(--surface-3)' }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: c, flex: '0 0 10px' }} />
-                <span style={{ fontWeight: 700, fontSize: mode === 'klien' ? 12.5 : 11, textTransform: mode === 'klien' ? 'none' : 'uppercase', letterSpacing: mode === 'klien' ? 0 : '.04em', color: 'var(--navy)' }}>{r.g.ph.name}</span>
+                <span style={{ fontWeight: 700, fontSize: mode === 'klien' ? 'var(--fs-md)' : 'var(--fs-xs)', textTransform: mode === 'klien' ? 'none' : 'uppercase', letterSpacing: mode === 'klien' ? 0 : '.04em', color: 'var(--navy)' }}>{r.g.ph.name}</span>
               </div>
             );
           }

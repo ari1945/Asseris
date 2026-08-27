@@ -217,7 +217,7 @@ function SalesPipeline() {
                         <span className="badge" style={{ background: 'var(--surface-3)', color: o.prob >= 70 ? 'var(--green)' : o.prob >= 40 ? 'var(--amber)' : 'var(--ink-3)' }}>{o.prob}%</span>
                       </div>
                       <div className="row jb ac gap6" style={{ marginTop: 6 }}>
-                        <span className="row ac gap6"><Avatar name={o.owner} size={17} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
+                        <span className="row ac gap6"><Avatar name={o.owner} size={20} /><span className="tiny muted">{o.owner.split(' ')[0]}</span></span>
                         <span className="row ac gap6">
                           {(() => {
                             const si = stallInfo(o, AMS.TODAY);
@@ -268,8 +268,8 @@ function OppForm({ onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(OPP_FORM_INIT)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Peluang Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke pipeline penjualan</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Peluang Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Tambah ke pipeline penjualan</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
@@ -403,10 +403,10 @@ function OppDetail({ o, onClose, onMove }: any) {
         </div>
       )}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
-          <div className="row jb ac" style={{ marginBottom: 8 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{o.id}</span><button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
+          <div className="row jb ac" style={{ marginBottom: 8 }}><span className="mono tiny" style={{ color: 'var(--on-dark-muted)', fontWeight: 700 }}>{o.id}</span><button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button></div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{o.name}</div>
-          <div className="tiny" style={{ color: '#bcd6e4' }}>{o.service} · {o.industry}</div>
+          <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{o.service} · {o.industry}</div>
         </div>
       )}
     >
@@ -765,8 +765,8 @@ function InvForm({ register, onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(init)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Faktur Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Faktur Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}

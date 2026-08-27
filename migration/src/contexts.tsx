@@ -589,6 +589,37 @@ const AMS_PERSIST_SCOPE = {
      (penanda tangan, tgl, memo). Rollup kelengkapan tetap turunan (useDocCanon, SSOT).
      Engagement-scope → capForWrite=WP_EDIT + isolasi W7.5. */
   'sa230Doc.v1': 'engagement',
+  /* SJAH 3400/3402/3410/3420 — kertas kerja PELAKSANAAN prosedur asurans
+     (peta nomor-prosedur → sudah dikerjakan). Keempatnya tak terdaftar di sini dan
+     tak cocok `PR4_ENGAGEMENT_KEY_RE`, jadi jatuh ke default 'firm': SATU dokumen
+     dipakai SELURUH perikatan. Yang bocor bukan preferensi tampilan — ia menyatakan
+     prosedur asurans TELAH DILAKSANAKAN pada perikatan yang tak pernah menyentuhnya,
+     dan sebaliknya menyembunyikan pekerjaan yang belum dilakukan di balik centang
+     perikatan lain. Sekaligus cacat kedua yang sama dengan mat.* (#129): firm-scope
+     ⇒ capForWrite=FIRM_ADMIN, jadi centang Manajer/Senior/Junior ditolak server SENYAP.
+
+     JALUR REGISTRI, BUKAN PELEBARAN REGEX. Aturan prefiks PR4 aman karena "tak ada key
+     server lama yang bertabrakan — dulu semuanya localStorage" (lihat komentarnya di
+     bawah). Prasyarat itu TIDAK berlaku di sini: keempat kunci ini sudah terdaftar di
+     `FIRM_STATE_READ_KEYS` (server/src/stateAccess.ts) sebagai dokumen firma yang sah,
+     jadi melebarkan regex akan mereklasifikasi dokumen server yang SUDAH ADA tanpa
+     menyebutkannya di mana pun. Empat kunci dengan empat prefiks berbeda juga tak
+     memberi penghematan apa pun atas empat baris registri, sementara `/^pf3420\./`
+     dsb. akan ikut menarik kunci `<mod>.*` masa depan (mis. preferensi tab) ke lingkup
+     perikatan tanpa ada yang memutuskannya.
+
+     DATA LAMA LINGKUP FIRMA DIBIARKAN HANGUS — sengaja, bukan kelalaian, dan mengikuti
+     preseden `mat.memo.signoff` di atas: nilai firm-scope TAK DAPAT diatribusikan ke
+     satu perikatan tertentu (itulah cacatnya), jadi menyalinnya ke sebuah perikatan =
+     mengarang atribusi pekerjaan asurans. Keempat kunci SENGAJA TIDAK ditambahkan ke
+     `SERVER_READ_THROUGH_FIRM`: baca-lewat firma akan menyajikan dokumen firma yang
+     sama ke SETIAP perikatan sampai penyimpanan pertama — yaitu memasang ulang persis
+     kebocoran yang sedang dicabut. Entri di `FIRM_STATE_READ_KEYS` DIPERTAHANKAN agar
+     dokumen lama tetap dapat dibaca alat pemeriksa, bukan dibaca UI. */
+  'pfi3400.exec': 'engagement',
+  'soc3402.exec': 'engagement',
+  'ghg3410.exec': 'engagement',
+  'pf3420.exec': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the

@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
+import { Avatar, Badge, Panel, Progress, Stat, Tabs } from './ui';
 import { OKv } from './view_onboarding';
 import { PPL_REQ_PMK186 } from './canon_ppl';
 import { LICENSING } from './data_licensing';
@@ -20,6 +20,12 @@ const { useState: usePPPK } = React;
 const PPPK_SEC_STAT = { 'Lengkap': 'green', 'Perlu Perhatian': 'amber', 'Belum': 'red' };
 const ROT_STAT = { 'Wajib Rotasi': 'red', 'Tahun Terakhir': 'amber', 'Tahun ke-6': 'amber', 'Dalam Batas': 'green' };
 const opColor = (t: any) => /WTM|Tanpa Modif/.test(t) ? 'var(--green)' : /WDP|Pengecualian/.test(t) ? 'var(--amber)' : /Tidak/.test(t) ? 'var(--red)' : /Proses/.test(t) ? 'var(--ink-4)' : 'var(--blue)';
+/* Tanggal pendek id-ID — dipakai label kartu tenggat. Label kartu WAJIB lahir
+   dari `PPPK_REPORT.dueDate` yang sama dengan angkanya: literal "30 Apr" di
+   sebelah `daysLeft` turunan berarti kartu itu bisa membantah dirinya sendiri
+   begitu catatan bergeser. Kewajiban 30 April di PMK 154/2017 tetap ditulis
+   sebagai prosa hukum di tab Riwayat — itu kutipan regulasi, bukan turunan. */
+const tglPendek = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
 
 function PPPKReport() {
   const A: any = AMS, fmt = A.fmt;
@@ -51,13 +57,19 @@ function PPPKReport() {
 
   return (
     <>
-      <SubBar moduleId="pppk" right={<div className="row gap8 ac"><Badge kind="blue">P2PK · PMK 154/2017 jo. 186/2021</Badge><Btn sm variant="primary"><I.upload size={13} /> Ajukan Laporan Tahunan</Btn></div>} />
+      {/* CTA "Ajukan Laporan Tahunan" DICABUT: ia tak pernah punya handler.
+          Penyampaian ke e-reporting PPPK adalah kemampuan L4/L5 (state server,
+          rantai audit, tanda terima elektronik tersegel) yang modul ini tidak
+          punya — memberinya label aksesibel hanya akan membuat pembaca layar
+          mengumumkan kontrol yang tak melakukan apa pun. Kesiapan laporan tetap
+          terbaca: {ready}/{sections} di tab Ringkasan & di kartu FY berjalan. */}
+      <SubBar moduleId="pppk" right={<Badge kind="blue">P2PK · PMK 154/2017 jo. 186/2021</Badge>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={R.totalClients} label="Total Klien FY2025" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={R.totalClients} label={'Total Klien FY' + R.year} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={R.pie} label="Klien Emiten / PIE" accent="var(--red)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalOpinions} label="Opini Diterbitkan" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={daysLeft + ' hari'} label="Menuju Tenggat (30 Apr)" accent={daysLeft < 30 ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={daysLeft + ' hari'} label={'Menuju Tenggat (' + tglPendek(R.dueDate) + ')'} accent={daysLeft < 30 ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -77,7 +89,7 @@ function PPPKReport() {
                     ))}
                   </div>
                   <div className="panel" style={{ marginTop: 10, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-                    <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>Realisasi PPL belum 100% — <span onClick={() => setTab('ppl')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>tinjau tab Realisasi PPL</span>. Laporan keuangan KAP menunggu finalisasi.</span></div>
+                    <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>Realisasi PPL belum 100% — <button type="button" className="lnk" onClick={() => setTab('ppl')}>tinjau tab Realisasi PPL</button>. Laporan keuangan KAP menunggu finalisasi.</span></div>
                   </div>
                 </div>
 
@@ -102,7 +114,7 @@ function PPPKReport() {
                         <OKv label="Inspeksi Berikutnya" v={R.inspection.nextDue} accent="var(--amber)" />
                         <OKv label="Temuan Terbuka" v={R.inspection.openFindings} accent={R.inspection.openFindings ? 'var(--red)' : 'var(--green)'} />
                       </div>
-                      <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.shield size={15} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>Kertas kerja terpelihara & dapat diakses; paket inspeksi dapat dibangkitkan dari <span onClick={() => nav('dms')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>DMS</span>.</span></div></div>
+                      <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.shield size={15} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>Kertas kerja terpelihara & dapat diakses; paket inspeksi dapat dibangkitkan dari <button type="button" className="lnk" onClick={() => nav('dms', { from: 'pppk' })}>DMS</button>.</span></div></div>
                     </div>
                   </div>
                 </div>
@@ -167,7 +179,7 @@ function PPPKReport() {
                           yang sama membutuhkan sebab yang berbeda, maka sebabnya dinyatakan. */}
                       {noRecords && (
                         <div className="tiny" style={{ marginTop: 7, color: 'var(--amber)', fontWeight: 600 }}>
-                          <I.alert size={11} /> Belum ada satu pun catatan SKP atas nama ini di register (<span onClick={() => nav('cpe', { from: 'pppk' })} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>CPE / PPL Tracker</span>) — 0 SKP di sini berarti belum tercatat, bukan sudah dinilai nol.
+                          <I.alert size={11} /> Belum ada satu pun catatan SKP atas nama ini di register (<button type="button" className="lnk" onClick={() => nav('cpe', { from: 'pppk' })}>CPE / PPL Tracker</button>) — 0 SKP di sini berarti belum tercatat, bukan sudah dinilai nol.
                         </div>
                       )}
                       {/* Batas atas tidak terstruktur: kelebihannya HANGUS, tidak menambal
@@ -186,7 +198,7 @@ function PPPKReport() {
                   );
                 })}
               </div>
-              <div className="tiny muted" style={{ marginTop: 10 }}>Sumber data terhubung ke <span onClick={() => nav('cpe')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>CPE / PPL Tracker</span> di modul SDM & Kepatuhan.</div>
+              <div className="tiny muted" style={{ marginTop: 10 }}>Sumber data terhubung ke <button type="button" className="lnk" onClick={() => nav('cpe', { from: 'pppk' })}>CPE / PPL Tracker</button> di modul SDM & Kepatuhan.</div>
             </div>
           )}
 
@@ -211,7 +223,7 @@ function PPPKReport() {
               </table>
               {rotationDue > 0 && (
                 <div className="panel" style={{ marginTop: 12, padding: '11px 13px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={16} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{rotationDue} penugasan mencapai batas masa jabatan — wajib rotasi AP untuk tahun buku berikutnya. Koordinasikan dengan <span onClick={() => nav('independence')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>Independence & Rotasi</span>.</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={16} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{rotationDue} penugasan mencapai batas masa jabatan — wajib rotasi AP untuk tahun buku berikutnya. Koordinasikan dengan <button type="button" className="lnk" onClick={() => nav('independence', { from: 'pppk' })}>Independence &amp; Rotasi</button>.</span></div>
                 </div>
               )}
             </div>

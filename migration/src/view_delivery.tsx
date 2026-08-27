@@ -411,10 +411,10 @@ function DeliveryDetail({ row, eng, client, today, canEdit, onToggleMs, onDateMs
   const overburn = burn > eng.progress + 12;
   return (
     <Panel noBody style={{ position: 'sticky', top: 0 }}>
-      <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
-        <div className="row jb ac" style={{ marginBottom: 6 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{eng.id}</span><button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={17} /></button></div>
+      <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 15px' }}>
+        <div className="row jb ac" style={{ marginBottom: 6 }}><span className="mono tiny" style={{ color: 'var(--on-dark-muted)', fontWeight: 700 }}>{eng.id}</span><button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={17} /></button></div>
         <div style={{ fontSize: 15, fontWeight: 700 }}>{(client.name || eng.id).replace('PT ', '')}</div>
-        <div className="tiny" style={{ color: '#bcd6e4' }}>{eng.type} · {eng.phase}</div>
+        <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{eng.type} · {eng.phase}</div>
       </div>
       <div style={{ padding: 14 }}>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 13 }}>

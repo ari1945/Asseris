@@ -67,11 +67,11 @@ function CRM360() {
         {/* cockpit */}
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
-            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }} className="row ac gap12">
+            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px' }} className="row ac gap12">
               <span style={{ width: 50, height: 50, borderRadius: 12, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</span>{sel.listed && <span className="badge b-blue">IDX</span>}</div>
-                <div className="tiny" style={{ color: '#bcd6e4' }}>{sel.industry} · klien sejak {sel.since} · partner {h.partnerRel}</div>
+                <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{sel.industry} · klien sejak {sel.since} · partner {h.partnerRel}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <FGauge value={h.health} max={100} label="Relationship Health" color={h.health >= 80 ? '#52c08a' : h.health >= 65 ? '#e0a93a' : '#e07a6a'} size={104} />

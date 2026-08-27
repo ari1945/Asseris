@@ -92,7 +92,7 @@ function P65RowKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
     </div>
   );
 }
@@ -327,9 +327,9 @@ function PSAK65View() {
                     <div className="row ac jb">
                       <div className="row ac gap10">
                         <span style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center' }}><I.building size={17} /></span>
-                        <div><div style={{ fontWeight: 700, fontSize: 15 }}>{client.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Entitas Induk · ditarik dari Working Trial Balance</div></div>
+                        <div><div style={{ fontWeight: 700, fontSize: 15 }}>{client.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Entitas Induk · ditarik dari Working Trial Balance</div></div>
                       </div>
-                      <div className="mono" style={{ textAlign: 'right' }}><div style={{ fontWeight: 800, fontSize: 15 }}>{rp(p65.npatParent)} jt</div><div className="tiny" style={{ color: '#bcd6e4' }}>laba induk standalone</div></div>
+                      <div className="mono" style={{ textAlign: 'right' }}><div style={{ fontWeight: 800, fontSize: 15 }}>{rp(p65.npatParent)} jt</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>laba induk standalone</div></div>
                     </div>
                   </div>
                   {/* anak grid */}
@@ -700,13 +700,13 @@ function PSAK65View() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Konsolidasi</div>
+                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                    <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Konsolidasi</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
-                        <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{P65_PROC.length} prosedur audit selesai</div>
+                        <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 6 }}>{doneCount}/{P65_PROC.length} prosedur audit selesai</div>
                       </div>
                     </div>
                   </div>

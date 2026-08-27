@@ -1083,7 +1083,7 @@ function TabRisiko({ D, e, nav }: any) {
                   <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
                     <span className="chip tiny" style={{ height: 16 }}>{n.moduleLabel}</span>
                     <div style={{ flex: 1 }} />
-                    <Avatar name={n.author} size={16} />
+                    <Avatar name={n.author} size={20} />
                     <span className="tiny muted">→ {n.to}</span>
                   </div>
                 </button>

@@ -109,7 +109,7 @@ function P68RowKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
     </div>
   );
 }
@@ -737,13 +737,13 @@ function PSAK68View() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Pengukuran Nilai Wajar</div>
+                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                    <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Pengukuran Nilai Wajar</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
-                        <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{P68_PROC.length} prosedur audit selesai</div>
+                        <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 6 }}>{doneCount}/{P68_PROC.length} prosedur audit selesai</div>
                       </div>
                     </div>
                   </div>

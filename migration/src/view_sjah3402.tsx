@@ -20,9 +20,19 @@ import { amsDateLongId } from './clock_ssot';
 
    SUMBER KEBENARAN TUNGGAL: AMS.socEngine(exec). Seluruh
    agregat & opini ditarik dari engine — tak ada hardcode. Status
-   pengujian disimpan di ams.v1.soc3402.exec & dibaca lintas modul
-   (Asurans Lain · Portofolio Jasa · Organisasi Jasa SA 402 ·
-   Matriks Kepatuhan).
+   pengujian disimpan BERLINGKUP PERIKATAN (registri AMS_PERSIST_SCOPE di
+   contexts.tsx → ams.v1.engagement.<engId>.soc3402.exec); sebelumnya kunci ini
+   jatuh ke lingkup FIRMA, sehingga hasil pengujian pengendalian satu perikatan
+   terbaca sebagai pekerjaan yang sudah dilakukan pada perikatan klien lain.
+
+   CATATAN CACAT TERBUKA (di luar lingkup perbaikan isolasi). Baris ini dulu
+   berbunyi "& dibaca lintas modul"; itu TIDAK PERNAH benar. Modul hilir
+   (Asurans Lain · Portofolio Jasa · Organisasi Jasa SA 402 · Matriks Kepatuhan)
+   memanggil `socEngine()` TANPA argumen, dan cadangan di dalamnya membaca kunci
+   TAK-BERLINGKUP `ams.v1.soc3402.exec` — kunci pra-W6 yang tak pernah lagi
+   ditulis aplikasi (satu-satunya penulis cache adalah `cacheWrite`, yang
+   beralamat scope+scopeId). Pembaca itu karena itu selalu memakai status seed,
+   bukan pekerjaan auditor, baik sebelum maupun sesudah perubahan lingkup ini.
    ============================================================ */
 const { useState: useS42 } = React;
 

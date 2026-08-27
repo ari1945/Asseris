@@ -87,7 +87,7 @@ function CFRow({ label, v, sc, head, sub, total, memo, note }: any) {
       borderTop: total ? '1.5px solid var(--navy)' : (sub ? '1px solid var(--line)' : 0),
       marginTop: sub ? 4 : 0,
     }}>
-      <span style={{ fontSize: total ? 12.5 : 12, fontWeight: strong ? 700 : 400, color: strong ? 'var(--ink)' : 'var(--ink-2)', lineHeight: 1.35 }}>
+      <span style={{ fontSize: total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: strong ? 700 : 400, color: strong ? 'var(--ink)' : 'var(--ink-2)', lineHeight: 1.35 }}>
         {label}{memo && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 6 }}>{memo}</span>}
       </span>
       <span className="mono" style={{ fontSize: total ? 13 : 12, fontWeight: strong ? 700 : 500, color: v < 0 ? 'var(--red)' : (strong ? 'var(--navy)' : 'var(--ink)'), whiteSpace: 'nowrap', marginLeft: 10 }}>

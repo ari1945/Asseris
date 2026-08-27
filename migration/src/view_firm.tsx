@@ -126,12 +126,12 @@ function ClientCRM() {
 
             {/* Client detail */}
             <Panel noBody>
-              <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
+              <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                 <div className="row ac gap12">
                   <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</div>
-                    <div style={{ fontSize: 12, color: '#bcd6e4' }}>{sel.industry}</div>
+                    <div style={{ fontSize: 12, color: 'var(--on-dark-muted)' }}>{sel.industry}</div>
                   </div>
                   <button className="top-btn" title="Edit klien" onClick={() => setForm({ mode: 'edit', data: { ...sel } })}><I.doc size={16} /></button>
                 </div>
@@ -242,9 +242,9 @@ function ClientForm({ form, onClose, onSave }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(form.data)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}
@@ -374,7 +374,7 @@ function EngagementMgmt() {
                             <Progress value={e.progress} color={phColor} /><span className="mono tiny" style={{ width: 26 }}>{e.progress}%</span>
                           </div>
                           <div className="row jb tiny muted">
-                            <span className="row ac gap6"><Avatar name={e.manager} size={18} />{e.manager.split(' ')[0]}</span>
+                            <span className="row ac gap6"><Avatar name={e.manager} size={20} />{e.manager.split(' ')[0]}</span>
                             <span className="mono" style={{ color: over > 0.95 ? 'var(--red)' : 'inherit' }}>{fmt(e.actualHrs)}/{fmt(e.budgetHrs)}h</span>
                           </div>
                         </div>
@@ -418,13 +418,13 @@ function EngagementDetail({ e, client, onClose }: any) {
       bodyStyle={{ padding: 0 }}
       panelStyle={{ background: 'var(--surface)' }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
-            <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
+            <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--on-dark-muted)' }}>{e.id}</span>
             <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{client?.name}</div>
-          <div className="tiny" style={{ color: '#bcd6e4' }}>{e.type} · {e.fy} · {e.standard}</div>
+          <div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{e.type} · {e.fy} · {e.standard}</div>
           <div className="row gap8" style={{ marginTop: 10 }}>
             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
             <span className="badge b-blue">{e.status}</span>
@@ -501,8 +501,8 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id })}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
       )}

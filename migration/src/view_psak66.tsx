@@ -223,7 +223,7 @@ function PSAK66View() {
               { l: 'Saldo akhir — nilai tercatat (31 Des 2025)', v: jv.carry, total: true, memo: '= GROUP_ASSOCIATES' },
             ].map((r, i) => (
               <tr key={i} style={{ borderTop: r.total ? '1.5px solid var(--navy)' : (r.sub ? 0 : '1px solid var(--line-soft)'), background: r.total ? 'var(--blue-050)' : 'transparent' }}>
-                <td style={{ padding: r.total ? '9px 6px' : '7px 6px', fontSize: r.total ? 12.5 : 12, fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>
+                <td style={{ padding: r.total ? '9px 6px' : '7px 6px', fontSize: r.total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>
                   {r.l}{r.memo && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 6 }}>{r.memo}</span>}
                 </td>
                 <td className="mono" style={{ textAlign: 'right', padding: r.total ? '9px 6px' : '7px 6px', fontWeight: r.total || r.sub ? 700 : 500, color: r.v < 0 ? 'var(--red)' : (r.total ? 'var(--navy)' : 'var(--ink)') }}>{r.v === 0 ? '—' : sc(r.v)}</td>
@@ -259,7 +259,7 @@ function PSAK66View() {
               { l: 'Nilai tercatat metode ekuitas', v: jv.carry, total: true },
             ].map((r, i) => (
               <tr key={i} style={{ borderTop: r.total ? '1.5px solid var(--navy)' : (r.sub ? '1px solid var(--line)' : '1px solid var(--line-soft)'), background: r.total ? 'var(--blue-050)' : 'transparent' }}>
-                <td style={{ padding: '7px 6px', fontSize: r.total ? 12.5 : 11.5, fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>{r.l}{r.memo && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 6 }}>{r.memo}</span>}</td>
+                <td style={{ padding: '7px 6px', fontSize: r.total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>{r.l}{r.memo && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 6 }}>{r.memo}</span>}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 6px', fontWeight: r.total || r.sub ? 700 : 500, color: r.v < 0 ? 'var(--red)' : (r.total ? 'var(--navy)' : 'var(--ink)') }}>{sc(r.v)}</td>
               </tr>
             ))}
@@ -305,7 +305,7 @@ function PSAK66View() {
               { l: 'Bagian aset neto operasi bersama', src: '', v: jo.netAssets, total: true },
             ].map((r, i) => (
               <tr key={i} style={{ borderTop: r.total ? '1.5px solid var(--navy)' : (r.sub ? '1px solid var(--line)' : '1px solid var(--line-soft)'), background: r.total ? 'var(--blue-050)' : (r.hi ? 'var(--green-bg)' : 'transparent') }}>
-                <td style={{ padding: '7px 6px', fontSize: r.total ? 12.5 : 12, fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>{r.l}</td>
+                <td style={{ padding: '7px 6px', fontSize: r.total ? 'var(--fs-md)' : 'var(--fs-sm)', fontWeight: r.total || r.sub ? 700 : 400, color: r.total ? 'var(--ink)' : 'var(--ink-2)' }}>{r.l}</td>
                 <td className="tiny" style={{ padding: '7px 6px', color: 'var(--ink-4)' }}>{r.src}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 6px', fontWeight: r.total || r.sub ? 700 : 500, color: r.v < 0 ? 'var(--red)' : (r.total ? 'var(--navy)' : 'var(--ink)') }}>{sc(r.v)}</td>
               </tr>

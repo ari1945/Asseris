@@ -534,7 +534,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   const Row = ({ label, value, strong }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)' }}>{value}</span>
     </div>
   );
   const SignBox = ({ k, title }: any) => {
@@ -587,10 +587,10 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>OM Diusulkan</div>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>OM Diusulkan</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Terterapkan saat ini: {_RP(applied)}</div>
+            <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>Terterapkan saat ini: {_RP(applied)}</div>
           </div>
           <div style={{ padding: '12px 14px' }}>
             {diff > 0.1

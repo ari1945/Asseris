@@ -318,7 +318,7 @@ function CRDokumen({ ctx }: any) {
                   <td className="truncate" style={{ maxWidth: 190 }}>{d.name}<div className="tiny muted">{d.eng} · v{d.ver}</div></td>
                   <td><Badge kind={(CR_CLASS_KIND as any)[d.classification] || 'gray'}>{d.classification}</Badge></td>
                   <td className="mono tiny" style={{ color: d.valid ? 'var(--ink-4)' : 'var(--red)' }}>{crShort(d.liveHash)}</td>
-                  <td className="tiny"><div className="row ac gap6"><Avatar name={d.signer} size={18} />{d.signer}</div></td>
+                  <td className="tiny"><div className="row ac gap6"><Avatar name={d.signer} size={20} />{d.signer}</div></td>
                   <td>{d.legalHold ? <span className="chip tiny" style={{ color: 'var(--red)' }}><I.lock size={10} /> {d.wormLabel}</span> : <span className="chip tiny">{d.wormLabel}</span>}</td>
                   <td>{d.valid ? <Badge kind="green"><I.lock size={10} /> Tersegel</Badge> : <Badge kind="red"><I.alert size={10} /> Mismatch</Badge>}</td>
                 </tr>
@@ -394,10 +394,10 @@ function CRDocDrawer({ d, onClose, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
-            <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{d.id} · v{d.ver}</span>
-            <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+            <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--on-dark-muted)' }}>{d.id} · v{d.ver}</span>
+            <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: 'var(--on-dark-fg)' }}><I.x size={18} /></button>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{d.name}</div>
           <div className="row ac gap6" style={{ marginTop: 8 }}>

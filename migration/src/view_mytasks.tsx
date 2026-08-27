@@ -293,16 +293,16 @@ function MyTasks() {
           <div className="mt-split">
             <div>
               <Panel noBody style={{ marginBottom: 12 }}>
-                <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 20, background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', borderRadius: 'var(--radius) var(--radius) 0 0' }}>
+                <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 20, background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', borderRadius: 'var(--radius) var(--radius) 0 0' }}>
                   <Donut size={84} thickness={11}
-                    segments={[{ value: stats.done, color: '#4db8ff' }, { value: Math.max(0, total - stats.done), color: 'rgba(255,255,255,.18)' }]}
+                    segments={[{ value: stats.done, color: 'var(--on-dark-accent)' }, { value: Math.max(0, total - stats.done), color: 'rgba(255,255,255,.18)' }]}
                     center={<div><div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--mono)' }}>{donePct}%</div></div>} />
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>Fokus Hari Ini</div>
-                    <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
+                    <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: 'var(--on-dark-fg)' }}>{focusEst.toFixed(1)} jam</b></div>
                     <div className="row gap8" style={{ marginTop: 9 }}>
-                      <span className="badge b-red" style={{ background: 'rgba(255,107,87,.22)', color: '#ffd2c9' }}>{stats.overdue} terlambat</span>
-                      <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff' }}>{stats.today} hari ini</span>
+                      <span className="badge b-red" style={{ background: 'var(--on-dark-danger-bg)', color: 'var(--on-dark-danger-fg)' }}>{stats.overdue} terlambat</span>
+                      <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)' }}>{stats.today} hari ini</span>
                     </div>
                   </div>
                 </div>

@@ -31,15 +31,15 @@
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 5px; height: 28px; padding: 0 9px;
-  color: #cfe0ea;
+  color: var(--on-dark-muted);
 }
 .global-search input {
   flex: 1; background: transparent; border: 0; outline: 0;
   color: #fff; font-size: 12px;
 }
-.global-search input::placeholder { color: #8fb0c2; }
+.global-search input::placeholder { color: var(--on-dark-faint); }
 .global-search kbd {
-  font-family: var(--mono); font-size: 11px; color: #9fc0d2;
+  font-family: var(--mono); font-size: 11px; color: var(--on-dark-muted);
   border: 1px solid rgba(255,255,255,.2); border-radius: 3px;
   padding: 1px 4px;
 }
@@ -63,7 +63,7 @@
 
 .top-btn {
   width: 30px; height: 30px; border-radius: 5px;
-  background: transparent; border: 0; color: #bcd2de;
+  background: transparent; border: 0; color: var(--on-dark-muted);
   display: grid; place-items: center; position: relative;
 }
 .top-btn:hover { background: rgba(255,255,255,.10); color: #fff; }
@@ -77,11 +77,17 @@
   padding: 3px 8px 3px 4px; border-radius: 20px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
 }
+/* Ukuran huruf inisial TIDAK diatur di sini: ia bergantung pada diameter
+   avatar, jadi komponen `Avatar` (ui.tsx) memancarkan kelas `fs-*` sesuai
+   anggota skala §5 terdekat. Menaruh `font-size` di sini akan MENGALAHKAN
+   kelas itu — styles_chrome.css dimuat sesudah styles_base.css dan
+   spesifisitasnya sama. Satu-satunya pemakai `.avatar` di luar komponen
+   (view_home_cockpit.tsx) menetapkan ukurannya sendiri. */
 .avatar {
   width: 24px; height: 24px; border-radius: 50%;
   background: linear-gradient(135deg,#2f7bb0,#013a52);
   display: grid; place-items: center; color: #fff;
-  font-size: 11px; font-weight: 700;
+  font-weight: 700;
 }
 .user-chip .u-name { font-size: 12px; font-weight: 600; line-height: 1.1; }
 .user-chip .u-role { font-size: 11px; color: var(--on-navy); }
@@ -203,7 +209,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-item.active { background: var(--blue-solid); color: #fff; font-weight: 600; }
 .side-item.active::before {
   content: ''; position: absolute; left: -6px; top: 4px; bottom: 4px;
-  width: 3px; border-radius: 3px; background: #4db8ff;
+  width: 3px; border-radius: 3px; background: var(--on-dark-accent);
 }
 .side-item .ico { width: 16px; display: grid; place-items: center; flex: 0 0 16px; opacity: .85; }
 .side-item.active .ico { opacity: 1; }
@@ -243,11 +249,11 @@ body.dense .pagehead-titles { min-width: 120px; }
 
 .side-focus-h { display: flex; align-items: center; gap: 7px; padding: 8px 12px 6px; }
 .side-focus-h .ft { font: 700 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #fff; }
-.side-focus-h .fb { font: 700 11px/1 var(--mono); color: var(--navy); background: #4db8ff; border-radius: 5px; padding: 3px 6px; }
+.side-focus-h .fb { font: 700 11px/1 var(--mono); color: var(--navy); background: var(--on-dark-accent); border-radius: 5px; padding: 3px 6px; }
 .side-focus-h .fp { margin-left: auto; font: 700 11px/1 var(--mono); color: #fff; }
 .side-focus { margin: 0 8px 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(77,184,255,.16); border-radius: 10px; padding: 4px; }
 
-.side-item.relev .ico { color: #4db8ff; opacity: 1; }
+.side-item.relev .ico { color: var(--on-dark-accent); opacity: 1; }
 /* Fase non-berjalan (mode "Sorot"): de-emphasis DIPINDAH sepenuhnya ke ikon
    (opacity .5) + bobot huruf. Label tetap PUTIH — dulu diredupkan ke
    --on-navy-dim; kini seluruh teks sidebar seragam putih (lihat catatan di
@@ -267,7 +273,7 @@ body.dense .pagehead-titles { min-width: 120px; }
   border-radius: 7px; background: rgba(255,255,255,.07);
   border: 1px solid rgba(255,255,255,.1); color: #fff;
 }
-.side-search:focus-within { border-color: #4db8ff; background: rgba(77,184,255,.1); color: #fff; }
+.side-search:focus-within { border-color: var(--on-dark-accent); background: rgba(77,184,255,.1); color: #fff; }
 .side-search input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none;
   color: #fff; font-size: 12px; font-family: var(--ui);
@@ -288,7 +294,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 }
 .side-search-item:hover { background: rgba(255,255,255,.07); }
 .side-search-item.active { background: var(--blue-solid); }
-.side-search-item .ico { width: 16px; flex: 0 0 16px; display: grid; place-items: center; opacity: .85; color: #4db8ff; }
+.side-search-item .ico { width: 16px; flex: 0 0 16px; display: grid; place-items: center; opacity: .85; color: var(--on-dark-accent); }
 .side-search-item.active .ico { color: #fff; }
 .side-search-item .mn { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .side-search-item .l { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

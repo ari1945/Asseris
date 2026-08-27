@@ -6,6 +6,7 @@ import { I, MODULE_INDEX } from './icons';
    permukaan primitif bersama yang didokumentasikan (CLAUDE.md §1/§4).
    overlay.tsx sengaja TIDAK mengimpor apa pun dari ui.tsx → tak ada siklus. */
 import { Overlay, Z } from './overlay';
+import { fsTier } from './fs_tier';
 
 /* ============================================================
    Asseris — Shared UI primitives
@@ -121,10 +122,13 @@ function Progress({ value, color }: any) {
 
 function Avatar({ name, size = 26, photo }: any) {
   const initials = (name || '').split(' ').filter(Boolean).slice(0, 2).map((w: any) => w[0]).join('').toUpperCase();
+  /* proporsi lama 0,4 dipertahankan sebagai NIAT desain, lalu didaratkan ke
+     anggota skala §5 (lihat fsTier). Diameter 16..28 → 11px (lantai). */
+  const cls = 'avatar fs-' + fsTier(size * 0.4);
   if (photo) {
-    return <span className="avatar" title={name} style={{ width: size, height: size, backgroundImage: 'url(' + photo + ')', backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' }} />;
+    return <span className={cls} title={name} style={{ width: size, height: size, backgroundImage: 'url(' + photo + ')', backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' }} />;
   }
-  return <span className="avatar" style={{ width: size, height: size, fontSize: size * 0.4 }}>{initials}</span>;
+  return <span className={cls} style={{ width: size, height: size }}>{initials}</span>;
 }
 
 function Tabs({ tabs, active, onChange }: any) {
@@ -310,13 +314,13 @@ function StubView({ moduleId }: any) {
   return (
     <div className="view-pad" style={{ minHeight: '100%' }}>
       <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center' }}>
             <IconC size={26} />
           </div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 700 }}>{m.label}</div>
-            <div style={{ fontSize: 12, color: '#bcd6e4' }}>{m.group}</div>
+            <div style={{ fontSize: 12, color: 'var(--on-dark-muted)' }}>{m.group}</div>
           </div>
           <div style={{ flex: 1 }} />
           <Badge kind="amber">Module Scaffolded</Badge>

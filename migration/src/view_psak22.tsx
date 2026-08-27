@@ -74,7 +74,7 @@ function P22Kv({ label, v, strong, accent, indent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)', paddingLeft: indent ? 12 : 0 }}>{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 'var(--fs-md)' : 'var(--fs-sm)', color: accent || (strong ? 'var(--navy)' : 'inherit') }}>{v}</span>
     </div>
   );
 }
@@ -163,7 +163,7 @@ function PSAK22View() {
           style={{ padding: '6px 11px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
             border: '1px solid ' + (sel === d.id ? 'var(--navy)' : 'var(--line)'),
             background: sel === d.id ? 'var(--navy)' : 'var(--surface)', color: sel === d.id ? '#fff' : 'var(--ink)' }}>
-          <span className="mono tiny" style={{ fontWeight: 700, color: sel === d.id ? '#bcd6e4' : 'var(--blue)' }}>{d.id}</span>
+          <span className="mono tiny" style={{ fontWeight: 700, color: sel === d.id ? 'var(--on-dark-muted)' : 'var(--blue)' }}>{d.id}</span>
           <span style={{ fontSize: 12, fontWeight: 600 }}>{d.acquiree.replace('PT Sentosa ', '').replace('Sentosa ', '')}</span>
           <span className="mono tiny" style={{ fontWeight: 700, color: sel === d.id ? '#fff' : 'var(--ink-3)' }}>{d.own}%</span>
         </button>
