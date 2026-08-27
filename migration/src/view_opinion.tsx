@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAmsPersist, useFirm, useMateriality } from './contexts';
+import { frameworkFor, fwProfile, type FwJudgements } from './fw_canon';
 import { AMS } from './data';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -141,6 +142,16 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
 
 function AuditOpinionGen() {
   const { activeClient, activeEngagement } = useFirm();
+  /* D3 — bentuk opini MENGIKUTI kerangka pelaporan. Modul ini dulu memaku
+     "SA 700/705/701" (penyajian wajar, kerangka bertujuan umum) apa pun
+     kerangkanya; entitas SAK EMKM memerlukan SA 700/800 — basis akuntansi
+     tertentu. Salah bentuk opini bukan cacat kosmetik: ia mengubah apa yang
+     sebenarnya diasersikan auditor. */
+  const [fwJudgements] = useAmsPersist('framework.judgements.v1', {});
+  const fwResult = frameworkFor(activeClient?.id || '', (fwJudgements || {}) as FwJudgements);
+  const fwProfil = fwProfile(fwResult.fw);
+  /* Kerangka belum ditetapkan → rujukan standar TIDAK ditebak. */
+  const fwStdLabel = fwProfil ? (fwProfil.specialPurpose ? 'SA 700 · 800' : 'SA 700 · 705 · 701') : 'kerangka belum ditetapkan';
   const O = AMSOpinion;
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'opinionDoc.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
@@ -161,7 +172,7 @@ function AuditOpinionGen() {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Laporan Auditor Independen',
         refNo: 'No. 142/WHR-CPA/AR/III/2026',
-        meta: [`${activeEngagement?.id || ''} · ${client} · FY2025`, `${o.title} (SA 700/705/701)`],
+        meta: [`${activeEngagement?.id || ''} · ${client} · FY2025`, `${o.title} (${fwStdLabel})`],
         blocks: buildOpinionBlocks(doc, client, O),
       });
     } finally {
@@ -212,7 +223,7 @@ function AuditOpinionGen() {
         <div className="row gap8 ac">
           <Badge kind={o.k}>{o.short}</Badge>
           {doc.finalized && <Badge kind="green">Final</Badge>}
-          <Badge kind="blue">SA 700 · 705 · 701</Badge>
+          <Badge kind={fwProfil ? 'blue' : 'amber'} title={fwProfil ? fwProfil.opinionForm : 'Tetapkan kerangka pelaporan lebih dulu'}>{fwStdLabel}</Badge>
           {tab === 'builder' && <Btn sm onClick={onExportPdf} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export PDF'}</Btn>}
           <Btn sm variant="primary" onClick={() => setTab('signoff')}><I.checkCircle size={14} /> {doc.finalized ? 'Lihat Status' : 'Finalisasi'}</Btn>
         </div>

@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 11 |
+| In Progress | 12 |
 | Implemented | 39 |
 | Superseded | 1 |
 
@@ -98,6 +98,7 @@
 | docs/prd-firmfin-ledger-derived.md | Implemented — SELESAI 2026-08-15. FIRMFIN menerima COA turunan-ledger di 3 pemanggil; posting jurnal kini menggeser P&L/Neraca/KPI/kontrol. Live-verified dua arah (2,80 M ⇄ 2,59 M). Nol-delta pada seed bersih |
 | docs/prd-finalisation-gate-execution-completeness.md | Draft |
 | docs/prd-firm-erp-deepening.md | In Progress — Approved ("Proceed sesuai rekomendasi" 2026-08-16; Q-1=keenam PR · Q-2=blokir ekspor · Q-3=utang · Q-4=bentuk B isi A · Q-5=read-only) |
+| docs/prd-framework-ssot-hilir.md | In Progress — "Proceed." 2026-08-27; PR-1 & PR-2 selesai (D1+D2 tertutup), PR-3..PR-5 belum |
 | docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
 | docs/prd-lint-coverage-server-e2e.md | Implemented — dieksekusi 2026-08-13 lewat PR #207 (master e2deb29); Q1=A · Q2=langsung error · Q3=tidak |
 | docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
