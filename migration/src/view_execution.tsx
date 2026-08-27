@@ -388,7 +388,7 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Buku Besar (GL)</div>
@@ -545,7 +545,7 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.layers size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Saldo Audited TA-1 (SA 510)</div>
@@ -705,7 +705,7 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
         </div>
       )}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.target size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Pemetaan Bagan Akun → CoA Standar</div>
@@ -899,7 +899,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
       isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
       bodyStyle={OV_FILL}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.upload size={18} /></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Neraca Saldo Klien</div>
@@ -1316,7 +1316,7 @@ function WtbDrill({ row, onClose, nav }: any) {
       size="lg"
       onClose={onClose}
       header={(<>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
           <Badge kind="blue" title={LEAD_SRC_TITLE[row.leadSrc || ''] || undefined}>WP {row.lead}{row.leadSrc === 'guess' ? '?' : ''}</Badge>

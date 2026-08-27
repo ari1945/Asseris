@@ -339,7 +339,7 @@ function RecognitionDrill({ r, onClose }: { r: RevenueRow; onClose: () => void }
             const mx = contract || 1;
             return (
               <div key={c.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 3, height: '100%' }}>
-                <div style={{ width: '70%', maxWidth: 22, height: (c.recog / mx * 64) + 'px', background: 'linear-gradient(180deg,#1f9d63,#1f7a4d)', borderRadius: '3px 3px 0 0' }} />
+                <div style={{ width: '70%', maxWidth: 22, height: (c.recog / mx * 64) + 'px', background: 'linear-gradient(180deg,#1f9d63,var(--green-solid))', borderRadius: '3px 3px 0 0' }} />
                 <span className="tiny muted">{c.m}</span>
               </div>
             );

@@ -152,7 +152,7 @@ function OBAcceptance() {
         </Panel>
 
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(120deg,#3a2a6a,#5b3fa6)', color: '#fff', padding: '13px 16px' }}>
+          <div style={{ background: 'linear-gradient(120deg,#3a2a6a,var(--purple-solid))', color: '#fff', padding: '13px 16px' }}>
             <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 15 }} className="truncate">{sel.name}</div><div className="tiny" style={{ color: '#d4c8ee' }}>{sel.industry}</div></div>
               <div style={{ textAlign: 'center' }}><div className="mono" style={{ fontSize: 22, fontWeight: 800 }}>{score.toFixed(1)}</div><div className="tiny" style={{ color: '#d4c8ee' }}>skor tertimbang</div></div></div>
           </div>

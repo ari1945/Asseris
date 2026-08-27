@@ -233,7 +233,7 @@ function PDPView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#024661)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                  <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--navy-600))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Pejabat Pelindungan Data</div>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>{P.dpo.name}</div>
                     <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 2, lineHeight: 1.45 }}>{P.dpo.role}</div>
@@ -296,7 +296,7 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <I.shield size={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="mono tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.id}</div>

@@ -118,7 +118,7 @@ function Profile360Drawer({ s, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 540, maxWidth: '96vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 13, flex: '0 0 auto' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 13, flex: '0 0 auto' }}>
           <Avatar name={s.name} size={50} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{s.name}</div>

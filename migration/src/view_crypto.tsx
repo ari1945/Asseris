@@ -165,7 +165,7 @@ function CryptoCompliance() {
               <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap6" style={{
                 padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                 border: '1px solid ' + (on ? 'var(--navy)' : 'var(--line)'),
-                background: on ? 'linear-gradient(125deg,#013a52,#005085)' : 'var(--surface)',
+                background: on ? 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))' : 'var(--surface)',
                 color: on ? '#fff' : 'var(--ink-2)' }}>
                 <TIc size={14} />{t.label}
                 {t.count != null && <span className="mono" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 20, background: on ? 'rgba(255,255,255,.18)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{t.count}</span>}
@@ -394,7 +394,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--on-dark-muted)' }}>{d.id} · v{d.ver}</span>
             <button aria-label="Tutup" className="top-btn" onClick={onClose} style={{ color: 'var(--on-dark-fg)' }}><I.x size={18} /></button>

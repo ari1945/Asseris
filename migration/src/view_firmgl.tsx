@@ -323,7 +323,7 @@ function FirmJVForm({ coa, onClose, onPost }: any) {
       isDirty={() => desc.trim() !== '' || dr !== '' || cr !== '' || amount !== ''}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Jurnal Umum Firma</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Double-entry · GL KAP</div></div>
           <button className="top-btn" aria-label="Tutup" title="Tutup" onClick={onClose}><I.x size={18} /></button>
         </div>

@@ -212,7 +212,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 18 }} onClick={onClose}>
       <div className="panel" style={{ width: 1080, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <span style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700, flex: '0 0 42px' }}>{p.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: 'var(--on-dark-fg)' }}>IDX</span>}</div>
@@ -534,7 +534,7 @@ function ProspectForm({ onClose, onAdd }: any) {
       isDirty={() => JSON.stringify(d) !== JSON.stringify(PROSPECT_FORM_INIT)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Prospek Baru</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Mulai proses onboarding klien & perikatan</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>

@@ -562,7 +562,7 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
       {/* right — comparison & conclusion */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Agregat Tidak Dikoreksi ({method === 'rollover' ? 'Neto, L/R' : 'Neto, Neraca'})</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {fmt(absNet / 1e6, 0)} jt</div>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', marginTop: 5 }}>Bruto Rp {fmt(evalGross / 1e6, 0)} jt · {calc.uncorr.length} item tidak dikoreksi</div>
@@ -641,7 +641,7 @@ function TabQualitative({ quals, toggleQual, qualCount }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: 'var(--on-dark-muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Faktor Kualitatif Relevan</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{qualCount} / {quals.length}</div>
           </div>

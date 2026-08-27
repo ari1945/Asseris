@@ -233,7 +233,7 @@ function TemplateDetail({ t, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 24 }} onClick={onClose}>
       <div className="panel" style={{ width: 1060, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 11, fontWeight: 800 }}>{t.fmt}</span></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 19 }}>{t.name}</div>

@@ -506,7 +506,7 @@ function RiskDetail({ r, nav, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{r.id}</span><Badge kind={(MON_KIND as any)[r.monitor]}>{r.monitor}</Badge></div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>{r.comp}{comp ? ' · ' + comp.id + ' ' + comp.ref : ''}</div></div>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>

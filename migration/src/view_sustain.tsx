@@ -111,7 +111,7 @@ function SustainabilityView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#0a5b54,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
+                  <div style={{ background: 'linear-gradient(120deg,#0a5b54,var(--teal-solid))', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bfe3e0', letterSpacing: '.05em', marginBottom: 8 }}>Kelengkapan Laporan Keberlanjutan</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>

@@ -157,7 +157,7 @@ function HomeView() {
     <div className="view-scroll"><div className="view-pad" style={{ display: 'grid', gap: 14 }}>
 
       {/* hero / sapaan */}
-      <div className="panel" style={{ padding: '18px 20px', background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="panel" style={{ padding: '18px 20px', background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 19, fontWeight: 800 }}>Selamat datang, {hmFirstName(user.name)}</div>
           <div style={{ fontSize: 12, color: 'var(--on-dark-muted)', marginTop: 3 }}>

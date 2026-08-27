@@ -189,7 +189,7 @@
 .d2net-colh.up .mono { transform: rotate(180deg); display: inline-block; }
 .d2net-colh.down { color: var(--green); }
 .d2net-hub { display: flex; flex-direction: column; gap: 10px; position: sticky; top: 8px; }
-.d2net-node { background: linear-gradient(150deg,#013a52,#005f8a); color: var(--on-dark-fg); border-radius: 12px; padding: 16px 14px; text-align: center; box-shadow: 0 6px 18px rgba(1,58,82,.22); }
+.d2net-node { background: linear-gradient(150deg,var(--navy-700),#005f8a); color: var(--on-dark-fg); border-radius: 12px; padding: 16px 14px; text-align: center; box-shadow: 0 6px 18px rgba(1,58,82,.22); }
 .d2net-flow { line-height: 1.5; text-align: center; padding: 0 2px; }
 .d2link { display: block; width: 100%; text-align: left; border: 1px solid var(--line); border-left: 3px solid var(--blue); background: var(--surface); border-radius: 9px; padding: 10px 12px; font: inherit; cursor: pointer; transition: background .12s, box-shadow .12s, transform .08s, border-color .12s; }
 .d2link:hover { background: var(--blue-050); box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: var(--blue); }

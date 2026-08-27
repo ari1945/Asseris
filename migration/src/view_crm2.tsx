@@ -67,7 +67,7 @@ function CRM360() {
         {/* cockpit */}
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
-            <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '16px 18px' }} className="row ac gap12">
+            <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '16px 18px' }} className="row ac gap12">
               <span style={{ width: 50, height: 50, borderRadius: 12, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</span>{sel.listed && <span className="badge b-blue">IDX</span>}</div>

@@ -199,7 +199,7 @@ function SAKRoadmapView() {
                 <div className="grid" style={{ gap: 12 }}>
                   {/* PSAK 118 (IFRS 18) spotlight */}
                   <Panel noBody>
-                    <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                    <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                       <div className="row ac gap8" style={{ marginBottom: 6 }}>
                         <span className="mono" style={{ border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 800 }}>PSAK 118</span>
                         <span style={{ fontSize: 12, fontWeight: 700 }}>adopsi IFRS 18</span>
@@ -336,7 +336,7 @@ function SAKRoadmapView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
+                  <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: 'var(--on-dark-muted)', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 118</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>

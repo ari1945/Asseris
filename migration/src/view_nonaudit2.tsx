@@ -230,7 +230,7 @@ function NAReport({ kind, engId, onClose }: any) {
       return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
           <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
-            <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+            <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
               <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Deliverable formal sesuai standar SPAP</div></div>
               <button aria-label="Unduh PDF" className="top-btn" onClick={onExportPdf}><I.download size={16} /></button>
               <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -260,7 +260,7 @@ function NAReport({ kind, engId, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: 'var(--on-dark-muted)' }}>Deliverable formal sesuai standar SPAP</div></div>
           <button aria-label="Unduh PDF" className="top-btn" onClick={onExportPdf}><I.download size={16} /></button>
           <button aria-label="Tutup" className="top-btn" onClick={onClose}><I.x size={18} /></button>

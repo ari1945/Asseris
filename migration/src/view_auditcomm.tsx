@@ -107,7 +107,7 @@ function AuditCommitteeView() {
 
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div style={{ background: 'linear-gradient(120deg,#3d2a73,#5b3fa6)', color: '#fff', padding: '14px 16px' }}>
+                  <div style={{ background: 'linear-gradient(120deg,#3d2a73,var(--purple-solid))', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#d6cdf0', letterSpacing: '.05em', marginBottom: 8 }}>Dokumentasi Tugas Komite</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
