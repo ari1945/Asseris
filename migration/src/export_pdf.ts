@@ -122,7 +122,11 @@ const LINE = [210, 216, 222];
 
 /**
  * Generate, seal, download. Returns { sealed, sealId|null, contentHash, reason }.
- * model: { kind, scope?, scopeId?, fileName, firm, title, refNo?, meta:[], blocks:[
+ * model: { kind, scope, fileName, title, refNo?, meta:[], blocks:[
+ *   ↑ `firm` & `scopeId` SENGAJA TIDAK ADA di sini — keduanya `?: never` pada
+ *     ExportModelBase dan ditarik dari `resolveExportIdentity()`. Mendaftarkannya
+ *     kembali di docstring ini adalah cara termurah untuk mengundang call-site
+ *     ke-124 mendorong identitasnya sendiri lagi.
  *   {type:'heading', text} | {type:'para', text} | {type:'kv', rows:[[label,value],…]} |
  *   {type:'table', head:[…], body:[[…]]} | {type:'signature', signers:[{name,role,at}]}
  * ] }

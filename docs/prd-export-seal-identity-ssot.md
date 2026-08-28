@@ -6,7 +6,8 @@
 |---|---|
 | Tanggal | 2026-08-21 |
 | Pemilik | Ari Widodo |
-| Status | Draft — menunggu sign-off ("Proceed.") |
+| Status | In Progress |
+| Sign-off | **2026-08-29, Ari Widodo — "sign off the PRD and land the export arc".** Q-1..Q-4 disetujui SESUAI REKOMENDASI PRD ini (§11); Q-5 bukan penghalang, masuk inventaris F-2. F-1 & F-2 MENDARAT bersama sign-off ini; F-3..F-5 belum. |
 | Pemicu | Sapuan isolasi jalur TULIS lampiran (2026-08-20, commit `5d4a9af`) — klasifikasi sisa hit membuka kelas yang lebih besar di permukaan ekspor tersegel |
 | Modul | `migration/src/export_pdf.ts` · `export_xlsx.ts` · `persist_scope.ts` · `contexts.tsx` + 123 call-site ekspor di ±60 view |
 | Server | `server/src/router.ts` §`exporter.seal` / `exporter.logEvent` · `engagementAccess.ts` |
@@ -375,4 +376,39 @@ satu per satu; inventarisasi masuk PR-2 (R-7). Bukan penghalang sign-off.
 
 ---
 
-**Sign-off:** ditandai dengan balasan **"Proceed."**
+---
+
+## 12. Sign-off & keadaan pelaksanaan (2026-08-29)
+
+**Disetujui oleh Ari Widodo.** Q-1..Q-4 diputuskan **sesuai rekomendasi §11**:
+
+| # | Putusan |
+|---|---|
+| Q-1 | **TOLAK** bila tak ada perikatan aktif. Memilihkan perikatan / `'default'` / segel tanpa scope adalah tiga cara berbeda untuk berbohong pelan. Sudah terpasang di F-1/F-2. |
+| Q-2 | **DIBIARKAN, dengan versi.** Tidak ada backfill, tidak ada re-seal; `sealFormat` per rekaman. Mengikat F-3. |
+| Q-3 | **DITERIMA** — hash HARUS bergerak saat penerbit berubah, kalau tidak ia tak menjamin identitas. Mengikat F-3. |
+| Q-4 | **YA** — `meta` XLSX ikut di-hash, dikerjakan sekalian di F-3 agar hash berubah sekali saja. |
+| Q-5 | Bukan penghalang. Inventaris 16 situs `scopeId: undefined` dikerjakan di F-2 (R-7). |
+
+**Yang MENDARAT bersama sign-off ini: F-1 dan F-2 saja.**
+
+- F-1 — `export_identity.ts` (register bertipe, satu penulis, pintu baca yang bisa
+  menolak) + `contexts.tsx` sebagai satu-satunya penerbit.
+- F-2 — identitas DITARIK helper; `firm`/`scopeId` dicabut dari `ExportModelBase`
+  sebagai `?: never` sehingga mengirimnya = galat `tsc`; call-site dibersihkan.
+  **E-1, E-2, E-3, E-5 mati.** SC-1 · SC-3 · SC-5 · SC-6 · SC-7 · SC-8 hijau.
+
+**Yang BELUM, dan sengaja tidak diselipkan:**
+
+- **F-3 (PR-3) — `canonicalPayload` v2.** Inilah yang membuat **SC-4 belum terpenuhi**:
+  `firm` MASIH belum ikut di-hash, jadi keluhan inti E-4 — *"artefak boleh mencantumkan
+  nama firma apa pun dan verifikasi segel tetap lulus"* — **masih berlaku hari ini**.
+  Yang sudah tertutup adalah sumbernya (nama tak bisa lagi dikarang call-site), bukan
+  cakupan segelnya. Jangan membaca F-2 sebagai "E-4 selesai".
+- **F-4 (PR-4)** — jalur penolakan yang terlihat di UI (`emitExportRefusal` sudah
+  disiarkan; toaster & tombol nonaktif belum ditinjau visual).
+- **F-5 (PR-5)** — 20 situs `engLabel` di `refNo`/`meta` (**SC-2 belum**) + gerbang
+  repo-lebar.
+- **F-6** — registri PRD → `Implemented`.
+
+Urutannya mengikat: F-3 mengubah hash dan harus dapat di-rollback sendiri.

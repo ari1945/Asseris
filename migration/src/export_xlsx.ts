@@ -59,7 +59,8 @@ function canonicalPayload(model: any) {
 
 /**
  * Generate, seal, download an .xlsx workbook. Returns { sealed, sealId|null, contentHash, reason }.
- * model: { kind, scope?, scopeId?, fileName, firm, title, meta:[…strings],
+ * model: { kind, scope, fileName, title, meta:[…strings],
+ *   ↑ `firm` & `scopeId` SENGAJA TIDAK ADA — lihat catatan sama di export_pdf.ts.
  *   sheets:[ { name, heading?, columns:[…labels], rows:[[…cells]], totals?:[…cells], colWidths?:[…wch] } ] }
  */
 export async function amsExportXlsx(model: ExportXlsxModel): Promise<ExportResult> {
