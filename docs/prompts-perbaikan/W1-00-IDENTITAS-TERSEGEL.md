@@ -1,5 +1,24 @@
 # Gelombang W1 — identitas karangan di dalam artefak TERSEGEL
 
+> 🔴 **GELOMBANG INI DITAHAN — kecuali W1-E** (keputusan Ari, 2026-08-28).
+>
+> Sesudah brief ini ditulis, ditemukan bahwa **28 dari 32 berkasnya sudah dikonversi**
+> di `claude/intelligent-keller-7b28db`, memakai arsitektur **kebalikan** dari yang
+> dianjurkan di sini: identitas **DITARIK** eksporter dari SSOT (`export_identity.ts`),
+> dan argumen `firm:`/`scopeId:` **dicabut** dari call-site. PRD-nya,
+> `docs/prd-export-seal-identity-ssot.md` (Draft, di cabang itu), melingkupi 123
+> call-site di ±60 view — dibanding 32 berkas di sini.
+>
+> **§2 di bawah karena itu SALAH sebagai anjuran.** `useFirmName()` per call-site
+> memang benar untuk `view_firmtreasury`, tetapi sebagai pola untuk 123 call-site ia
+> justru cacat yang PRD itu bantah: *"tombol ekspor ke-124 bebas mengarangnya lagi."*
+>
+> Yang tetap SAHIH di berkas ini: sensus cacatnya, nomor barisnya (per `8a8cc54`),
+> temuan `window.activeEngagement` sebagai hantu, dan ketiga kopling di §5–§6
+> (ratchet `:any` dua arah, gerbang paku `spr2400_conventions`, identitas
+> `view_cockpit.tsx`). Semuanya dipertahankan sebagai temuan, bukan perintah kerja.
+
+
 > Dibuat 2026-08-27; **diverifikasi ulang 2026-08-28 terhadap `origin/master` = `8a8cc54`**
 > (sesudah gelombang W0 tuntas: #318 · #319 · #320 · #321 · #322 · #326).
 > Berkas ini adalah **brief kelas** yang dibaca kedelapan prompt W1-A … W1-H.

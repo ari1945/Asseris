@@ -1,5 +1,20 @@
 # W1-E — `records` (Retensi & Arsip) · `relatedsvc` (Jasa Terkait SPSJL 4400/4410)
 
+> ✅ **SATU-SATUNYA PAKET W1 YANG BERJALAN** (keputusan Ari, 2026-08-28). Tujuh paket
+> lain (W1-A…D, F…H) DITAHAN: 28 dari 32 berkasnya sudah dikonversi di cabang
+> `claude/intelligent-keller-7b28db` dengan arsitektur berlawanan (identitas ditarik
+> eksporter dari SSOT, bukan didorong call-site). Paket ini selamat karena isinya
+> **kontrol palsu**, bukan identitas ekspor.
+>
+> ⛔ **E1 DICABUT dari paket ini.** `view_records.tsx:405` (`firm:` literal) ADA di dalam
+> lingkup arc ekspor — arc mencabut argumen `firm:` seluruhnya dari call-site.
+> Memperbaikinya di sini akan bertabrakan. **Kerjakan HANYA E2 dan E3.**
+>
+> ⚠ `view_records.tsx` disentuh arc itu (pada baris ekspor, bukan baris kontrol).
+> `view_relatedsvc.tsx` **tidak** disentuh sama sekali. Jaga suntinganmu di
+> `view_records.tsx` sesempit mungkin dan harapkan satu rebase saat arc mendarat.
+
+
 **Berkas yang DIMILIKI paket ini:**
 `migration/src/view_records.tsx` · `view_relatedsvc.tsx`
 \+ `migration/src/w1e_records_relatedsvc.test.ts` (baru).
@@ -8,7 +23,7 @@
 masih hidup pada nomor baris di bawah; nol berkas paket ini tersentuh gelombang W0
 (#318–#322).
 
-### E1 · Penerbit karangan di dalam XLSX tersegel
+### ~~E1 · Penerbit karangan di dalam XLSX tersegel~~ — DICABUT (lingkup arc ekspor)
 `view_records.tsx:405` → `firm: 'KAP Wijaya Hartono & Rekan'` di dalam
 `amsExportXlsx({…})`. Modul ini sudah memanggil `useAuth()` di baris 348, jadi
 SSOT-nya sudah berada di tangan — literalnya murni sisa.
@@ -76,12 +91,10 @@ Tujuh sesi lain berjalan paralel di berkas lain.
 
 YANG HARUS DITUTUP:
 
-E1. view_records.tsx:405 — `firm: 'KAP Wijaya Hartono & Rekan'` di dalam payload
-    amsExportXlsx yang DISEGEL.
-    → useFirmName() dari './firm_identity' (SUDAH ADA di master; JANGAN diubah).
-      Modul ini sudah memanggil useAuth() di baris 348. Tiru bentuk
-      view_firmtreasury.tsx:131,165,187 — termasuk tombol disabled + title yang
-      menjelaskan mengapa saat identitas kosong.
+⛔ E1 DICABUT — JANGAN DIKERJAKAN. `view_records.tsx:405` (`firm:` literal di payload
+    tersegel) ADA di dalam lingkup arc `export_identity` yang mencabut argumen `firm:`
+    seluruhnya dari call-site. Memperbaikinya di sini akan bertabrakan dengan arc itu.
+    Kalau kamu tergoda "sekalian" — jangan; laporkan saja bahwa kamu melihatnya.
 
 E2. view_relatedsvc.tsx:211 dan :213 — <span onClick> yang MENGUBAH KEADAAN kertas
     kerja AUP (menandai prosedur "Pengecualian"/"Sesuai") dan MENGHAPUS baris
@@ -116,10 +129,7 @@ E3. Baris & kartu terpilih sebagai <tr|div|span onClick>:
   lewat token CSS var, bukan hex.
 
 GERBANG — tiga bagian, dan §1 harus PERILAKU bukan keberadaan simbol:
-§1a IDENTITAS — render view records; dengan identitas firma tersedia, payload yang
-    dikirim ke eksporter membawa nama dari konteks; tanpa identitas, eksporter TIDAK
-    PERNAH dipanggil dan tombolnya disabled dengan alasan terbaca.
-§1b KONTROL — setiap kontrol yang kamu ubah dapat difokuskan (masuk urutan tab) dan
+§1 KONTROL — setiap kontrol yang kamu ubah dapat difokuskan (masuk urutan tab) dan
     memiliki nama yang dapat diakses; klik pada kontrol mengubah keadaan yang benar.
     ⚠ BATAS jsdom yang sudah menggigit di repo ini (PR #306): jsdom MEMODELKAN
     fokusabilitas tetapi TIDAK mensintesis Enter → click. Menguji "tekan Enter lalu
@@ -137,7 +147,6 @@ Buktikan gerbang MERAH dulu:  git stash && npm test -- w1e_records_relatedsvc �
 
 SELESAI BILA:
 [ ] Output merah gerbang pada kode LAMA ditempel di deskripsi PR
-[ ] records:405 memakai useFirmName(); tanpa identitas ⇒ ekspor tidak terbit
 [ ] relatedsvc:211/213 jadi kontrol native yang bisa di-Tab & bernama
 [ ] Sembilan situs baris/kartu terpilih jadi kontrol native; tampilan tabel TIDAK berubah
 [ ] Tidak ada kontrol mati yang diberi nama (sebutkan bila kamu menemukan & mencabutnya)
