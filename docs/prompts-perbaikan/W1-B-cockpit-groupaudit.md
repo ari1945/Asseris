@@ -1,5 +1,28 @@
 # W1-B — `programme` (Program Audit) · `groupaudit` (SA 600)
 
+> ⛔ **PAKET DITAHAN — JANGAN DIKERJAKAN.** Keputusan Ari, 2026-08-28.
+>
+> **28 dari 32 berkas gelombang W1 SUDAH dikonversi** di cabang yang belum mendarat,
+> `claude/intelligent-keller-7b28db` (ahead 4 / behind 60), dengan arsitektur yang
+> **berlawanan** dengan prompt ini: argumen `firm:` dan `scopeId:` **dicabut seluruhnya**
+> dari call-site, dan eksporter MENARIK identitas dari SSOT (`export_identity.ts`).
+> PRD-nya — `docs/prd-export-seal-identity-ssot.md`, ada di cabang itu, status
+> `Draft — menunggu sign-off` — melingkupi **123 call-site di ±60 view**, dan menemukan
+> kelas keempat yang prompt ini lewatkan: `\|\| 'default'` truthy ⇒
+> `assertEngagementAccess` JALAN dan GAGAL ⇒ artefak **diam-diam tidak tersegel**.
+>
+> PRD itu membantah pendekatan prompt ini secara langsung: *"Selama identitas boleh
+> didorong pemanggil, tombol ekspor ke-124 bebas mengarangnya lagi."*
+>
+> Mengerjakan paket ini sekarang = mengulang kerja yang sudah ada, dalam bentuk yang
+> lebih lemah, **dan membuat arc itu tak bisa mendarat**. Yang berjalan dari gelombang
+> W1 hanya **W1-E** (kontrol palsu — di luar lingkup arc ekspor).
+>
+> Isi di bawah dipertahankan sebagai temuan terverifikasi (nomor baris sahih per
+> `8a8cc54`), bukan sebagai perintah kerja. Lihat `00-LANJUTKAN.md` § "Gelombang W1".
+
+
+
 > 🔴 **KOREKSI 2026-08-28 — identitas modul.** Berkas ini semula berjudul "cockpit".
 > **`view_cockpit.tsx` BUKAN modul Cockpit.** `lazy_views.tsx:112-113` merutekan:
 > `'cockpit'` → `view_cockpit2.tsx` (`EngagementCockpit`, 1196 baris) dan

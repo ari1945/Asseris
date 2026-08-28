@@ -96,120 +96,178 @@ yang menunggu keputusan saya. Lalu tunggu saya menyebut modul berikutnya.
 
 ## Status (perbarui setiap sesi)
 
-**Terakhir diperbarui:** 2026-08-27 · `origin/master` `952392a` · **SENSUS TERVERIFIKASI
-BLOB** (bukan `git log` / `git cherry` / hitungan "N ahead").
+**Terakhir diperbarui:** 2026-08-28 · `origin/master` `bc51f47` · sensus terverifikasi
+**blob & pohon**, bukan `git log` / `git cherry` / hitungan "N ahead".
 
-> ⚠ **Status versi 2026-08-24 SALAH BESAR — jangan dipakai.** Ia menyatakan Gelombang
-> 1–7 "belum"; kenyataannya **17 dari 25 prompt sudah MENDARAT**. Sesi mana pun yang
-> memercayainya akan mengerjakan ulang pekerjaan tertutup — persis biaya yang metode
-> §A di preamble larang ("melaporkan cacat yang sudah tertutup lebih mahal daripada
-> tidak melaporkan apa pun"). Sensus di bawah menggantikannya seluruhnya.
+> ⚠ **Status versi 2026-08-27 (`952392a`) SUDAH BASI.** Ia menyatakan enam cabang belum
+> mendarat dan lima prompt terhalang. **Gelombang W0 sudah tuntas** sejak itu. Bagian di
+> bawah menggantikannya seluruhnya.
 
 ### Metode WAJIB sebelum mengirim prompt apa pun
 
 `git log`, `git cherry`, dan hitungan "N ahead" **SEMUANYA MENYESATKAN di repo ini** —
-master menerima PR lewat **squash**, jadi cabang yang isinya sudah mendarat tetap
-tampak "ahead". Dalam sensus 2026-08-27 hitungan "ahead" salah di **20 dari 26** cabang.
-Satu-satunya uji yang sah adalah perbandingan **hash blob**:
+master menerima PR lewat **squash**, jadi cabang yang isinya sudah mendarat tetap tampak
+"ahead". Uji yang sah adalah perbandingan **hash blob** atau **pohon**:
 
 ```powershell
-git rev-parse <cabang>:<berkas>
-git rev-parse origin/master:<berkas>
+git rev-parse <cabang>:<berkas>          # per berkas
+git diff --name-only origin/master <cabang>   # nol baris = pohon identik
 ```
 
-Hash sama ⇒ sudah mendarat. Berbeda ⇒ **baca arah diff-nya** — bisa jadi cabangnya
-yang lebih tua, dan me-merge-nya justru mengembalikan cacat.
+Hash sama ⇒ sudah mendarat. Berbeda ⇒ **baca arah diff-nya** — bisa jadi cabangnya yang
+lebih tua, dan me-merge-nya justru mengembalikan cacat.
 
-Uji yang sama berlaku untuk klaim "cacat masih hidup": periksa **`origin/master`**,
-lalu periksa apakah ada **cabang LOKAL** yang sudah menutupnya. Dua vonis "siap
-dikerjakan" pada 2026-08-27 batal karena langkah kedua ini dilewatkan.
+> 🔴 **DAN SATU BERKAS TIDAK CUKUP.** Pada 2026-08-27 cabang
+> `claude/intelligent-keller-7b28db` divonis "bagian P0-nya sudah mendarat" berdasarkan
+> **satu** berkas (`view_sa580.tsx`) yang memang identik dengan master karena #317
+> men-cherry-pick-nya. Seratus berkas lain tak pernah diperiksa — dan ternyata memikul
+> **konversi 103 berkas** yang belum mendarat. Vonis itu melahirkan seluruh gelombang W1
+> yang kemudian harus ditahan. **Bandingkan POHON, bukan satu berkas contoh.**
 
-### Urutan pengerjaan (7 gelombang)
+### Gelombang W0 — pendaratan · ✅ **TUNTAS 2026-08-27/28**
 
-Antrean per-modul sekarang punya urutan eksplisit. **Gelombang 0 mendahului semuanya**
-— sembilan modul di [`../KEDALAMAN-158-MODUL-TERKINI.md`](../KEDALAMAN-158-MODUL-TERKINI.md)
-bertanda basi (`※`) semata-mata karena pekerjaannya belum mendarat, dan prompt untuk
-modul itu tidak boleh ditulis sebelum Gelombang 0 tuntas.
+| PR | Isi |
+|---|---|
+| #318 `62593c4` | firmgl + apar — sub-buku hidup, ekspor bisa menolak terbit (menggantikan `fix/firmgl-rekonsiliasi-ekspor`) |
+| #319 `abb36a7` | hcm — penilaian empat dimensi yang tak pernah dinilai siapa pun |
+| #320 `7ae8d68` | smm — tahun atestasi SOQM dari periode evaluasi ¶53, bukan dari jam PPL |
+| #321 `a6f4f74` | newdisc — tabel yurisdiksi Pilar Dua karangan dicabut ke struktur grup kanonik |
+| #322 `244f87f` | regref Tahap A-2 — empat besaran regulatori berhenti jadi konstanta telanjang |
+| #326 `8a8cc54` | dokumen W0 masuk git, dengan dua premis yang terbukti salah **dicoret, bukan dihapus** |
 
-| Gel. | Isi | Status (terverifikasi 2026-08-27) |
-|---|---|---|
-| **0** | Pengiriman & higiene repo — [`00-GELOMBANG-0-pengiriman.md`](00-GELOMBANG-0-pengiriman.md) | **premis mati** — remote hanya `origin/master`, kedua PR target sudah merge, `migration/nul` hilang. Sisanya = residu terparkir (M2/W1/O1b) |
-| 1 | Tiga cacat terbersih: `spr2400` · `invprop` · `mgmtletter` | ✅ **SELESAI** — #303 · #314 · #305 |
-| 2 | Sembilan cangkang display-only — **satu keputusan produk** (kertas kerja vs `kb`) | butuh keputusan Ari (tak berubah) |
-| 3 | Empat kebocoran isolasi L4⚠️: `sjah3400/3402/3410/3420` (P0 keamanan data) | ✅ **SELESAI** — #309 |
-| 4 | 19 cacat ⚠ terbukti hidup di modul skor menengah | **sebagian besar SELESAI** — lihat sensus prompt di bawah; sisa nyata hanya `hcm`+`regref` (sudah ada di cabang) |
-| 5 | Batch PSAK & SAK (27 modul, pola seragam) — mulai `newdisc` | `newdisc` **sudah dikerjakan** di `fix/newdisc-pilar-dua-turunan` (belum mendarat); 26 sisanya belum |
-| 6 | Sisa skor menengah tanpa ⚠ | belum |
-| 7 | Arc `firm-erp` PR-2..PR-6 + `delivery` PR-4..PR-6 (urutan MENGIKAT) | Approved, belum |
+Prompt & briefnya ada di [`W0-00-PENDARATAN.md`](W0-00-PENDARATAN.md) + `W0-1`…`W0-4`,
+disimpan sebagai catatan.
 
-> **Prioritas nyata sekarang bukan Gelombang 4–6, melainkan MENDARATKAN enam cabang**
-> di sensus cabang di bawah. Salah satunya (`claude/intelligent-keller-7b28db`) memikul
-> cacat isolasi data **P0** yang masih hidup di master.
+**Dua premis W0 yang terbukti SALAH** (tercatat di tempatnya): R1 tidak pernah mengubah
+bentuk `CPE_REQ` — urutan smm→regref karena itu tidak mengikat secara semantik, hanya
+tekstual. Dan hitungan katalog regref "6→9" basi; yang benar **5→10**, karena #283
+menambah set `kurs` sesudahnya.
 
-### Sensus prompt (25) terhadap `origin/master` `952392a`
+### Gelombang W1 — identitas ekspor tersegel · ⛔ **DITAHAN, kecuali W1-E**
 
-**MENDARAT (17) — JANGAN dikirim ulang.**
+Delapan paket ([`W1-00-IDENTITAS-TERSEGEL.md`](W1-00-IDENTITAS-TERSEGEL.md) + `W1-A`…`W1-H`,
+mendarat lewat #328) menutup satu kelas: identitas firma/perikatan/klien dikarang di
+dalam payload yang **disegel Ed25519** dan dicatat ke jejak audit.
+
+**Keputusan Ari 2026-08-28: hanya `W1-E` yang dikerjakan; tujuh sisanya DITAHAN.**
+
+Alasannya bukan mutu promptnya, melainkan **duplikasi**. `claude/intelligent-keller-7b28db`
+(ahead 4 / **behind 60**) sudah mengonversi **103 berkas — 28 di antaranya adalah berkas
+W1** — memakai arsitektur yang **berlawanan**:
+
+```
+master (yang W1 suruh perbaiki):        cabang:
+  scopeId: (window as {…})…?.id,          kind: 'sa800-memo', scope: 'engagement',
+  firm: 'KAP Wijaya Hartono & Rekan',     ← argumen identitas DICABUT; eksporter
+  ← identitas DIDORONG call-site            MENARIKNYA dari SSOT (export_identity.ts)
+```
+
+PRD-nya — `docs/prd-export-seal-identity-ssot.md`, **hanya ada di cabang itu**, status
+`Draft — menunggu sign-off` — melingkupi **123 call-site di ±60 view** (vs 32 berkas W1)
+dan menemukan **kelas keempat** yang W1 lewatkan: `|| 'default'` truthy ⇒
+`assertEngagementAccess` JALAN dan GAGAL ⇒ artefak **diam-diam tidak tersegel** (berbeda
+dari `undefined` yang justru melewati penjagaan).
+
+Ia juga membantah pendekatan W1 secara langsung: *"Selama identitas boleh didorong
+pemanggil, tombol ekspor ke-124 bebas mengarangnya lagi."*
+
+**`W1-E` selamat** karena isinya kontrol palsu (`<span onClick>` yang mengubah keadaan
+kertas kerja AUP), bukan identitas ekspor. **Butir E1 dicabut** dari paket itu —
+`view_records.tsx:405` ada di dalam lingkup arc.
+
+**Arah berikutnya (disetujui Ari): sign-off PRD lalu daratkan arc-nya.** Rebase-nya besar
+(behind 60) dan wajib menjaga sapuan #310/#311/#312/#313 agar tidak teregresi.
+
+**Yang tetap SAHIH dari berkas W1** meski paketnya ditahan — dipertahankan sebagai temuan:
+
+- `window.activeEngagement` **tidak pernah ditulis** di repo ini ⇒ selalu `undefined` ⇒
+  `server/src/router.ts:735` **melewati** `assertEngagementAccess`, segel tetap terbit.
+- **Ratchet `:any` memerah DUA ARAH lewat DUA gerbang berbeda** (diuji langsung):
+  naik → `scripts/check-any-ratchet.mjs` (plafon total, "satu arah: turun boleh");
+  **turun** → `eslint src` polos → `There are suppressions left that do not occur anymore.`
+  **exit 2**.
+- **Gerbang "paku" `spr2400_conventions.test.ts`** menegaskan cacat tetangga MASIH ADA dan
+  sengaja memerah bila diperbaiki (`:240` nama penanda tangan; `:246` tombol "AI Assist"
+  mati). Di sana paku **mengalahkan** aturan keras BLOK-A no. 4.
+- **`view_cockpit.tsx` BUKAN modul Cockpit.** `lazy_views.tsx:112-113`: `'cockpit'` →
+  `view_cockpit2.tsx`; `'programme'` → `view_cockpit.tsx`. `grep view_cockpit` cocok
+  sebagai **awalan** dari `view_cockpit2`.
+
+### Sensus prompt (25) terhadap `origin/master` `bc51f47`
+
+**MENDARAT (21) — JANGAN dikirim ulang.**
 
 | Prompt | PR | Prompt | PR |
 |---|---|---|---|
-| `03-cockpit` | #265 | `33-fixedassets` | #289 |
-| `07-time` | #266 · #282 | `34-firmtax` | #298 |
-| `12-billing` | #275 | `35-profitability` | #268 · #269 · #270 |
-| `16-orgchart` | #301 | `71-jet` | #280 |
-| `19-succession` | #301 | `72-diagnostic` | #288 |
-| `25-independence` | #276 | `75-opening` | #300 (O1b ditunda) |
-| `30-revenue` | #278 · #307 | `80-internalaudit` | #296 (IA6/IA7 ditunda) |
-| `31-treasury` | #287 · #290 | `86-sa230` | #286 |
-| `32-cashbank` | #283 | | |
+| `03-cockpit` | #265 | `31-treasury` | #287 · #290 |
+| `07-time` | #266 · #282 | `32-cashbank` | #283 |
+| `12-billing` | #275 | `33-fixedassets` | #289 |
+| `15-hcm` | **#319** | `34-firmtax` | #298 |
+| `16-orgchart` | #301 | `35-profitability` | #268 · #269 · #270 |
+| `19-succession` | #301 | `71-jet` | #280 |
+| `25-independence` | #276 | `72-diagnostic` | #288 |
+| `27-regref` | **#322** | `75-opening` | #300 (O1b ditunda) |
+| `28-firmgl` | **#318** | `80-internalaudit` | #296 (IA6/IA7 ditunda) |
+| `29-apar` | **#318** (A1 tertutup: `ap(ctx)` kini `apOf(ctx)`/`coaOf(ctx)`) | `86-sa230` | #286 |
+| `30-revenue` | #278 · #307 | | |
 
-**Cacat MASIH HIDUP di master — tapi perbaikannya SUDAH ADA di cabang lokal yang belum
-mendarat (2). Jangan kerjakan ulang; daratkan cabangnya.**
-
-| Prompt | Cacat hidup di `origin/master` | Cabang pemilik perbaikan |
-|---|---|---|
-| `15-hcm` | `view_people.tsx:83` → `Math.min(5, person.rating + 0.1)` (H1) | `fix/hcm-penilaian-karangan` — mencabut H1/H2, menambah `hcm_derive.ts` (+300) & ujinya (+290) |
-| `27-regref` | `data_part1.ts:535` `CPE_REQ` satu-record (R1) · `data_licensing.ts:81` `rotationLimit \|\| 5` (R2) · `data_proforma.ts:129` `RATE = C ? C.RATE : 0.22` (R3) · katalog 6 set (R4) | `fix/regref-tahap-a2` — R1 multi-record, R2 → `null`, R3 → `citRateRequired(ASOF_DATE)`, R4 → 9 set |
-
-**Terhalang kerja belum-commit di direktori kerja utama (4).** Cacatnya hidup dan
-prompt-nya sah, tapi sesi paralel sedang memegang berkasnya:
+**Terhalang kerja belum-commit di direktori kerja utama (3).** Empat mesin masih hanya ada
+sebagai berkas untracked di checkout utama — **nol dari keempatnya ada di master**
+(`mytasks_derive.ts` · `wip_adj.ts` · `home_composition.ts` · `use_firm_subledger.ts`):
 
 | Prompt | Bagian yang bisa dikerjakan | Bagian yang terhalang |
 |---|---|---|
 | `01-home` | P1, P3 | P2 butuh axe + smoke papan-ketik ⇒ **tak bisa headless** |
-| `04-tasks` | M1 (`mt.personal` lingkup firma) · M3 (`'dl-'+i`) · M4 (`.slice(0,4)`) | M2 → `usulan-M2` |
-| `11-wip` | W2 (write-down tanpa pelaku) · W3 (`role.includes('Partner')`) · W4 (`submitted: NOW`) | W1 → `usulan-W1` |
-| `29-apar` | A1 (`ap(ctx)` abai `ctx`) · A4 · A6 | A2/A5 sudah mendarat; A3 → `usulan-A3` |
+| `04-tasks` | M1 · M3 · M4 | M2 → `usulan-M2` |
+| `11-wip` | W2 · W3 · W4 | W1 → `usulan-W1` |
 
-**`28-firmgl` — DUPLIKASI AKTIF.** Cacat hidup di master (`view_firmgl.tsx` nol
-`reconcil`/`amsExport`, `\|\| 'Pengguna'`), perbaikannya sudah ada di cabang
-`fix/firmgl-rekonsiliasi-ekspor` (`daee729`) **dan sedang ditulis ULANG** sebagai berkas
-untracked di direktori kerja utama. Rekonsiliasikan dengan `daee729` sebelum salah satu
-salinan hilang.
+> ⚠ Butir-butir M/W di atas **belum diverifikasi ulang** terhadap `bc51f47` — nomor
+> barisnya berasal dari sensus `952392a`. Verifikasi sebelum mengirim; sebagian mungkin
+> sudah tertutup (seperti `29-apar` A1).
 
-**`00-GELOMBANG-0-pengiriman`** — premis mati (lihat tabel gelombang). Juga **anti-cloud
-secara struktural**: setiap langkahnya beroperasi pada direktori kerja lokal, worktree,
-`gh pr merge`, dan junction `node_modules`.
+**`00-GELOMBANG-0-pengiriman`** — premis mati; juga anti-cloud secara struktural.
 
-### Sensus cabang lokal (26 di depan `origin/master`)
+### Sensus cabang lokal (terhadap `bc51f47`)
 
-**Enam memikul kerja yang BENAR-BENAR belum ada di master:**
+Uji yang dipakai: `git diff --name-only origin/master <cabang>` — nol baris = pohon
+identik = aman dihapus.
 
-| Cabang | Isi | Catatan |
-|---|---|---|
-| `claude/intelligent-keller-7b28db` | Export-identity SSOT (F-1/F-2) + isolasi lampiran SA 580/720 | ⚠ **P0** — master `view_sa580.tsx` masih `firm?.activeEngagement?.id \|\| 'ENG-2025-014'`: lampiran bisa mendarat di berkas audit klien LAIN. **Butuh rebase ke `952392a`** (diff ~100 berkas sebagian besar hanyut merge-base) |
-| `fix/regref-tahap-a2` | R1–R4 regref | katalog 6 → 9 set |
-| `fix/hcm-penilaian-karangan` | H1/H2 + `hcm_derive.ts` | — |
-| `fix/firmgl-rekonsiliasi-ekspor` | `firm_gl_export.ts` + badge tie-out + ekspor tersegel + atribusi pemosting | sedang diduplikasi di dir kerja |
-| `fix/newdisc-pilar-dua-turunan` | Mesin turunan Pilar Dua + 2 gerbang | master `view_newdisc.tsx:26` masih `P2_JURIS` karangan |
-| `claude/fervent-tharp-227ee5` | `canon_smm_period.ts` — tahun atestasi SOQM dari ¶53 | mencabut fallback `new Date().getFullYear()` di `view_isqm`, `view_isqm_deep`, `view_governance` |
+| Cabang | Status |
+|---|---|
+| `claude/intelligent-keller-7b28db` | 🔴 **SATU-SATUNYA yang memikul kerja nyata** — `export_identity.ts` + 2 gerbang + konversi 103 berkas. Menunggu sign-off PRD. |
+| `docs/w1-identitas-tersegel` | nol berkas berbeda ⇒ sudah mendarat (#328), aman dihapus |
+| `fix/regref-tahap-a2` · `fix/newdisc-…` · `claude/fervent-tharp-…` | sudah dihapus sesudah W0 |
+| ~22 sisanya | squash-twin / debris. ⛔ **Sembilan akan MEREGRESI master bila di-merge** — mengembalikan hex mentah yang sudah ditokenkan (#311/#313), menghapus 88 baris uji e2e a11y, melonggarkan ratchet `:any`, mengembalikan geometri avatar pra-lantai-11px. **Periksa arah diff sebelum menyentuh apa pun.** |
 
-**Dua puluh sisanya squash-twin.** ⛔ **SEMBILAN akan MEREGRESI master bila di-merge** —
-mengembalikan hex mentah yang sudah ditokenkan (#311/#313), menghapus 88 baris uji e2e
-a11y, melonggarkan ratchet `:any`, membuang 54 baris revisi template 2026-08-24,
-menghapus entri fase `opening: 'Eksekusi'`, dan mengembalikan geometri avatar
-pra-lantai-11px. **Jangan merge cabang lama "untuk aman" — periksa arah diff dulu.**
+### Menjalankan prompt di sesi CLOUD
 
-`fix/firmgl-apar-subbuku` adalah leluhur murni master (nol berkas berbeda) — aman dihapus.
+Sesi cloud meng-clone `origin/master` dari GitHub ke VM Ubuntu; ia **tidak melihat**
+direktori kerja lokal, cabang lokal, maupun memori mesin ini.
+
+- Berkas prompt di `docs/prompts-perbaikan/` **adalah** mekanisme portabilitasnya.
+- Gerbangnya **kompatibel penuh**: ke-11 langkah `tools/verify.mjs` (lint · typecheck ×2 ·
+  ratchet `:any` · vitest · build · budget bundle · backend lint/typecheck/test) jalan
+  tanpa secret. `server/.env` ter-track; Postgres/Docker hanya dipakai `e2e.yml` &
+  `deploy-smoke.yml`, yang keduanya ber-`paths:` `server/**`/`migration/**` — perubahan
+  docs-only tidak memicunya (itu normal, bukan dispatch yang jatuh).
+- Setup per sesi (cermin `ci.yml`): **Node 22** · `npm ci` di root, `migration/`, `server/`.
+  Lockfile ada di keempat workspace. Tak ada `.devcontainer`.
+- ⚠ **`D:\Claude AI\CLAUDE.md` (aturan kerja Ari) TIDAK ikut** — ia dua level di atas repo.
+- Prompt yang DoD-nya menuntut axe / smoke papan-ketik / verifikasi visual **tidak bisa**
+  diselesaikan di cloud — mis. `01-home` P2, dan `W1-E` (jsdom memodelkan fokusabilitas
+  tapi **tidak** mensintesis Enter→click ⇒ hijau palsu, jebakan #306). Kerjakan lokal.
+- Escape hatch: `claude --teleport <session-id>` menarik sesi cloud ke lokal beserta
+  riwayat percakapannya.
+
+### Jebakan tooling yang menggigit sesi 2026-08-28
+
+- `gh … --jq`: `conclusion` bernilai **string KOSONG** (bukan `null`) selama run berjalan
+  ⇒ filter `.conclusion != null and != "SUCCESS"` melaporkan check sehat sebagai GAGAL.
+  Pakai `.status != "COMPLETED"` untuk "masih jalan".
+- Tool Bash meng-mangle `git show 'origin/master:.github/…'` (titik dua + backslash) ⇒
+  pakai `MSYS_NO_PATHCONV=1`.
+- Kunci `eslint-suppressions.json` berformat **`src/view_x.tsx`**, bukan
+  `migration/src/…` — mencari dengan prefiks penuh memberi **negatif palsu**.
 
 ### Usulan yang MENUNGGU KEPUTUSAN ARI (9)
 
@@ -247,35 +305,21 @@ Yang layak didahulukan menurut kedalaman E-9 dan temuan sejauh ini:
 
 ### Catatan operasional
 
-- **Sesi paralel aktif.** Beberapa prompt sudah dieksekusi dan sebagian hasilnya BELUM
-  di-commit. Selalu `git status --short` sebelum menulis prompt yang menyebut nomor
-  baris, dan tulis peringatan di prompt bila berkasnya sedang `M`.
-- **Cek cabang lokal, bukan hanya `origin/master`.** Sensus 2026-08-27 menemukan enam
-  cabang berisi kerja yang tak ada di master, dan **dua vonis "cacat masih hidup, siap
-  dikerjakan" batal** karena perbaikannya ternyata sudah ada di cabang lokal. Sebelum
-  menulis prompt: `git for-each-ref refs/heads/` lalu bandingkan blob berkas targetnya.
-- **Duplikasi nyata sedang terjadi.** `firm_gl_export.ts` + dua berkas ujinya ditulis
-  ulang di direktori kerja padahal sudah ada di `fix/firmgl-rekonsiliasi-ekspor`
-  (`daee729`). Ini biaya langsung dari status yang basi.
-
-### Menjalankan prompt di sesi CLOUD
-
-Sesi cloud meng-clone `origin/master` dari GitHub; ia **tidak melihat** direktori kerja
-lokal, cabang lokal, maupun memori mesin ini. Konsekuensinya:
-
-- Berkas prompt di `docs/prompts-perbaikan/` **adalah** mekanisme portabilitasnya —
-  karena ter-commit, ia menggantikan konteks yang tak ikut ke cloud.
-- Gerbangnya **kompatibel penuh**: `npm run verify` (11 langkah di `tools/verify.mjs`)
-  tak butuh secret — `server/.env` ter-track, `server/vitest.config.ts` memaku
-  `DATABASE_URL: 'file:./test.db'`, dan Postgres/Docker hanya dipakai `e2e.yml` /
-  `deploy-smoke.yml`, bukan `verify`.
-- **Prompt yang DoD-nya menuntut axe / smoke papan-ketik / verifikasi visual TIDAK
-  bisa diselesaikan di cloud** (mis. `01-home` P2). Kerjakan lokal.
-- Per 2026-08-27: **nol dari 25 prompt siap dikirim ke cloud** — 17 sudah mendarat,
-  2 sudah ada di cabang lokal, 5 terhalang kerja belum-commit, 1 anti-cloud. Daratkan
-  enam cabang itu dulu; kapasitas eksekusi bukan hambatannya.
-- Berkas yang dipakai lebih dari satu modul (`view_firmtreasury` = treasury/cashbank/
-  fixedassets · `view_people` = hcm/cpe/independence · `view_pc_org` = orgchart/
-  succession · `view_firmgl` = firmgl/apar) — prompt WAJIB melarang menyentuh tetangga.
-- Nama berkas usulan sengaja TIDAK berawalan `prd` agar tidak masuk registri status
-  PRD (CLAUDE.md §7).
+- **Sesi paralel aktif.** Direktori kerja utama memikul kerja BELUM DI-COMMIT (per
+  2026-08-28: 4 berkas termodifikasi + 16 untracked, termasuk empat mesin nol-pemanggil).
+  Selalu `git status --short` sebelum menulis prompt yang menyebut nomor baris, dan
+  **jangan bekerja di checkout utama** — `git checkout -- <berkas>` di sana MENGHAPUS
+  kerja sesi lain. Pakai worktree sendiri.
+- **Cek cabang lokal, bukan hanya `origin/master` — dan bandingkan POHON, bukan satu
+  berkas.** Vonis 2026-08-27 atas `claude/intelligent-keller-7b28db` dibuat dari satu
+  berkas contoh dan MELESET: 103 berkas konversinya tak terlihat, dan seluruh gelombang
+  W1 lahir dari kekeliruan itu lalu harus ditahan. `git diff --name-only origin/master
+  <cabang>` adalah uji yang benar.
+- **Duplikasi terbukti mahal, dua kali.** (1) `firm_gl_export.ts` + dua ujinya ditulis
+  ulang di direktori kerja padahal sudah ada di cabang — ternyata blob-nya identik, jadi
+  tak ada yang hilang. (2) Gelombang W1: delapan prompt disusun untuk kelas yang 28 dari
+  32 berkasnya sudah dikonversi di cabang lain. Keduanya biaya langsung dari sensus yang
+  tidak menyeluruh.
+- **PR terbuka tidak muncul di sensus cabang lokal.** `gh pr list` adalah langkah
+  TERPISAH yang wajib — PR #318 (yang menggantikan `fix/firmgl-rekonsiliasi-ekspor`)
+  hanya ketahuan lewat itu.
