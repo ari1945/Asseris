@@ -266,7 +266,10 @@ describe('TR6 — tombol Export bukan sekadar tergambar', () => {
     expect(b.disabled).toBe(false);
     await React.act(async () => { b.click(); });
     expect(eksporStage.calls).toHaveLength(1);
-    expect(eksporStage.calls[0].firm).toBe('KAP Uji & Rekan');
+    /* F-2 — yang dibuktikan tetap 'klik SAMPAI ke penulis berkas'. Yang berubah:
+       penulisnya tak lagi menerima penerbit dari pemanggil, jadi identitas di
+       payload justru menandakan jalur karangan yang hidup lagi. */
+    expect((eksporStage.calls[0] as { firm?: unknown }).firm).toBe(undefined);
   });
 
   it('tanpa identitas firma ia DIMATIKAN dan menyebut sebabnya', () => {

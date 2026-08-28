@@ -70,7 +70,6 @@ export interface ReconExportModel {
   kind: 'firm-bank-recon';
   scope: 'firm';
   fileName: string;
-  firm: string;
   title: string;
   meta: string[];
   sheets: ExportSheet[];
@@ -176,7 +175,6 @@ export function bankReconExportModel(input: ReconExportInput): ReconExportModel 
     kind: 'firm-bank-recon',
     scope: 'firm',
     fileName: one ? `Rekonsiliasi Bank — ${one.bank} ${one.name}.xlsx` : 'Rekonsiliasi Bank — seluruh rekening.xlsx',
-    firm,
     title: one ? `Rekonsiliasi Bank — ${one.bank} ${one.name}` : 'Rekonsiliasi Bank — seluruh rekening',
     meta,
     sheets: [ringkas, items],

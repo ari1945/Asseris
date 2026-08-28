@@ -65,7 +65,6 @@ const statementsExport = (gl: GlJournal[]) => {
     st: statements(coaSeed, seedGl, gl),
     recon: reconOf(gl),
     postedCount: posted.length,
-    firmName: 'KAP Uji',
     fmt,
   });
 };
@@ -168,17 +167,19 @@ describe('ekspor Laporan Keuangan — angkanya SAMA dengan yang dirender', () =>
     expect(labaAfter).toBe(fmt(statements(coaSeed, seedGl, glPlus).netProfit / 1e6, 0));
   });
 
-  it('payload tersegel ikut membawa status rekonsiliasi & identitas firma dari SSOT', () => {
+  it('payload tersegel membawa status rekonsiliasi — dan NOL identitas', () => {
     const res = statementsExport(seedGl);
     if (!res.model) throw new Error('model ekspor kosong padahal rekonsiliasi menutup');
     const rk = sheetOf(res.model.sheets, 'Rekonsiliasi');
     expect(rk.rows.length).toBe(reconOf(seedGl).length);
     expect(rk.rows.map((r) => r[0])).toEqual(reconOf(seedGl).map((r) => r.glCode));
-    expect(res.model.firm).toBe('KAP Uji');
-    /* scopeId 'default' pernah membuat artefak lolos tanpa tersegel — lingkup firma
-       tidak punya id perikatan, jadi harus benar-benar undefined. */
+    /* F-2 — identitas tidak lagi lewat model. `scope` tetap ada (ia menentukan
+       DARI MANA eksporter menarik identitas), tetapi `firm` dan `scopeId` harus
+       absen: itulah yang dulu memungkinkan `scopeId:'default'` meloloskan artefak
+       tanpa benar-benar tersegel. */
     expect(res.model.scope).toBe('firm');
-    expect(res.model.scopeId).toBe(undefined);
+    expect((res.model as { firm?: unknown }).firm).toBe(undefined);
+    expect((res.model as { scopeId?: unknown }).scopeId).toBe(undefined);
   });
 });
 
@@ -191,7 +192,7 @@ describe('ekspor Neraca Saldo — seimbang atas jurnal terposting', () => {
     const res = buildTrialBalanceExport({
       rows: tb.rows, totalDr: tb.totalDr, totalCr: tb.totalCr, balanced: tb.balanced,
       recon: reconOf(gl),
-      postedCount: gl.filter((j) => j.posted).length, firmName: 'KAP Uji', fmt,
+      postedCount: gl.filter((j) => j.posted).length, fmt,
     });
     if (!res.model) throw new Error('model Neraca Saldo kosong: ' + res.reason);
     return { tb, model: res.model };
@@ -225,7 +226,7 @@ describe('ekspor Neraca Saldo — seimbang atas jurnal terposting', () => {
     const tb = trialBalance(coaSeed, seedGl, seedGl);
     const res = buildTrialBalanceExport({
       rows: tb.rows, totalDr: tb.totalDr, totalCr: tb.totalCr + 5e9, balanced: false,
-      recon: reconOf(seedGl), postedCount: 0, firmName: 'KAP Uji', fmt,
+      recon: reconOf(seedGl), postedCount: 0, fmt,
     });
     if (!res.model) throw new Error('model Neraca Saldo kosong: ' + res.reason);
     expect(res.model.meta.some((m) => m.includes('TIDAK SEIMBANG'))).toBe(true);
@@ -249,7 +250,7 @@ describe('Q-2 — ekspor Neraca Saldo juga diblokir saat rekonsiliasi tak menutu
     return buildTrialBalanceExport({
       rows: tb.rows, totalDr: tb.totalDr, totalCr: tb.totalCr, balanced: tb.balanced,
       recon: reconOf(gl), postedCount: gl.filter((j) => j.posted).length,
-      firmName: 'KAP Uji', fmt,
+      fmt,
     });
   };
 
@@ -279,7 +280,7 @@ describe('Q-2 — ekspor Neraca Saldo juga diblokir saat rekonsiliasi tak menutu
   });
 
   it('Jurnal Umum TIDAK terikat Q-2 — tetap terbit saat rekonsiliasi terbuka', () => {
-    const m = buildJournalExport({ gl: glOpen, acctName: (c) => c, firmName: 'KAP Uji', fmt });
+    const m = buildJournalExport({ gl: glOpen, acctName: (c) => c, fmt });
     expect(m.sheets.length).toBe(1);
     expect(sheetOf(m.sheets, 'Jurnal Umum').rows.length).toBe(glOpen.length);
   });

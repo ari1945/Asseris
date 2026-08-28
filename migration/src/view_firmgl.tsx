@@ -168,9 +168,10 @@ function FirmGL() {
      dari objek yang sama dengan yang dirender — `gl` · `ledger` · `tb` · `stmts` —
      jadi tak ada salinan angka kedua yang bisa menyimpang dari layar.
 
-     Identitas firma dari SSOT (`AMS.FIRM`), bukan literal: 59 call-site ekspor lain di
-     repo ini pernah menyegel nama firma yang diketik tangan. */
-  const firmName = ((AMS.FIRM as { name?: string } | undefined) || {}).name || 'Kantor Akuntan Publik';
+     Identitas firma TIDAK dirakit di sini (F-2). Ia ditarik eksporter dari SSOT,
+     jadi modul ini tak lagi punya kesempatan mengarangnya — termasuk lewat
+     fallback `|| 'Kantor Akuntan Publik'` yang dulu berdiri di baris ini dan
+     akan menyegel nama karangan tiap kali `AMS.FIRM.name` belum siap. */
   const [exporting, setExporting] = useStateF1('');
   const exportLabel = EXPORT_LABEL;
   const terkunci = GATED_EXPORTS.includes(tab) && gate.blocked;
@@ -179,18 +180,18 @@ function FirmGL() {
     setExporting(tab);
     try {
       if (tab === 'journal') {
-        await amsExportXlsx(buildJournalExport({ gl, acctName, firmName, fmt }));
+        await amsExportXlsx(buildJournalExport({ gl, acctName, fmt }));
       } else if (tab === 'ledger') {
         await amsExportXlsx(buildLedgerExport({
           acct: ledger.acct, opening: ledger.opening, closing: ledger.closing, rows: ledger.rows,
-          totalDr: ledger.totalDr, totalCr: ledger.totalCr, acctName, firmName, fmt,
+          totalDr: ledger.totalDr, totalCr: ledger.totalCr, acctName, fmt,
         }));
       } else if (tab === 'tb') {
         /* Q-2 diperluas (Ari, 2026-08-22): Neraca Saldo membawa saldo akun kontrol
            yang SAMA dengan yang dinyatakan tak menutup, jadi ia ikut terkunci —
            kalau tidak, pemblokiran LK bisa diakali lewat pintu sebelah. */
         const built = buildTrialBalanceExport({
-          rows: tb.rows, totalDr, totalCr, balanced, recon, postedCount: posted.length, firmName, fmt,
+          rows: tb.rows, totalDr, totalCr, balanced, recon, postedCount: posted.length, fmt,
         });
         if (built.blocked || !built.model) return;
         await amsExportXlsx(built.model);
@@ -200,7 +201,7 @@ function FirmGL() {
            `buildStatementsExport` tak mengembalikan model apa pun saat terkunci,
            jadi tak ada berkas yang dapat ditulis meskipun tombolnya tertekan. */
         const built = buildStatementsExport({
-          coa, balances: balMap, st: stmts, recon, postedCount: posted.length, firmName, fmt,
+          coa, balances: balMap, st: stmts, recon, postedCount: posted.length, fmt,
         });
         if (built.blocked || !built.model) return;
         await amsExportXlsx(built.model);

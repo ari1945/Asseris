@@ -278,9 +278,12 @@ describe('D5 — kertas kerja diagnostik dapat dikeluarkan, lengkap atribusinya'
     expect(m.meta.join(' ')).toMatch(/TIDAK DAPAT BERJALAN/);
   });
 
-  it('segel ber-scope perikatan', () => {
+  it('segel ber-scope perikatan — id-nya dari SSOT, bukan dari model', () => {
     const m = model();
+    /* `scope` menentukan DARI MANA eksporter menarik identitas, jadi ia tetap di
+       model. `scopeId` tidak: sejak F-2 ia diselesaikan dari perikatan aktif, dan
+       model yang masih membawanya berarti ada jalur kedua yang bisa menyimpang. */
     expect(m.scope).toBe('engagement');
-    expect(m.scopeId).toBe('ENG-2025-040');
+    expect((m as { scopeId?: unknown }).scopeId).toBe(undefined);
   });
 });
