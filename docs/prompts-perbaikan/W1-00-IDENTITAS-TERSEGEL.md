@@ -28,22 +28,41 @@
 
 ## 1 · Cacatnya, dalam satu kalimat
 
-Tombol ekspor di puluhan modul membangun payload yang **disegel Ed25519** dan
-**dicatat ke jejak audit server**, tetapi tiga bidang identitas di dalam payload itu
-dikarang di dalam view alih-alih ditarik dari SSOT:
+> 🔴 **KOREKSI 2026-08-28 — versi lama bagian ini SALAH SECARA FAKTA.**
+> Ia berbunyi: *"Tombol ekspor … membangun payload yang disegel Ed25519 … tetapi tiga
+> bidang identitas **di dalam payload itu** dikarang."* **Nama firma tidak pernah ikut
+> di-hash.** Diverifikasi di master:
+>
+> ```
+> export_pdf.ts   canonicalPayload = { kind, title, refNo, meta, blocks }   ← firm TIDAK ikut
+> export_xlsx.ts  canonicalPayload = { kind, title, sheets }                ← firm & meta TIDAK ikut
+> ```
+>
+> Klaim "literal firma DI DALAM payload tersegel" karena itu **tidak benar untuk kedua
+> format**, dan untuk XLSX `meta` pun tidak tersegel. Rumusan yang benar ada di bawah.
 
-| Bidang | Bentuk cacatnya | Akibat |
-|---|---|---|
-| Penerbit | `firm: 'KAP Wijaya Hartono & Rekan'` literal | Berkas tersegel menyatakan penerbit yang tak pernah diverifikasi. Bila firma berganti nama — atau instansi ini melayani KAP lain — segelnya membuktikan kebohongan. |
-| Perikatan | `'ENG-2025-014'` sebagai fallback / literal di `meta` & di layar | Kertas kerja klien A membawa nomor perikatan klien B. |
-| Klien | `firm?.activeClient?.name \|\| 'PT Sentosa Makmur Tbk'` | Sama. |
+Tombol ekspor di puluhan modul membangun artefak yang **disegel Ed25519** dan **dicatat
+ke jejak audit server**, tetapi identitas yang dibawanya dikarang di dalam view alih-alih
+ditarik dari SSOT. **Cakupan segelnya tidak sejalan dengan apa yang artefak nyatakan di
+mukanya** — dan justru ketidaksejajaran itu yang membuat kelas ini berbahaya:
+
+| Bidang | Bentuk cacatnya | Ikut di-hash? | Akibat |
+|---|---|---|---|
+| Penerbit | `firm: 'KAP Wijaya Hartono & Rekan'` literal / fallback | **TIDAK** (pdf & xlsx) | Artefak boleh mencantumkan nama firma apa pun di kepalanya dan **verifikasi segel tetap LULUS**. Segelnya membuktikan isi tabel, bukan siapa yang menerbitkannya — padahal identitas penerbitlah yang membuat laporan audit berarti. |
+| Perikatan (di `meta`) | `'ENG-2025-014'` literal / fallback | **YA di PDF**, tidak di XLSX | Di PDF, segel **menutupi** nomor perikatan yang dikarang — dan dengan begitu **memberinya otoritas**. |
+| Perikatan (`scopeId`) | fallback / `undefined` | — (bukan payload) | Diteruskan ke `exportSeal` + `exportLogEvent`: segel & baris audit permanen mendarat pada perikatan yang salah, atau pada tak-satu-pun. |
+| Klien | `firm?.activeClient?.name \|\| 'PT Sentosa Makmur Tbk'` | ikut `meta` (pdf) | Sama dengan baris perikatan. |
 
 Dan satu varian yang lebih buruk lagi (kelas **scopeId hantu**, §3 di bawah).
 
 **Mengapa ini bukan cacat kosmetik:** `export_pdf.ts:82` dan `:191` meneruskan
 `scope`/`scopeId` ke `exportSeal` dan `exportLogEvent`. Yang mendarat bukan piksel,
-melainkan **artefak bersegel + baris jejak audit permanen** yang menyatakan siapa
-menerbitkan apa untuk perikatan mana. Salah di sini tidak bisa dicabut belakangan.
+melainkan **baris jejak audit permanen** yang menyatakan siapa menerbitkan apa untuk
+perikatan mana. Salah di sini tidak bisa dicabut belakangan.
+
+> ℹ︎ Analisis yang jauh lebih lengkap atas kelas ini — termasuk kelas `\|\| 'default'`
+> yang membuat artefak **diam-diam tidak tersegel** — ada di
+> `docs/prd-export-seal-identity-ssot.md` (cabang `claude/intelligent-keller-7b28db`).
 
 ---
 
