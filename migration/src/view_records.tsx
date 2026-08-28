@@ -39,6 +39,28 @@ function ArkBadge({ s }: any) {
   return <span className={'badge b-' + ((ARK_KIND as any)[s] || 'gray')}>{s === 'Legal Hold' && <I.lock size={10} style={{ marginRight: 2 }} />}{s}</span>;
 }
 
+/* Baris register, baris dokumen DMS, dan kartu sorotan dulu `<tr|div|span onClick>`:
+   tidak masuk urutan tab, tidak menanggapi Enter/Space, tidak diumumkan sebagai
+   kontrol — padahal MEMBUKA KOTAK ARSIP adalah interaksi utama modul ini. Kini
+   kontrol NATIVE di dalam sel/kartu; gaya tombol direset agar tampilan tabel &
+   kartu tak bergeser, plus cincin fokus. Pola sama dengan `.proc-rowbtn`
+   (view_procurement, PR #308), `.pc-rowbtn` (view_pc_org) & `.ia-rowbtn`
+   (view_internalaudit). */
+/* `.rr-chipbtn`: `.chip` (styles_ai.css:291) TIDAK menyetel `border`, jadi
+   `<button class="chip">` mewarisi border UA 2px dan menjadi 4px LEBIH LEBAR
+   daripada `<span class="chip">` yang digantikannya — cukup untuk melebarkan kolom
+   "Tahapan" di tab Pemusnahan. Diukur di peramban, bukan ditebak: lebar kolom
+   124px → 128px sebelum baris ini ada. */
+const RR_BTN_CSS = `
+.rr-rowbtn{ display:inline; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.rr-rowbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:4px; }
+.rr-rowbtn[aria-pressed="true"]{ text-decoration:underline; }
+.rr-cardbtn{ display:block; width:100%; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.rr-cardbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:4px; }
+.rr-cardbtn[aria-pressed="true"]{ text-decoration:underline; }
+.rr-chipbtn{ border:0; }
+`;
+
 /* ---- retention timeline bar (archived → retentionUntil dengan penanda hari ini) ---- */
 function RetentionBar({ box }: any) {
   const R = window.RETENTION;
@@ -90,6 +112,7 @@ function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
   };
   return (
     <PDrawer open={!!box} onClose={onClose} width={620}>
+      <style>{RR_BTN_CSS}</style>
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.archive size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -147,8 +170,11 @@ function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
             <thead><tr><th>Dokumen</th><th>Jenis</th><th className="num">Ver</th><th className="num">Ukuran</th><th>Status</th></tr></thead>
             <tbody>
               {docs.map((d: any) => (
-                <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => nav('dms', { from: 'records' })}>
-                  <td style={{ fontWeight: 600, fontSize: 11 }} className="truncate">{d.name}<div className="tiny muted mono">{d.id}</div></td>
+                <tr key={d.id}>
+                  <td style={{ fontWeight: 600, fontSize: 11 }} className="truncate">
+                    <button type="button" className="rr-rowbtn" title={'Buka ' + d.name + ' di DMS'} onClick={() => nav('dms', { from: 'records' })}>{d.name}</button>
+                    <div className="tiny muted mono">{d.id}</div>
+                  </td>
                   <td className="tiny">{d.type}</td>
                   <td className="num mono tiny">v{d.ver}</td>
                   <td className="num mono tiny">{d.sizeMB} MB</td>
@@ -165,7 +191,12 @@ function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
 
         <div className="row gap8" style={{ marginTop: 4 }}>
           <Btn sm onClick={() => nav('dms', { from: 'records' })}><I.archive size={13} /> Buka di DMS</Btn>
-          {box.status === 'Jatuh Tempo' && <Btn sm variant="primary" disabled={!!box.hold}><I.trash size={13} /> Usul Pemusnahan</Btn>}
+          {/* DICABUT (W1-E): tombol "Usul Pemusnahan" berdiri di sini TANPA onClick sama
+              sekali — ia mengaku bisa mengusulkan pemusnahan berkas audit, lalu diam.
+              Mengajukan usul pemusnahan menuntut persetujuan Kepala Mutu + berita acara
+              (lihat tab Pemusnahan); tak ada mesin yang dapat dipanggil dari sini, jadi
+              satu-satunya perbaikan jujur adalah MENCABUTNYA. Memberinya nama/aria-label
+              justru membuat keadaan lebih buruk (BLOK-A aturan keras no. 4). */}
           {box.disposalPO && <span className="chip tiny" style={{ alignSelf: 'center' }}><I.cart size={11} /> {box.disposalPO}</span>}
           {/* K7 — memicu engagement.archive server sungguhan (bukan lagi demo-only). Sekali
               diarsipkan, gerbang assembly-lock 60 hari (SA 230 ¶A21) mulai berjalan di server;
@@ -197,6 +228,7 @@ function RROverview({ boxes, nav, onPick }: any) {
   const assembling = boxes.filter((b: any) => b.status === 'Perakitan');
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
+      <style>{RR_BTN_CSS}</style>
       <div className="panel" style={{ padding: '11px 13px', marginBottom: 14, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
         <div className="tiny" style={{ lineHeight: 1.55 }}><I.link2 size={13} style={{ verticalAlign: -2, color: 'var(--blue)' }} /> Setiap kotak arsip <b>dirakit dari dokumen DMS</b> perikatannya — ukuran & jumlah berkas adalah agregat live. Masa simpan ditarik dari <b>Kebijakan Retensi</b>, dan penangguhan dari <b>Registri Legal Hold</b> yang sama dengan modul Legal & DMS.</div>
       </div>
@@ -228,11 +260,21 @@ function RROverview({ boxes, nav, onPick }: any) {
           <SectionTitle right={<button className="chip tiny" style={{ cursor: 'pointer' }} onClick={() => nav('legal', { from: 'records' })}><I.arrowRight size={10} /> Legal</button>}>Legal Hold Aktif</SectionTitle>
           {holds.length ? holds.map((h: any) => {
             const box = boxes.find((b: any) => b.engId === h.engId);
-            return (
-              <div key={h.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--red)', cursor: box ? 'pointer' : 'default' }} onClick={() => box && onPick(box)}>
+            /* Isi kartu dipisah supaya hold TANPA kotak arsip tidak dibungkus tombol:
+               tak ada aksi di baliknya, dan menamai kontrol mati lebih buruk daripada
+               membiarkannya bukan kontrol (BLOK-A aturan keras no. 4). */
+            const isi = (
+              <>
                 <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{h.subject}</span><span className="mono tiny" style={{ color: 'var(--red)', fontWeight: 700 }}>{h.id}</span></div>
                 <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 3 }}>{h.reason}</div>
                 <div className="tiny muted mono" style={{ marginTop: 4 }}>{h.engId} · sejak {rrDID(h.since)}{h.disputeId ? ' · ' + h.disputeId : ''}</div>
+              </>
+            );
+            return (
+              <div key={h.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--red)' }}>
+                {box
+                  ? <button type="button" className="rr-cardbtn" title={'Buka kotak arsip ' + box.id + ' — ' + box.client} onClick={() => onPick(box)}>{isi}</button>
+                  : isi}
               </div>
             );
           }) : <div className="tiny muted">Tidak ada legal hold aktif.</div>}
@@ -242,9 +284,11 @@ function RROverview({ boxes, nav, onPick }: any) {
             {assembling.map((b: any) => {
               const d = b.assembleBy ? R.daysTo(b.assembleBy) : null;
               return (
-                <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--amber)', cursor: 'pointer' }} onClick={() => onPick(b)}>
-                  <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{b.client}</span><span className="mono tiny muted">{rrSize(b.sizeMB)}</span></div>
-                  <div className="tiny muted" style={{ marginTop: 3 }}>Tenggat rakit {rrDID(b.assembleBy)} · {d != null ? (d < 0 ? Math.abs(d) + ' hari lewat' : d + ' hari lagi') : '—'}</div>
+                <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--amber)' }}>
+                  <button type="button" className="rr-cardbtn" title={'Buka kotak arsip ' + b.id + ' — ' + b.client} onClick={() => onPick(b)}>
+                    <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{b.client}</span><span className="mono tiny muted">{rrSize(b.sizeMB)}</span></div>
+                    <div className="tiny muted" style={{ marginTop: 3 }}>Tenggat rakit {rrDID(b.assembleBy)} · {d != null ? (d < 0 ? Math.abs(d) + ' hari lewat' : d + ' hari lagi') : '—'}</div>
+                  </button>
                 </div>
               );
             })}
@@ -255,12 +299,14 @@ function RROverview({ boxes, nav, onPick }: any) {
         <div>
           <SectionTitle right={<button className="chip tiny" style={{ cursor: 'pointer' }} onClick={() => nav('procurement', { from: 'records' })}><I.arrowRight size={10} /> Pengadaan</button>}>Antrean Pemusnahan</SectionTitle>
           {due.length ? due.map((b: any) => (
-            <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--blue)', cursor: 'pointer' }} onClick={() => onPick(b)}>
-              <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{b.client}</span><span className="mono tiny muted">{b.fy}</span></div>
-              <div className="row jb ac" style={{ marginTop: 3 }}>
-                <span className="tiny muted">Retensi habis {rrDID(b.retentionUntil)}</span>
-                {b.disposalPO ? <span className="chip tiny"><I.cart size={10} /> {b.disposalPO}</span> : <span className="badge b-green">Bebas hold</span>}
-              </div>
+            <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--blue)' }}>
+              <button type="button" className="rr-cardbtn" title={'Buka kotak arsip ' + b.id + ' — ' + b.client} onClick={() => onPick(b)}>
+                <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{b.client}</span><span className="mono tiny muted">{b.fy}</span></div>
+                <div className="row jb ac" style={{ marginTop: 3 }}>
+                  <span className="tiny muted">Retensi habis {rrDID(b.retentionUntil)}</span>
+                  {b.disposalPO ? <span className="chip tiny"><I.cart size={10} /> {b.disposalPO}</span> : <span className="badge b-green">Bebas hold</span>}
+                </div>
+              </button>
             </div>
           )) : <div className="tiny muted">Tidak ada arsip jatuh tempo.</div>}
 
@@ -402,6 +448,12 @@ function RecordsRetention() {
     await amsExportXlsx({
       kind: 'firm-records', scope: 'firm',
       fileName: 'Register Arsip & Retensi.xlsx',
+      /* ⚠ Penerbit masih literal — DISENGAJA. Butir E1 paket W1-E DICABUT oleh
+         keputusan Ari (#330, `868678d`): baris ini ada di dalam lingkup arc
+         `export_identity.ts` (`claude/intelligent-keller-7b28db`), yang MENCABUT
+         argumen `firm:` seluruhnya dari 123 call-site dan membuat eksporter menarik
+         identitas dari SSOT. Menambal di sini dengan `useFirmName()` justru memasang
+         pola yang dibantah PRD-nya. Ditutup arc itu, bukan oleh PR ini. */
       firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Register Arsip & Kebijakan Retensi (SA 230 / SMM 1 / SMM)',
       meta: [`${m.total} arsip · ${m.sizeGB.toFixed(1)} GB · ${m.locked} terkunci · ${m.due} jatuh tempo pemusnahan · ${m.holds} legal hold aktif`],
@@ -416,6 +468,7 @@ function RecordsRetention() {
     <>
       <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SMM 1 · SMM</span><Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
+        <style>{RR_BTN_CSS}</style>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={m.total} label={'Arsip Terkelola · ' + m.sizeGB.toFixed(1) + ' GB'} />
           <BoStat value={m.locked} label="Terkunci (read-only)" accent="var(--green)" />
@@ -433,8 +486,11 @@ function RecordsRetention() {
               <thead><tr><th>Kotak</th><th>Perikatan / Klien</th><th>FY</th><th>Sumber</th><th className="num">Berkas</th><th className="num">Ukuran</th><th>Diarsip</th><th>Retensi s/d</th><th>Status</th></tr></thead>
               <tbody>
                 {boxes.map((b: any) => (
-                  <tr key={b.id} onClick={() => onPick(b)} style={{ cursor: 'pointer' }} className={b.id === selId ? 'sel' : ''}>
-                    <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.id}</td>
+                  <tr key={b.id} className={b.id === selId ? 'sel' : ''}>
+                    <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>
+                      <button type="button" className="rr-rowbtn" aria-pressed={b.id === selId}
+                        title={'Buka kotak arsip ' + b.id + ' — ' + b.client} onClick={() => onPick(b)}>{b.id}</button>
+                    </td>
                     <td><div style={{ fontWeight: 600, fontSize: 12 }}>{b.client}</div><div className="tiny muted mono">{b.engId}</div></td>
                     <td className="tiny mono">{b.fy}</td>
                     <td>{b.source === 'DMS' ? <span className="chip tiny" style={{ color: 'var(--blue)' }}><I.archive size={10} /> DMS</span> : <span className="chip tiny muted">Legacy</span>}</td>
@@ -516,7 +572,7 @@ function RecordsRetention() {
                       <td className="tiny mono" style={{ color: 'var(--amber)' }}>{rrDID(b.retentionUntil)}</td>
                       <td className="num mono tiny">{rrSize(b.sizeMB)}</td>
                       <td>{b.hold ? <span className="badge b-red"><I.lock size={9} /> Ditahan</span> : <span className="badge b-green">Bebas</span>}</td>
-                      <td>{b.poId ? <span className="chip tiny" style={{ cursor: 'pointer' }} onClick={() => nav('procurement', { from: 'records' })}><I.cart size={10} /> {b.poId}</span> : <span className="tiny muted">{b.stage}</span>}</td>
+                      <td>{b.poId ? <button type="button" className="chip tiny rr-chipbtn" style={{ cursor: 'pointer' }} title={'Buka PO pemusnahan ' + b.poId + ' di Pengadaan'} onClick={() => nav('procurement', { from: 'records' })}><I.cart size={10} /> {b.poId}</button> : <span className="tiny muted">{b.stage}</span>}</td>
                       <td><Btn sm disabled={!b.eligible} onClick={() => onPick(b)}><I.trash size={12} /> {b.poId ? 'Berita Acara' : 'Usul Musnah'}</Btn></td>
                     </tr>
                   ))}

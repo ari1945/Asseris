@@ -16,6 +16,21 @@ import { OKv } from './view_onboarding';
    ============================================================ */
 const { useState: useRS } = React;
 
+/* Rail prosedur (AUP) & rail perikatan asurans dulu `<div onClick>`, dan penanda
+   "Pengecualian/Sesuai" + tombol hapus prosedur tambahan dulu `<span onClick>`:
+   tak masuk urutan tab, tak menanggapi Enter/Space, tak diumumkan sebagai kontrol —
+   padahal yang di baliknya adalah KEPUTUSAN PROFESIONAL SPSJL 4400 (menandai temuan
+   faktual sebagai pengecualian) dan penghapusan baris kertas kerja. Kini kontrol
+   NATIVE; gaya direset agar tampilan rail tak bergeser, plus cincin fokus. Pola sama
+   dengan `.proc-rowbtn` (view_procurement, PR #308) & `.pc-rowbtn` (view_pc_org). */
+const RS_BTN_CSS = `
+.rs-railbtn{ display:block; width:100%; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.rs-railbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; border-radius:4px; }
+.rs-delbtn{ display:inline-flex; align-items:center; background:none; border:0; padding:0; margin-left:6px; font:inherit; color:var(--ink-4); cursor:pointer; }
+.rs-delbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:4px; }
+.rs-exc.on .check-native-label{ color:var(--red); font-weight:700; }
+`;
+
 /* ---- AUP: dokumen & kertas kerja (spreadsheet) sumber ---- */
 const AUP_DOC_ICON = (kind: any) => /(xls|csv|sheet)/i.test(kind || '') ? 'table' : (/(png|jpg|jpeg|gif|img)/i.test(kind || '') ? 'panel' : 'doc');
 
@@ -119,6 +134,7 @@ function AUPPanel() {
 
   return (
     <>
+      <style>{RS_BTN_CSS}</style>
       {/* engagement header */}
       <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 38, height: 38, borderRadius: 9, background: '#5b3fa6', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>AP</span>
@@ -207,10 +223,22 @@ function AUPPanel() {
                       {p.custom ? <input className="input" value={p.finding} onChange={(e: any) => editCustom(p.no, 'finding', e.target.value)} placeholder="Temuan faktual…" style={{ width: '100%', height: 26 }} /> : (p.done ? <span style={{ color: p.exception ? 'var(--red)' : 'var(--ink-2)' }}>{p.finding}</span> : <span style={{ fontStyle: 'italic', color: 'var(--ink-4)' }}>Belum dikerjakan</span>)}
                     </td>
                     <td style={{ verticalAlign: 'top' }}>
+                      {/* Prosedur BAKU: hasil DIHITUNG dari ambang klausul — pil, bukan kontrol.
+                          Prosedur TAMBAHAN: hasilnya ditegaskan pemeriksa, jadi ia harus berupa
+                          kontrol sungguhan. Dipilih <Check> (bukan tombol ber-aria-pressed) karena
+                          semantiknya memang dua-keadaan yang DISIMPAN, bukan aksi: pembaca layar
+                          mengumumkan "Pengecualian, centang/tak dicentang". Nama aksesibelnya
+                          SENGAJA tetap "Pengecualian" di kedua keadaan — nama kontrol yang ikut
+                          berubah membuat rujukan papan-ketik/suara jadi tak stabil; keadaannya
+                          dibawa oleh `checked`, warnanya oleh `.rs-exc.on`. */}
                       {!p.done ? <Badge kind="gray">Pending</Badge> : p.custom ? (
-                        <span onClick={() => editCustom(p.no, 'exception', !p.exception)} style={{ cursor: 'pointer' }}><Badge kind={p.exception ? 'red' : 'green'}>{p.exception ? 'Pengecualian' : 'Sesuai'}</Badge></span>
+                        <span className={'rs-exc' + (p.exception ? ' on' : '')}>
+                          <Check on={!!p.exception} onChange={(v: boolean) => editCustom(p.no, 'exception', v)}
+                            label="Pengecualian" title={'Tandai temuan faktual prosedur ' + p.no + ' sebagai pengecualian (SPSJL 4400 — seluruh pengecualian wajib dilaporkan)'} />
+                        </span>
                       ) : <Badge kind={p.exception ? 'red' : 'green'}>{p.exception ? 'Pengecualian' : 'Sesuai'}</Badge>}
-                      {p.custom && <span onClick={() => delCustom(p.no)} title="Hapus" style={{ cursor: 'pointer', marginLeft: 6, color: 'var(--ink-4)' }}><I.x size={12} /></span>}
+                      {p.custom && <button type="button" className="rs-delbtn" onClick={() => delCustom(p.no)}
+                        title={'Hapus prosedur tambahan ' + p.no} aria-label={'Hapus prosedur tambahan ' + p.no}><I.x size={12} /></button>}
                     </td>
                   </tr>
                 ))}
@@ -270,10 +298,13 @@ function AUPPanel() {
                   const dc = (p.docs || []).length + (docs[p.no] || []).length;
                   const pend = (p.docs || []).filter((x: any) => x.status === 'pending').length;
                   return (
-                    <div key={p.no} onClick={() => setSelNo(p.no)} style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (p.no === sel.no ? 'var(--blue)' : 'transparent'), background: p.no === sel.no ? 'var(--blue-050)' : 'transparent' }}>
-                      <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700 }}>Prosedur {p.no}</span><span className="chip tiny">{dc}</span></div>
-                      <div className="tiny muted truncate" style={{ marginTop: 2 }}>{p.custom ? 'Tambahan' : p.clause}</div>
-                      {pend > 0 && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 2 }}>{pend} menunggu</div>}
+                    <div key={p.no} style={{ borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (p.no === sel.no ? 'var(--blue)' : 'transparent'), background: p.no === sel.no ? 'var(--blue-050)' : 'transparent' }}>
+                      <button type="button" className="rs-railbtn" aria-pressed={p.no === sel.no}
+                        title={'Buka dokumen & kertas kerja Prosedur ' + p.no} onClick={() => setSelNo(p.no)} style={{ padding: '10px 12px' }}>
+                        <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700 }}>Prosedur {p.no}</span><span className="chip tiny">{dc}</span></div>
+                        <div className="tiny muted truncate" style={{ marginTop: 2 }}>{p.custom ? 'Tambahan' : p.clause}</div>
+                        {pend > 0 && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 2 }}>{pend} menunggu</div>}
+                      </button>
                     </div>
                   );
                 })}
@@ -455,15 +486,19 @@ function OtherAssurance() {
     <>
       <SubBar moduleId="assurance" right={<div className="row gap8 ac"><Badge kind="blue">{e.std} · Keyakinan {e.level}</Badge></div>} />
       <div className="view-scroll"><div className="view-pad">
+        <style>{RS_BTN_CSS}</style>
         <div className="grid split" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
           <Panel noBody>
             <div className="panel-h"><h3>Perikatan Asurans</h3></div>
             <div>
               {ids.map(id => (
-                <div key={id} onClick={() => setSel(id)} style={{ padding: '11px 13px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (id === sel ? 'var(--blue)' : 'transparent'), background: id === sel ? 'var(--blue-050)' : 'transparent' }}>
-                  <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{id}</span><span className="chip tiny">{ENG[id].std}</span></div>
-                  <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{meta[id].client.replace('PT ', '')}</div>
-                  <div className="tiny muted truncate">{ENG[id].subject}</div>
+                <div key={id} style={{ borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (id === sel ? 'var(--blue)' : 'transparent'), background: id === sel ? 'var(--blue-050)' : 'transparent' }}>
+                  <button type="button" className="rs-railbtn" aria-pressed={id === sel}
+                    title={'Buka perikatan asurans ' + id} onClick={() => setSel(id)} style={{ padding: '11px 13px' }}>
+                    <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{id}</span><span className="chip tiny">{ENG[id].std}</span></div>
+                    <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{meta[id].client.replace('PT ', '')}</div>
+                    <div className="tiny muted truncate">{ENG[id].subject}</div>
+                  </button>
                 </div>
               ))}
             </div>
