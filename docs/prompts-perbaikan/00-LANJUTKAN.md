@@ -96,7 +96,7 @@ yang menunggu keputusan saya. Lalu tunggu saya menyebut modul berikutnya.
 
 ## Status (perbarui setiap sesi)
 
-**Terakhir diperbarui:** 2026-08-28 · `origin/master` `bc51f47` · sensus terverifikasi
+**Terakhir diperbarui:** 2026-08-29 · `origin/master` `1f54758` · sensus terverifikasi
 **blob & pohon**, bukan `git log` / `git cherry` / hitungan "N ahead".
 
 > ⚠ **Status versi 2026-08-27 (`952392a`) SUDAH BASI.** Ia menyatakan enam cabang belum
@@ -143,7 +143,39 @@ bentuk `CPE_REQ` — urutan smm→regref karena itu tidak mengikat secara semant
 tekstual. Dan hitungan katalog regref "6→9" basi; yang benar **5→10**, karena #283
 menambah set `kurs` sesudahnya.
 
-### Gelombang W1 — identitas ekspor tersegel · ⛔ **DITAHAN, kecuali W1-E**
+### Gelombang W1 — identitas ekspor tersegel · ✅ **SELESAI SELURUHNYA (2026-08-29)**
+
+> Tujuh paket yang ditahan **tidak perlu dikerjakan** — arc `export_identity` mendarat
+> sebagai **#332 `e2f69d6`** (112 berkas) dan menutup kelasnya secara struktural:
+> `firm`/`scopeId` dicabut dari `ExportModelBase` sebagai `?: never`, sehingga
+> mengirimnya = galat `tsc`. **E-2, E-3, E-5 mati.** `W1-E` mendarat terpisah lewat
+> **#329 `f57c24b`**. Koreksi rumusan W1-00 lewat **#331 `2ed5908`**.
+>
+> 🔴 **SC-4 BELUM terpenuhi.** `firm` MASIH belum ikut di-hash, jadi keluhan inti E-4 —
+> *"artefak boleh mencantumkan nama firma apa pun dan verifikasi segel tetap lulus"* —
+> **masih berlaku hari ini**. Yang tertutup adalah SUMBER identitasnya, bukan CAKUPAN
+> segelnya. **Jangan membaca F-2 sebagai "E-4 selesai".**
+>
+> Sisa arc: **F-3** (`canonicalPayload` v2 — mengubah hash; butuh Amandemen A) ·
+> **F-4** (penolakan terlihat di UI) · **F-5** (20 situs `engLabel`, SC-2) ·
+> **F-6** (registri → `Implemented`). Rincian & tiga amandemen pasca-sign-off ada di
+> [`../prd-export-seal-identity-ssot.md`](../prd-export-seal-identity-ssot.md) §12–§13
+> (mendarat lewat **#333 `1f54758`**).
+
+### Gelombang W2 — `DEFAULT_ENG_ID` · 🔵 **SIAP DIKERJAKAN**
+
+**Keputusan Ari 2026-08-29: cabut peran 1, 3, 4 — TAHAN peran 2.**
+Prompt lengkap & analisis empat perannya:
+[`W2-1-DEFAULT-ENG-ID.md`](W2-1-DEFAULT-ENG-ID.md).
+
+Ringkas: `DEFAULT_ENG_ID` bukan satu fallback melainkan **empat peran berbeda**, dan
+hanya satu cacat. Peran 1 (`contexts.tsx:930`) adalah jebakan **laten** — seluruh isi
+aplikasi dirender di dalam `FirmProvider`, jadi jalurnya praktis tak pernah dijalani.
+Peran 4 (`view_newdisc.tsx`) justru **benar** dan lahir dari #321. Mencabut peran 2
+(`contexts.tsx:1056`) membuat aplikasi mulai tanpa perikatan terpilih ⇒ **F-4 jadi
+prasyarat** dan butuh PRD sendiri.
+
+### ~~Gelombang W1 — identitas ekspor tersegel · ⛔ DITAHAN, kecuali W1-E~~ (riwayat)
 
 Delapan paket ([`W1-00-IDENTITAS-TERSEGEL.md`](W1-00-IDENTITAS-TERSEGEL.md) + `W1-A`…`W1-H`,
 mendarat lewat #328) menutup satu kelas: identitas firma/perikatan/klien dikarang di
