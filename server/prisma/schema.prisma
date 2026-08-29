@@ -220,6 +220,10 @@ model Seal {
   signedAt     DateTime @default(now())
   pubKeyId     String // identifies the signing key (sha256 of the public key, truncated)
   signature    String // base64 Ed25519 signature over contentHash
+  // F-3 — ALGORITMA payload kanonik yang dipakai saat penandatanganan. Tanpa ini,
+  // segel lama tak dapat direproduksi setelah definisi payload berubah, dan artefak
+  // yang sah akan tampak palsu (R-1). Default 1 = seluruh baris pra-F-3.
+  sealFormat   Int      @default(1)
 
   @@index([scope, scopeId])
   @@index([signerUserId])

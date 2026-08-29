@@ -727,6 +727,10 @@ export const appRouter = router({
         contentHash: z.string().refine(isContentHash, 'expected sha256 hex'),
         scope: scopeEnum.optional(),
         scopeId: z.string().min(1).optional(),
+        /* F-3 — versi algoritma payload kanonik. Opsional supaya klien lama tetap
+           dapat menyegel; tanpa nilai, baris dicatat sebagai V1 (yang memang
+           algoritma yang dipakai klien lama). */
+        sealFormat: z.number().int().min(1).max(2).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (!can(ctx.user.role, CAP.EXPORT)) {
@@ -739,6 +743,7 @@ export const appRouter = router({
           kind: input.kind, contentHash: input.contentHash,
           scope: input.scope, scopeId: input.scopeId,
           signerUserId: ctx.user.id, signerRole: ctx.user.role,
+          sealFormat: input.sealFormat,
         });
         await appendAudit({
           actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'SEAL',

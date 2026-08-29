@@ -459,13 +459,65 @@ satu per satu; inventarisasi masuk PR-2 (R-7). Bukan penghalang sign-off.
   ~~**E-1, E-2, E-3, E-5 mati.**~~ → **E-2, E-3, E-5 mati** — E-1 sudah tertutup #286
   sebelum F-2 berjalan (Amandemen C). SC-1 · SC-3 · SC-5 · SC-6 · SC-7 · SC-8 hijau.
 
+**F-3 MENDARAT 2026-08-29 — dan ia menutup cacat yang LEBIH BESAR daripada yang
+dinyatakan PRD ini.**
+
+> ⚠ **KOREKSI ATAS §1 E-4.** PRD ini menulis: *"Segelnya membuktikan isi tabelnya, bukan
+> siapa yang menerbitkannya."* Separuh kedua benar. **Separuh pertama TIDAK** — sebelum
+> F-3, segel juga tidak membuktikan isi tabel.
+>
+> Sebabnya `JSON.stringify(pick, Object.keys(pick).sort())`. Argumen kedua BUKAN pengurut
+> kunci melainkan **replacer berupa daftar-izin kunci, dan ia berlaku REKURSIF**. Daftar
+> izinnya hanya memuat kunci tingkat atas, sehingga **setiap sheet dan setiap blok PDF
+> diserialisasi menjadi `{}`**. Yang ditandatangani tinggal `kind`, `title`, `refNo`,
+> `meta` (PDF saja), dan **JUMLAH** sheet/blok — tidak satu sel pun.
+>
+> Dibuktikan lewat jalur produksi sebelum perbaikan: dua register dengan baris, nilai,
+> DAN jumlah baris berbeda menghasilkan `contentHash` yang identik (`6cf8b2f9…`
+> keduanya), sehingga segel Ed25519 keduanya dapat dipertukarkan.
+>
+> Ia lolos bertahun-tahun karena uji yang tampak menjaganya persis
+> (`export_pdf.test.ts` — *"changes when the content changes"*) mengubah **`title`**:
+> satu dari tiga field yang kebetulan memang ikut.
+
+F-3 karena itu menutup DUA cakupan, bukan satu: **isi** dan **identitas** (SC-4). `meta`
+XLSX ikut ditandatangani (Q-4). `sealFormat` berada DI DALAM payload sebagai pemisah
+domain, dan tercatat per-baris di server (`Seal.sealFormat`, default 1) sehingga segel
+lama tetap dapat direproduksi dengan algoritmanya sendiri (SC-9 · R-1). V1 diarsipkan
+utuh di `export_seal_payload.ts` — **beku, termasuk cacatnya**; menghukum dokumen lama
+karena algoritmanya berkembang adalah kegagalan yang lebih buruk daripada cacat yang
+diperbaiki (Q-2).
+
+> 🔴 **F-3 HANYA MENGERJAKAN SEPARUH AMANDEMEN A.** §4 (sesudah Amandemen A) menuntut
+> DUA kolom pada model `Seal`: **`sealFormat`** *dan* **nama firma penandatangan**.
+> F-3 menambahkan **`sealFormat` saja**. Akibatnya mitigasi **Q-3** — *"rekaman menyimpan
+> nama saat penandatanganan"* — **belum terpasang**: baris segel menyimpan `scope` dan
+> `scopeId`, tetapi tidak menyimpan `firm` yang IKUT DI-HASH sejak V2. Verifier yang
+> menghitung ulang payload V2 karena itu harus mengambil nama firma dari artefaknya
+> sendiri, bukan dari state server yang tepercaya.
+>
+> Sengaja tidak diselipkan ke F-3: menyimpannya menuntut keputusan yang belum diambil —
+> apakah barisnya merekam **klaim klien** (apa yang benar-benar di-hash; dapat
+> direproduksi, tetapi tak dapat diverifikasi server) atau **fakta server**
+> (`ctx.user.firmId` → nama firma; dapat diverifikasi, tetapi bisa BERBEDA dari yang
+> di-hash, dan untuk `scope:'firm'` tak sejajar dengan `FIRM_SCOPE_ID` sisi klien).
+> Memilih diam-diam salah satunya di dalam PR yang sudah hijau adalah cara termurah
+> memasang trust model yang tak pernah diputuskan. **Butuh keputusan Ari.**
+
 **Yang BELUM, dan sengaja tidak diselipkan:**
 
-- **F-3 (PR-3) — `canonicalPayload` v2.** Inilah yang membuat **SC-4 belum terpenuhi**:
-  `firm` MASIH belum ikut di-hash, jadi keluhan inti E-4 — *"artefak boleh mencantumkan
-  nama firma apa pun dan verifikasi segel tetap lulus"* — **masih berlaku hari ini**.
-  Yang sudah tertutup adalah sumbernya (nama tak bisa lagi dikarang call-site), bukan
-  cakupan segelnya. Jangan membaca F-2 sebagai "E-4 selesai".
+- **VERIFIKASI TIDAK PERNAH MENGHITUNG ULANG HASH — dan ini temuan tersendiri.**
+  Ketiga pemanggil `exportVerifySeal` (`view_onboarding:314`, `view_onboarding2:205`,
+  `view_continuance:291`) menyerahkan **hash yang sudah tersimpan di state klien sejak
+  penyegelan**, bukan hash yang dihitung ulang dari artefaknya. Server lalu
+  membandingkan hash tersimpan dengan hash tersimpan — pemeriksaan yang hanya dapat
+  gagal bila state klien rusak. Konsekuensinya: tombol "Verifikasi" hari ini
+  membuktikan **baris segel ada dan tanda tangannya sah**, BUKAN bahwa artefak di
+  tangan pembaca masih utuh. Karena tak ada yang menghitung ulang, R-1 tak pernah
+  benar-benar terpicu — dan `sealFormat` yang F-3 pasang adalah **persiapan** bagi
+  verifier yang menghitung ulang, bukan bukti bahwa ia sudah ada. Membangun verifier
+  itu (unggah artefak → rekonstruksi model → payload sesuai `sealFormat`-nya → banding)
+  adalah pekerjaan tersendiri; belum dijadwalkan.
 - **F-4 (PR-4)** — jalur penolakan yang terlihat di UI (`emitExportRefusal` sudah
   disiarkan; toaster & tombol nonaktif belum ditinjau visual).
 - **F-5 (PR-5)** — 20 situs `engLabel` di `refNo`/`meta` (**SC-2 belum**) + gerbang
