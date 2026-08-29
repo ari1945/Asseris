@@ -178,13 +178,13 @@ function StepLetter({ p, onPatch }: any) {
     try {
       const sealResult = await amsExportPdf({
         kind: 'engagement-letter',
+        /* Surat perikatan ditandatangani saat perikatannya BELUM ada — prospek. */
+        scope: 'firm',
         fileName: `Surat Perikatan - ${p.name}.pdf`,
-        firm: FIRM.name,
         title: 'Surat Perikatan Audit',
         refNo: `No. ${p.id}/EL/${new Date(today).getFullYear()}`,
         meta: [`${p.id} · ${p.name} · ${p.standard}`, `Versi ${L.version}`],
-        blocks: buildLetterPayload(p, { ...L, signedBy, signedDate: today }),
-      });
+        blocks: buildLetterPayload(p, { ...L, signedBy, signedDate: today })});
       onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter,
         status: 'signed', signedBy, signedDate: today,
         psre: { provider: 'PrivyID', accred: 'PSrE Kominfo', algo: 'RSA-2048 / SHA-256', at: today },
@@ -282,7 +282,7 @@ function StepLetter({ p, onPatch }: any) {
             </>}
             {L.status === 'sent' && <Btn sm variant="primary" disabled={!canIssue || signing} onClick={sign}><I.check size={12} /> {signing ? 'Menyegel…' : 'Tandatangani (PSrE) & Bubuhkan e-Meterai'}</Btn>}
             {!canIssue && L.status !== 'signed' && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.4 }}>Penerbitan & otorisasi surat perikatan memerlukan otoritas Partner (FIRM_ADMIN).</div>}
-            {L.status === 'signed' && <Btn sm onClick={() => amsExportPdf({ kind: 'engagement-letter', fileName: `Surat Perikatan - ${p.name}.pdf`, firm: FIRM.name, title: 'Surat Perikatan Audit', refNo: `No. ${p.id}/EL/${new Date(today).getFullYear()}`, meta: [`${p.id} · ${p.name} · ${p.standard}`, `Versi ${L.version}`], blocks: buildLetterPayload(p, { ...L, signedBy: L.signedBy || (p.name + ' (Direksi)'), signedDate: L.signedDate || today }) }).catch(() => {})}><I.download size={12} /> Cetak / Export PDF</Btn>}
+            {L.status === 'signed' && <Btn sm onClick={() => amsExportPdf({ kind: 'engagement-letter', scope: 'firm', fileName: `Surat Perikatan - ${p.name}.pdf`, title: 'Surat Perikatan Audit', refNo: `No. ${p.id}/EL/${new Date(today).getFullYear()}`, meta: [`${p.id} · ${p.name} · ${p.standard}`, `Versi ${L.version}`], blocks: buildLetterPayload(p, { ...L, signedBy: L.signedBy || (p.name + ' (Direksi)'), signedDate: L.signedDate || today }) }).catch(() => {})}><I.download size={12} /> Cetak / Export PDF</Btn>}
             {/* #4 — surat sudah ditandatangani TETAP tak bisa ditimpa diam-diam: generate()/send()
                 tak muncul lagi (blok di atas hanya render saat status==='draft'). Amandemen adalah
                 aksi eksplisit terpisah, sama gate-nya (Partner/FIRM_ADMIN) dengan penerbitan awal. */}

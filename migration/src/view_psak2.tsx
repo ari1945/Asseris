@@ -139,9 +139,8 @@ function PSAK2View() {
       const cffRows = cf.cff.map((l: { label: string; v: number }) => [l.label, fmt(Math.round(l.v / 1e6))]);
       const tieOutRows = tieRows.map(r => [r.label, r.std, fmt(Math.round(r.a / 1e6)), fmt(Math.round(r.b / 1e6)), r.ok ? 'Menutup' : 'SELISIH']);
       await amsExportXlsx({
-        kind: 'psak2-kk-cf', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak2-kk-cf', scope: 'engagement',
         fileName: `KK Arus Kas (PSAK 2) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja — Laporan Arus Kas (PSAK 2) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 2 / IAS 7 · metode ${method}`,
           `Kas akhir ${fmt(Math.round(cf.cashClose / 1e6))} jt · kenaikan neto ${fmt(Math.round(cf.netChange / 1e6))} jt — Rp juta`],
@@ -161,8 +160,7 @@ function PSAK2View() {
             ], colWidths: [56, 16] },
           { name: 'Tie-out', heading: 'Rekonsiliasi lintas-laporan (Rp juta)',
             columns: ['Pernyataan', 'Acuan', 'A', 'B', 'Status'], rows: tieOutRows, colWidths: [48, 9, 15, 15, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

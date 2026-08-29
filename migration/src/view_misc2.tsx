@@ -201,9 +201,8 @@ function TemplateDetail({ t, onClose }: any) {
     setExporting(true);
     try {
       await amsExportXlsx({
-        kind: 'template-card', scope: 'firm', scopeId: undefined,
+        kind: 'template-card', scope: 'firm',
         fileName: `Template - ${t.name}.xlsx`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Kartu Template — ' + t.name,
         meta: [`${t.id} · ${t.fmt} · fase ${t.phase} · ${t.cat}`,
           `Status ${t.status}${t.version ? ' · versi ' + t.version : ''}`],
@@ -212,8 +211,7 @@ function TemplateDetail({ t, onClose }: any) {
             columns: ['Field', 'Nilai'],
             rows: [['ID', t.id], ['Nama', t.name], ['Format', t.fmt], ['Fase', t.phase], ['Kategori', t.cat], ['Status', t.status], ['Versi', t.version || '—'], ['Modul', t.module || '—']],
             colWidths: [16, 60] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

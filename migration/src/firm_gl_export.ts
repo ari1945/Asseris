@@ -73,12 +73,12 @@ export interface XlsxSheet {
 
 export interface XlsxModel {
   kind: string;
-  scope: string;
-  /** Ekspor lingkup firma tak punya id perikatan; JANGAN diisi 'default' — nilai
-      truthy palsu itu pernah membuat artefak lolos tanpa benar-benar tersegel. */
-  scopeId: undefined;
+  /* F-2 — `scopeId` dan `firm` DICABUT dari model. Keduanya kini ditarik
+     eksporter dari SSOT (`export_identity.ts`); `ExportModelBase` menolaknya
+     lewat `never`, termasuk bila datang lewat spread. Catatan lama tentang
+     bahaya `scopeId:'default'` pindah ke sana bersama penegakannya. */
+  scope: 'firm';
   fileName: string;
-  firm: string;
   title: string;
   meta: string[];
   sheets: XlsxSheet[];
@@ -152,7 +152,6 @@ export function reconSheet(rows: ReconRow[], fmt: Fmt): XlsxSheet {
 export interface JournalExportInput {
   gl: GlJournal[];
   acctName: (code: string) => string;
-  firmName: string;
   fmt: Fmt;
 }
 
@@ -161,9 +160,8 @@ export function buildJournalExport(i: JournalExportInput): XlsxModel {
   const list = i.gl || [];
   const posted = list.filter((j) => j.posted);
   return {
-    kind: 'firm-gl-journal', scope: 'firm', scopeId: undefined,
+    kind: 'firm-gl-journal', scope: 'firm',
     fileName: 'Jurnal Umum Firma.xlsx',
-    firm: i.firmName,
     title: 'Jurnal Umum Firma',
     meta: [
       list.length + ' jurnal · ' + posted.length + ' terposting · ' + (list.length - posted.length) + ' draft',
@@ -191,7 +189,6 @@ export interface LedgerExportInput {
   totalDr: number;
   totalCr: number;
   acctName: (code: string) => string;
-  firmName: string;
   fmt: Fmt;
 }
 
@@ -199,9 +196,8 @@ export function buildLedgerExport(i: LedgerExportInput): XlsxModel {
   const fmt = i.fmt;
   const drCr = (v: number) => fmt(Math.abs(v) / 1e6, 0) + (v >= 0 ? ' D' : ' K');
   return {
-    kind: 'firm-gl-ledger', scope: 'firm', scopeId: undefined,
+    kind: 'firm-gl-ledger', scope: 'firm',
     fileName: 'Buku Besar ' + i.acct.code + '.xlsx',
-    firm: i.firmName,
     title: 'Buku Besar ' + i.acct.code + ' · ' + i.acct.name,
     meta: [
       i.acct.type + ' · saldo awal ' + drCr(i.opening) + ' · saldo akhir ' + drCr(i.closing),
@@ -246,7 +242,6 @@ export interface TrialBalanceExportInput {
   /** Baris rekonsiliasi — Neraca Saldo ikut tunduk Q-2 (perluasan 2026-08-22). */
   recon: ReconRow[];
   postedCount: number;
-  firmName: string;
   fmt: Fmt;
 }
 
@@ -259,9 +254,8 @@ export function buildTrialBalanceExport(i: TrialBalanceExportInput): GatedExport
     blocked: false,
     reason: '',
     model: {
-      kind: 'firm-gl-tb', scope: 'firm', scopeId: undefined,
+      kind: 'firm-gl-tb', scope: 'firm',
       fileName: 'Neraca Saldo Firma.xlsx',
-      firm: i.firmName,
       title: 'Neraca Saldo Firma',
       meta: [
         'Dihitung dari ' + i.postedCount + ' jurnal terposting',
@@ -293,7 +287,6 @@ export interface StatementsExportInput {
   st: StatementSet;
   recon: ReconRow[];
   postedCount: number;
-  firmName: string;
   fmt: Fmt;
 }
 
@@ -333,9 +326,8 @@ export function buildStatementsExport(i: StatementsExportInput): GatedExportResu
     blocked: false,
     reason: '',
     model: {
-      kind: 'firm-gl-statements', scope: 'firm', scopeId: undefined,
+      kind: 'firm-gl-statements', scope: 'firm',
       fileName: 'Laporan Keuangan Firma.xlsx',
-      firm: i.firmName,
       title: 'Laporan Keuangan Firma — dari buku besar',
       meta: [
         'Dihitung dari ' + i.postedCount + ' jurnal terposting',

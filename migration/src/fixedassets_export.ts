@@ -46,7 +46,6 @@ export interface AssetExportModel {
   kind: 'firm-fixed-assets';
   scope: 'firm';
   fileName: string;
-  firm: string;
   title: string;
   meta: string[];
   sheets: ExportSheet[];
@@ -217,7 +216,6 @@ export function fixedAssetsExportModel(input: AssetExportInput): AssetExportMode
     kind: 'firm-fixed-assets',
     scope: 'firm',
     fileName: 'Register Aset Tetap Kantor.xlsx',
-    firm,
     title: 'Register Aset Tetap Kantor',
     meta,
     sheets,

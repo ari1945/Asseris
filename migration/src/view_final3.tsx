@@ -619,9 +619,8 @@ function ManagementLetter() {
             const finalDate = visible.reduce((mx: string | null, f: { decisionDate?: unknown }) => { const d = typeof f.decisionDate === 'string' ? f.decisionDate : null; if (!d) return mx; return mx == null || d > mx ? d : mx; }, null as string | null);
             const dateStr = previewMode === 'final' ? (finalDate ? idDate(finalDate) : idDate(today())) : 'DRAFT — ' + idDate(today());
             amsExportPdf({
-              kind: 'mgmt-letter', scope: 'engagement', scopeId: activeEngagement?.id,
+              kind: 'mgmt-letter', scope: 'engagement',
               fileName: `Surat Manajemen - ${activeClient?.name || 'Klien'}.pdf`,
-              firm: AMS.FIRM.name,
               title: 'Surat Manajemen (Management Letter) — Audit ' + (activeEngagement?.fy || ''),
               refNo: 'SA 265 · 260 · ' + (activeEngagement?.id || ''),
               meta: [activeClient?.name || '', activeEngagement?.id || '', dateStr],
@@ -648,8 +647,7 @@ function ManagementLetter() {
                 ]),
                 { type: 'para', text: 'Surat ini memuat ' + visible.length + ' temuan beserta tanggapan manajemen. Kami mengapresiasi kerja sama tim manajemen dan siap membahas tindak lanjut lebih lanjut pada pertemuan terpisah.' },
                 { type: 'signature', signers: [{ name: activeEngagement?.partner || '', role: 'Engagement Partner', at: dateStr }] },
-              ],
-            }).catch(() => {});
+              ]}).catch(() => {});
           }}><I.download size={13} /> Export PDF</Btn>}
           {tab === 'preview' && previewMode === 'final' && <Btn sm variant="primary" disabled={pendingCount > 0} title={pendingCount > 0 ? 'Selesaikan ' + pendingCount + ' temuan dalam diskusi dulu' : ''}><I.send size={14} /> Kirim ke TCWG</Btn>}
         </div>

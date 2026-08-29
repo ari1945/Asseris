@@ -116,9 +116,8 @@ function Governance() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'smm-eval', scope: 'firm', scopeId: undefined,
+        kind: 'smm-eval', scope: 'firm',
         fileName: 'Evaluasi SMM Tahunan.pdf',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Evaluasi Sistem Manajemen Mutu — Tahunan',
         meta: [`SMM 1 · ${evalPeriodPhrase.toLowerCase()}`,
           `Cakupan tujuan mandatori ${objCov.addressedPct}% (${objCov.complete ? 'lengkap' : 'ada celah'}) · ${effective}/${comps.length} komponen efektif`],
@@ -128,8 +127,7 @@ function Governance() {
             body: comps.map((c: { id?: string; name?: string; status?: string; label?: string }) => [c.name || c.label || c.id || '', c.status || '—']) },
           { type: 'heading', text: '2. Simpulan' },
           { type: 'para', text: `Rekomendasi kesimpulan: ${evalResult.label} (${evalResult.paragraph}). Defisiensi terbuka: ${evalResult.openPervasive.length} pervasif, ${evalResult.openSignificant.length} signifikan, ${evalResult.openMinor.length} minor.` },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

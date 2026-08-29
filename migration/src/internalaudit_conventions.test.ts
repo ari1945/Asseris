@@ -105,11 +105,16 @@ describe('IA1 · identitas memo tersegel = identitas yang menyegelnya', () => {
     expect([nil.firmName, nil.clientName, nil.cycle, nil.engagementId, nil.partner]).toEqual(['', '', '', '', '']);
   });
 
-  it('view mengambil scopeId dari konteks memo yang sama, bukan dari ekspresi terpisah', () => {
+  it('view TIDAK merakit identitas segel sendiri — F-2 menariknya dari SSOT', () => {
     const src = view();
+    /* Sebelum F-2 gerbang ini MENUNTUT `scopeId: memoCtx.engagementId` dan
+       `firm: memoCtx.firmName` di view — itu perbaikan yang benar selama identitas
+       masih boleh didorong pemanggil. Sejak identitas ditarik eksporter dari SSOT,
+       tuntutan itu berbalik: call-site yang masih merakitnya adalah jalur kedua,
+       dan jalur kedua itulah yang dulu menyegel perikatan orang lain. */
     expect(src, 'view tidak memakai iaMemoContext').toMatch(/iaMemoContext\s*\(/);
-    expect(src, 'scopeId segel tidak diambil dari konteks memo').toMatch(/scopeId\s*:\s*(memoCtx|ctx)\.engagementId/);
-    expect(src, 'nama firma pada muka berkas tidak diambil dari konteks memo').toMatch(/firm\s*:\s*(memoCtx|ctx)\.firmName/);
+    expect(src, 'view masih merakit scopeId segel').not.toMatch(/scopeId\s*:/);
+    expect(src, 'view masih merakit penerbit segel').not.toMatch(/\bfirm\s*:/);
   });
 
   it('nama faktor pada tabel memo memakai field yang benar-benar ada', () => {

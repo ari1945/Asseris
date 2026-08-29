@@ -162,7 +162,6 @@ function FirmTreasury() {
     await amsExportXlsx({
       kind: 'firm-treasury', scope: 'firm',
       fileName: 'Anggaran & Arus Kas Firma.xlsx',
-      firm: firmName,
       title: 'Anggaran vs Aktual & Forecast Arus Kas',
       meta: [
         `FY${fy} · laba operasi aktual Rp ${fmt(actProfit / 1e9, 1)} M · cash runway ${runway.toFixed(1)} bln · skenario ${sc.label}`,

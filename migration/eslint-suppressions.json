@@ -31,7 +31,7 @@
   },
   "src/contexts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 108
+      "count": 116
     }
   },
   "src/copilot.tsx": {
@@ -206,12 +206,12 @@
   },
   "src/export_pdf.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 11
+      "count": 10
     }
   },
   "src/export_xlsx.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 9
+      "count": 8
     }
   },
   "src/fsgen_model.tsx": {

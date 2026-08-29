@@ -383,7 +383,6 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
             const ss = r.slip;
             amsExportPdf({
               kind: 'payslip', scope: 'firm', fileName: `Slip Gaji - ${r.name} - ${R.period}.pdf`,
-              firm: AMS.FIRM.name || 'KAP',
               title: 'Slip Gaji · ' + R.period,
               refNo: r.id,
               meta: [r.name + ' · ' + r.role, 'PTKP ' + r.p.ptkp + ' · TER ' + (ss.ter == null ? '—' : (ss.ter * 100).toFixed(2) + '%') + ' (Kat. ' + (ss.terCategory || '—') + ')', 'Periode: ' + R.period],
@@ -416,8 +415,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
                   ['BPJS JKM (0,3%)', 'Rp ' + fmt(ss.eJkm, 0)],
                   ['Total Beban Pemberi Kerja', 'Rp ' + fmt(ss.employerCost + r.thr, 0)],
                 ] },
-              ],
-            }).catch(() => {});
+              ]}).catch(() => {});
           }}><I.download size={13} /> Unduh Slip (PDF)</Btn>
           {canSend && (sent
             ? <Btn disabled style={{ flex: 1, color: 'var(--green)' }} title={'Ditandai terkirim ' + sent.at + ' oleh ' + sent.by + ' — distribusi slip dilakukan di luar aplikasi'}><I.check size={13} /> Ditandai Terkirim · {sent.at}</Btn>

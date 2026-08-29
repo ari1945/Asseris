@@ -85,11 +85,8 @@ function HCM() {
         s.name, s.grade, s.cert || '—', s.util + '%', s.rating.toFixed(1), s.status,
       ]);
       await amsExportXlsx({
-        kind: 'hcm-directory', scope: 'firm', scopeId: undefined,
+        kind: 'hcm-directory', scope: 'firm',
         fileName: 'Direktori SDM.xlsx',
-        /* Menyegel identitas firma yang salah memberi otoritas pada isi yang keliru —
-           nama firma dari SSOT `AMS.FIRM`, bukan literal di titik panggil. */
-        firm: amsFirmName(),
         title: 'Direktori Sumber Daya Manusia',
         meta: [`${staff.length} karyawan · ${counts.find(c => c.g === 'Partner')?.n || 0} partner`,
           `Rata-rata utilisasi ${avgUtil}% · ${staff.filter((s: { status: string }) => s.status === 'Cuti').length} cuti`],
@@ -97,8 +94,7 @@ function HCM() {
           { name: 'Direktori', heading: 'Direktori SDM',
             columns: ['Nama', 'Grade', 'Sertifikasi', 'Utilisasi', 'Rating', 'Status'],
             rows, colWidths: [28, 12, 24, 10, 9, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -530,9 +526,8 @@ function Independence() {
     setDeclExporting(true);
     try {
       await amsExportPdf({
-        kind: 'independence-decl', scope: 'firm', scopeId: undefined,
+        kind: 'independence-decl', scope: 'firm',
         fileName: `Deklarasi Independensi - ${d.name}.pdf`,
-        firm: firmName,
         title: 'Deklarasi Independensi Tahunan',
         meta: [`${d.name}${d.role ? ' · ' + d.role : ''} · ${INDEP_PERIOD}`,
           `Status: ${d.declared ? 'DIDEKLARASIKAN' : 'BELUM'} · konflik ${d.conflicts} · masa tugas ${d.tenure}/${d.rotationLimit} th (${d.rotationClient || '—'})`],
@@ -543,8 +538,7 @@ function Independence() {
             body: INDEP_Q.map((q: string) => [q, d.declared ? 'Ya' : 'Belum']) },
           { type: 'heading', text: 'Rotasi & Cooling-off' },
           { type: 'para', text: `Masa tugas ${d.tenure} tahun dari batas ${d.rotationLimit} tahun pada ${d.rotationClient || '—'}.` },
-        ],
-      });
+        ]});
     } finally {
       setDeclExporting(false);
     }

@@ -146,17 +146,15 @@ function FirmDashboard() {
     try {
       const engRows = engagements.map((e: any) => [e.id, e.client || e.clientName || '', e.status, e.progress != null ? e.progress + '%' : '—', e.partner || '']);
       await amsExportXlsx({
-        kind: 'dash-kpi', scope: 'firm', scopeId: undefined,
+        kind: 'dash-kpi', scope: 'firm',
         fileName: 'Firm KPI - FY2025.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Firm KPI — Dashboard Konsolidasi FY2025',
         meta: [`${activeEng.length} engagement aktif · total fee Rp ${Math.round(totalFee / 1e6)} jt`,
           'Realization rate 87% · utilisasi tim 84% · pipeline Rp 9,3 M'],
         sheets: [
           { name: 'Engagements', heading: 'Engagement aktif',
             columns: ['ID', 'Klien', 'Status', 'Progres', 'Partner'], rows: engRows, colWidths: [14, 30, 12, 10, 22] },
-        ],
-      });
+        ]});
     } finally {
       setExportingKpi(false);
     }

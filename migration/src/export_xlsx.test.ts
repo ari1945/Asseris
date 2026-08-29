@@ -38,14 +38,14 @@ vi.mock('xlsx', () => {
   return { utils, writeFile: xlsx.writeFile };
 });
 
+import { publishActiveEngagement } from './export_identity';
+
 const { amsExportXlsx } = await import('./export_xlsx');
 
 const MODEL = {
   kind: 'wtb-register',
-  scope: 'engagement',
-  scopeId: 'ENG-2025-014',
+  scope: 'engagement' as const,
   fileName: 'wtb.xlsx',
-  firm: 'WHR & Rekan',
   title: 'Register WTB',
   meta: ['FY2025'],
   sheets: [
@@ -56,7 +56,11 @@ const MODEL = {
 const sealSheet = () => xlsx.appended.find(s => s.name === 'Segel');
 const flatRows = (aoa: unknown[]) => aoa.map(r => (Array.isArray(r) ? r.join('|') : String(r)));
 
+/* PR-2 — identitas artefak DITARIK dari SSOT, bukan didorong model. Uji ini
+   karenanya harus menerbitkan perikatan aktif; tanpa itu helper MENOLAK
+   menerbitkan apa pun (jalur penolakan diuji terpisah di bawah). */
 beforeEach(() => {
+  publishActiveEngagement('ENG-2025-014');
   apiMock.exportSeal.mockReset();
   apiMock.exportLogEvent.mockClear();
   xlsx.appended = [];

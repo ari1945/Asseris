@@ -83,9 +83,8 @@ function StrategyMemo() {
       {approved && <Badge kind="green"><I.check size={12} /> Disetujui · {approved.by}</Badge>}
       <Btn sm onClick={() => {
         amsExportPdf({
-          kind: 'strategy-memo', scope: 'engagement', scopeId: activeEngagement?.id,
+          kind: 'strategy-memo', scope: 'engagement',
           fileName: `Memo Strategi Audit - ${activeClient?.name || 'Klien'}.pdf`,
-          firm: AMS.FIRM.name || 'KAP Wijaya Hartono & Rekan',
           title: 'Memorandum Strategi Audit',
           refNo: 'SA 300 · ' + (activeEngagement?.id || ''),
           meta: [
@@ -117,8 +116,7 @@ function StrategyMemo() {
                 ? new Date(activeEngagement.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
                 : '\u2014'],
             ] },
-          ],
-        }).catch(() => {});
+          ]}).catch(() => {});
       }}><I.download size={13} /> Export PDF</Btn>
       {approved
         ? (canApprove && <Btn sm onClick={() => setApproved(null)}>Batalkan Persetujuan</Btn>)

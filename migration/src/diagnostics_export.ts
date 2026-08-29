@@ -51,9 +51,7 @@ export interface ExportSheet {
 export interface DiagExportModel {
   kind: 'engagement-diagnostic';
   scope: 'engagement';
-  scopeId: string;
   fileName: string;
-  firm: string;
   title: string;
   meta: string[];
   sheets: ExportSheet[];
@@ -201,10 +199,8 @@ export function diagnosticExportModel(input: DiagExportInput): DiagExportModel {
   return {
     kind: 'engagement-diagnostic',
     scope: 'engagement',
-    scopeId: String(input.engagementId || ''),
     fileName: 'Diagnostik Forensik & Pajak'
       + (input.engagementLabel ? ' — ' + input.engagementLabel : '') + '.xlsx',
-    firm,
     title: 'Diagnostik Forensik & Pajak — temuan & keputusan auditor',
     meta,
     sheets: [temuan, detektor],

@@ -86,9 +86,8 @@ function FirmOps() {
       const obRows = obligations.map((o: any) => [o.label || o.name, o.type || '', o.due || o.date || '', o.amount != null ? Math.round(o.amount / 1e6) : '—', o.status || '']);
       const assetRows = B.ASSET_REGISTER.rows.map((a: any) => [a.id, a.name, a.cat, a.standar, Math.round(a.cost / 1e6), Math.round(a.nbv / 1e6), a.loc || '']);
       await amsExportXlsx({
-        kind: 'firmops-paket', scope: 'firm', scopeId: undefined,
+        kind: 'firmops-paket', scope: 'firm',
         fileName: 'Paket Operasi KAP.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Paket Operasi — Ringkasan Firma',
         meta: [`Overhead tahunan Rp ${Math.round(oc.overheadAnnual / 1e6)} jt · belanja YTD Rp ${Math.round(spendYtd / 1e6)} jt`,
           `${register.length} kontrak · ${B.VENDORS.length} vendor · ${overdue.length} kewajiban lewat tempo — Rp juta`],
@@ -97,8 +96,7 @@ function FirmOps() {
             columns: ['Kewajiban', 'Tipe', 'Jatuh Tempo', 'Nilai', 'Status'], rows: obRows, colWidths: [30, 14, 12, 14, 14] },
           { name: 'Aset Tetap', heading: 'Aset tetap (Rp juta)',
             columns: ['ID', 'Aset', 'Kelas', 'Standar', 'Perolehan', 'NBV', 'Lokasi'], rows: assetRows, colWidths: [10, 30, 26, 10, 12, 12, 14] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

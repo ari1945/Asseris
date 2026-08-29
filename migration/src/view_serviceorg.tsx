@@ -167,7 +167,6 @@ function ServiceOrg() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'serviceorgs.v1' → engagement) — isolasi W7.5
@@ -195,8 +194,7 @@ function ServiceOrg() {
   const exportMemo = () => {
     const rows = orgs.map(o => [o.id, o.name, o.reportType, o.std, o.opinion === '—' ? '—' : o.opinion.split(' (')[0], o.sig]);
     amsExportPdf({
-      kind: 'memo-serviceorg', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Organisasi Jasa (SA 402)',
+      kind: 'memo-serviceorg', scope: 'engagement', title: 'Memo Organisasi Jasa (SA 402)',
       refNo: 'A-402 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 402 — Pertimbangan Audit atas Entitas yang Menggunakan Organisasi Jasa', 'Dibuat: ' + soToday() + ' · ' + me],
       blocks: [
@@ -204,8 +202,7 @@ function ServiceOrg() {
         { type: 'table', head: ['ID', 'Organisasi Jasa', 'Laporan', 'Standar', 'Opini Auditor Jasa', 'Signifikansi'],
           body: rows.length ? rows : [['—', 'Tidak ada organisasi jasa tercatat.', '—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 150 } } },
         { type: 'para', text: 'Auditor memperoleh pemahaman atas penggunaan organisasi jasa, menilai risiko salah saji material, dan merancang prosedur responsif — mengandalkan laporan auditor jasa (Type 1/2) dan/atau prosedur di organisasi jasa, termasuk pengujian CUEC (SA 402 ¶9–22).' },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

@@ -181,7 +181,8 @@ describe('layar Kas & Bank — kertas kerja & jejak', () => {
       .find((x) => (x.textContent || '').includes('Ekspor rekening ini')) as HTMLButtonElement;
     await React.act(async () => { b.click(); });
     expect(eksporStage.calls).toHaveLength(1);
-    expect(eksporStage.calls[0].firm).toBe('KAP Uji & Rekan');
+    /* F-2 — identitas ditarik eksporter dari SSOT; payload harus bersih. */
+    expect((eksporStage.calls[0] as { firm?: unknown }).firm).toBe(undefined);
   });
 
   it('ekspor yang GAGAL mengatakan sebabnya di layar, bukan diam', async () => {

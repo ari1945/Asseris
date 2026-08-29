@@ -141,9 +141,8 @@ function PSAK24View() {
       const reconRows = P24_RECON.map(r => [r.t, fmt(r.v)]);
       const presentRows = P24_PRESENT.map(p => [p.stmt, p.ref, p.line, fmt(p.amt)]);
       await amsExportXlsx({
-        kind: 'psak24-kk-h2', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak24-kk-h2', scope: 'engagement',
         fileName: `KK H-2 Imbalan Kerja (PSAK 24) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja H-2 — Imbalan Kerja (PSAK 24) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 24 / IAS 19`,
           `Liabilitas imbalan pasti akhir ${fmt(dbo)} jt — Rp juta`],
@@ -152,8 +151,7 @@ function PSAK24View() {
             columns: ['Mutasi', 'Rp juta'], rows: reconRows, colWidths: [58, 16] },
           { name: 'Penyajian', heading: 'Peta penyajian dalam laporan keuangan (Rp juta)',
             columns: ['Pernyataan', 'Ref', 'Pos', 'Rp juta'], rows: presentRows, colWidths: [30, 9, 52, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -103,7 +103,6 @@ function WIPModule() {
       await amsExportXlsx({
         kind: 'firm-wip', scope: 'firm',
         fileName: 'WIP — Valuasi & Realisasi.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Sub-buku WIP per Perikatan — Valuasi & Realisasi',
         meta: [
           `WIP belum ditagih Rp ${M(W.unbilledTotal)} M · recoverable neto Rp ${M(W.netRecoverable)} M · realisasi ${pc(W.avgRealization)} · penyisihan ${pc(W.provisionPct, 1)}`,
@@ -124,8 +123,7 @@ function WIPModule() {
             totals: ['TOTAL', W.registerAll.length, jt(W.totStd), jt(W.unbilledTotal), pc(W.avgRealization), pc(W.avgMargin)],
             colWidths: [22, 12, 15, 14, 12, 12],
           },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

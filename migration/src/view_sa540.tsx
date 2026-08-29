@@ -69,7 +69,6 @@ function SA540View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'estimates.v1' → engagement) — isolasi W7.5
@@ -124,8 +123,7 @@ function SA540View() {
     const regRows = register.map(e => [e.id, e.name, e.mgmt.toLocaleString('id-ID'), e.lo.toLocaleString('id-ID') + '–' + e.hi.toLocaleString('id-ID'), e.unc, e.risk]);
     const biasRows = bias.map(b => [b.id, b.t, b.est, b.flag === 'green' ? 'Wajar' : 'Perhatian']);
     amsExportPdf({
-      kind: 'memo-estimasi', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Audit atas Estimasi Akuntansi (SA 540)',
+      kind: 'memo-estimasi', scope: 'engagement', title: 'Memo Audit atas Estimasi Akuntansi (SA 540)',
       refNo: 'E-540 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 540 (Revisi) — Estimasi Akuntansi & Pengungkapan', 'Dibuat: ' + estToday() + ' · ' + me],
       blocks: [
@@ -133,8 +131,7 @@ function SA540View() {
         { type: 'table', head: ['Ref', 'Estimasi', 'Titik Mgmt', 'Rentang Auditor', 'Ketidakpastian', 'Risiko'], body: regRows.length ? regRows : [['—', '—', '—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 150 } } },
         { type: 'heading', text: 'Indikator Kemungkinan Bias Manajemen (¶32)' },
         { type: 'table', head: ['Ref', 'Indikator', 'Estimasi', 'Status'], body: biasRows.length ? biasRows : [['—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 220 } } },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

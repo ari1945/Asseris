@@ -287,11 +287,9 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
     await amsExportXlsx({
       kind: 'pdp-ropa', scope: 'firm',
       fileName: `Catatan RoPA - ${r.id}.xlsx`,
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: `Catatan Aktivitas Pemrosesan (RoPA) — ${r.activity}`,
       meta: [`${r.id} · UU 27/2022 Ps. 31 · dasar pemrosesan ${r.basis} · risiko ${r.risk}`],
-      sheets: [{ name: 'RoPA', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 70] }],
-    });
+      sheets: [{ name: 'RoPA', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 70] }]});
   };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>

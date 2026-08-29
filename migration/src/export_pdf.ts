@@ -11,6 +11,63 @@
    bytes); re-exporting from the same source data reproduces the same hash for verification.
    ============================================================ */
 import { exportSeal, exportLogEvent } from './api';
+import { resolveExportIdentity, type ExportScope } from './export_identity';
+
+/* ============================================================
+   PR-2 (prd-export-seal-identity-ssot) — IDENTITAS DITARIK, BUKAN DIDORONG.
+
+   `firm` dan `scopeId` dulu adalah argumen call-site. 123 call-site mengisinya
+   dengan sembilan bentuk ekspresi berbeda untuk satu fakta yang sama, dan tiga
+   bentuk itu rusak: `|| 'ENG-2025-014'` (segel mendarat di berkas klien lain),
+   `|| 'default'` (artefak diam-diam tak tersegel), dan `window.activeEngagement`
+   (tak ada penulisnya sejak window-strip ⇒ selalu undefined).
+
+   Keduanya kini diambil helper dari SSOT. `firm?: never` / `scopeId?: never`
+   BUKAN sekadar "tidak dipakai": ia membuat pengirimannya menjadi error `tsc` —
+   termasuk lewat spread (`{ ...base }` yang membawa `firm`), yang tak akan
+   tertangkap kalau field-nya sekadar dihilangkan dari tipe.
+
+   `scope` TETAP argumen: hanya call-site yang tahu apakah artefaknya milik
+   perikatan atau firma; itu bukan fakta yang dapat diturunkan dari state.
+   ============================================================ */
+export interface ExportModelBase {
+  kind: string;
+  scope: ExportScope;
+  fileName?: string;
+  title?: string;
+  meta?: string[];
+  /** DILARANG — identitas berasal dari SSOT (`export_identity.ts`). */
+  firm?: never;
+  /** DILARANG — lingkup berasal dari SSOT (`export_identity.ts`). */
+  scopeId?: never;
+}
+
+export interface ExportPdfModel extends ExportModelBase {
+  refNo?: string;
+  /* Bentuk blok sengaja longgar: menyusun tipe untuk setiap varian blok
+     (heading/para/kv/table/signature) adalah pekerjaan tersendiri dan bukan yang
+     dijaga PR ini. Yang ditutup di sini identitas, bukan tata letak. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[];
+}
+
+/** Hasil penerbitan. `refused` = artefak sengaja TIDAK dibuat (identitas tak
+ *  dapat diturunkan) — berbeda dari `sealed:false`, yang berarti berkasnya ADA
+ *  tetapi tanpa segel. Dua kegagalan yang berbeda, jangan disatukan. */
+export interface ExportResult {
+  sealed: boolean;
+  sealId: string | null;
+  contentHash: string | null;
+  reason: string;
+  refused?: boolean;
+}
+
+/** Peristiwa global saat artefak ditolak — dirender `ExportRefusalToaster`. */
+export function emitExportRefusal(kind: string, reason: string): void {
+  try {
+    window.dispatchEvent(new CustomEvent('ams:export-refused', { detail: { kind, reason } }));
+  } catch (e) { /* lingkungan tanpa DOM (uji node): diam */ }
+}
 
 export const SEAL_DISCLAIMER =
   'Segel provenans Asseris (Ed25519) — membuktikan pembuat & integritas konten. ' +
@@ -65,12 +122,25 @@ const LINE = [210, 216, 222];
 
 /**
  * Generate, seal, download. Returns { sealed, sealId|null, contentHash, reason }.
- * model: { kind, scope?, scopeId?, fileName, firm, title, refNo?, meta:[], blocks:[
+ * model: { kind, scope, fileName, title, refNo?, meta:[], blocks:[
+ *   ↑ `firm` & `scopeId` SENGAJA TIDAK ADA di sini — keduanya `?: never` pada
+ *     ExportModelBase dan ditarik dari `resolveExportIdentity()`. Mendaftarkannya
+ *     kembali di docstring ini adalah cara termurah untuk mengundang call-site
+ *     ke-124 mendorong identitasnya sendiri lagi.
  *   {type:'heading', text} | {type:'para', text} | {type:'kv', rows:[[label,value],…]} |
  *   {type:'table', head:[…], body:[[…]]} | {type:'signature', signers:[{name,role,at}]}
  * ] }
  */
-export async function amsExportPdf(model: any) {
+export async function amsExportPdf(model: ExportPdfModel): Promise<ExportResult> {
+  /* Identitas LEBIH DULU — sebelum pustaka berat dimuat dan sebelum satu byte
+     dibuat. Artefak yang tak dapat menyebut penerbit & perikatannya tidak boleh
+     terbit sama sekali; menerbitkannya tanpa segel hanya memindahkan cacatnya
+     ke berkas yang sudah ada di tangan auditor. */
+  const identity = resolveExportIdentity(model.scope);
+  if (!identity.ok) {
+    emitExportRefusal(model.kind, identity.reason);
+    return { sealed: false, sealId: null, contentHash: null, reason: identity.reason, refused: true };
+  }
   const { jsPDF, autoTable, QR } = await loadLibs();
   const contentHash = await sha256Hex(canonicalPayload(model));
 
@@ -79,7 +149,7 @@ export async function amsExportPdf(model: any) {
   let seal = null;
   let reason = 'ok';
   try {
-    seal = await exportSeal({ kind: model.kind, contentHash, scope: model.scope, scopeId: model.scopeId });
+    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId });
   } catch (e: any) {
     reason = (e && (e.data?.code || e.shape?.data?.code)) === 'FORBIDDEN' ? 'forbidden' : 'unavailable';
   }
@@ -94,7 +164,7 @@ export async function amsExportPdf(model: any) {
 
   // Firm header.
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...MUTED);
-  doc.text(String(model.firm || '').toUpperCase(), MARGIN, y); y += 16;
+  doc.text(identity.firm.toUpperCase(), MARGIN, y); y += 16;
   // Title.
   doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...NAVY);
   const titleLines = doc.splitTextToSize(model.title || '', contentW);
@@ -188,7 +258,7 @@ export async function amsExportPdf(model: any) {
   // If we couldn't seal, still record the export to the audit chain (best-effort). A successful
   // seal already appended a SEAL row server-side, so don't double-log that path.
   if (!seal) {
-    await exportLogEvent({ kind: model.kind, format: 'pdf', scope: model.scope, scopeId: model.scopeId, contentHash });
+    await exportLogEvent({ kind: model.kind, format: 'pdf', scope: identity.scope, scopeId: identity.scopeId, contentHash });
   }
   return { sealed: !!seal, sealId: seal?.sealId || null, contentHash, reason };
 }

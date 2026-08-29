@@ -15,7 +15,15 @@
    spreadsheet arithmetic, consistent with the Fase 1 PDF tables.
    ============================================================ */
 import { exportSeal, exportLogEvent } from './api';
-import { SEAL_DISCLAIMER } from './export_pdf';
+import { SEAL_DISCLAIMER, emitExportRefusal, type ExportModelBase, type ExportResult } from './export_pdf';
+import { resolveExportIdentity } from './export_identity';
+
+/** Model register XLSX. `firm`/`scopeId` DILARANG — lihat catatan di export_pdf.ts. */
+export interface ExportXlsxModel extends ExportModelBase {
+  /* Longgar, alasan sama seperti `blocks` di export_pdf.ts. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sheets?: any[];
+}
 
 let _xlsx: any = null;
 async function loadXlsx() {
@@ -51,10 +59,17 @@ function canonicalPayload(model: any) {
 
 /**
  * Generate, seal, download an .xlsx workbook. Returns { sealed, sealId|null, contentHash, reason }.
- * model: { kind, scope?, scopeId?, fileName, firm, title, meta:[…strings],
+ * model: { kind, scope, fileName, title, meta:[…strings],
+ *   ↑ `firm` & `scopeId` SENGAJA TIDAK ADA — lihat catatan sama di export_pdf.ts.
  *   sheets:[ { name, heading?, columns:[…labels], rows:[[…cells]], totals?:[…cells], colWidths?:[…wch] } ] }
  */
-export async function amsExportXlsx(model: any) {
+export async function amsExportXlsx(model: ExportXlsxModel): Promise<ExportResult> {
+  /* Identitas LEBIH DULU — lihat catatan di export_pdf.ts. */
+  const identity = resolveExportIdentity(model.scope);
+  if (!identity.ok) {
+    emitExportRefusal(model.kind, identity.reason);
+    return { sealed: false, sealId: null, contentHash: null, reason: identity.reason, refused: true };
+  }
   const XLSX = await loadXlsx();
   const contentHash = await sha256Hex(canonicalPayload(model));
 
@@ -63,7 +78,7 @@ export async function amsExportXlsx(model: any) {
   let seal = null;
   let reason = 'ok';
   try {
-    seal = await exportSeal({ kind: model.kind, contentHash, scope: model.scope, scopeId: model.scopeId });
+    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId });
   } catch (e: any) {
     reason = (e && (e.data?.code || e.shape?.data?.code)) === 'FORBIDDEN' ? 'forbidden' : 'unavailable';
   }
@@ -95,7 +110,7 @@ export async function amsExportXlsx(model: any) {
   const sealRows = [
     ['Asseris — Ekspor Register'],
     ['Judul', model.title || ''],
-    ['Firma', model.firm || ''],
+    ['Firma', identity.firm],
     ...(model.meta || []).map((m: any) => ['', String(m)]),
     [],
     [seal ? 'TERSEGEL · Provenans Asseris' : 'TIDAK TERSEGEL'],
@@ -121,7 +136,7 @@ export async function amsExportXlsx(model: any) {
   // If we couldn't seal, still record the export to the audit chain (best-effort). A successful
   // seal already appended a SEAL row server-side, so don't double-log that path.
   if (!seal) {
-    await exportLogEvent({ kind: model.kind, format: 'xlsx', scope: model.scope, scopeId: model.scopeId, contentHash });
+    await exportLogEvent({ kind: model.kind, format: 'xlsx', scope: identity.scope, scopeId: identity.scopeId, contentHash });
   }
   return { sealed: !!seal, sealId: seal?.sealId || null, contentHash, reason };
 }

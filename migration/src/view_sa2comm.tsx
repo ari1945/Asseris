@@ -73,7 +73,6 @@ function SA250View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'noclar.v1' → engagement) — isolasi W7.5
@@ -96,8 +95,7 @@ function SA250View() {
       .map(r => [r.id, r.area, r.cat === 'direct' ? 'Langsung' : 'Operasi', r.sev, r.status, r.desc]);
     const repRows = report.map(r => [r.to, r.ref, r.status, r.by ? r.by + ' · ' + (r.at || '') : '—']);
     amsExportPdf({
-      kind: 'memo-noclar', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM && (AMS.FIRM as { name?: string }).name) || 'KAP', title: 'Memo Pertimbangan Hukum & Regulasi (NOCLAR — SA 250)',
+      kind: 'memo-noclar', scope: 'engagement', title: 'Memo Pertimbangan Hukum & Regulasi (NOCLAR — SA 250)',
       refNo: 'L-250 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 250 — Pertimbangan atas Peraturan Perundang-undangan dalam Audit', 'Dibuat: ' + nocToday() + ' · ' + me],
       blocks: [
@@ -108,8 +106,7 @@ function SA250View() {
         { type: 'heading', text: 'Jenjang Pelaporan (SA 250 ¶22–29)' },
         { type: 'table', head: ['Penerima', 'Ref', 'Status', 'Jejak'], body: repRows },
         { type: 'para', text: 'Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada manajemen & pihak tata kelola. Auditor memperoleh bukti audit cukup & tepat atas kepatuhan terhadap ketentuan yang berdampak langsung & material pada LK, serta melaksanakan prosedur terbatas atas ketentuan lain (SA 250 ¶13–14).' },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (
@@ -368,7 +365,6 @@ function SA260View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'tcwg.v1' → engagement) — isolasi W7.5
@@ -388,8 +384,7 @@ function SA260View() {
     const mRows = matrix.map(m => [m.id, m.item, m.ref, m.form, m.status]);
     const fRows = [...findings].sort((a, b) => (sevRank[a.sev] ?? 9) - (sevRank[b.sev] ?? 9)).map(f => [f.sev, f.area, f.t, f.link]);
     amsExportPdf({
-      kind: 'memo-tcwg', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Laporan kepada Pihak yang Bertanggung Jawab atas Tata Kelola (SA 260)',
+      kind: 'memo-tcwg', scope: 'engagement', title: 'Laporan kepada Pihak yang Bertanggung Jawab atas Tata Kelola (SA 260)',
       refNo: 'L-260 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 260 — Komunikasi dengan TCWG', 'Dibuat: ' + nocToday() + ' · ' + me],
       blocks: [
@@ -397,8 +392,7 @@ function SA260View() {
         { type: 'table', head: ['Ref', 'Hal', 'SA', 'Bentuk', 'Status'], body: mRows.length ? mRows : [['—', '—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 200 } } },
         { type: 'heading', text: 'Temuan Signifikan dari Audit (¶16)' },
         { type: 'table', head: ['Severitas', 'Area', 'Temuan', 'Kaitan'], body: fRows.length ? fRows : [['—', '—', 'Tidak ada temuan tercatat.', '—']], columnStyles: { 2: { cellWidth: 220 } } },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (
@@ -574,7 +568,6 @@ function SA265View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'deficiencies.v1' → engagement) — isolasi W7.5
@@ -596,16 +589,14 @@ function SA265View() {
   const exportLetter = () => {
     const rows = list.filter(d => d.sig).map(d => [d.id, d.t, d.impact]);
     amsExportPdf({
-      kind: 'memo-sa265', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Komunikasi Defisiensi Signifikan Pengendalian Internal (SA 265)',
+      kind: 'memo-sa265', scope: 'engagement', title: 'Komunikasi Defisiensi Signifikan Pengendalian Internal (SA 265)',
       refNo: 'L-265 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 265 — Komunikasi Defisiensi kepada TCWG', 'Dibuat: ' + nocToday() + ' · ' + me],
       blocks: [
         { type: 'para', text: 'Kepada Yth. Komite Audit / Pihak yang Bertanggung Jawab atas Tata Kelola. Sehubungan dengan audit atas laporan keuangan, kami menyampaikan defisiensi signifikan dalam pengendalian internal yang kami identifikasi. Komunikasi ini disusun semata untuk TCWG & manajemen; audit kami tidak dirancang untuk menyatakan opini atas efektivitas pengendalian internal.' },
         { type: 'heading', text: 'Defisiensi Signifikan yang Teridentifikasi (¶9)' },
         { type: 'table', head: ['Ref', 'Defisiensi', 'Dampak Potensial'], body: rows.length ? rows : [['—', 'Tidak ada defisiensi signifikan.', '—']], columnStyles: { 1: { cellWidth: 200 }, 2: { cellWidth: 180 } } },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   return (

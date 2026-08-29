@@ -164,9 +164,8 @@ function PSAK1View() {
       const discRows = disc.map((d: { ref: string; t: string; ok: boolean }) => [d.ref, d.t, d.ok ? 'OK' : 'Belum']);
       const lineRows = lines.map((l: { t: string; on: boolean }) => [l.t, l.on ? 'Disajikan' : 'Tidak']);
       await amsExportXlsx({
-        kind: 'psak1-checklist', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak1-checklist', scope: 'engagement',
         fileName: `Checklist Penyajian (PSAK 1) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Checklist Penyajian Laporan Keuangan (PSAK 1) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 1 / IAS 1`,
           `Pengungkapan ${discOk}/${disc.length} OK · skor penyajian ${score}%`],
@@ -175,8 +174,7 @@ function PSAK1View() {
             columns: ['Acuan', 'Pengungkapan', 'Status'], rows: discRows, colWidths: [12, 60, 10] },
           { name: 'Baris Penyajian', heading: lineRefLabel,
             columns: ['Baris', 'Status'], rows: lineRows, colWidths: [64, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

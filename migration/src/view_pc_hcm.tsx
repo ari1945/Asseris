@@ -81,9 +81,8 @@ function Profile360Drawer({ s, onClose }: any) {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'profile-360', scope: 'firm', scopeId: undefined,
+        kind: 'profile-360', scope: 'firm',
         fileName: `Profil - ${s.name}.pdf`,
-        firm: A.FIRM?.name || '',
         title: 'Profil 360° — ' + s.name,
         meta: [`${s.name} · ${s.grade || ''} · bergabung ${s.joined || ''}`,
           `Utilisasi ${s.util ?? 0}% · rating ${s.rating ?? 0} · cuti tersisa ${lvLeft} hari · CPE ${cpe} SKP`],
@@ -92,8 +91,7 @@ function Profile360Drawer({ s, onClose }: any) {
           { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure === null ? UNKNOWN : tenure + ' tahun']] },
           { type: 'heading', text: 'Kompensasi & Pengembangan' },
           { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -119,9 +119,8 @@ function FirmBI() {
       const stageRows = byStage.map((s: any) => [s.st, s.n, Math.round(s.gross / 1e6), Math.round(s.wt / 1e6)]);
       const clientRows = active.map((c: any) => [c.name, Math.round(c.fee / 1e6), c.status, c.partner || '']);
       await amsExportXlsx({
-        kind: 'bi-board', scope: 'firm', scopeId: undefined,
+        kind: 'bi-board', scope: 'firm',
         fileName: 'Paket Laporan Dewan - FY2025.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Paket Laporan Dewan — Konsolidasi FY2025',
         meta: [`Pendapatan Rp ${Math.round(actRev / 1e6)} jt · laba Rp ${Math.round(profit / 1e6)} jt (${marginPct.toFixed(0)}%)`,
           `Pipeline tertimbang Rp ${Math.round(weighted / 1e6)} jt · konsentrasi 3 klien ${top3.toFixed(0)}% — Rp juta`],
@@ -130,8 +129,7 @@ function FirmBI() {
             columns: ['Stage', 'Jumlah', 'Gross', 'Tertimbang'], rows: stageRows, colWidths: [16, 9, 14, 14] },
           { name: 'Klien', heading: 'Klien aktif (Rp juta)',
             columns: ['Klien', 'Fee', 'Status', 'Partner'], rows: clientRows, colWidths: [32, 12, 10, 18] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

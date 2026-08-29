@@ -56,9 +56,8 @@ function SubsequentEvents() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'subsequent-memo', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'subsequent-memo', scope: 'engagement',
         fileName: `Memo Subsequent Events (SA 560) - ${(window as { activeClient?: { name?: string } }).activeClient?.name || 'Klien'}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Memo — Peristiwa Setelah Periode Pelaporan (SA 560 / PSAK 8)',
         meta: [`Periode telaah 31 Des 2025 – 14 Mar 2026 · ${events.length} peristiwa`,
           `${adjusting} penyesuai · ${events.length - adjusting} non-penyesuai · prosedur ${procDone}/${procs.length}`],
@@ -69,8 +68,7 @@ function SubsequentEvents() {
           { type: 'heading', text: '2. Register Peristiwa' },
           { type: 'table', head: ['ID', 'Tanggal', 'Peristiwa', 'Dampak (jt)', 'Klasifikasi'],
             body: events.map((e: SubsequentEvent) => [e.id, String(e.date).slice(0, 10), e.title, String(e.amount / 1e6), e.type === 'adjusting' ? 'Penyesuai' : 'Non-penyesuai']) },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -290,12 +290,10 @@ function Performance() {
     await amsExportXlsx({
       kind: 'firm-performance', scope: 'firm',
       fileName: 'Laporan Kalibrasi Kinerja.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: `Kalibrasi Kinerja — ${C.cycle}`,
       meta: [`${summary.calibrated}/${summary.people} terkalibrasi · rata-rata skor ${scoreText(summary.avgScore)} dari ${summary.scored} orang yang dapat dinilai · ${summary.pendingManager} menunggu reviu manajer`,
         'Skor kinerja = Σ(skor KPI × bobot) ÷ Σ(bobot); penempatan 9-box diturunkan dari (skor × potensi).'],
-      sheets: [{ name: 'Kalibrasi', columns: ['ID', 'Karyawan', 'Jabatan', 'Tahapan', 'Skor Kinerja', 'Potensi', '9-Box', 'Rekomendasi', 'Catatan Integritas'], rows, colWidths: [10, 24, 22, 18, 12, 10, 22, 18, 28] }],
-    });
+      sheets: [{ name: 'Kalibrasi', columns: ['ID', 'Karyawan', 'Jabatan', 'Tahapan', 'Skor Kinerja', 'Potensi', '9-Box', 'Rekomendasi', 'Catatan Integritas'], rows, colWidths: [10, 24, 22, 18, 12, 10, 22, 18, 28] }]});
   };
 
   return (

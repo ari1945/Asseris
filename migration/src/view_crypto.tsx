@@ -385,11 +385,9 @@ function CRDocDrawer({ d, onClose, nav }: any) {
     await amsExportXlsx({
       kind: 'crypto-seal', scope: 'firm',
       fileName: `Bukti Segel - ${d.id}.xlsx`,
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: `Bukti Segel Kriptografis — ${d.name}`,
       meta: [`${d.id} v${d.ver} · SHA-256 · ${d.wormLabel} · ${d.valid ? 'integritas valid' : 'INTEGRITAS MISMATCH'}`],
-      sheets: [{ name: 'Bukti Segel', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 80] }],
-    });
+      sheets: [{ name: 'Bukti Segel', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 80] }]});
   };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
@@ -500,7 +498,6 @@ function CRServerChain({ rows, verify, nav }: any) {
       await amsExportXlsx({
         kind: 'audit-trail', scope: 'firm',
         fileName: 'Jejak Audit Server (append-only).xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Jejak Audit Server — Append-only (tamper-evident)',
         meta: [`Model AuditLog · ${rows.length} entri terbaru · verifikasi server: ${ok ? 'TERVERIFIKASI' : 'TERPUTUS #' + (verify && verify.brokenAt)}`,
           'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (kebijakan KAP atas dokumentasi perikatan — bukan angka yang ditetapkan SMM 1)'],
@@ -508,8 +505,7 @@ function CRServerChain({ rows, verify, nav }: any) {
           name: 'Jejak Audit Server',
           columns: ['#', 'Waktu', 'Peran', 'Pelaku (userId)', 'Aksi', 'Sasaran', 'Detail', 'Prev Hash', 'Hash'],
           rows: xrows, colWidths: [6, 22, 16, 24, 10, 28, 40, 20, 20],
-        }],
-      });
+        }]});
     } finally {
       setExporting(false);
     }

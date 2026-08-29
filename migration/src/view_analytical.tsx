@@ -181,9 +181,8 @@ function AnalyticalReview() {
         benchVerdict(r.y[2], r.bench, r.good),
       ]);
       await amsExportXlsx({
-        kind: 'analytical-kk', scope: 'engagement', scopeId: eng?.id,
+        kind: 'analytical-kk', scope: 'engagement',
         fileName: `KK Prosedur Analitis (SA 520) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja — Prosedur Analitis (SA 520) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 520 (Revisi)`,
           `Ambang: ≥ ${thr.absThr != null ? 'Rp ' + fmt(thr.absThr / 1e6, 0) + ' jt atau ' : ''}${thr.pctThr}% — Rp juta`],
@@ -192,8 +191,7 @@ function AnalyticalReview() {
             columns: ['Kode', 'Akun', 'PY', 'CY', 'Selisih', 'Δ%'], rows: fluxRows, colWidths: [9, 36, 15, 15, 15, 10] },
           { name: 'Analisis Rasio', heading: 'Rasio terhadap tolok ukur industri',
             columns: ['Rasio', 'CY', 'Benchmark', 'Verdict'], rows: ratioRows, colWidths: [36, 14, 14, 14] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

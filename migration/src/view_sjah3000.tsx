@@ -124,9 +124,8 @@ function SJAH3000View() {
     try {
       const limited = sel.level === 'Terbatas';
       await amsExportPdf({
-        kind: 'sjah3000-report', scope: 'engagement', scopeId: (window as { activeEngagement?: { id?: string } }).activeEngagement?.id,
+        kind: 'sjah3000-report', scope: 'engagement',
         fileName: `Laporan Asurans - ${sel.client}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'LAPORAN ASURANS INDEPENDEN — ' + sel.subject,
         meta: [`${sel.id} · ${sel.client} · ${sel.std}`,
           `Keyakinan ${limited ? 'TERBATAS (simpulan negatif)' : 'memadai (simpulan positif)'} · kriteria ${sel.criteria}`],
@@ -137,8 +136,7 @@ function SJAH3000View() {
           { type: 'heading', text: 'Hal Pokok & Simpulan' },
           { type: 'table', head: ['Hal', 'Nilai', 'Perlakuan'],
             body: (sel.matters as [string, string, string][]).map(m => [m[0], m[1], m[2]]) },
-        ],
-      });
+        ]});
     } finally { setExporting(false); }
   };
 

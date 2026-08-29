@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAmsPersist, useAudit, useNav } from './contexts';
+import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui';
@@ -218,16 +218,21 @@ function GroupAudit() {
 
   /* K-06 lanjutan — wire tombol "Group Audit Memo" + "Finalisasi Group Audit Memo"
      (dulu mati): ekspor PDF tersegel memo audit grup (SA 600). */
+  /* E-3 — perikatan dulu dibaca dari `window.activeEngagement`, yang TAK ADA
+     penulisnya sejak window-strip. Akibatnya bukan hanya scopeId: nama berkas
+     selalu "Group Audit Memo - Klien.pdf" dan baris meta selalu diawali id
+     kosong. Kini dari FirmContext. */
+  const firmCtx = useFirm();
   const [exporting, setExporting] = useStateGA(false);
   const onExportMemo = async () => {
     if (exporting) return;
     setExporting(true);
     try {
-      const eng = (window as { activeEngagement?: { id?: string; clientName?: string; fy?: string } }).activeEngagement;
+      const eng = firmCtx?.activeEngagement;
+      const engClient = firmCtx?.activeClient?.name;
       await amsExportPdf({
-        kind: 'groupaudit-memo', scope: 'engagement', scopeId: eng?.id,
-        fileName: `Group Audit Memo - ${eng?.clientName || 'Klien'}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
+        kind: 'groupaudit-memo', scope: 'engagement',
+        fileName: `Group Audit Memo - ${engClient || 'Klien'}.pdf`,
         title: 'Group Audit Memo — SA 600 (Revisi)',
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · SA 600 (Revisi)`,
           `${comps.length} komponen · cakupan pendapatan ${revCoverage}% · aset ${astCoverage}% · paket ${pkgApproved}/${pkgTotal}`],
@@ -240,8 +245,7 @@ function GroupAudit() {
             body: findings.map((f: { title?: string; desc?: string; status: string; sad?: number }) => [f.title || f.desc, f.status, String(Math.round((f.sad || 0) / 1e6))]) },
           { type: 'heading', text: '3. Materialitas Grup' },
           { type: 'para', text: 'Materialitas grup Rp ' + fmt(Math.round(gm.om / 1e6), 0) + ' jt · SAD terbuka Rp ' + fmt(Math.round(totalSad / 1e6), 0) + ' jt' },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

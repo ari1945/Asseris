@@ -503,9 +503,8 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         sign.partner && { label: 'Disetujui — Partner', name: sign.partner.name, role: sign.partner.role, at: sign.partner.at },
       ].filter(Boolean);
       await amsExportPdf({
-        kind: 'materiality', scope: 'engagement', scopeId: activeEngagement?.id,
+        kind: 'materiality', scope: 'engagement',
         fileName: `Memo Materialitas - ${activeClient?.name || 'Klien'}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Penetapan Materialitas Audit',
         meta: [
           `${activeEngagement?.id || ''} · ${activeClient?.name || ''}`,
@@ -524,8 +523,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           { type: 'heading', text: '3. Kesimpulan' },
           { type: 'para', text: MAT_MEMO_SEC3 },
           { type: 'signature', signers: signers.length ? signers : [{ label: 'Disusun oleh', name: '—' }] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

@@ -145,7 +145,6 @@ function InternalControl() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useStateIC('overview');
@@ -175,12 +174,10 @@ function InternalControl() {
     blocks.push({ type: 'heading', text: 'Register Defisiensi Pengendalian (SA 265)' });
     blocks.push({ type: 'table', head: ['Ref', 'Siklus', 'Jenis', 'Deskripsi'], body: defs.length ? defs : [['—', '—', '—', 'Tidak ada defisiensi.']] });
     amsExportPdf({
-      kind: 'memo-icfr', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Risk-Control Matrix & Evaluasi Pengendalian Internal (SA 315/330/265)',
+      kind: 'memo-icfr', scope: 'engagement', title: 'Risk-Control Matrix & Evaluasi Pengendalian Internal (SA 315/330/265)',
       refNo: 'A-ICFR · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 315 (pemahaman) · SA 330 (uji kontrol) · SA 265 (defisiensi)', 'Dibuat: ' + icfrToday() + ' · ' + me],
-      blocks,
-    }).catch(() => {});
+      blocks}).catch(() => {});
   };
 
   return (

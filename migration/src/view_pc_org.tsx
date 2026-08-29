@@ -130,7 +130,6 @@ function OrgChart() {
     await amsExportXlsx({
       kind: 'firm-orgchart', scope: 'firm',
       fileName: 'Struktur Organisasi.xlsx',
-      firm: A.FIRM.short || 'KAP',
       title: 'Struktur Organisasi & Rentang Kendali',
       meta: [`${A.FIRM.partners + A.FIRM.managers + A.FIRM.staff} headcount · ${departments.length} divisi · rasio staf:manajer ${(A.FIRM.staff / A.FIRM.managers).toFixed(1)}`,
         `${puncak.length} puncak organisasi · ${perluDibereskan} garis pelaporan perlu dibereskan`],
@@ -355,14 +354,12 @@ function SuccessionPlanning() {
     await amsExportXlsx({
       kind: 'firm-succession', scope: 'firm',
       fileName: 'Laporan Suksesi.xlsx',
-      firm: A.FIRM.short || 'KAP',
       title: 'Perencanaan Suksesi & Karier',
       meta: [`${board.kpi.roles} peran kunci · ${board.kpi.withReady} punya penerus siap · ${board.kpi.riskOfLoss} risiko kehilangan · ${board.kpi.withoutSuccessor} tanpa penerus · ${board.kpi.contradicting} klaim kesiapan dibantah bukti`],
       sheets: [
         { name: 'Peran Kunci', columns: ['Peran', 'Pemangku', 'Kritikalitas', 'Risiko Kehilangan', 'Dampak Kekosongan', 'Jumlah Penerus'], rows: roleRows, colWidths: [28, 22, 16, 18, 18, 14] },
         { name: 'Kandidat Penerus', columns: ['Peran', 'Kandidat', 'Jabatan', 'Kesiapan', 'Gap'], rows: succRows, colWidths: [28, 22, 22, 16, 40] },
-      ],
-    });
+      ]});
   };
 
   return (

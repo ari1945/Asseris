@@ -82,9 +82,8 @@ function TaxPPh23() {
         r.id, r.name, r.npwp || '—', r.obj, r.masa, Math.round(r.dpp / 1e6), Math.round(r.pph / 1e6), r.status,
       ]);
       await amsExportXlsx({
-        kind: 'tax23-spt-masa', scope: 'firm', scopeId: undefined,
+        kind: 'tax23-spt-masa', scope: 'firm',
         fileName: 'SPT Masa Unifikasi (PPh 23/26).xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'SPT Masa Unifikasi — Rekapitulasi & Register',
         meta: [`${rows.length} bukti potong · ${masas.length} masa`,
           `Total PPh ${Math.round(s.pphTot / 1e6)} jt · DPP ${Math.round(s.dppTot / 1e6)} jt — Rp juta`],
@@ -95,8 +94,7 @@ function TaxPPh23() {
           { name: 'Register Bukti Potong', heading: 'Register bukti potong unifikasi (Rp juta)',
             columns: ['ID', 'Lawan Transaksi', 'NPWP', 'Objek', 'Masa', 'DPP', 'PPh', 'Status'],
             rows: regRows, colWidths: [10, 28, 20, 22, 10, 12, 12, 12] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }
@@ -107,15 +105,13 @@ function TaxPPh23() {
     setExporting(true);
     try {
       await amsExportPdf({
-        kind: 'tax23-bukti', scope: 'firm', scopeId: undefined,
+        kind: 'tax23-bukti', scope: 'firm',
         fileName: `Bukti Potong ${r.id} - ${(r.name || '').replace('PT ', '')}.pdf`,
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Bukti Potong Unifikasi (PPh 23/26)',
         meta: [`${r.id} · ${r.name} · NPWP ${r.npwp || '—'}`, `Masa ${r.masa} · objek ${r.obj}`],
         blocks: [
           { type: 'kv', rows: [['Lawan Transaksi', r.name], ['NPWP', r.npwp || '—'], ['Objek Pemotongan', r.obj], ['Masa Pajak', r.masa], ['DPP', 'Rp ' + AMS.fmt(r.dpp)], ['PPh Dipotong', 'Rp ' + AMS.fmt(r.pph)], ['Status', r.status]] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

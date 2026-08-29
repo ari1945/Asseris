@@ -265,9 +265,8 @@ function PSAK46View() {
       const moveRows = P46_MOVE.map(m => [m.t, fmt(m.v)]);
       const etrRows = P46_ETR.map(e => [e.t, fmt(e.v)]);
       await amsExportXlsx({
-        kind: 'psak46-kk-pph', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak46-kk-pph', scope: 'engagement',
         fileName: `KK PPh (PSAK 46) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja PPh — PSAK 46 — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 46 / IAS 12`,
           `PKP ${fmt(FR.pkp)} × ${P46_PCT} → pajak kini ${fmt(currentTax)} · DTA neto ${fmt(netDT)} — Rp juta`],
@@ -281,8 +280,7 @@ function PSAK46View() {
           { name: 'Mutasi DTA Neto', columns: ['Mutasi', 'Rp juta'], rows: moveRows, colWidths: [64, 14] },
           { name: 'Rekonsiliasi ETR', heading: 'Rekonsiliasi tarif pajak efektif (¶81c)',
             columns: ['Pos', 'Rp juta'], rows: etrRows, colWidths: [64, 14] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

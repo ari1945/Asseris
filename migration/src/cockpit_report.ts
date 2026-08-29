@@ -26,6 +26,7 @@
 
    Fungsi di berkas ini MURNI: tak menyentuh React/DOM/window/localStorage.
    ============================================================ */
+import type { ExportScope } from './export_identity';
 import type { CockpitEconomics, CockpitMember, CockpitRiskCoverage } from './cockpit_model';
 import type { ProgressBridge } from './cockpit_progress';
 import type { CockpitMilestone, EngagementStart } from './cockpit_timeline';
@@ -44,10 +45,8 @@ export interface ReportSheet {
 
 export interface CockpitReportPayload {
   kind: string;
-  scope: string;
-  scopeId: string;
+  scope: ExportScope;
   fileName: string;
-  firm: string;
   title: string;
   meta: string[];
   sheets: ReportSheet[];
@@ -67,7 +66,6 @@ export interface CockpitReportInput {
   engagementId: string;
   fy: string;
   clientName: string;
-  firmName: string;
   phase: string;
   verdict: string;
   daysLeft: number;
@@ -250,9 +248,7 @@ export function buildCockpitStatusReport(i: CockpitReportInput, risks: ReportRis
   return {
     kind: 'cockpit-status',
     scope: 'engagement',
-    scopeId: i.engagementId,
     fileName: `Status Report - ${i.clientName || 'Klien'}.xlsx`,
-    firm: i.firmName,
     title: `Status Report Engagement — ${i.clientName}`,
     meta: [
       `${i.engagementId} · ${i.fy} · fase ${i.phase} · sisa ${i.daysLeft} hari ke tenggat pelaporan`,

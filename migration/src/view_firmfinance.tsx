@@ -88,9 +88,8 @@ function FirmFinance() {
       const plRows = (D.pl || []).map((r: any) => [r.label || r.k, jt(r.amount || r.v), r.note || '']);
       const bsRows = (D.bs || []).map((r: any) => [r.label || r.k, jt(r.amount || r.v), r.note || '']);
       await amsExportXlsx({
-        kind: 'firm-lk', scope: 'firm', scopeId: undefined,
+        kind: 'firm-lk', scope: 'firm',
         fileName: 'Laporan Keuangan KAP - FY2025.xlsx',
-        firm: 'KAP Wijaya Hartono & Rekan',
         title: 'Laporan Keuangan KAP — FY2025',
         meta: [`Pendapatan Rp ${M(k.revenue)} M · laba operasi Rp ${M(k.opProfit, 2)} M (${(k.margin * 100).toFixed(1)}%)`,
           `Posisi kas Rp ${M(k.cashControl, 2)} M — Rp juta`],
@@ -99,8 +98,7 @@ function FirmFinance() {
             columns: ['Pos', 'Nilai', 'Catatan'], rows: plRows, colWidths: [34, 14, 40] },
           { name: 'Posisi Keuangan', heading: 'Laporan posisi keuangan (Rp juta)',
             columns: ['Pos', 'Nilai', 'Catatan'], rows: bsRows, colWidths: [34, 14, 40] },
-        ],
-      });
+        ]});
     } finally {
       setExportingLk(false);
     }

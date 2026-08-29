@@ -121,9 +121,8 @@ function PSAK22View() {
       ]);
       const reconRows = p22.recon.map((r: { label: string; v: number }) => [r.label, fmt(r.v)]);
       await amsExportXlsx({
-        kind: 'psak22-kk-g2', scope: 'engagement', scopeId: eng?.id,
+        kind: 'psak22-kk-g2', scope: 'engagement',
         fileName: `KK G-2 Kombinasi Bisnis (PSAK 22) - ${client?.name || 'Klien'}.xlsx`,
-        firm: (AMS && (AMS.FIRM as { name?: string } | undefined)?.name) || 'KAP Wijaya Hartono & Rekan',
         title: `Kertas Kerja G-2 — Kombinasi Bisnis (PSAK 22) — ${client?.name || ''}`,
         meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 22 (IFRS 3)`,
           `Imbalan ${fmt(p22.considTotal)} jt · FV aset neto ${fmt(p22.fvniaTotal)} jt · goodwill ${fmt(p22.goodwillTotal)} jt — Rp juta`],
@@ -135,8 +134,7 @@ function PSAK22View() {
             colWidths: [26, 11, 11, 15, 13, 15, 15] },
           { name: 'Rekonsiliasi', heading: 'Rekonsiliasi alokasi (Rp juta)',
             columns: ['Pos', 'Rp juta'], rows: reconRows, colWidths: [48, 16] },
-        ],
-      });
+        ]});
     } finally {
       setExporting(false);
     }

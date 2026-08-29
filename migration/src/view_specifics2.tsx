@@ -251,7 +251,6 @@ function verdictForAvg(avg: any) {
 function UseOfExpert() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'experts.v1' → engagement) — isolasi W7.5
@@ -278,8 +277,7 @@ function UseOfExpert() {
     const exps: ExpertRow[] = experts;
     const rows = exps.map(e => [e.id, e.type.replace('Pakar ', ''), e.field, e.account || '—', e.amount || '—', avgOf(e).toFixed(1) + '/5', (e.workEval && e.workEval.adequacy) || '—']);
     amsExportPdf({
-      kind: 'memo-expert', scope: 'engagement', scopeId: engId,
-      firm: (AMS.FIRM as { name?: string })?.name || 'KAP', title: 'Memo Penggunaan Pekerjaan Pakar (SA 620)',
+      kind: 'memo-expert', scope: 'engagement', title: 'Memo Penggunaan Pekerjaan Pakar (SA 620)',
       refNo: 'A-620 · ' + engLabel,
       meta: [client + ' · ' + engLabel, 'SA 620 — Penggunaan Pekerjaan Pakar Auditor', 'Dibuat: ' + expToday()],
       blocks: [
@@ -287,8 +285,7 @@ function UseOfExpert() {
         { type: 'table', head: ['Ref', 'Tipe', 'Bidang', 'Akun', 'Nilai', 'Skor ¶9', 'Kecukupan ¶12'],
           body: rows.length ? rows : [['—', '—', '—', '—', '—', '—', '—']], columnStyles: { 2: { cellWidth: 110 } } },
         { type: 'para', text: 'Auditor mengevaluasi kompetensi, kapabilitas & objektivitas pakar (¶9), menyepakati lingkup pekerjaan (¶11), serta mengevaluasi kecukupan pekerjaan pakar untuk tujuan audit (¶12). Tanggung jawab auditor atas opini tidak berkurang oleh penggunaan pekerjaan pakar (¶14–15).' },
-      ],
-    }).catch(() => {});
+      ]}).catch(() => {});
   };
 
   const tabs = [

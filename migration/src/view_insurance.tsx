@@ -65,14 +65,12 @@ function FirmInsurance() {
     await amsExportXlsx({
       kind: 'firm-insurance-risk', scope: 'firm',
       fileName: 'Risk Register & Polis.xlsx',
-      firm: 'KAP Wijaya Hartono & Rekan',
       title: 'Risk Register Firma & Register Polis (PII)',
       meta: [`${reg.length} risiko · ${pols.length} polis · limit PII ${boM(hl.piiLimit, 0)} · ${hl.highRisk} risiko tinggi residual`],
       sheets: [
         { name: 'Risk Register', columns: ['ID', 'Risiko', 'Kategori', 'Inheren', 'Residual', 'Perlakuan', 'Pemilik', 'Selera', 'Reviu Terakhir'], rows: regRows, colWidths: [8, 40, 16, 10, 10, 16, 18, 14, 14] },
         { name: 'Polis', columns: ['ID', 'Jenis', 'Penanggung', 'Limit', 'Premi/thn', 'Deductible', 'Berakhir', 'Status'], rows: polRows, colWidths: [10, 24, 20, 14, 14, 14, 12, 12] },
-      ],
-    });
+      ]});
   };
 
   return (

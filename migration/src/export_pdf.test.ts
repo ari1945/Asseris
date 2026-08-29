@@ -44,14 +44,14 @@ vi.mock('jspdf-autotable', () => ({
 }));
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QQ==') } }));
 
+import { publishActiveEngagement } from './export_identity';
+
 const { amsExportPdf } = await import('./export_pdf');
 
 const MODEL = {
   kind: 'materiality-memo',
-  scope: 'engagement',
-  scopeId: 'ENG-2025-014',
+  scope: 'engagement' as const,
   fileName: 'memo.pdf',
-  firm: 'WHR & Rekan',
   title: 'Memo Materialitas',
   refNo: 'WP-A-1',
   meta: ['FY2025', 'Klien: PT Contoh'],
@@ -64,7 +64,11 @@ const MODEL = {
   ],
 };
 
+/* PR-2 — identitas artefak DITARIK dari SSOT, bukan didorong model. Uji ini
+   karenanya harus menerbitkan perikatan aktif; tanpa itu helper MENOLAK
+   menerbitkan apa pun (jalur penolakan diuji terpisah di bawah). */
 beforeEach(() => {
+  publishActiveEngagement('ENG-2025-014');
   apiMock.exportSeal.mockReset();
   apiMock.exportLogEvent.mockClear();
   pdfMock.save.mockClear();

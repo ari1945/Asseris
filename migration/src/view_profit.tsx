@@ -74,8 +74,6 @@ function Profitability() {
     await amsExportXlsx({
       kind: 'firm-profitability', scope: 'firm',
       fileName: 'Profitabilitas Firma.xlsx',
-      /* nama firma dari SSOT (AMS.FIRM), bukan literal — pola #265 */
-      firm: (AMS.FIRM as unknown as { name?: string }).name,
       title: 'Profitabilitas Engagement & Partner',
       meta: [`${tot.counted} dari ${rows.length} engagement masuk total · margin rata-rata `
         + `${pct(tot.avgMarginPct)} · realisasi fee ${pct(tot.avgRealizedPct)}`,
@@ -84,8 +82,7 @@ function Profitability() {
       sheets: [
         { name: 'Per Engagement', columns: ['Engagement', 'Klien', 'Partner', 'Fee', 'Realisasi Fee', 'Biaya Standar', 'Margin', 'Margin %'], rows: engRows, colWidths: [14, 26, 18, 18, 13, 18, 18, 10] },
         { name: 'Per Partner', columns: ['Partner', 'Engagement', 'Jam', 'Fee', 'Terealisasi', 'Margin', 'Margin %'], rows: partRows, colWidths: [22, 12, 10, 18, 18, 18, 10] },
-      ],
-    });
+      ]});
   };
 
   return (

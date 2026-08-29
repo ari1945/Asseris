@@ -120,7 +120,11 @@ describe('CB3/(e) — kertas kerja membawa angka mesin, bukan salinan layar', ()
   });
 
   it('nama firma dari SSOT — payload tanpa penerbit DITOLAK, bukan diisi literal', () => {
-    expect(model(engine()).firm).toBe(FIRM);
+    /* F-2 — penerbit tidak lagi DIDORONG lewat model; eksporter MENARIKNYA dari
+       SSOT. Yang dijaga di sini karena itu terbalik: model harus BERSIH dari
+       identitas, supaya tak ada jalur kedua yang bisa mengarangnya. Penolakan
+       atas identitas kosong tetap ditegakkan builder (baris berikutnya). */
+    expect((model(engine()) as { firm?: unknown }).firm).toBe(undefined);
     expect(() => bankReconExportModel({ accounts: engine(), firmName: '  ', preparedOn: '2026-03-09' }))
       .toThrow(/nama firma kosong/);
   });
