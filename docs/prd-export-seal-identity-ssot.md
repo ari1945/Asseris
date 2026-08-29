@@ -27,7 +27,20 @@ ini, dari firma ini.**
 Empat kelas cacat membuat janji itu tidak dipenuhi — semuanya bentuk yang sama:
 **artefak menyatakan identitas yang tidak pernah diturunkan sistem dari mana pun.**
 
-### E-1 · scopeId perikatan yang DIKARANG (1 situs)
+### ~~E-1 · scopeId perikatan yang DIKARANG (1 situs)~~ — SUDAH TERTUTUP SEBELUMNYA
+
+> 🔴 **AMANDEMEN C (2026-08-29).** E-1 **tidak pernah ditutup oleh PRD ini.** Ia sudah
+> mati lebih dulu lewat **#286 `5b73374`** (2026-08-22) — sehari sesudah PRD ini ditulis.
+> Diverifikasi hari ini: `view_sa230.tsx` dipindai dengan komentar dibuang ⇒ **nol**
+> `ENG-2025-014` dan nol `firm: 'KAP` di dalam kode.
+>
+> Dua akibat yang perlu dicatat, keduanya soal jangan mengklaim lebih dari yang terjadi:
+> §12 menyatakan *"E-1, E-2, E-3, E-5 mati"* lewat F-2 — yang benar **E-2, E-3, E-5**.
+> Dan SC-2 (§3) memakai baseline "1 (E-1) + 20 (engLabel)"; angka yang benar **20**.
+>
+> Klaim basi ini menular: pesan commit **#317** (2026-08-27) masih menyebut
+> `view_sa230.tsx:110` sebagai *"satu-satunya sisa"* — lima hari sesudah ia bersih.
+> Uraian di bawah dipertahankan sebagai catatan sejarah, bukan sebagai pekerjaan.
 
 `migration/src/view_sa230.tsx:110` → dipakai di `:135`:
 
@@ -192,7 +205,7 @@ pelajaran #242: begitu literal jadi turunan, uji "turunan == turunan" selalu hij
 | # | Kriteria | Cara membuktikan bisa merah |
 |---|---|---|
 | SC-1 | Nol literal nama firma di seluruh call-site ekspor (komentar dibuang). `grep -c "firm: 'KAP "` = **0** (baseline 60) | Sisipkan kembali satu literal ⇒ gerbang gagal |
-| SC-2 | Nol literal `ENG-\d{4}-\d{3}` di payload ekspor (`refNo`/`meta`/`scopeId`). Baseline: 1 (E-1) + 20 (engLabel) | Mutasi sumber mengembalikan `\|\| 'ENG-2025-014'` ⇒ gagal |
+| SC-2 | Nol literal `ENG-\d{4}-\d{3}` di payload ekspor (`refNo`/`meta`/`scopeId`). Baseline: ~~1 (E-1) + 20 (engLabel)~~ → **20 (engLabel)** — E-1 sudah tertutup #286 sebelum PRD ini berjalan (Amandemen C) | Mutasi sumber mengembalikan `\|\| 'ENG-2025-014'` ⇒ gagal |
 | SC-3 | `firm` dan `scopeId` **tidak lagi diterima** dari call-site — menghapusnya dari tipe model, sehingga mengirimkannya = error `tsc`. `grep -c "firm: "` di call-site = 0 | Tambahkan `firm:` di satu call-site ⇒ `npm run typecheck` merah |
 | SC-4 | `canonicalPayload` (pdf **dan** xlsx) memuat identitas. Uji: dua model identik yang berbeda HANYA pada nama firma menghasilkan `contentHash` **berbeda**; berbeda hanya pada scopeId juga berbeda | Kembalikan `pick` ke bentuk lama ⇒ kedua hash sama ⇒ gagal |
 | SC-5 | Ekspor berlingkup perikatan TANPA perikatan aktif **menolak**: `exportSeal` tidak dipanggil, tidak ada berkas terunduh, pesan jujur ditampilkan | Uji perilaku: stub `exportSeal` + `doc.save`; tanpa perikatan keduanya nol panggilan |
@@ -214,7 +227,31 @@ pelajaran #242: begitu literal jadi turunan, uji "turunan == turunan" selalu hij
 - 20 situs `engLabel` di `refNo`/`meta`: mengambil perikatan dari identitas terselesaikan.
 - `view_platform3.tsx` (E-5).
 - Gerbang repo + uji anti-tautologi untuk SC-1..SC-9.
+- **`server/prisma/schema.prisma` — model `Seal`: kolom `sealFormat` (dan nama firma
+  penandatangan), plus migrasi SQL-nya.** ← **AMANDEMEN A, 2026-08-29.**
 - `docs/` — catatan format segel & migrasi.
+
+> 🔴 **AMANDEMEN A (2026-08-29) — §4 semula melewatkan perubahan skema Prisma, dan
+> tanpa itu mitigasi risiko TERTINGGI PRD ini tidak dapat dijalankan seperti tertulis.**
+>
+> R-1 memitigasi "hash berubah ⇒ segel lama tampak palsu" dengan *"`sealFormat` disimpan
+> pada rekaman segel; verifikasi memilih algoritma per-versi"*, dan Q-3 dengan *"rekaman
+> menyimpan nama saat penandatanganan"*. **Model `Seal` tidak punya keduanya.**
+> Diverifikasi di `server/prisma/schema.prisma:212`, kolomnya hanya:
+>
+> ```
+> id · kind · contentHash · scope · scopeId · signerUserId · signerRole
+> signedAt · pubKeyId · signature
+> ```
+>
+> Jadi F-3 **tidak bisa** hanya menyentuh `export_*.ts`: ia menuntut kolom baru +
+> migrasi, dan CLAUDE.md §"Building Anything" mewajibkan perubahan skema Prisma
+> dinyatakan di PRD. **F-1/F-2 tidak terpengaruh** — keduanya tak menyentuh hash, dan
+> memang tak menyentuh `server/` sama sekali (#332: nol berkas `server/`).
+>
+> Presedens yang layak dilihat lebih dulu: `server/src/crypto/keyArchive.ts` sudah
+> menyelesaikan kelas "rotasi kunci mematahkan segel lama" dengan mengarsipkan kunci
+> publik per segel. Versi payload adalah masalah yang sebangun, bukan baru.
 
 ## 5. Non-Scope
 
@@ -326,7 +363,30 @@ ia hanya memindahkan dari mana identitas berasal.
 | **R-1** | **Hash berubah ⇒ segel lama tak terverifikasi.** SC-4 mengubah `canonicalPayload`; artefak yang sudah terbit dan diverifikasi ulang dengan algoritma baru akan tampak PALSU | Tinggi — artefak audit yang sah dinyatakan tidak sah adalah kegagalan terburuk dari fitur ini | `sealFormat` disimpan pada rekaman segel; verifikasi memilih algoritma per-versi. Uji: segel v1 + payload v1 tetap VALID setelah v2 mendarat. Ini SC-9, bukan catatan kaki |
 | **R-2** | **Register menjadi basi** (perikatan berganti, penerbit tak jalan) ⇒ artefak disegel atas perikatan sebelumnya — cacat E-1 dalam bentuk baru | Tinggi; senyap | Penerbit adalah efek atas `activeEngagementId` yang sama dengan yang dipakai `useAmsPersist`. Uji: ganti perikatan ⇒ scopeId ekspor berikutnya ikut berubah (SC-8). Register menyimpan `null` saat provider dilepas |
 | **R-3** | **PR-2 menyentuh ±60 berkas** ⇒ konflik dengan cabang lain; risiko penanda konflik ter-commit (pernah terjadi — `asseris-rebase-squash-stacked-prs`) | Sedang | Kerjakan saat tak ada arc lain berjalan; `grep -c "^<<<<<<< "` sesudah tiap rebase; PR-2 mendarat dalam satu hari yang sama dengan penulisannya |
-| **R-4** | **Penolakan memblokir auditor** yang sebelumnya tetap mendapat berkas (tak tersegel) | Sedang | Hanya `scope:'engagement'` yang menolak; ekspor firma tak terpengaruh. Dalam praktik perikatan aktif SELALU ada (seed + `DEFAULT_ENG_ID`), jadi jalur ini langka — tepatnya sebabnya ia tak pernah ketahuan rusak |
+| **R-4** | **Penolakan memblokir auditor** yang sebelumnya tetap mendapat berkas (tak tersegel) | ~~Sedang~~ → **Sedang, dapat menjadi TINGGI** (lihat Amandemen B) | Hanya `scope:'engagement'` yang menolak; ekspor firma tak terpengaruh. ~~Dalam praktik perikatan aktif SELALU ada (seed + `DEFAULT_ENG_ID`), jadi jalur ini langka~~ — **mitigasi itu MEMINJAM cacat yang menunggu dicabut; lihat Amandemen B** |
+
+> 🔴 **AMANDEMEN B (2026-08-29) — R-4 bersandar pada cacat yang belum diputuskan
+> nasibnya, sehingga ratingnya tidak stabil.**
+>
+> Mitigasi R-4 berbunyi *"dalam praktik perikatan aktif SELALU ada (seed +
+> `DEFAULT_ENG_ID`), jadi jalur ini langka"*. Tetapi `DEFAULT_ENG_ID`
+> (`persist_scope.ts:23`, dikonsumsi `contexts.tsx:927`) adalah **cacat terbuka yang
+> menunggu keputusan Ari**: ia membuat SETIAP kertas kerja berlingkup perikatan yang
+> lewat `useAmsPersist` jatuh ke `ENG-2025-014` saat konteks kosong — kelas yang sama
+> persis dengan yang PRD ini tutup di permukaan ekspor.
+>
+> Artinya R-4 memakai keberadaan sebuah cacat sebagai alasan mengapa risikonya rendah.
+> Begitu `DEFAULT_ENG_ID` dicabut, "perikatan aktif selalu ada" berhenti benar, jalur
+> penolakan berhenti langka, dan **R-4 naik ke Tinggi** — tepat ketika F-4 (penolakan
+> yang terlihat di UI) belum mendarat.
+>
+> **Konsekuensi yang mengikat:** keputusan atas `DEFAULT_ENG_ID` dan urutan F-4 tidak
+> boleh diambil terpisah. Bila `DEFAULT_ENG_ID` dicabut lebih dulu, **F-4 menjadi
+> prasyarat, bukan pekerjaan lanjutan** — tanpa pesan penolakan yang terlihat, auditor
+> hanya akan melihat tombol yang tak melakukan apa-apa.
+>
+> Interaksinya juga menyentuh keputusan Ari atas migrasi lingkup firma→perikatan (data
+> lama HANGUS), sehingga tak ada jalur baca-tembus yang bisa menambal keadaan kosong.
 | **R-5** | **Register = global baru** di repo yang sedang melucuti global | Sedang | Bertipe, satu penulis, dibaca hanya lewat fungsi yang bisa menolak, gerbang melarang penulis kedua. Ia mengganti global rusak (`window.activeEngagement`), bukan menambah |
 | **R-6** | **Gerbang tautologis.** Setelah literal jadi turunan, uji "identitas == identitas" selalu hijau | Sedang — menciptakan rasa aman palsu | Tiap SC dipasangkan mutasi yang wajib memerahkannya (§3, kolom kanan). Pola `attachment_engagement_scope.test.ts` §3 |
 | **R-7** | Ekspor yang memang HARUS tanpa scope (register lintas-perikatan) ikut tertolak | Rendah | 16 call-site sudah `scopeId: undefined` secara sadar; mereka memakai `scope:'firm'` atau scope dihilangkan — diinventarisasi di PR-2, bukan diasumsikan |
@@ -396,7 +456,8 @@ satu per satu; inventarisasi masuk PR-2 (R-7). Bukan penghalang sign-off.
   menolak) + `contexts.tsx` sebagai satu-satunya penerbit.
 - F-2 — identitas DITARIK helper; `firm`/`scopeId` dicabut dari `ExportModelBase`
   sebagai `?: never` sehingga mengirimnya = galat `tsc`; call-site dibersihkan.
-  **E-1, E-2, E-3, E-5 mati.** SC-1 · SC-3 · SC-5 · SC-6 · SC-7 · SC-8 hijau.
+  ~~**E-1, E-2, E-3, E-5 mati.**~~ → **E-2, E-3, E-5 mati** — E-1 sudah tertutup #286
+  sebelum F-2 berjalan (Amandemen C). SC-1 · SC-3 · SC-5 · SC-6 · SC-7 · SC-8 hijau.
 
 **Yang BELUM, dan sengaja tidak diselipkan:**
 
@@ -412,3 +473,32 @@ satu per satu; inventarisasi masuk PR-2 (R-7). Bukan penghalang sign-off.
 - **F-6** — registri PRD → `Implemented`.
 
 Urutannya mengikat: F-3 mengubah hash dan harus dapat di-rollback sendiri.
+
+---
+
+## 13. Amandemen pasca-sign-off (2026-08-29)
+
+Tiga amandemen ditulis di tempatnya masing-masing, **dicoret bukan dihapus**, mengikuti
+pola yang dipakai `W0-2`/`W0-4` dan PR #330/#331:
+
+| | Isi | Menyentuh |
+|---|---|---|
+| **A** | §4 Scope melewatkan **perubahan skema Prisma**; mitigasi R-1 & Q-3 menuntut kolom yang tak ada pada model `Seal` | **F-3** — F-1/F-2 tidak terpengaruh |
+| **B** | R-4 memakai `DEFAULT_ENG_ID` (cacat terbuka) sebagai alasan risikonya rendah; ratingnya naik bila cacat itu dicabut, dan F-4 jadi prasyarat | **F-4** + keputusan `DEFAULT_ENG_ID` |
+| **C** | E-1 sudah tertutup #286 **sebelum** PRD ini berjalan; §12 dan baseline SC-2 dikoreksi | pencatatan |
+
+**Sensus ulang terhadap master `e2f69d6` — sebagian angka §1 sudah basi saat PRD ditulis
+(21 Agu) dan tetap dikutip sesudahnya.** Yang diverifikasi hari ini:
+
+| Kelas | Angka di §1 | Master saat sensus (`2ed5908`, sebelum F-2) |
+|---|---|---|
+| E-1 | 1 situs | **0** — sudah tertutup #286 |
+| E-2 | 10 situs / 8 berkas | 10 / 8 — **tepat** |
+| E-3 | 12 situs / 10 berkas | 12 situs / **11 berkas** |
+| E-4a `firm: 'KAP ` | 60 situs / 51 berkas | **54 / 47** |
+| E-4b fallback baca-SSOT | ~40 | **jauh lebih kecil** — perlu hitung ulang sebelum dipakai sebagai baseline gerbang |
+| E-5 | 2 situs | 2 — **tepat** |
+
+E-2 dan E-5 tepat; sisanya bergeser. **Jangan memakai angka §1 sebagai baseline gerbang
+F-5 tanpa menghitung ulang** — gerbang ber-jumlah-tepat yang lahir dari angka basi akan
+merah atas keadaan yang benar.
