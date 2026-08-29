@@ -48,10 +48,37 @@ mukanya** — dan justru ketidaksejajaran itu yang membuat kelas ini berbahaya:
 
 | Bidang | Bentuk cacatnya | Ikut di-hash? | Akibat |
 |---|---|---|---|
-| Penerbit | `firm: 'KAP Wijaya Hartono & Rekan'` literal / fallback | **TIDAK** (pdf & xlsx) | Artefak boleh mencantumkan nama firma apa pun di kepalanya dan **verifikasi segel tetap LULUS**. Segelnya membuktikan isi tabel, bukan siapa yang menerbitkannya — padahal identitas penerbitlah yang membuat laporan audit berarti. |
+| Penerbit | `firm: 'KAP Wijaya Hartono & Rekan'` literal / fallback | **TIDAK** (pdf & xlsx) | Artefak boleh mencantumkan nama firma apa pun di kepalanya dan **verifikasi segel tetap LULUS**. ~~Segelnya membuktikan isi tabel, bukan siapa yang menerbitkannya.~~ **SALAH — lihat koreksi kedua di bawah: ia tidak membuktikan isi tabel juga.** |
 | Perikatan (di `meta`) | `'ENG-2025-014'` literal / fallback | **YA di PDF**, tidak di XLSX | Di PDF, segel **menutupi** nomor perikatan yang dikarang — dan dengan begitu **memberinya otoritas**. |
 | Perikatan (`scopeId`) | fallback / `undefined` | — (bukan payload) | Diteruskan ke `exportSeal` + `exportLogEvent`: segel & baris audit permanen mendarat pada perikatan yang salah, atau pada tak-satu-pun. |
 | Klien | `firm?.activeClient?.name \|\| 'PT Sentosa Makmur Tbk'` | ikut `meta` (pdf) | Sama dengan baris perikatan. |
+
+> 🔴 **KOREKSI KEDUA (2026-08-29, sesudah F-3 mendarat lewat #334) — kalimat
+> "segel membuktikan isi tabel" JUGA SALAH.**
+>
+> Koreksi pertama di atas benar bahwa `firm` tak ikut di-hash. Tetapi ia masih
+> mengandaikan segelnya setidaknya menjamin ISI. Ia tidak.
+>
+> ```js
+> JSON.stringify(pick, Object.keys(pick).sort())
+> ```
+>
+> Argumen kedua `JSON.stringify` **bukan pengurut kunci** — ia **replacer berupa
+> daftar-izin kunci, dan berlaku REKURSIF**. Daftar izinnya hanya memuat kunci tingkat
+> ATAS, sehingga **setiap sheet dan setiap blok PDF diserialisasi menjadi `{}`**. Yang
+> benar-benar ditandatangani tinggal `kind`, `title`, `refNo`, `meta` (PDF saja), dan
+> JUMLAH sheet/blok — **tidak satu sel pun**.
+>
+> Dibuktikan lewat jalur produksi: dua register dengan baris, nilai, DAN jumlah baris
+> berbeda menghasilkan `contentHash` **identik** (`6cf8b2f9…`), sehingga segel Ed25519
+> keduanya **dapat dipertukarkan**.
+>
+> Ia lolos bertahun-tahun karena uji yang tampak menjaganya (`export_pdf.test.ts` —
+> *"changes when the content changes"*) mengubah **`title`**: satu dari tiga field yang
+> kebetulan memang ikut. **Gerbang yang menguji field yang salah tidak menjaga apa pun.**
+>
+> Ditutup F-3 (#334, `052d6c9`): payload v2 + `Seal.sealFormat` per baris.
+> Rinciannya di [`../prd-export-seal-identity-ssot.md`](../prd-export-seal-identity-ssot.md) §12.
 
 Dan satu varian yang lebih buruk lagi (kelas **scopeId hantu**, §3 di bawah).
 
