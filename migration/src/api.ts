@@ -232,8 +232,8 @@ export async function personalDeclare(kind: any) {
 
 /** Seal a content hash → { sealId, signature, pubKeyId, signedAt, … }. Throws on failure
     (caller degrades to unsealed). */
-export async function exportSeal({ kind, contentHash, scope, scopeId }: any) {
-  return api.exporter.seal.mutate({ kind, contentHash, scope, scopeId });
+export async function exportSeal({ kind, contentHash, scope, scopeId, sealFormat }: any) {
+  return api.exporter.seal.mutate({ kind, contentHash, scope, scopeId, sealFormat });
 }
 
 /** Verify a seal against a presented hash → result | null when unavailable. */
