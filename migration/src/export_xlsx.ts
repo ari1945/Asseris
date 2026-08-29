@@ -17,6 +17,7 @@
 import { exportSeal, exportLogEvent } from './api';
 import { SEAL_DISCLAIMER, emitExportRefusal, type ExportModelBase, type ExportResult } from './export_pdf';
 import { resolveExportIdentity } from './export_identity';
+import { canonicalSealPayload, SEAL_FORMAT_CURRENT } from './export_seal_payload';
 
 /** Model register XLSX. `firm`/`scopeId` DILARANG — lihat catatan di export_pdf.ts. */
 export interface ExportXlsxModel extends ExportModelBase {
@@ -40,22 +41,9 @@ export async function sha256Hex(str: any) {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Deterministic JSON over the CONTENT-bearing fields only (sorted keys) — the seal must be
-// reproducible from the same source data, so we exclude anything render/seal-specific.
-function canonicalPayload(model: any) {
-  const pick = {
-    kind: model.kind,
-    title: model.title,
-    sheets: (model.sheets || []).map((s: any) => ({
-      name: s.name || '',
-      heading: s.heading || '',
-      columns: s.columns || [],
-      rows: s.rows || [],
-      totals: s.totals || [],
-    })),
-  };
-  return JSON.stringify(pick, Object.keys(pick).sort());
-}
+/* Definisi payload kanonik PINDAH ke `export_seal_payload.ts` (berversi). Bentuk
+   lama menandatangani `kind`/`title` + JUMLAH sheet saja — tiap sheet menjadi
+   `{}`. Diarsipkan sebagai V1 di sana; V2 dipakai penandatanganan baru. */
 
 /**
  * Generate, seal, download an .xlsx workbook. Returns { sealed, sealId|null, contentHash, reason }.
@@ -71,14 +59,14 @@ export async function amsExportXlsx(model: ExportXlsxModel): Promise<ExportResul
     return { sealed: false, sealId: null, contentHash: null, reason: identity.reason, refused: true };
   }
   const XLSX = await loadXlsx();
-  const contentHash = await sha256Hex(canonicalPayload(model));
+  const contentHash = await sha256Hex(canonicalSealPayload('xlsx', SEAL_FORMAT_CURRENT, model, identity));
 
   // Seal first so we can embed it. Degrade to an UNSEALED workbook if the server is down or the
   // role lacks CAP.EXPORT — never block the auditor from getting their register.
   let seal = null;
   let reason = 'ok';
   try {
-    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId });
+    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId, sealFormat: SEAL_FORMAT_CURRENT });
   } catch (e: any) {
     reason = (e && (e.data?.code || e.shape?.data?.code)) === 'FORBIDDEN' ? 'forbidden' : 'unavailable';
   }

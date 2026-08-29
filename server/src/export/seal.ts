@@ -23,6 +23,8 @@ export interface SealInput {
   scopeId?: string | null;
   signerUserId: string;
   signerRole?: string | null;
+  /** Algoritma payload kanonik yang dipakai pemanggil. Tanpa nilai = 1 (pra-F-3). */
+  sealFormat?: number;
 }
 
 export interface SealRecord {
@@ -36,6 +38,7 @@ export interface SealRecord {
   signedAt: Date;
   pubKeyId: string;
   signature: string;
+  sealFormat: number;
 }
 
 /** Sign a content hash and persist the seal row. Returns the public-facing seal record. */
@@ -54,6 +57,9 @@ export async function createSeal(input: SealInput): Promise<SealRecord> {
       signerRole: input.signerRole ?? null,
       pubKeyId,
       signature,
+      /* Tanpa versi eksplisit, segel ini akan direproduksi dengan algoritma yang
+         SALAH begitu definisi payload bergerak lagi. Default 1 = pra-F-3. */
+      sealFormat: input.sealFormat ?? 1,
     },
   });
   return { sealId: row.id, ...stripId(row) };
@@ -62,11 +68,12 @@ export async function createSeal(input: SealInput): Promise<SealRecord> {
 function stripId(row: {
   kind: string; contentHash: string; scope: string | null; scopeId: string | null;
   signerUserId: string; signerRole: string | null; signedAt: Date; pubKeyId: string; signature: string;
+  sealFormat: number;
 }) {
   return {
     kind: row.kind, contentHash: row.contentHash, scope: row.scope, scopeId: row.scopeId,
     signerUserId: row.signerUserId, signerRole: row.signerRole, signedAt: row.signedAt,
-    pubKeyId: row.pubKeyId, signature: row.signature,
+    pubKeyId: row.pubKeyId, signature: row.signature, sealFormat: row.sealFormat,
   };
 }
 
@@ -83,6 +90,10 @@ export interface SealVerifyResult {
   signerRole?: string | null;
   signedAt?: Date;
   pubKeyId?: string;
+  /** Algoritma payload segel INI. Verifier yang menghitung ulang hash dari artefak
+   *  WAJIB memakai versi ini, bukan versi terbaru — kalau tidak, artefak lama yang
+   *  sah akan dilaporkan `hash-mismatch` (R-1). */
+  sealFormat?: number;
 }
 
 /**
@@ -101,6 +112,7 @@ export async function verifySeal(sealId: string, presentedHash: string): Promise
   const meta = {
     kind: row.kind, scope: row.scope, scopeId: row.scopeId,
     signerUserId: row.signerUserId, signerRole: row.signerRole, signedAt: row.signedAt, pubKeyId: row.pubKeyId,
+    sealFormat: row.sealFormat,
   };
   if (row.contentHash !== presentedHash) return { valid: false, reason: 'hash-mismatch', ...meta };
   const archivedPublicKey = await lookupSigningKey(row.pubKeyId);

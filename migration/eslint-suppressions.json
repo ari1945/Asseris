@@ -206,12 +206,12 @@
   },
   "src/export_pdf.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 10
+      "count": 7
     }
   },
   "src/export_xlsx.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 8
+      "count": 6
     }
   },
   "src/fsgen_model.tsx": {

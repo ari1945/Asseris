@@ -12,6 +12,7 @@
    ============================================================ */
 import { exportSeal, exportLogEvent } from './api';
 import { resolveExportIdentity, type ExportScope } from './export_identity';
+import { canonicalSealPayload, SEAL_FORMAT_CURRENT } from './export_seal_payload';
 
 /* ============================================================
    PR-2 (prd-export-seal-identity-ssot) — IDENTITAS DITARIK, BUKAN DIDORONG.
@@ -95,25 +96,12 @@ async function sha256Hex(str: any) {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Deterministic JSON over the CONTENT-bearing fields only (sorted keys) — the seal must be
-// reproducible from the same source data, so we exclude anything render/seal-specific.
-function canonicalPayload(model: any) {
-  const pick = {
-    kind: model.kind,
-    title: model.title,
-    refNo: model.refNo || '',
-    meta: model.meta || [],
-    blocks: (model.blocks || []).map((b: any) => ({
-      type: b.type,
-      text: b.text || '',
-      rows: b.rows || [],
-      head: b.head || [],
-      body: b.body || [],
-      signers: (b.signers || []).map((s: any) => ({ name: s.name || '', role: s.role || '', at: s.at || '' })),
-    })),
-  };
-  return JSON.stringify(pick, Object.keys(pick).sort());
-}
+/* Definisi payload kanonik PINDAH ke `export_seal_payload.ts` dan kini BERVERSI.
+   Bentuk yang dulu berdiri di sini menandatangani `kind`/`title`/`refNo`/`meta`
+   dan JUMLAH blok saja — tiap blok menjadi `{}`, karena argumen kedua
+   `JSON.stringify` adalah REPLACER daftar-izin yang berlaku rekursif, bukan
+   pengurut kunci. Diarsipkan utuh sebagai V1 di sana (segel lama harus tetap
+   dapat direproduksi); V2 dipakai penandatanganan baru. */
 
 const MARGIN = 48; // pt
 const NAVY = [26, 39, 48];
@@ -142,14 +130,14 @@ export async function amsExportPdf(model: ExportPdfModel): Promise<ExportResult>
     return { sealed: false, sealId: null, contentHash: null, reason: identity.reason, refused: true };
   }
   const { jsPDF, autoTable, QR } = await loadLibs();
-  const contentHash = await sha256Hex(canonicalPayload(model));
+  const contentHash = await sha256Hex(canonicalSealPayload('pdf', SEAL_FORMAT_CURRENT, model, identity));
 
   // Seal first (so we can embed it). Degrade to an UNSEALED artifact if the server is down or
   // the role lacks CAP.EXPORT — never block the auditor from getting their document.
   let seal = null;
   let reason = 'ok';
   try {
-    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId });
+    seal = await exportSeal({ kind: model.kind, contentHash, scope: identity.scope, scopeId: identity.scopeId, sealFormat: SEAL_FORMAT_CURRENT });
   } catch (e: any) {
     reason = (e && (e.data?.code || e.shape?.data?.code)) === 'FORBIDDEN' ? 'forbidden' : 'unavailable';
   }
