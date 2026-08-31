@@ -13,7 +13,7 @@ import { can, capForWrite, CAP } from './rbac';
 import { refreshRoleCache } from './roleStore';
 import { guardSignoffWrite, signoffContextNeeds, isSignoffKey, type SignoffChange, type SignoffContext } from './signoff';
 import { loadSignoffContext } from './signoffContext';
-import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
+import { assertEngagementAccess, accessibleEngagementIds, assertFirmScoped } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
 import { redactFindings, redactFindingsWithReport, buildNarrationPrompt } from './llm/redact';
 import { consumeLlmConsent, issueLlmConsent } from './llm/consent';
@@ -150,11 +150,34 @@ async function verifyAccountTotp(
 
 // W7 Fase 1 — server-side RBAC gate for StateDoc writes. The real enforcement boundary:
 // the UI's can() is convenience, this is what actually stops a wrong-role write.
-function assertCanWrite(user: { id: string; role: string }, scope: string, scopeId: string, key: string) {
+/*
+ * D3 — sisi TULIS dulu tak punya batas firma sama sekali.
+ *
+ * Bacaan sudah dipagari assertStateDocRead ('cross-firm-state'/'cross-firm-user'), tetapi
+ * state.set hanya memanggil assertEngagementAccess untuk scope 'engagement'. Untuk scope 'firm'
+ * dan 'user' TAK ADA satu pun perbandingan terhadap firma pemanggil: pemegang kapabilitas yang
+ * tepat dapat MENULIS dokumen firm-scope milik firma lain, dan seorang FIRM_ADMIN dapat menulis
+ * profil pengguna firma lain — padahal MEMBACA keduanya dilarang. Asimetri itu tak terjangkau
+ * hari ini (satu instance = satu firma, jadi "firma lain" tak ada), tapi ia lubang tulis pada
+ * detik pertama satu database melayani lebih dari satu firma.
+ */
+async function assertCanWrite(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string, key: string) {
+  const firmId = assertFirmScoped(user);
   if (scope === 'user') {
     // Own profile/prefs only — unless you administer the firm.
-    if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return;
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+    if (scopeId === user.id) return;
+    if (!can(user.role, CAP.FIRM_ADMIN)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+    }
+    // Cermin tulis dari assertSameFirmUser: FIRM_ADMIN mengelola firmanya sendiri, bukan firma lain.
+    const target = await prisma.user.findUnique({ where: { id: scopeId }, select: { firmId: true } });
+    if (!target || target.firmId !== firmId) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-user' });
+    }
+    return;
+  }
+  if (scope === 'firm' && scopeId !== firmId) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
   }
   const cap = capForWrite(scope, key);
   if (cap && !can(user.role, cap)) {
@@ -187,7 +210,7 @@ async function assertNotAssemblyLocked(user: { role: string }, engagementId: str
 // per-collection gating can come later without loosening anything). User scope: owner-or-admin.
 // Write returns an audit-detail suffix (assembly-lock override tag) so a past-lock write is never
 // silent.
-async function assertAttachmentWrite(user: { id: string; role: string }, scope: string, scopeId: string): Promise<string> {
+async function assertAttachmentWrite(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string): Promise<string> {
   if (scope === 'user') {
     if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return '';
     throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
@@ -197,16 +220,24 @@ async function assertAttachmentWrite(user: { id: string; role: string }, scope: 
     await assertEngagementAccess(user, scopeId);
     lockDetail = await assertNotAssemblyLocked(user, scopeId);
   }
+  // D3 — byte lampiran mewarisi batas firma yang sama dengan StateDoc-nya.
+  if (scope === 'firm' && scopeId !== assertFirmScoped(user)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
+  }
   if (!can(user.role, CAP.WP_EDIT)) throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.WP_EDIT}` });
   return lockDetail;
 }
 
-async function assertAttachmentRead(user: { id: string; role: string }, scope: string, scopeId: string): Promise<void> {
+async function assertAttachmentRead(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string): Promise<void> {
   if (scope === 'engagement') { await assertEngagementAccess(user, scopeId); return; }
   if (scope === 'user' && scopeId !== user.id && !can(user.role, CAP.FIRM_ADMIN)) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
   }
-  // firm scope: any authenticated user may read firm-scope documents (same as state.get firm scope).
+  // firm scope: setiap pengguna terautentikasi boleh membaca dokumen firm-scope FIRMANYA SENDIRI
+  // (sama seperti state.get firm scope) — D3 menambahkan separuh "firmanya sendiri" itu.
+  if (scope === 'firm' && scopeId !== assertFirmScoped(user)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
+  }
 }
 
 // Map an AttachmentError reason to the right tRPC code (quota/size/type/checksum → 400, else 404).
@@ -468,14 +499,14 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return listConnectors();
+      return listConnectors(ctx.user.firmId);
     }),
 
     // Capability + rollup status for the integration cockpit. canManage drives whether the UI
     // offers sync/connect actions (the server still enforces INTEGRATION_MANAGE on those in Fase 1).
     status: protectedProcedure.query(async ({ ctx }) => {
       const canView = can(ctx.user.role, CAP.INTEGRATION_VIEW);
-      const connectors = canView ? await listConnectors() : [];
+      const connectors = canView ? await listConnectors(ctx.user.firmId) : [];
       return {
         canView,
         canManage: can(ctx.user.role, CAP.INTEGRATION_MANAGE),
@@ -496,7 +527,7 @@ export const appRouter = router({
         if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
         }
-        return listJobs(input?.connectorId, input?.limit ?? 50);
+        return listJobs(ctx.user.firmId, input?.connectorId, input?.limit ?? 50);
       }),
 
     // Import↔consumption tie-out for the wired connector(s) (VIEW): does the SSOT hold exactly
@@ -505,7 +536,7 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return { bank: await reconcileBank(), coretax: await reconcileCoretax() };
+      return { bank: await reconcileBank(ctx.user.firmId), coretax: await reconcileCoretax(ctx.user.firmId) };
     }),
 
     // Trigger a sync (INTEGRATION_MANAGE — Partner/Manager). Runs the real pipeline: pull → map →
@@ -518,7 +549,7 @@ export const appRouter = router({
         if (!can(ctx.user.role, CAP.INTEGRATION_MANAGE)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_MANAGE}` });
         }
-        const actor = { id: ctx.user.id, role: ctx.user.role };
+        const actor = { id: ctx.user.id, role: ctx.user.role, firmId: ctx.user.firmId };
         if (input.connectorId === 'bank') { inc('integration_syncs_total'); return runBankSync(actor); }
         if (input.connectorId === 'coretax') { inc('integration_syncs_total'); return runCoretaxSync(actor); }
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
@@ -794,15 +825,10 @@ export const appRouter = router({
   bootstrap: protectedProcedure
     .input(z.object({ engagementId: z.string().min(1) }))
     .query(async ({ input, ctx }) => {
+      // assertEngagementAccess sudah fail-closed atas firmId (D3) DAN membuktikan perikatan ini
+      // milik firma pemanggil — jadi firmId di bawah tak perlu tangga fallback lagi.
       await assertEngagementAccess(ctx.user, input.engagementId);
-      let firmId: string | undefined = ctx.user.firmId || undefined;
-      if (!firmId) {
-        firmId = (await prisma.user.findUnique({ where: { id: ctx.user.id }, select: { firmId: true } }))?.firmId;
-      }
-      if (!firmId) {
-        firmId = (await prisma.engagement.findUnique({ where: { id: input.engagementId }, select: { firmId: true } }))?.firmId;
-      }
-      if (!firmId) throw new TRPCError({ code: 'FORBIDDEN', message: 'firm-unresolved' });
+      const firmId = ctx.user.firmId;
 
       const accessible = await accessibleEngagementIds(ctx.user);
       const engagementWhere = {
@@ -911,7 +937,7 @@ export const appRouter = router({
         // W7.5 — engagement isolation first (may you touch this engagement at all?), then the
         // W7 capability gate (may your role write this key?).
         if (scope === 'engagement') await assertEngagementAccess(ctx.user, scopeId);
-        assertCanWrite(ctx.user, scope, scopeId, key);
+        await assertCanWrite(ctx.user, scope, scopeId, key);
         // K7 — SA 230 ¶A21 assembly-lock: no-op unless the engagement is archived AND past the
         // lock window, in which case only PHASE_OVERRIDE may proceed (tagged in the audit detail).
         const lockDetail = scope === 'engagement' ? await assertNotAssemblyLocked(ctx.user, scopeId) : '';

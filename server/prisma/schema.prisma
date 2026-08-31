@@ -28,6 +28,7 @@ model Firm {
   clients     Client[]
   engagements Engagement[]
   roles       Role[]
+  connectors  Connector[]
 }
 
 // RBAC admin console — dynamic replacement for the hardcoded GRANTS map in
@@ -261,8 +262,23 @@ model TeamMember {
 // read-model). Display-only fields (icon/uptime/latency/vol/expiry/webhooks/syncs/desc) ride in
 // metaJson — a lossless envelope, mirroring User.dataJson — so the read-model can reconstruct the
 // exact prototype card without bloating queryable columns.
+// D2 (2026-08-31) — konektor DIMILIKI satu firma.
+//
+// Sebelumnya tabel ini TANPA kolom tenant sama sekali: `id` berupa kunci global ('coretax'),
+// sehingga (a) dua firma tak mungkin sama-sama punya konektor Coretax, dan (b) pada database
+// bersama, kredensial ConnectorToken satu firma terjangkau query firma lain. Pola perbaikannya
+// meniru `Role` di berkas ini: surrogate `id` + identitas alami unik PER FIRMA.
+//
+// `key` adalah identitas yang dilihat KLIEN ('coretax' | 'bank' | 'esign' | 'dms' | …) — ia yang
+// dikirim sebagai `connectorId` di tRPC dan yang dipaparkan ConnectorView.id, jadi kontrak kawat
+// tak berubah. `id` murni internal (target FK SyncJob/ConnectorToken). Baris yang sudah ada
+// mempertahankan id lamanya ('bank'); hanya baris BARU yang memakai cuid — itulah sebabnya
+// migrasi D2 tak perlu menulis ulang satu pun foreign key.
 model Connector {
-  id          String  @id // 'coretax' | 'bank' | 'esign' | 'dms' | …
+  id          String  @id @default(cuid())
+  firmId      String
+  firm        Firm    @relation(fields: [firmId], references: [id])
+  key         String // identitas stabil yang dipakai klien: 'coretax' | 'bank' | 'esign' | …
   name        String
   category    String // 'Perpajakan' | 'Keuangan' | 'Dokumen' | …
   target      String // owner module id the data is POSTED into (the SSOT) — e.g. 'cashbank'
@@ -277,6 +293,9 @@ model Connector {
 
   jobs   SyncJob[]
   tokens ConnectorToken[]
+
+  @@unique([firmId, key])
+  @@index([firmId])
 }
 
 // W9 — one sync run. The job runner (Fase 1) appends a row per pull: pull → stage → validate →

@@ -3,6 +3,11 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
+import { assertEngagementAccess, accessibleEngagementIds } from '../engagementAccess';
+import { assertStateDocRead } from '../stateAccess';
+import { listConnectors, getConnector, resolveSoleConnectorByKey } from '../integrations/config';
+import { listJobs, runBankSync } from '../integrations/sync';
+import { pullBankStatement } from '../integrations/providers/bankFixture';
 
 const FIRM_A = 'S1-FIRM-A';
 const FIRM_B = 'S1-FIRM-B';
@@ -90,6 +95,22 @@ beforeAll(async () => {
       expiresAt: new Date(Date.now() + 60_000),
     },
   });
+  // D2 — KEDUA firma memiliki konektor ber-key 'bank'. Sebelum D2 itu mustahil: `key` adalah
+  // primary key global, jadi konektor Coretax/bank hanya bisa dimiliki satu firma di seluruh DB.
+  await prisma.connector.createMany({
+    data: [
+      {
+        id: 'S1-CONN-A', firmId: FIRM_A, key: 'bank', name: 'Bank Feed A', category: 'Keuangan',
+        target: 'cashbank', status: 'connected',
+        mappingJson: JSON.stringify([['Tgl Transaksi', 'value_date'], ['Nominal', 'amount']]),
+      },
+      {
+        id: 'S1-CONN-B', firmId: FIRM_B, key: 'bank', name: 'Bank Feed B', category: 'Keuangan',
+        target: 'cashbank', status: 'connected',
+        mappingJson: JSON.stringify([['Tgl Transaksi', 'value_date'], ['Nominal', 'amount']]),
+      },
+    ],
+  });
   await prisma.stateDoc.createMany({
     data: [
       { scope: 'engagement', scopeId: ENG_A, key: 'wpState', valueJson: JSON.stringify({ own: true }) },
@@ -108,6 +129,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.session.deleteMany({ where: { userId: { in: [USER_A, USER_A2, ADMIN_A, USER_B] } } });
+  await prisma.syncJob.deleteMany({ where: { connectorId: { in: ['S1-CONN-A', 'S1-CONN-B'] } } });
+  await prisma.connector.deleteMany({ where: { id: { in: ['S1-CONN-A', 'S1-CONN-B'] } } });
   await prisma.stateDoc.deleteMany({ where: { scopeId: { in: [ENG_A, ENG_A2, ENG_B, USER_A2, USER_B, FIRM_A, FIRM_B] } } });
   await prisma.engagementMember.deleteMany({ where: { engagementId: { in: [ENG_A, ENG_A2, ENG_B] } } });
   await prisma.teamMember.deleteMany({ where: { firmId: { in: [FIRM_A, FIRM_B] } } });
@@ -206,5 +229,139 @@ describe('Tahap 1 — centralized StateDoc read guard', () => {
     await expect(
       callerAs(USER_A, FIRM_A, 'Junior Auditor').personal.get({ scope: 'firm', scopeId: FIRM_B, key: 'payrollData' }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+});
+
+/* ============================================================
+   D3 — GAGAL-TERTUTUP.
+
+   Setiap cek lintas-firma dulu berbentuk `if (user.firmId) { … }`, sehingga principal TANPA
+   firmId melewati semuanya. Uji di bawah memaku kebalikannya. Ia dipanggil pada lapisan guard
+   (bukan lewat router) dengan sengaja: cast `as User` di seluruh suite uji repo ini bisa
+   menghilangkan firmId tanpa satu pun keluhan kompilator — jaring runtime-lah yang harus
+   membuktikan diri, dan hanya pemanggilan langsung yang dapat mengujinya.
+   ============================================================ */
+describe('D3 — principal tanpa firmId ditolak, bukan diloloskan', () => {
+  const noFirm = { id: USER_A, role: 'Engagement Partner' } as unknown as {
+    id: string; role: string; firmId: string;
+  };
+
+  it('assertEngagementAccess menolak, meski perannya punya ENGAGEMENT_VIEW_ALL', async () => {
+    await expect(assertEngagementAccess(noFirm, ENG_A)).rejects.toMatchObject({
+      code: 'FORBIDDEN', message: 'firm-unresolved',
+    });
+  });
+
+  it('accessibleEngagementIds menolak alih-alih mengembalikan "all"', async () => {
+    await expect(accessibleEngagementIds(noFirm)).rejects.toMatchObject({
+      code: 'FORBIDDEN', message: 'firm-unresolved',
+    });
+  });
+
+  it('assertStateDocRead menolak dokumen firm-scope', async () => {
+    await expect(
+      assertStateDocRead(noFirm, { scope: 'firm', scopeId: FIRM_A, key: 'prospects' }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'firm-unresolved' });
+  });
+
+  it('assertStateDocRead menolak dokumen user-scope milik orang lain', async () => {
+    await expect(
+      assertStateDocRead(noFirm, { scope: 'user', scopeId: USER_A2, key: 'profile' }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'firm-unresolved' });
+  });
+});
+
+/* ============================================================
+   D3 — batas firma pada sisi TULIS.
+
+   Sisi baca sudah dipagari sejak W7.5; sisi tulis TIDAK. `state.set` hanya memanggil
+   assertEngagementAccess untuk scope 'engagement', sehingga pemegang kapabilitas dapat menulis
+   dokumen firm-scope firma lain — dan seorang FIRM_ADMIN dapat menulis profil pengguna firma
+   lain — padahal MEMBACA keduanya sudah dilarang. Uji ini memaku asimetri itu tertutup.
+   ============================================================ */
+describe('D3 — tulisan lintas-firma ditolak, bukan hanya bacaan', () => {
+  it('Partner firma A tak dapat MENULIS dokumen firm-scope firma B', async () => {
+    await expect(
+      callerAs(ADMIN_A, FIRM_A, 'Engagement Partner').state.set({
+        scope: 'firm', scopeId: FIRM_B, key: 'prospects', value: [{ injected: true }], baseVersion: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'cross-firm-state' });
+    // dan dokumen firma B benar-benar tak tersentuh
+    const doc = await prisma.stateDoc.findUnique({
+      where: { scope_scopeId_key: { scope: 'firm', scopeId: FIRM_B, key: 'prospects' } },
+    });
+    expect(doc?.valueJson).toBe('[]');
+  });
+
+  it('FIRM_ADMIN firma A tak dapat MENULIS dokumen user-scope pengguna firma B', async () => {
+    await expect(
+      callerAs(ADMIN_A, FIRM_A, 'Engagement Partner').state.set({
+        scope: 'user', scopeId: USER_B, key: 'profile', value: { hijacked: true }, baseVersion: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'cross-firm-user' });
+    const doc = await prisma.stateDoc.findUnique({
+      where: { scope_scopeId_key: { scope: 'user', scopeId: USER_B, key: 'profile' } },
+    });
+    expect(JSON.parse(doc!.valueJson)).toEqual({ private: 'b' });
+  });
+
+  it('tulisan firm-scope ke firma SENDIRI tetap lolos (gerbang membatasi, bukan memblokir)', async () => {
+    const r = await callerAs(ADMIN_A, FIRM_A, 'Engagement Partner').state.set({
+      scope: 'firm', scopeId: FIRM_A, key: 'prospects', value: [{ ok: true }], baseVersion: 1,
+    });
+    expect(r.version).toBe(2);
+  });
+});
+
+/* ============================================================
+   D2 — konektor milik firma.
+   ============================================================ */
+describe('D2 — konektor & job sinkronisasi ter-isolasi per firma', () => {
+  it('dua firma dapat memiliki key konektor yang SAMA, masing-masing melihat miliknya sendiri', async () => {
+    const a = await listConnectors(FIRM_A);
+    const b = await listConnectors(FIRM_B);
+    expect(a.map((c) => c.id)).toEqual(['bank']);
+    expect(b.map((c) => c.id)).toEqual(['bank']);
+    expect(a[0].name).toBe('Bank Feed A');
+    expect(b[0].name).toBe('Bank Feed B');
+  });
+
+  it('getConnector di-scope firma — key firma lain tak terjangkau', async () => {
+    expect(await getConnector(FIRM_A, 'bank')).toMatchObject({ name: 'Bank Feed A' });
+    expect(await getConnector(FIRM_A, 'coretax')).toBeNull();
+  });
+
+  it('integration.list lewat router hanya memaparkan konektor firma pemanggil', async () => {
+    const rows = await callerAs(ADMIN_A, FIRM_A, 'Engagement Partner').integration.list();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].name).toBe('Bank Feed A');
+    // `id` di kawat tetap key klien, bukan primary key baris — kontrak klien tak berubah.
+    expect(rows[0].id).toBe('bank');
+  });
+
+  it('resolveSoleConnectorByKey MELEMPAR ketika dua firma berbagi key (webhook tak menebak)', async () => {
+    await expect(resolveSoleConnectorByKey('bank')).rejects.toThrow(/connector-ambiguous:bank/);
+  });
+
+  it('sync memposting ke firma AKTOR, dan job firma lain tak bocor ke daftarnya', async () => {
+    const summary = await runBankSync(
+      { id: ADMIN_A, role: 'Engagement Partner', firmId: FIRM_A },
+      pullBankStatement,
+    );
+    expect(summary.status).toBe('posted');
+
+    // Feed mendarat di StateDoc firma A — bukan di konstanta 'FIRM-WHR' yang dulu di-hardcode.
+    const posted = await prisma.stateDoc.findUnique({
+      where: { scope_scopeId_key: { scope: 'firm', scopeId: FIRM_A, key: 'bankFeed' } },
+    });
+    expect(posted).toBeTruthy();
+    expect(await prisma.stateDoc.count({ where: { scope: 'firm', scopeId: FIRM_B, key: 'bankFeed' } })).toBe(0);
+
+    // Antrean impor firma B kosong meski key konektornya identik.
+    expect(await listJobs(FIRM_A, 'bank')).not.toHaveLength(0);
+    expect(await listJobs(FIRM_B, 'bank')).toHaveLength(0);
+
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: FIRM_A, key: 'bankFeed' } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: FIRM_A, key: 'bankFeed' } });
   });
 });

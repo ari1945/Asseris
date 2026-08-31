@@ -11,7 +11,10 @@ import { appendAudit, verifyAuditChain, GENESIS_HASH, __hashRow } from '../audit
 // fileParallelism:false (vitest.config) keeps appends from racing across workers.
 
 function callerAs(role: string, id: string) {
-  const user = { id, role } as unknown as User;
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
+// Sebelumnya ia dihilangkan dan setiap cek lintas-firma dilewati; uji lolos lewat jalur
+// yang tak pernah ditempuh pengguna sungguhan.
+  const user = { id, role, firmId: AFIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 

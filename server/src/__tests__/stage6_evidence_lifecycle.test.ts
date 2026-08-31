@@ -19,7 +19,10 @@ import { readBytes } from '../attachments/store';
    TOTP + attachment blobs + connector tokens. */
 
 function callerAs(role: string, id: string) {
-  const user = { id, role } as unknown as User;
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
+// Sebelumnya ia dihilangkan dan setiap cek lintas-firma dilewati; uji lolos lewat jalur
+// yang tak pernah ditempuh pengguna sungguhan.
+  const user = { id, role, firmId: FIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'stage6-test' });
 }
 
@@ -247,8 +250,10 @@ describe('Tahap 6 — lifecycle bukti audit', () => {
         blob: encryptSecret(Buffer.from('rot').toString('base64'), oldKey, aad),
       },
     });
+    // D2 — konektor kini milik sebuah firma. Uji ini hanya butuh baris konektor sebagai induk
+    // ConnectorToken (yang diuji rotasi kuncinya), jadi ia menumpang firma yang sudah dibuat setup.
     await prisma.connector.create({
-      data: { id: 's6-spike', name: 'S6 Spike', category: 'Keuangan', target: 'cashbank', status: 'available' },
+      data: { id: 's6-spike', firmId: FIRM, key: 's6-spike', name: 'S6 Spike', category: 'Keuangan', target: 'cashbank', status: 'available' },
     });
     await prisma.connectorToken.create({
       data: { connectorId: 's6-spike', kind: 'oauth', secretEnc: encryptSecret('{"t":"x"}', oldKey, 'conn:v1|s6-spike') },

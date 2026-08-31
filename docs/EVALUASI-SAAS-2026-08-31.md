@@ -124,10 +124,10 @@ niat baik. Untuk produk berbayar, ini yang membuat rilis berulang tidak menakutk
 | Kode | Temuan | Bukti | Dampak |
 |---|---|---|---|
 | A1 | `AuditLog.seq` monoton **instance-wide** dan diserialisasi satu proses in-memory | `server/src/audit/log.ts`; `docs/DEPLOY.md` §10 | Tidak bisa multi-instance/auto-scale. Pada DB bersama, rantai satu firma akan tercampur firma lain → ekspor audit membocorkan *keberadaan* event firma lain, dan `audit.verify` tak bisa dipisah per firma |
-| A2 | `Connector`, `SyncJob`, `ConnectorToken` **tidak punya kolom tenant sama sekali** | `server/prisma/schema.prisma` | Tabel global. Pada DB bersama, kredensial konektor Coretax/bank satu firma terlihat oleh query firma lain kecuali ditambal |
+| A2 ✅ | ~~`Connector`, `SyncJob`, `ConnectorToken` **tidak punya kolom tenant sama sekali**~~ — DITUTUP 2026-08-31 (`Connector.firmId` + `@@unique([firmId, key])`; SyncJob/ConnectorToken mewarisi tenant lewat FK-nya) | `server/prisma/schema.prisma` | Tabel global. Pada DB bersama, kredensial konektor Coretax/bank satu firma terlihat oleh query firma lain kecuali ditambal |
 | A3 | Kunci penandatangan & enkripsi tunggal per instance (`APP_SIGNING_KEY`, `APP_ENCRYPTION_KEY`) | `docs/DEPLOY.md` §10, `docs/KEY-ROTATION.md` | Pada DB bersama, satu kunci menandatangani segel semua firma; rotasi jadi peristiwa lintas-tenant |
-| A4 | Cek lintas-firma berbentuk `if (user.firmId) { … }` — **gagal terbuka** bila firmId kosong | `stateAccess.ts:assertSameFirmUser`, `engagementAccess.ts` | Aman hari ini (`User.firmId` non-nullable, sesi selalu membawanya), tapi merupakan pola "aman karena konvensi", bukan "aman karena konstruksi". Pada mode pooled ini wajib jadi Postgres RLS |
-| A5 | `accessibleEngagementIds` mengembalikan `'all'` tanpa filter firma untuk peran oversight | `engagementAccess.ts` | Pemanggil wajib ingat menambahkan filter `firmId` (`router.ts:838` melakukannya). Latent hazard yang sama kelasnya dengan A4 |
+| A4 ✅ | ~~Cek lintas-firma berbentuk `if (user.firmId) { … }` — **gagal terbuka** bila firmId kosong~~ — DITUTUP 2026-08-31 (wajib di tipe + `assertFirmScoped` saat runtime; sisi tulis ikut dipagari) | `stateAccess.ts:assertSameFirmUser`, `engagementAccess.ts` | Aman hari ini (`User.firmId` non-nullable, sesi selalu membawanya), tapi merupakan pola "aman karena konvensi", bukan "aman karena konstruksi". Pada mode pooled ini wajib jadi Postgres RLS |
+| A5 ✅ | ~~`accessibleEngagementIds` mengembalikan `'all'` tanpa filter firma untuk peran oversight~~ — DITUTUP 2026-08-31 (fail-closed atas firmId; filter firma pada cabang keanggotaan kini tanpa syarat) | `engagementAccess.ts` | Pemanggil wajib ingat menambahkan filter `firmId` (`router.ts:838` melakukannya). Latent hazard yang sama kelasnya dengan A4 |
 | A6 | `bootstrapFirm` **menolak** bila sudah ada firma | `server/src/bootstrapFirm.ts` | Ini benar dan disengaja untuk model silo — tapi berarti tak ada jalur teknis apa pun untuk firma kedua di satu instance |
 
 **Interpretasi:** A1–A3 adalah *desain silo yang konsisten*, bukan kelalaian. A4–A5 adalah utang
@@ -229,6 +229,10 @@ orang membeli, demi penghematan yang belum relevan, dengan menunda pendapatan 4�
 **"Pooling-ready" berarti tiga disiplin murah yang dijalankan sekarang**, agar pintu ke pooled
 tidak tertutup permanen:
 
+> **Status implementasi (2026-08-31): D2 dan D3 SUDAH DIKERJAKAN.** Rinciannya di §3.1a di bawah;
+> D1 tetap kebijakan berjalan, bukan sesuatu yang "selesai" sekali.
+
+
 - **D1.** Jangan tambah tabel global baru. Setiap model Prisma baru wajib punya jalur tenant
   (langsung `firmId`, atau `scope`/`scopeId` seperti `StateDoc`).
 - **D2.** Tambahkan `firmId` ke `Connector`/`SyncJob`/`ConnectorToken` **sekarang** (A2), selagi
@@ -236,6 +240,24 @@ tidak tertutup permanen:
 - **D3.** Ubah `if (user.firmId)` menjadi *fail-closed* (A4/A5): tanpa `firmId` → `FORBIDDEN`,
   bukan lolos. Ini perbaikan yang benar bahkan di mode silo, dan menghapus satu kelas kerentanan
   laten sebelum ia sempat jadi insiden.
+
+### 3.1a Apa yang berubah ketika D2 & D3 dikerjakan (2026-08-31)
+
+Mengerjakannya lebih awal terbayar langsung: keduanya membongkar cacat yang tak terlihat dari
+pembacaan dokumen saja.
+
+| Temuan | Kelas | Ditemukan oleh |
+|---|---|---|
+| `integrations/sync.ts` memakai `const FIRM_ID = 'FIRM-WHR'` — id firma **demo**. Sinkronisasi Bank Feed/Coretax memposting `bankFeed`/`taxFeed` ke firma demo apa pun firma yang login, sehingga modul cashbank/firmtax firma pilot tak pernah melihat baris yang "berhasil diposting", dan audit event mencatat firma yang salah. | **Cacat produksi**, bukan sekadar bau multi-tenancy | Dibaca saat menelusuri pemilik `Connector` |
+| `state.set` tak pernah memeriksa batas firma pada sisi **tulis**: hanya scope `engagement` yang lewat `assertEngagementAccess`. Pemegang kapabilitas dapat MENULIS dokumen firm-scope firma lain, dan FIRM_ADMIN dapat menulis profil pengguna firma lain — padahal MEMBACA keduanya sudah dilarang sejak W7.5. | Lubang tulis (tak terjangkau pada satu-firma-per-instance, terbuka pada detik pertama DB dibagi) | Muncul saat guard dibuat fail-closed |
+| Tiga berkas uji menulis ke id perikatan yang **tak punya baris sama sekali**, dan dua memakai scopeId firm-scope yang bukan firma pemanggil. Semua hanya lolos karena principal tanpa firmId melewati setiap cek. | Uji yang menempuh jalur yang tak pernah ditempuh pengguna nyata | Fail-closed membuat 76 uji merah sekaligus |
+
+`Connector` kini `@@unique([firmId, key])` mengikuti pola `Role`: surrogate `id` + identitas alami
+per firma. `key` ('bank'/'coretax') tetap identitas yang dilihat klien, jadi **kontrak kawat tRPC
+tak berubah** dan tak satu berkas pun di `migration/src` tersentuh. Migrasi diverifikasi terhadap
+PostgreSQL 16 sungguhan pada dua skenario — instalasi baru dan **upgrade instance berisi data**
+(backfill ke firma tunggal, FK anak utuh tanpa rebuild tabel) — dengan
+`prisma migrate diff` melaporkan *No difference detected*.
 
 **Kapan meninjau ulang:** bila (a) tenant > 40, **atau** (b) muncul permintaan terbukti untuk tier
 di bawah Rp 1,5 juta/bulan, **atau** (c) biaya infra melampaui 15% pendapatan berulang. Selama
