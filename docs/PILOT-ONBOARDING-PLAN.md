@@ -91,10 +91,17 @@ Admin & HR Firma/Finance Firma sengaja TIDAK (peran firm-ops, bukan staf audit �
 perikatan tertentu (`EngagementMember`) — itu tetap lewat modul **Engagement Mgmt** yang sudah
 ada di aplikasi, dilakukan Manager/Partner SETELAH staf berhasil login pertama kali.
 
-**Belum ada** (gap terpisah, di luar cakupan `add-user`): reset password mandiri (staf lupa
-password → tetap perlu operator jalankan ulang lewat `auth.changePassword` atau kontak admin,
-lihat `docs/USER-GUIDE.md` §7), dan UI "Tambah Pengguna" di dalam aplikasi (CLI operator saja
-untuk saat ini).
+**SUDAH ADA sejak 2026-08-31** (dulu tercatat di sini sebagai gap terbuka): modul **Manajemen
+Pengguna** di dalam aplikasi (grup *Operasi & Administrasi Firma*, hanya untuk Partner-admin) —
+undang staf lewat email, ubah peran, nonaktifkan saat offboarding, kirim tautan setel-ulang, dan
+lepas 2FA untuk staf yang kehilangan authenticator-nya. Ditambah **reset password mandiri**
+("Lupa kata sandi?" di halaman masuk). Keduanya menuntut email dikonfigurasi
+(`MAIL_SMTP_*` + `PUBLIC_BASE_URL`, lihat `docs/DEPLOY.md` §21); tanpa itu undangan tetap
+berfungsi dengan tautan yang diserahkan admin secara langsung, sedangkan reset mandiri
+melaporkan dengan jujur bahwa staf harus menghubungi admin firma.
+
+`npm run add-user` TETAP ADA dan tetap sah untuk provisioning awal lewat shell; ia dan UI
+memakai jalur kode yang sama (`server/src/addUser.ts`), jadi keduanya tak dapat menyimpang.
 
 ### 1.2 Prasyarat lain (sudah tersedia, tinggal dipastikan)
 - [ ] Instance sudah di-deploy & healthy (`docs/DEPLOY.md` §1-5), `curl .../healthz` → `db: up`.
@@ -232,7 +239,7 @@ Isi bersama Partner firma pilot di Fase 0 — contoh (ganti sesuai konteks nyata
 |---|---|
 | Resistensi staf ("proses lama sudah nyaman") | Kickoff (§3) menekankan APA YANG TIDAK BERUBAH (standar audit tetap sama); parallel-run mengurangi rasa taruhan penuh. |
 | Migrasi data historis dari Excel lama | **Di luar cakupan dokumen ini** — perikatan LAMA yang sudah selesai di proses lama TIDAK perlu dipindah ke Asseris; hanya perikatan BARU mulai dari pilot yang memakai Asseris (hindari proyek migrasi data besar yang tak perlu). |
-| Staf lupa password/TOTP saat masa kritis | `add-user` (§1.1) belum mencakup fungsi reset — pastikan Ari (operator) SELALU siaga selama Fase 3-5 untuk reset manual cepat (`auth.changePassword` via jalur yang ada, atau kontak langsung). |
+| Staf lupa password/TOTP saat masa kritis | Ditutup 2026-08-31: staf memakai "Lupa kata sandi?" sendiri, dan Partner-admin dapat mengirim tautan setel-ulang atau melepas 2FA dari modul **Manajemen Pengguna** tanpa melibatkan operator. Kehilangan password DAN authenticator sekaligus tetap lewat admin — itu memang jalur yang benar, karena hanya manusia yang dapat memverifikasi identitas orang yang kehilangan kedua faktornya. |
 | Volume data klien pilot ternyata besar (WTB ribuan baris) | Sudah ada baseline performa & tabel kapasitas — lihat `docs/DEPLOY.md` §19 sebelum pilot dengan klien bervolume besar. |
 | Kekhawatiran kepatuhan UU PDP dari klien firma pilot | **Kajian gap awal selesai** (2026-07-03): `docs/PDP-COMPLIANCE-ASSESSMENT.md` (gap pasal-per-pasal), `docs/DATA-HANDLING-COMMITMENT.md` (komitmen internal, BUKAN DPA final), `docs/DATA-RETENTION-POLICY.md` (retensi pasca-kontrak), `docs/HOSTING-DATA-RESIDENCY-REVIEW.md` (region `ap-southeast-3` dinilai memadai untuk profil non-regulasi). **Belum direview pengacara** dan beberapa gap operasional (DSR belum wired ke data nyata, transfer LLM lintas-batas belum ada basis hukum) masih terbuka — tetap **jangan berjanji kepatuhan penuh** ke klien firma pilot sampai `docs/PDP-COMPLIANCE-ASSESSMENT.md` §5 selesai; ini keputusan level firma/legal Ari, bukan sesuatu yang diselesaikan lewat rencana onboarding ini. |
 

@@ -21,7 +21,10 @@ import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 
 function callerAs(role: string, id: string) {
-  const user = { id, role } as unknown as User;
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
+// Sebelumnya ia dihilangkan dan setiap cek lintas-firma dilewati; uji lolos lewat jalur
+// yang tak pernah ditempuh pengguna sungguhan.
+  const user = { id, role, firmId: SFIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 

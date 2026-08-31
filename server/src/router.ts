@@ -6,14 +6,14 @@ import { prisma } from './db';
 import { hashPassword, verifyPassword } from './auth/password';
 import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp';
 import { clearTotpFailures, recordTotpFailure, totpThrottleState } from './auth/totpThrottle';
-import { createSession, revokeSession } from './auth/session';
+import { createSession, revokeSession, revokeAllSessions } from './auth/session';
 import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
-import { can, capForWrite, CAP } from './rbac';
+import { can, capForWrite, CAP, ROLES } from './rbac';
 import { refreshRoleCache } from './roleStore';
 import { guardSignoffWrite, signoffContextNeeds, isSignoffKey, type SignoffChange, type SignoffContext } from './signoff';
 import { loadSignoffContext } from './signoffContext';
-import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
+import { assertEngagementAccess, accessibleEngagementIds, assertFirmScoped } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
 import { redactFindings, redactFindingsWithReport, buildNarrationPrompt } from './llm/redact';
 import { consumeLlmConsent, issueLlmConsent } from './llm/consent';
@@ -25,6 +25,16 @@ import { createSeal, verifySeal, isContentHash } from './export/seal';
 import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
+import { addUser, AUDIT_ROLES } from './addUser';
+import { inviteMail } from './mail/templates';
+import { INVITE_TTL_DAYS } from './auth/credentialToken';
+import {
+  issueCredentialToken, inspectCredentialToken, redeemCredentialToken, recentResetCount,
+  RESET_TTL_MINUTES, RESET_MAX_PER_HOUR,
+} from './auth/credentialToken';
+import { mailConfigured, readMailConfig } from './mail/config';
+import { sendMail } from './mail/send';
+import { passwordResetMail } from './mail/templates';
 import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
@@ -119,6 +129,53 @@ function bootstrapProfile(dataJson: string): Record<string, unknown> | null {
   }
 }
 
+/* ============================================================
+   B1 — pagar bersama untuk manajemen pengguna.
+   ============================================================ */
+
+function assertFirmAdmin(user: { role: string }): void {
+  if (!can(user.role, CAP.FIRM_ADMIN)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+  }
+}
+
+/** Muat pengguna sasaran, MENOLAK bila ia milik firma lain. Cermin assertSameFirmUser di
+ *  stateAccess.ts — batas firma yang sama, kali ini untuk operasi tata kelola akun. */
+async function loadFirmUser(actor: { firmId: string }, userId: string) {
+  const firmId = assertFirmScoped(actor);
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target || target.firmId !== firmId) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-user' });
+  }
+  return target;
+}
+
+/**
+ * Tolak perubahan yang membuat firma kehilangan admin AKTIF terakhirnya.
+ *
+ * Padanan pada tataran PENGGUNA dari retainsFirmAdmin() di atas, yang menjaga hal sama pada
+ * tataran PERAN. Keduanya dibutuhkan: satu firma bisa punya peran ber-FIRM_ADMIN yang masih
+ * terdefinisi rapi, namun tak seorang pun aktif menjabatnya — dan hasilnya identik, yaitu firma
+ * yang terkunci dari administrasinya sendiri dan hanya dapat dipulihkan lewat tulisan DB manual.
+ * Konsol admin tak boleh mampu memproduksi keadaan itu.
+ */
+async function assertFirmKeepsAnAdmin(
+  actor: { firmId: string },
+  target: { id: string; role: string },
+  change: { nextRole?: string; deactivate?: boolean },
+): Promise<void> {
+  if (!can(target.role, CAP.FIRM_ADMIN)) return; // bukan admin → tak mungkin mengurangi jumlahnya
+  if (change.nextRole && can(change.nextRole, CAP.FIRM_ADMIN)) return; // tetap admin
+
+  const others = await prisma.user.findMany({
+    where: { firmId: assertFirmScoped(actor), deactivatedAt: null, id: { not: target.id } },
+    select: { role: true },
+  });
+  if (!others.some((u) => can(u.role, CAP.FIRM_ADMIN))) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'last-firm-admin' });
+  }
+}
+
 // Generic credential failure — same message for unknown email vs wrong password, so the
 // endpoint can't be used to enumerate accounts.
 const badCreds = () => new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-credentials' });
@@ -150,11 +207,34 @@ async function verifyAccountTotp(
 
 // W7 Fase 1 — server-side RBAC gate for StateDoc writes. The real enforcement boundary:
 // the UI's can() is convenience, this is what actually stops a wrong-role write.
-function assertCanWrite(user: { id: string; role: string }, scope: string, scopeId: string, key: string) {
+/*
+ * D3 — sisi TULIS dulu tak punya batas firma sama sekali.
+ *
+ * Bacaan sudah dipagari assertStateDocRead ('cross-firm-state'/'cross-firm-user'), tetapi
+ * state.set hanya memanggil assertEngagementAccess untuk scope 'engagement'. Untuk scope 'firm'
+ * dan 'user' TAK ADA satu pun perbandingan terhadap firma pemanggil: pemegang kapabilitas yang
+ * tepat dapat MENULIS dokumen firm-scope milik firma lain, dan seorang FIRM_ADMIN dapat menulis
+ * profil pengguna firma lain — padahal MEMBACA keduanya dilarang. Asimetri itu tak terjangkau
+ * hari ini (satu instance = satu firma, jadi "firma lain" tak ada), tapi ia lubang tulis pada
+ * detik pertama satu database melayani lebih dari satu firma.
+ */
+async function assertCanWrite(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string, key: string) {
+  const firmId = assertFirmScoped(user);
   if (scope === 'user') {
     // Own profile/prefs only — unless you administer the firm.
-    if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return;
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+    if (scopeId === user.id) return;
+    if (!can(user.role, CAP.FIRM_ADMIN)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+    }
+    // Cermin tulis dari assertSameFirmUser: FIRM_ADMIN mengelola firmanya sendiri, bukan firma lain.
+    const target = await prisma.user.findUnique({ where: { id: scopeId }, select: { firmId: true } });
+    if (!target || target.firmId !== firmId) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-user' });
+    }
+    return;
+  }
+  if (scope === 'firm' && scopeId !== firmId) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
   }
   const cap = capForWrite(scope, key);
   if (cap && !can(user.role, cap)) {
@@ -187,7 +267,7 @@ async function assertNotAssemblyLocked(user: { role: string }, engagementId: str
 // per-collection gating can come later without loosening anything). User scope: owner-or-admin.
 // Write returns an audit-detail suffix (assembly-lock override tag) so a past-lock write is never
 // silent.
-async function assertAttachmentWrite(user: { id: string; role: string }, scope: string, scopeId: string): Promise<string> {
+async function assertAttachmentWrite(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string): Promise<string> {
   if (scope === 'user') {
     if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return '';
     throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
@@ -197,16 +277,24 @@ async function assertAttachmentWrite(user: { id: string; role: string }, scope: 
     await assertEngagementAccess(user, scopeId);
     lockDetail = await assertNotAssemblyLocked(user, scopeId);
   }
+  // D3 — byte lampiran mewarisi batas firma yang sama dengan StateDoc-nya.
+  if (scope === 'firm' && scopeId !== assertFirmScoped(user)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
+  }
   if (!can(user.role, CAP.WP_EDIT)) throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.WP_EDIT}` });
   return lockDetail;
 }
 
-async function assertAttachmentRead(user: { id: string; role: string }, scope: string, scopeId: string): Promise<void> {
+async function assertAttachmentRead(user: { id: string; role: string; firmId: string }, scope: string, scopeId: string): Promise<void> {
   if (scope === 'engagement') { await assertEngagementAccess(user, scopeId); return; }
   if (scope === 'user' && scopeId !== user.id && !can(user.role, CAP.FIRM_ADMIN)) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
   }
-  // firm scope: any authenticated user may read firm-scope documents (same as state.get firm scope).
+  // firm scope: setiap pengguna terautentikasi boleh membaca dokumen firm-scope FIRMANYA SENDIRI
+  // (sama seperti state.get firm scope) — D3 menambahkan separuh "firmanya sendiri" itu.
+  if (scope === 'firm' && scopeId !== assertFirmScoped(user)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
+  }
 }
 
 // Map an AttachmentError reason to the right tRPC code (quota/size/type/checksum → 400, else 404).
@@ -232,6 +320,13 @@ export const appRouter = router({
         }
         if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'account-locked' });
+        }
+        // B1 — akun yang dinonaktifkan ditolak SEBELUM password diperiksa. Pesannya sengaja
+        // memakai badCreds() yang sama dengan email tak dikenal: membalas 'account-deactivated'
+        // akan memberi tahu penyerang bahwa alamat itu memang terdaftar di firma ini.
+        if (user.deactivatedAt) {
+          await logAuthEvent('LOGIN_FAIL', { ...meta, userId: user.id, detail: 'deactivated' });
+          throw badCreds();
         }
         if (!(await verifyPassword(input.password, user.passwordHash))) {
           const failed = user.failedLogins + 1;
@@ -278,6 +373,141 @@ export const appRouter = router({
       ctx.setCookie?.(clearSessionCookie()); // W10 — drop the httpOnly cookie on logout
       return { ok: true };
     }),
+
+    /*
+     * B2 — lupa password, langkah 1. PUBLIK dan sengaja tak informatif.
+     *
+     * Balasannya IDENTIK apa pun yang terjadi di belakang: alamat tak dikenal, akun nonaktif,
+     * akun tanpa password, rate-limit tercapai, SMTP mati — semuanya mengembalikan bentuk yang
+     * sama. Endpoint yang membedakannya adalah oracle enumerasi: siapa pun dapat memetakan
+     * seluruh staf sebuah KAP hanya dengan mencoba alamat. `emailConfigured` AMAN disertakan
+     * karena ia properti INSTANCE, bukan properti akun — ia tak berubah antar alamat, jadi tak
+     * membocorkan siapa pun, dan UI membutuhkannya untuk memilih kalimat yang jujur.
+     */
+    requestPasswordReset: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        const meta = { ip: ctx.ip, userAgent: ctx.userAgent };
+        const configured = mailConfigured();
+        const answer = { ok: true as const, emailConfigured: configured };
+
+        const user = await prisma.user.findUnique({ where: { email: input.email } });
+        await logAuthEvent('PASSWORD_RESET_REQUEST', {
+          ...meta,
+          userId: user?.id ?? null,
+          detail: user ? 'known' : 'unknown',
+        });
+        if (!configured) return answer;
+        // Akun tanpa password (belum pernah diundang) dan akun nonaktif tak berhak direset.
+        if (!user || user.deactivatedAt || !user.passwordHash) return answer;
+
+        if ((await recentResetCount(user.id)) >= RESET_MAX_PER_HOUR) {
+          inc('password_reset_rate_limited_total');
+          return answer;
+        }
+
+        const cfg = readMailConfig();
+        if (!cfg) return answer;
+        const { raw } = await issueCredentialToken({
+          userId: user.id,
+          purpose: 'reset',
+          ttlMs: RESET_TTL_MINUTES * 60_000,
+          requestIp: ctx.ip ?? null,
+        });
+        const firm = await prisma.firm.findUnique({ where: { id: user.firmId }, select: { name: true } });
+        await sendMail({
+          to: input.email,
+          ...passwordResetMail({
+            name: user.name,
+            firmName: firm?.name ?? 'firma Anda',
+            link: `${cfg.publicBaseUrl}/#/setel-password?token=${encodeURIComponent(raw)}`,
+            minutes: RESET_TTL_MINUTES,
+          }),
+        });
+        inc('password_reset_requested_total');
+        return answer;
+      }),
+
+    /*
+     * B2 — lupa password/undangan, langkah 2a: apakah tautan ini masih berlaku?
+     *
+     * Dipisah dari penyetelan supaya layar dapat memutuskan menampilkan formulir atau pesan
+     * "tautan tak berlaku" SEBELUM pengguna mengetik password. `totpRequired` diberitahukan di
+     * sini karena formulirnya harus menyediakan kolom OTP sejak awal, bukan setelah gagal sekali.
+     * Aman dipaparkan: hanya pemegang token yang sah dapat sampai ke sini.
+     */
+    inspectCredentialToken: publicProcedure
+      .input(z.object({ token: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const seen = await inspectCredentialToken(input.token);
+        if (!seen.ok) return { valid: false as const, reason: seen.reason };
+        const user = await prisma.user.findUnique({
+          where: { id: seen.userId },
+          select: { name: true, email: true, totpEnabled: true, deactivatedAt: true },
+        });
+        if (!user || user.deactivatedAt) return { valid: false as const, reason: 'not-found' as const };
+        return {
+          valid: true as const,
+          purpose: seen.purpose,
+          name: user.name,
+          email: user.email,
+          totpRequired: user.totpEnabled,
+        };
+      }),
+
+    /*
+     * B2 — langkah 2b: setel password dengan token, tanpa sesi.
+     *
+     * TOTP TETAP DIMINTA bila akun mengaktifkannya. Itu keputusan sengaja dan bukan yang paling
+     * nyaman: kalau reset lewat email dapat melewati faktor kedua, maka penguasaan kotak masuk
+     * sama dengan penguasaan akun, dan 2FA yang susah payah dipasang firma tak lagi bernilai
+     * apa-apa. Konsekuensinya jujur: staf yang kehilangan authenticator DAN password harus lewat
+     * FIRM_ADMIN (B1) — itu memang jalur yang benar, karena hanya manusia yang dapat memverifikasi
+     * identitas seseorang yang kehilangan kedua faktornya.
+     */
+    completeCredentialToken: publicProcedure
+      .input(z.object({
+        token: z.string().min(1),
+        newPassword: z.string().min(12),
+        totp: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const meta = { ip: ctx.ip, userAgent: ctx.userAgent };
+        const seen = await inspectCredentialToken(input.token);
+        if (!seen.ok) throw new TRPCError({ code: 'UNAUTHORIZED', message: `token-${seen.reason}` });
+
+        const user = await prisma.user.findUnique({ where: { id: seen.userId } });
+        if (!user || user.deactivatedAt) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'token-not-found' });
+        }
+        // OTP diperiksa SEBELUM token dipakai: OTP salah tak boleh membakar tautan sekali-pakai,
+        // atau satu salah ketik akan memaksa seluruh alur diulang dari email.
+        if (user.totpEnabled) {
+          await verifyAccountTotp(user, user.totpSecret ? decryptSecret(user.totpSecret) : null, input.totp);
+        }
+
+        const claimed = await redeemCredentialToken(input.token);
+        if (!claimed.ok) throw new TRPCError({ code: 'UNAUTHORIZED', message: `token-${claimed.reason}` });
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            passwordHash: await hashPassword(input.newPassword),
+            // Reset yang berhasil membersihkan lockout: pemilik sah yang terkunci karena tebakan
+            // orang lain harus bisa langsung masuk, bukan menunggu jendela lockout habis.
+            failedLogins: 0,
+            lockedUntil: null,
+          },
+        });
+        const revoked = await revokeAllSessions(user.id);
+        await logAuthEvent('PASSWORD_RESET', { ...meta, userId: user.id, detail: `${claimed.purpose}; sessions=${revoked}` });
+        await appendAudit({
+          actorUserId: user.id, actorRole: user.role, action: 'PASSWORD_RESET',
+          scope: 'user', scopeId: user.id, detail: `${claimed.purpose}; sessions_revoked=${revoked}`,
+        });
+        inc('password_reset_completed_total');
+        return { ok: true, purpose: claimed.purpose };
+      }),
 
     changePassword: protectedProcedure
       .input(z.object({ oldPassword: z.string().min(1), newPassword: z.string().min(12), totp: z.string().optional() }))
@@ -457,6 +687,262 @@ export const appRouter = router({
       }),
   }),
 
+  /* ============================================================
+     B1 — Manajemen Pengguna (FIRM_ADMIN).
+
+     Menutup gap yang membuat produk ini tak dapat berskala: sampai sekarang menambah satu staf
+     berarti operator membuka shell di server dan menjalankan `npm run add-user`. Setiap firma
+     karena itu bergantung pada vendor untuk hal paling rutin dalam hidup sebuah KAP — orang
+     masuk, orang pindah peran, orang keluar.
+
+     Jalur pembuatannya SENGAJA memakai addUser() yang sama dengan CLI, bukan salinan: aturan
+     roster TeamMember, validasi peran, dan penanganan email ganda hanya boleh punya satu
+     definisi. UI dan CLI yang menyimpang adalah dua produk yang berpura-pura satu.
+     ============================================================ */
+  users: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      assertFirmAdmin(ctx.user);
+      const rows = await prisma.user.findMany({
+        where: { firmId: assertFirmScoped(ctx.user) },
+        select: {
+          id: true, name: true, initials: true, role: true, email: true,
+          totpEnabled: true, deactivatedAt: true, passwordHash: true,
+        },
+        orderBy: [{ deactivatedAt: 'asc' }, { name: 'asc' }],
+      });
+      const pending = await prisma.credentialToken.findMany({
+        where: {
+          userId: { in: rows.map((r) => r.id) },
+          purpose: 'invite',
+          usedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        select: { userId: true, expiresAt: true },
+      });
+      const pendingBy = new Map(pending.map((t) => [t.userId, t.expiresAt]));
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        initials: r.initials,
+        role: r.role,
+        email: r.email,
+        totpEnabled: r.totpEnabled,
+        active: r.deactivatedAt === null,
+        deactivatedAt: r.deactivatedAt,
+        // passwordHash TIDAK dipaparkan — hanya FAKTA ada/tidaknya, yang dibutuhkan UI untuk
+        // membedakan "belum pernah menyetel password" dari "aktif".
+        hasPassword: r.passwordHash !== null,
+        isAdmin: can(r.role, CAP.FIRM_ADMIN),
+        inviteExpiresAt: pendingBy.get(r.id) ?? null,
+      }));
+    }),
+
+    invite: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(120),
+        email: z.string().email(),
+        role: z.string().min(1),
+        initials: z.string().max(4).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        assertFirmAdmin(ctx.user);
+        const firmId = assertFirmScoped(ctx.user);
+        if (!ROLES.includes(input.role)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'unknown-role' });
+        }
+        let created;
+        try {
+          // TANPA password: staf memilih sendiri lewat token undangan, sehingga admin tak pernah
+          // mengetahui password siapa pun (dan tak perlu menyalurkannya lewat WhatsApp).
+          created = await addUser(prisma, {
+            firmId,
+            user: { name: input.name, email: input.email, role: input.role, initials: input.initials },
+          });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          throw new TRPCError({ code: 'BAD_REQUEST', message: /sudah dipakai/.test(msg) ? 'email-taken' : msg });
+        }
+
+        const { raw } = await issueCredentialToken({
+          userId: created.userId,
+          purpose: 'invite',
+          ttlMs: INVITE_TTL_DAYS * 86_400_000,
+          createdBy: ctx.user.id,
+          requestIp: ctx.ip ?? null,
+        });
+        const cfg = readMailConfig();
+        const link = cfg ? `${cfg.publicBaseUrl}/#/setel-password?token=${encodeURIComponent(raw)}` : null;
+
+        let delivery: 'sent' | 'not-configured' | 'failed' = 'not-configured';
+        if (cfg && link) {
+          const firm = await prisma.firm.findUnique({ where: { id: firmId }, select: { name: true } });
+          delivery = await sendMail({
+            to: input.email,
+            ...inviteMail({
+              name: input.name,
+              firmName: firm?.name ?? 'firma Anda',
+              roleName: input.role,
+              link,
+              days: INVITE_TTL_DAYS,
+            }),
+          });
+        }
+        await logAuthEvent('INVITE_SENT', {
+          userId: created.userId, ip: ctx.ip, userAgent: ctx.userAgent, detail: `by=${ctx.user.id}; delivery=${delivery}`,
+        });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'USER_INVITE',
+          scope: 'user', scopeId: created.userId, detail: `role=${input.role}; delivery=${delivery}`,
+        });
+        return {
+          userId: created.userId,
+          delivery,
+          /*
+           * Tautan dikembalikan ke admin HANYA ketika email tak terkirim, supaya undangan tetap
+           * dapat diserahkan langsung (pola yang sama dengan QR TOTP yang dicetak sekali oleh
+           * `npm run add-user`). Ini bukan eskalasi hak: pemanggilnya FIRM_ADMIN, yang memang
+           * sudah boleh mereset password staf mana pun di firmanya.
+           */
+          link: delivery === 'sent' ? null : link,
+          expiresInDays: INVITE_TTL_DAYS,
+        };
+      }),
+
+    setRole: protectedProcedure
+      .input(z.object({ userId: z.string().min(1), role: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        assertFirmAdmin(ctx.user);
+        if (!ROLES.includes(input.role)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'unknown-role' });
+        }
+        const target = await loadFirmUser(ctx.user, input.userId);
+        if (target.role === input.role) return { ok: true, role: target.role };
+        await assertFirmKeepsAnAdmin(ctx.user, target, { nextRole: input.role });
+
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({ where: { id: target.id }, data: { role: input.role } });
+          // Roster TeamMember mengikuti peran: pindah KE peran audit menambahkan baris, pindah
+          // KELUAR menghapusnya. Tanpa ini, Capacity Planning menampilkan orang pada peran yang
+          // tak lagi dijabatnya — angka yang salah di modul perencanaan, bukan sekadar kosmetik.
+          await tx.teamMember.deleteMany({ where: { firmId: target.firmId, name: target.name } });
+          if (AUDIT_ROLES.has(input.role)) {
+            await tx.teamMember.create({
+              data: { firmId: target.firmId, name: target.name, role: input.role, util: 0 },
+            });
+          }
+        });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'USER_ROLE_CHANGE',
+          scope: 'user', scopeId: target.id, detail: `${target.role} -> ${input.role}`,
+        });
+        return { ok: true, role: input.role };
+      }),
+
+    setActive: protectedProcedure
+      .input(z.object({ userId: z.string().min(1), active: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        assertFirmAdmin(ctx.user);
+        const target = await loadFirmUser(ctx.user, input.userId);
+        if (input.active === (target.deactivatedAt === null)) return { ok: true, active: input.active };
+
+        if (!input.active) {
+          // Menonaktifkan diri sendiri adalah cara tercepat mengunci firma dari administrasinya
+          // sendiri — dan tak seorang pun bermaksud melakukannya.
+          if (target.id === ctx.user.id) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'cannot-deactivate-self' });
+          }
+          await assertFirmKeepsAnAdmin(ctx.user, target, { deactivate: true });
+        }
+
+        const now = new Date();
+        await prisma.user.update({
+          where: { id: target.id },
+          data: input.active
+            ? { deactivatedAt: null, deactivatedBy: null }
+            : { deactivatedAt: now, deactivatedBy: ctx.user.id },
+        });
+        let revoked = 0;
+        if (!input.active) {
+          // Cabut SEKARANG. resolveSession juga menolak pengguna nonaktif, tetapi mencabut di
+          // sini membuat pencabutannya tercatat dan tak bergantung pada satu cek saja.
+          revoked = await revokeAllSessions(target.id);
+          // Undangan yang belum ditebus ikut mati: mengundang lalu menonaktifkan tak boleh
+          // meninggalkan tautan hidup yang membangkitkan akunnya kembali.
+          await prisma.credentialToken.updateMany({
+            where: { userId: target.id, usedAt: null },
+            data: { usedAt: now },
+          });
+        }
+        await logAuthEvent(input.active ? 'ACCOUNT_REACTIVATED' : 'ACCOUNT_DEACTIVATED', {
+          userId: target.id, ip: ctx.ip, userAgent: ctx.userAgent, detail: `by=${ctx.user.id}; sessions=${revoked}`,
+        });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role,
+          action: input.active ? 'USER_REACTIVATE' : 'USER_DEACTIVATE',
+          scope: 'user', scopeId: target.id, detail: `sessions_revoked=${revoked}`,
+        });
+        return { ok: true, active: input.active, sessionsRevoked: revoked };
+      }),
+
+    /** Reset password yang DIPICU ADMIN — jalur untuk staf yang kehilangan password DAN
+     *  authenticator, satu-satunya kasus yang tak dapat diselesaikan reset mandiri (B2). */
+    sendPasswordReset: protectedProcedure
+      .input(z.object({ userId: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        assertFirmAdmin(ctx.user);
+        const target = await loadFirmUser(ctx.user, input.userId);
+        if (target.deactivatedAt) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'user-deactivated' });
+        }
+        const { raw } = await issueCredentialToken({
+          userId: target.id,
+          purpose: 'reset',
+          ttlMs: RESET_TTL_MINUTES * 60_000,
+          createdBy: ctx.user.id,
+          requestIp: ctx.ip ?? null,
+        });
+        const cfg = readMailConfig();
+        const link = cfg ? `${cfg.publicBaseUrl}/#/setel-password?token=${encodeURIComponent(raw)}` : null;
+        let delivery: 'sent' | 'not-configured' | 'failed' = 'not-configured';
+        if (cfg && link && target.email) {
+          const firm = await prisma.firm.findUnique({ where: { id: target.firmId }, select: { name: true } });
+          delivery = await sendMail({
+            to: target.email,
+            ...passwordResetMail({
+              name: target.name,
+              firmName: firm?.name ?? 'firma Anda',
+              link,
+              minutes: RESET_TTL_MINUTES,
+            }),
+          });
+        }
+        await logAuthEvent('PASSWORD_RESET_REQUEST', {
+          userId: target.id, ip: ctx.ip, userAgent: ctx.userAgent, detail: `admin=${ctx.user.id}; delivery=${delivery}`,
+        });
+        return { delivery, link: delivery === 'sent' ? null : link, expiresInMinutes: RESET_TTL_MINUTES };
+      }),
+
+    /** Lepas TOTP staf yang kehilangan authenticator-nya. Ia mendaftarkan yang baru sendiri saat
+     *  login berikutnya; admin tak pernah melihat rahasianya. */
+    clearTotp: protectedProcedure
+      .input(z.object({ userId: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        assertFirmAdmin(ctx.user);
+        const target = await loadFirmUser(ctx.user, input.userId);
+        await prisma.user.update({
+          where: { id: target.id },
+          data: {
+            totpEnabled: false, totpSecret: null, pendingTotpSecret: null,
+            totpFailedAttempts: 0, totpLockedUntil: null,
+          },
+        });
+        await logAuthEvent('TOTP_ENROLL', {
+          userId: target.id, ip: ctx.ip, userAgent: ctx.userAgent, detail: `cleared-by-admin=${ctx.user.id}`,
+        });
+        return { ok: true };
+      }),
+  }),
+
   // W9 — external data connectors. Fase 0 is read-only: the server owns connector definitions
   // (seeded from the client blueprint) and exposes them as the SSOT the import UI reads. Viewing
   // is gated by INTEGRATION_VIEW (all roles — transparency over consumed data); managing/syncing
@@ -468,14 +954,14 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return listConnectors();
+      return listConnectors(ctx.user.firmId);
     }),
 
     // Capability + rollup status for the integration cockpit. canManage drives whether the UI
     // offers sync/connect actions (the server still enforces INTEGRATION_MANAGE on those in Fase 1).
     status: protectedProcedure.query(async ({ ctx }) => {
       const canView = can(ctx.user.role, CAP.INTEGRATION_VIEW);
-      const connectors = canView ? await listConnectors() : [];
+      const connectors = canView ? await listConnectors(ctx.user.firmId) : [];
       return {
         canView,
         canManage: can(ctx.user.role, CAP.INTEGRATION_MANAGE),
@@ -496,7 +982,7 @@ export const appRouter = router({
         if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
         }
-        return listJobs(input?.connectorId, input?.limit ?? 50);
+        return listJobs(ctx.user.firmId, input?.connectorId, input?.limit ?? 50);
       }),
 
     // Import↔consumption tie-out for the wired connector(s) (VIEW): does the SSOT hold exactly
@@ -505,7 +991,7 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return { bank: await reconcileBank(), coretax: await reconcileCoretax() };
+      return { bank: await reconcileBank(ctx.user.firmId), coretax: await reconcileCoretax(ctx.user.firmId) };
     }),
 
     // Trigger a sync (INTEGRATION_MANAGE — Partner/Manager). Runs the real pipeline: pull → map →
@@ -518,7 +1004,7 @@ export const appRouter = router({
         if (!can(ctx.user.role, CAP.INTEGRATION_MANAGE)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_MANAGE}` });
         }
-        const actor = { id: ctx.user.id, role: ctx.user.role };
+        const actor = { id: ctx.user.id, role: ctx.user.role, firmId: ctx.user.firmId };
         if (input.connectorId === 'bank') { inc('integration_syncs_total'); return runBankSync(actor); }
         if (input.connectorId === 'coretax') { inc('integration_syncs_total'); return runCoretaxSync(actor); }
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
@@ -794,15 +1280,10 @@ export const appRouter = router({
   bootstrap: protectedProcedure
     .input(z.object({ engagementId: z.string().min(1) }))
     .query(async ({ input, ctx }) => {
+      // assertEngagementAccess sudah fail-closed atas firmId (D3) DAN membuktikan perikatan ini
+      // milik firma pemanggil — jadi firmId di bawah tak perlu tangga fallback lagi.
       await assertEngagementAccess(ctx.user, input.engagementId);
-      let firmId: string | undefined = ctx.user.firmId || undefined;
-      if (!firmId) {
-        firmId = (await prisma.user.findUnique({ where: { id: ctx.user.id }, select: { firmId: true } }))?.firmId;
-      }
-      if (!firmId) {
-        firmId = (await prisma.engagement.findUnique({ where: { id: input.engagementId }, select: { firmId: true } }))?.firmId;
-      }
-      if (!firmId) throw new TRPCError({ code: 'FORBIDDEN', message: 'firm-unresolved' });
+      const firmId = ctx.user.firmId;
 
       const accessible = await accessibleEngagementIds(ctx.user);
       const engagementWhere = {
@@ -911,7 +1392,7 @@ export const appRouter = router({
         // W7.5 — engagement isolation first (may you touch this engagement at all?), then the
         // W7 capability gate (may your role write this key?).
         if (scope === 'engagement') await assertEngagementAccess(ctx.user, scopeId);
-        assertCanWrite(ctx.user, scope, scopeId, key);
+        await assertCanWrite(ctx.user, scope, scopeId, key);
         // K7 — SA 230 ¶A21 assembly-lock: no-op unless the engagement is archived AND past the
         // lock window, in which case only PHASE_OVERRIDE may proceed (tagged in the audit detail).
         const lockDetail = scope === 'engagement' ? await assertNotAssemblyLocked(ctx.user, scopeId) : '';

@@ -6,7 +6,8 @@
 // idempotency, SSOT post and audit all apply identically — a webhook is just another trigger.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { TRPCError } from '@trpc/server';
-import { runBankSync, runCoretaxSync, type SyncSummary } from './sync';
+import { runBankSync, runCoretaxSync, type SyncActor, type SyncSummary } from './sync';
+import { resolveSoleConnectorByKey } from './config';
 
 export function webhookSecret(env: NodeJS.ProcessEnv = process.env): string | null {
   const s = (env.INTEGRATION_WEBHOOK_SECRET ?? '').trim();
@@ -36,7 +37,7 @@ const SYNC_EVENTS: Record<string, string[]> = {
 
 // The runner each connector's sync-triggering event drives. A webhook is just another trigger for
 // the same gated/idempotent/audited pipeline the manual sync uses.
-const RUNNERS: Record<string, (actor: { id: string; role: string }) => Promise<SyncSummary>> = {
+const RUNNERS: Record<string, (actor: SyncActor) => Promise<SyncSummary>> = {
   bank: runBankSync,
   coretax: runCoretaxSync,
 };
@@ -57,8 +58,15 @@ export async function handleWebhook(input: WebhookInput): Promise<WebhookResult>
 
   const runner = RUNNERS[input.connectorId];
   if (runner) {
-    // No session actor on the webhook path (HMAC is the auth) — record a system actor in the audit.
-    const job = await runner({ id: 'system:webhook', role: 'system' });
+    // D2 — tak ada sesi di jalur webhook (HMAC-lah autentikasinya), jadi firma tak bisa diambil
+    // dari konteks: ia diturunkan dari konektor yang key-nya disebut payload. Nol kecocokan →
+    // acknowledged tanpa aksi (sama seperti event tak dikenal); lebih dari satu firma memiliki key
+    // itu → resolveSoleConnectorByKey MELEMPAR alih-alih menebak, karena menyinkronkan data
+    // provider ke firma yang salah jauh lebih buruk daripada webhook yang gagal keras.
+    const rec = await resolveSoleConnectorByKey(input.connectorId);
+    if (!rec) return { status: 'ok', synced: false };
+    // Aktor sistem: HMAC membuktikan provider, bukan seorang pengguna — jejaknya jujur begitu.
+    const job = await runner({ id: 'system:webhook', role: 'system', firmId: rec.firmId });
     return { status: 'ok', synced: true, job };
   }
   return { status: 'ok', synced: false };

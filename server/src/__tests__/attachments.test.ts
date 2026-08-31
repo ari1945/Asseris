@@ -12,7 +12,10 @@ import { MAX_FILE_BYTES, maxFileBytesFor } from '../attachments/store';
    guard, soft-delete that keeps the audit row, and an audit-chain entry per write. */
 
 function callerAs(role: string, id: string) {
-  const user = { id, role } as unknown as User;
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
+// Sebelumnya ia dihilangkan dan setiap cek lintas-firma dilewati; uji lolos lewat jalur
+// yang tak pernah ditempuh pengguna sungguhan.
+  const user = { id, role, firmId: FIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 

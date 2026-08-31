@@ -2,29 +2,38 @@
    W7 Fase 2 — Login screen. Replaces the old `signedIn:true` mock with a real
    credentialled login against the server (auth.login). The session credential is
    cookie-only and never enters JavaScript; on success the public user is handed up.
+
+   B2 — ditambah alur "Lupa kata sandi?". Gayanya kini datang dari auth_chrome.ts yang
+   dipakai bersama layar setel-password, supaya dua layar dalam satu alur tak menyimpang.
    ============================================================ */
 import React from 'react';
 import { api } from './api';
+import { errMessage, type PreventableEvent, type ValueEvent } from './dom_events';
+import { authCard } from './auth_chrome';
 
 const { useState: useStateLG } = React;
 
-export function LoginScreen({ onLoggedIn }: any) {
+export function LoginScreen({ onLoggedIn }: { onLoggedIn: (user: unknown) => void }) {
   const [email, setEmail] = useStateLG('');
   const [password, setPassword] = useStateLG('');
   const [totp, setTotp] = useStateLG('');
   const [needTotp, setNeedTotp] = useStateLG(false);
   const [err, setErr] = useStateLG('');
   const [busy, setBusy] = useStateLG(false);
+  const [forgot, setForgot] = useStateLG(false);
+  const [sent, setSent] = useStateLG('');
 
-  async function submit(e: any) {
+  const s = authCard(busy);
+
+  async function submit(e: PreventableEvent) {
     e.preventDefault();
     if (busy) return;
     setErr(''); setBusy(true);
     try {
-      const r = await (api as any).auth.login.mutate({ email: email.trim(), password, totp: totp.trim() || undefined });
+      const r = await api.auth.login.mutate({ email: email.trim(), password, totp: totp.trim() || undefined });
       onLoggedIn(r.user);
     } catch (ex) {
-      const msg = (ex && (ex as any).message) || '';
+      const msg = errMessage(ex);
       if (msg === 'totp-required') {
         // First time we learn 2FA is on: reveal the field. If it was already shown, the code was wrong.
         setErr(needTotp ? 'Kode autentikasi (2FA) salah. Coba lagi.' : 'Akun ini memakai 2FA — masukkan kode dari aplikasi authenticator.');
@@ -40,40 +49,78 @@ export function LoginScreen({ onLoggedIn }: any) {
     }
   }
 
-  const wrap = { minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--navy, #1f3a5f)', padding: 20 };
-  const card = { width: 380, maxWidth: '92vw', background: 'var(--surface, #fff)', borderRadius: 14, boxShadow: '0 24px 60px rgba(8,15,30,.38)', padding: '30px 30px 26px', font: '15px/1.5 Inter, system-ui, sans-serif', color: 'var(--ink, #1f2733)' };
-  const logo = { width: 46, height: 46, borderRadius: 11, background: 'var(--navy, #1f3a5f)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 19, marginBottom: 14 };
-  const label = { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-2, #5a6675)', marginBottom: 5 };
-  const input = { width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--line, #d7dce3)', padding: '0 11px', font: '15px inherit', boxSizing: 'border-box', marginBottom: 14, background: '#fff', color: 'inherit' };
-  const btn = { width: '100%', height: 40, borderRadius: 8, border: 'none', background: 'var(--blue, #2563eb)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 };
-  const errBox = { background: 'var(--red-bg, #fde8e8)', color: 'var(--red, #c0392b)', borderRadius: 8, padding: '8px 11px', fontSize: 12, marginBottom: 14 };
+  /* Permintaan reset. Balasan server SENGAJA sama untuk alamat dikenal maupun tidak, jadi layar
+     ini pun tak boleh membedakannya — kalimat konfirmasinya identik apa pun kenyataannya. Satu
+     hal yang boleh dibedakan: apakah instance ini memang punya email, karena itu properti server
+     dan bukan properti akun. */
+  async function requestReset(e: PreventableEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setErr(''); setBusy(true);
+    try {
+      const r = await api.auth.requestPasswordReset.mutate({ email: email.trim() });
+      setSent(r && r.emailConfigured === false
+        ? 'Instance ini belum dikonfigurasi mengirim email. Hubungi admin firma Anda untuk menyetel ulang kata sandi.'
+        : 'Bila alamat itu terdaftar, tautan setel-ulang sudah dikirim. Periksa kotak masuk Anda — tautannya berlaku 30 menit.');
+    } catch (ex) {
+      setErr('Tidak dapat menghubungi server. Coba lagi.');
+    }
+    setBusy(false);
+  }
+
+  if (forgot) {
+    return (
+      <div style={s.wrap}>
+        <form style={s.card} onSubmit={requestReset}>
+          <div style={s.logo} aria-hidden="true">A</div>
+          <div style={s.title}>Lupa kata sandi</div>
+          <div style={s.lead}>Masukkan email akun Anda. Kami kirimkan tautan untuk menyetel kata sandi baru.</div>
+
+          {err && <div style={s.errBox} role="alert">{err}</div>}
+          {sent && <div style={s.okBox} role="status">{sent}</div>}
+
+          <label style={s.label} htmlFor="fg-email">Email</label>
+          <input id="fg-email" style={s.input} type="email" autoComplete="username" autoFocus required
+            value={email} onChange={(e: ValueEvent) => setEmail(e.target.value)} placeholder="nama@kap-anda.id" />
+
+          <button style={s.btn} type="submit" disabled={busy}>{busy ? 'Mengirim…' : 'Kirim tautan'}</button>
+          <button style={s.linkBtn} type="button" onClick={() => { setForgot(false); setSent(''); setErr(''); }}>
+            Kembali ke halaman masuk
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
-    <div style={wrap}>
-      <form style={card} onSubmit={submit}>
-        <div style={logo}>A</div>
-        <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: -0.2 }}>Asseris</div>
-        <div style={{ fontSize: 12, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
+    <div style={s.wrap}>
+      <form style={s.card} onSubmit={submit}>
+        <div style={s.logo} aria-hidden="true">A</div>
+        <div style={s.title}>Asseris</div>
+        <div style={s.lead}>Audit Management System — masuk untuk melanjutkan</div>
 
-        {err && <div style={errBox} role="alert">{err}</div>}
+        {err && <div style={s.errBox} role="alert">{err}</div>}
 
-        <label style={label} htmlFor="lg-email">Email</label>
-        <input id="lg-email" style={input} type="email" autoComplete="username" autoFocus required
-          value={email} onChange={(e: any) => setEmail(e.target.value)} placeholder="nama@whr-cpa.id" />
+        <label style={s.label} htmlFor="lg-email">Email</label>
+        <input id="lg-email" style={s.input} type="email" autoComplete="username" autoFocus required
+          value={email} onChange={(e: ValueEvent) => setEmail(e.target.value)} placeholder="nama@whr-cpa.id" />
 
-        <label style={label} htmlFor="lg-pw">Kata Sandi</label>
-        <input id="lg-pw" style={input} type="password" autoComplete="current-password" required
-          value={password} onChange={(e: any) => setPassword(e.target.value)} placeholder="••••••••" />
+        <label style={s.label} htmlFor="lg-pw">Kata Sandi</label>
+        <input id="lg-pw" style={s.input} type="password" autoComplete="current-password" required
+          value={password} onChange={(e: ValueEvent) => setPassword(e.target.value)} placeholder="••••••••" />
 
         {needTotp && (
           <>
-            <label style={label} htmlFor="lg-totp">Kode Autentikasi (2FA)</label>
-            <input id="lg-totp" style={{ ...input, letterSpacing: 4, fontFamily: 'JetBrains Mono, monospace' }} inputMode="numeric"
-              autoComplete="one-time-code" maxLength={6} value={totp} onChange={(e: any) => setTotp(e.target.value.replace(/\D/g, ''))} placeholder="123456" />
+            <label style={s.label} htmlFor="lg-totp">Kode Autentikasi (2FA)</label>
+            <input id="lg-totp" style={s.otp} inputMode="numeric"
+              autoComplete="one-time-code" maxLength={6} value={totp} onChange={(e: ValueEvent) => setTotp(e.target.value.replace(/\D/g, ''))} placeholder="123456" />
           </>
         )}
 
-        <button style={btn} type="submit" disabled={busy}>{busy ? 'Memeriksa…' : 'Masuk'}</button>
+        <button style={s.btn} type="submit" disabled={busy}>{busy ? 'Memeriksa…' : 'Masuk'}</button>
+        <button style={s.linkBtn} type="button" onClick={() => { setForgot(true); setErr(''); }}>
+          Lupa kata sandi?
+        </button>
       </form>
     </div>
   );

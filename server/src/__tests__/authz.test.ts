@@ -6,15 +6,19 @@ import { prisma } from '../db';
 
 // Inject a user of a given role directly into the context — authorization reads only
 // ctx.user.{id,role}, so no DB row or real session is needed to exercise the gate.
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
 function callerAs(role: string, id = `U-${role}`) {
-  const user = { id, role } as unknown as User;
+  const user = { id, role, firmId: FIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 const anon = createCallerFactory(appRouter)({ user: null, token: null });
 
 const ENG = 'AUTHZ-ENG';
-const FIRM = 'AUTHZ-FIRM';
-const FIRM_ROW = 'AUTHZ-FIRM-ROW';
+// D3 — dulu ada DUA konstanta: FIRM (dipakai sebagai scopeId tulisan firm-scope) dan FIRM
+// (baris Firm sungguhan), dengan nilai BERBEDA. Itu hanya lolos karena cek cross-firm-state
+// dilewati saat principal tak berfirma. Sesi nyata tak pernah bisa menulis ke firma lain, jadi
+// keduanya dilebur menjadi satu identitas.
+const FIRM = 'AUTHZ-FIRM-ROW';
 const CLI = 'AUTHZ-CLI';
 // These suites exercise the W7 CAPABILITY gate. Under W7.5, engagement-scoped access ALSO
 // requires membership, so give the non-oversight principals (Junior/Senior) membership of ENG —
@@ -25,22 +29,28 @@ const ENG_MEMBERS: Array<[string, string]> = [
 ];
 
 beforeAll(async () => {
-  await prisma.firm.create({ data: { id: FIRM_ROW, name: 'Authz Firm', short: 'AZ' } });
-  await prisma.client.create({ data: { id: CLI, firmId: FIRM_ROW, name: 'Authz Client' } });
-  await prisma.engagement.create({ data: { id: ENG, firmId: FIRM_ROW, clientId: CLI } });
+  await prisma.firm.create({ data: { id: FIRM, name: 'Authz Firm', short: 'AZ' } });
+  await prisma.client.create({ data: { id: CLI, firmId: FIRM, name: 'Authz Client' } });
+  await prisma.engagement.create({ data: { id: ENG, firmId: FIRM, clientId: CLI } });
   for (const [id, role] of ENG_MEMBERS) {
-    await prisma.user.create({ data: { id, firmId: FIRM_ROW, name: id, role, dataJson: '{}' } });
+    await prisma.user.create({ data: { id, firmId: FIRM, name: id, role, dataJson: '{}' } });
     await prisma.engagementMember.create({ data: { engagementId: ENG, userId: id } });
   }
+  // D3 — sasaran tulisan user-scope oleh FIRM_ADMIN. Sisi tulis kini memverifikasi pengguna itu
+  // ADA dan sefirma (cermin dari assertSameFirmUser di sisi baca), jadi barisnya harus nyata.
+  await prisma.user.create({
+    data: { id: 'U-Audit Manager', firmId: FIRM, name: 'U-Audit Manager', role: 'Audit Manager', dataJson: '{}' },
+  });
 });
 
 afterAll(async () => {
   await prisma.stateDoc.deleteMany({ where: { scopeId: { in: [ENG, FIRM, 'U-Junior Auditor', 'U-Audit Manager'] } } });
   await prisma.engagementMember.deleteMany({ where: { engagementId: ENG } });
+  await prisma.user.deleteMany({ where: { id: 'U-Audit Manager' } });
   await prisma.engagement.deleteMany({ where: { id: ENG } });
   await prisma.client.deleteMany({ where: { id: CLI } });
   await prisma.user.deleteMany({ where: { id: { in: ENG_MEMBERS.map(([id]) => id) } } });
-  await prisma.firm.deleteMany({ where: { id: FIRM_ROW } });
+  await prisma.firm.deleteMany({ where: { id: FIRM } });
   await prisma.$disconnect();
 });
 
