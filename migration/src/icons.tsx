@@ -285,6 +285,7 @@ const MODULES = [
     { id: 'kb',         label: 'Knowledge Base', icon: 'book', deep: true },
   ]},
   { group: 'Operasi & Administrasi Firma', items: [
+    { id: 'users',       label: 'Manajemen Pengguna', icon: 'users', tag: 'NEW', deep: true },
     { id: 'firmops',     label: 'Cockpit Operasi Firma', icon: 'layers', tag: 'NEW', deep: true },
     { id: 'firmfinance', label: 'Firm Finance', icon: 'coins', deep: true },
     { id: 'procurement', label: 'Pengadaan & Vendor', icon: 'cart', tag: 'NEW', deep: true },
@@ -336,7 +337,10 @@ const HIDDEN_GROUPS = ['Beranda', 'SA · Tanggung Jawab (200)', 'SA · Bukti Aud
    Data Personal lanjutan). Sidebar & command-palette menyembunyikannya bila can(cap) gagal; VIEW-nya
    juga meng-gate (authoritative → nav tetap "murni UI"). recruitment/learning/succession = data
    manajemen SDM firma agregat → HR_MODULE_VIEW (Partner + Admin & HR). */
-const MODULE_CAP = { hcm: 'hr.moduleView', recruitment: 'hr.moduleView', learning: 'hr.moduleView', succession: 'hr.moduleView' };
+// `users` digerbang FIRM_ADMIN: modul ini memberi & mencabut akses ke seluruh kertas kerja
+// firma, jadi ia tak boleh muncul di sidebar siapa pun yang tak berhak memakainya. Server
+// tetap yang menegakkan (router users.*) — ini kurasi tampilan, bukan pengganti gerbang.
+const MODULE_CAP = { hcm: 'hr.moduleView', recruitment: 'hr.moduleView', learning: 'hr.moduleView', succession: 'hr.moduleView', users: 'firm.admin' };
 
 /* 2026-07-06 — grup nav yang butuh KAPABILITAS untuk MUNCUL di sidebar. "People & Compliance" =
    modul detail kepegawaian (kewenangan Partner + HRD). Pegawai level-karyawan tak melihat menu

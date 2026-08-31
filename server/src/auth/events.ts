@@ -11,7 +11,15 @@ export type AuthEventKind =
   | 'PASSWORD_CHANGE'
   | 'TOTP_ENROLL'
   | 'TOTP_VERIFY'
-  | 'LOCKOUT';
+  | 'LOCKOUT'
+  // B2 — siklus hidup kredensial tanpa sesi. PASSWORD_RESET_REQUEST dicatat SEKALIPUN alamatnya
+  // tak dikenal (userId null), karena pola permintaan ke alamat tak terdaftar justru sinyal
+  // pengintaian yang ingin dilihat operator.
+  | 'PASSWORD_RESET_REQUEST'
+  | 'PASSWORD_RESET'
+  | 'INVITE_SENT'
+  | 'ACCOUNT_DEACTIVATED'
+  | 'ACCOUNT_REACTIVATED';
 
 export async function logAuthEvent(
   kind: AuthEventKind,

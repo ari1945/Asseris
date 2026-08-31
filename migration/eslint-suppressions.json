@@ -636,7 +636,7 @@
   },
   "src/view_login.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 8
+      "count": 1
     }
   },
   "src/view_materiality.tsx": {

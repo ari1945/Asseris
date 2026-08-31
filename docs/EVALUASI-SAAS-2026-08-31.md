@@ -37,8 +37,8 @@ Tiga kalimat yang menentukan keputusan ini:
 
 | # | Blocker | Kelas | Tanpa ini terjadi apa |
 |---|---|---|---|
-| B1 | Tidak ada UI manajemen pengguna — tambah staf hanya lewat CLI di server | Produk | Setiap penambahan staf = tiket ke Anda. Tidak bisa berskala di luar 3–5 firma |
-| B2 | Tidak ada reset password mandiri & tidak ada infrastruktur email transaksional sama sekali | Produk | Staf lupa password pada hari deadline audit → Anda harus SSH ke box |
+| B1 ✅ | ~~Tidak ada UI manajemen pengguna~~ — DITUTUP 2026-08-31: modul **Manajemen Pengguna** (undang · ubah peran · nonaktifkan · reset · lepas 2FA), gate FIRM_ADMIN | Produk | — |
+| B2 ✅ | ~~Tidak ada reset password mandiri & tidak ada infrastruktur email transaksional~~ — DITUTUP 2026-08-31: lapisan email SMTP (graceful-off) + alur "Lupa kata sandi?" ber-token sekali-pakai | Produk | — |
 | B3 | Tidak ada billing, langganan, trial, atau suspensi | Komersial | Tidak ada mekanisme penagihan; PPN & e-Faktur belum terhubung |
 | B4 | DPA/kajian PDP belum direview pengacara; transfer LLM lintas batas belum berbasis hukum | Legal | Tidak boleh menjanjikan "patuh UU PDP" ke klien berbayar |
 | B5 | Tidak ada SLA yang kredibel — dukungan satu kontak, best-effort | Operasional | Kontrak berbayar akan diminta SLA; saat ini tak ada dasar menjanjikannya |
@@ -137,15 +137,27 @@ kecil yang harus dibayar **hanya jika** memilih pooled.
 
 | Kode | Gap | Bukti |
 |---|---|---|
-| P1 | Tidak ada UI "Tambah Pengguna" — hanya `npm run add-user` di server | `docs/PILOT-ONBOARDING-PLAN.md` §1.1 |
-| P2 | Tidak ada reset password mandiri | idem, §9 "Risiko" |
-| P3 | **Tidak ada infrastruktur email transaksional sama sekali** — tak ada SMTP/SES/nodemailer di `server/src` | pencarian kode |
+| P1 ✅ | ~~Tidak ada UI "Tambah Pengguna"~~ — DITUTUP 2026-08-31 (`view_users.tsx`; memakai `addUser()` yang sama dengan CLI, jadi UI dan CLI tak dapat menyimpang) | — |
+| P2 ✅ | ~~Tidak ada reset password mandiri~~ — DITUTUP 2026-08-31 | — |
+| P3 ✅ | ~~**Tidak ada infrastruktur email transaksional sama sekali**~~ — DITUTUP 2026-08-31 (`server/src/mail/`, transport SMTP; lihat §2.2a untuk alasan SMTP dipilih atas SES) | — |
 | P4 | Tidak ada signup/registrasi mandiri | tidak ada prosedur `signup`/`register` di `router.ts` |
 | P5 | Tabel WTB tak divirtualisasi/dipaginasi | `docs/DEPLOY.md` §19.4 batasan #3 |
 | P6 | Tidak ada konsol admin vendor (Anda) untuk melihat kesehatan seluruh tenant | — |
 
 P3 adalah akar dari P2 dan sebagian P1: tanpa email, tak ada undangan pengguna, tak ada reset,
 tak ada notifikasi review, tak ada peringatan kuota. Ini pekerjaan fondasi yang harus lebih dulu.
+
+### 2.2a Kenapa email memakai SMTP, bukan SES (keputusan 2026-08-31)
+
+Roadmap §6 semula menulis "SES". Pelaksanaannya mengoreksi itu, dan alasannya berasal dari
+dokumen ini sendiri: **SES tidak tersedia di `ap-southeast-3` (Jakarta)** — region hosting default
+(§4 Tahap 1). Mengunci ke SES berarti memaksa email yang memuat nama dan alamat email staf
+melintas ke region lain, yaitu persis kelas isu transfer lintas-batas UU PDP Ps. 56 yang §2.4
+tandai masih terbuka untuk fitur LLM. Menutup satu blocker dengan membuka kembali isu residensi
+data bukan kemajuan.
+
+SMTP generik membiarkan KAP memakai mail server sendiri di dalam negeri, dan SES tetap dapat
+dipakai lewat endpoint SMTP-nya — jadi ini pembukaan pilihan, bukan penutupan.
 
 ### 2.3 Komersial
 
@@ -438,10 +450,10 @@ kemudahan.
    Ini punya lead time terpanjang dan tidak bergantung pada kode — mulai lebih awal, bukan terakhir.
 
 ### Gelombang 1 — Bisa dijual dengan white-glove (est. 6–9 minggu)
-6. **Email transaksional (SES di `ap-southeast-3`/`ap-southeast-1`)** — P3, fondasi bagi 7 & 8.
-7. **Reset password mandiri** — P2.
-8. **UI Manajemen Pengguna** (undang, atur peran, nonaktifkan, reset TOTP) — P1, penghemat jam
-   dukungan terbesar.
+6. ✅ **Email transaksional** — P3, fondasi bagi 7 & 8. Selesai 2026-08-31 dengan **SMTP**, bukan SES (§2.2a).
+7. ✅ **Reset password mandiri** — P2. Selesai 2026-08-31.
+8. ✅ **UI Manajemen Pengguna** (undang, atur peran, nonaktifkan, reset TOTP) — P1, penghemat jam
+   dukungan terbesar. Selesai 2026-08-31.
 9. **Route 53 + subdomain + ACME per tenant** (2.3).
 10. **ToS + SLA + order form + DPA** berdasarkan hasil review pengacara.
 11. **Validasi harga**: 3 wawancara dengan KAP nyata sebelum menetapkan paket.

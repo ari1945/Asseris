@@ -12,7 +12,12 @@ export type AuditAction =
   | 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL' | 'SYNC' | 'ARCHIVE'
   | 'ROLE_CREATE' | 'ROLE_UPDATE_GRANTS' | 'ROLE_DELETE'
   | 'SELF_SERVICE'
-  | 'ATTACH_UPLOAD' | 'ATTACH_REMOVE' | 'ATTACH_PURGE_APPROVE' | 'ATTACH_PURGE';
+  | 'ATTACH_UPLOAD' | 'ATTACH_REMOVE' | 'ATTACH_PURGE_APPROVE' | 'ATTACH_PURGE'
+  // B1/B2 — tata kelola akses pengguna. Masuk RANTAI audit (bukan hanya AuthEvent) karena
+  // inilah yang ditanyakan pemeriksa mutu: siapa memberi akses kepada siapa, kapan, dan siapa
+  // mencabutnya. `detail` tetap metadata — tak pernah alamat email atau password.
+  | 'USER_INVITE' | 'USER_ROLE_CHANGE' | 'USER_DEACTIVATE' | 'USER_REACTIVATE'
+  | 'PASSWORD_RESET';
 
 export interface AuditEntry {
   actorUserId?: string | null;
