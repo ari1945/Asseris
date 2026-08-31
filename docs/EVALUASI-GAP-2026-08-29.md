@@ -138,7 +138,7 @@ cloud, sehingga tetap 🟢.
 
 | Modul | Gap terverifikasi | Aman |
 |---|---|:--:|
-| `dms` Manajemen Dokumen | `logAccess()` dan `owner`/`versions[].by` menulis **`'Anindya Pramesti'` tetap** (`view_dms.tsx:260, 282, 284`); berkas ini **tidak mengimpor `useAuth` sama sekali**. Log akses dokumen SA 230 mencatat pelaku palsu | 🟢 |
+| ~~`dms` Manajemen Dokumen~~ **TERTUTUP** | `logAccess()`, `toggleHold()` dan `owner`/`versions[].by` menulis **`'Anindya Pramesti'`/`'Legal KAP'` tetap**; berkas ini tak mengimpor `useAuth` sama sekali. Ditutup: pelaku kini dari `sessionActor(auth && auth.user)` (aturan bersama `session_actor.ts`), tanpa pelaku sesi keempat kontrol tulisnya dimatikan dengan alasan tertulis. Gerbang sumber: `dms_conventions.test.ts` | ✅ |
 | `mgmtletter` | `decisionBy: 'Linda Wijaya (Manager)'` di **11 situs** `view_final3.tsx` | 🟢 |
 | `sa200` · `sa800` · `sa805` · `sa810` | Tanda tangan `'Hartono Wijaya'` hardcode di badan laporan (1 situs per berkas) | 🟢 |
 | `reviewnotes` | Peta nama→peran hardcode 6 nama (`view_workspace.tsx:39–44`) alih-alih `TEAM` | 🟢 |
@@ -178,9 +178,12 @@ Empat dari lima rekomendasi teratas [`KEDALAMAN-158-MODUL-TERKINI.md`](KEDALAMAN
 
 1. **§2 — dependensi `xlsx`.** Prasyarat; tanpa ini tak ada perbaikan frontend yang bisa
    divalidasi utuh di sesi cloud.
-2. **`dms` identitas sesi** (§3 C). Cacat integritas dengan perbaikan terkecil dan dampak
-   terbesar: satu berkas, `useAuth()` sudah tersedia di `contexts.tsx`, dan yang dicatat
-   adalah log akses dokumen SA 230.
+2. ~~**`dms` identitas sesi** (§3 C).~~ **SELESAI** — pelaku ditarik dari sesi lewat
+   `session_actor.ts` (aturan yang sama yang sudah dipakai posting jurnal firma), dan
+   aksi tulis tanpa identitas sesi kini ditolak alih-alih dicatat atas nama tebakan.
+   Catatan lingkup: yang diperbaiki adalah atribusi pada indeks dokumen firm-scope
+   (`dms.v2`) — jejak kriptografis server (`audit/log.ts`) adalah lapisan terpisah dan
+   tak tersentuh perubahan ini.
 3. **`spr2400` + `workpapers`** (§3 A). Persist kesimpulan + ekspor PDF; keduanya jalur
    `jspdf` yang bisa diuji penuh di cloud hari ini.
 4. **Sapuan a11y elemen klik** (§3 D), mulai dari delapan modul terpadat.
