@@ -246,6 +246,16 @@ const FIRMFIN = (function () {
   const engOf = (ctx: any) => (ctx && ctx.engagements) || A().ENGAGEMENTS || [];
   const cliOf = (ctx: any) => (ctx && ctx.clients) || A().CLIENTS || [];
   const invOf = (ctx: any) => (ctx && ctx.invoices) || A().INVOICES || [];
+  /* Sub-buku UTANG — kunci ctx `firmap`, sejajar `invOf`.
+     Sampai 2026-08-22 `ap(ctx)` membaca `A().FIRM_AP` TANPA SYARAT: tak ada kunci ctx
+     sama sekali, sehingga sisi sub-buku baris rekonsiliasi `2-100` beku pada seed
+     sementara sisi kontrolnya hidup (turunan jurnal terposting). Membayar utang di
+     modul `apar` tidak menggerakkan baris itu sedikit pun — dan sejak gerbang Q-2,
+     baris itulah yang menentukan boleh-tidaknya Neraca Saldo & LK firma keluar
+     tersegel. Kontraknya tidak berubah: kunci ini OPSIONAL, persis seperti `invoices`,
+     dan tanpa kunci perilakunya sama seperti sebelumnya. */
+  const apOf = (ctx: { firmap?: unknown[] } | null | undefined): unknown[] =>
+    (ctx && ctx.firmap) || A().FIRM_AP || [];
   const acct = (coa: any, code: any) => coa.find((a: any) => a.code === code) || { bal: 0, name: code, code };
   const sumType = (coa: any, t: any) => coa.filter((a: any) => a.type === t).reduce((s: any, a: any) => s + a.bal, 0);
   const sumf = (arr: any, f: any) => arr.reduce((s: any, x: any) => s + f(x), 0);
@@ -359,7 +369,7 @@ const FIRMFIN = (function () {
 
   /* ---------- Utang usaha (sumber: FIRM_AP) → tutup ke kontrol 2-100 ---------- */
   function ap(ctx: any) {
-    const list = A().FIRM_AP || [];
+    const list = apOf(ctx);
     const openItems = list.filter((x: any) => x.status !== 'Paid');
     const open = sumf(openItems, (x: any) => x.amount - x.paid);
     const overdue = sumf(list.filter((x: any) => x.status === 'Overdue'), (x: any) => x.amount - x.paid);

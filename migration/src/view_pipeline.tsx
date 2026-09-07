@@ -591,7 +591,14 @@ function Billing() {
 
   const totalBilled = invoices.filter((i: any) => i.status !== 'Draft').reduce((s: any, i: any) => s + i.amount, 0);
   const collected = invoices.reduce((s: any, i: any) => s + i.paid, 0);
-  const outstanding = totalBilled - collected;
+  /* Piutang terbuka dari MESIN yang memiliki baris rekonsiliasi `1-200`
+     (`FIRMFIN.arAging`), bukan `Σ ditagih − Σ terkumpul` yang dihitung di sini.
+     Rumus lama menjumlahkan `paid` faktur DRAFT (yang nilainya sendiri tak pernah
+     masuk `totalBilled`), sehingga uang muka atas draft mengurangi piutang —
+     sementara modul AP/AR menjawab lain untuk register yang sama. Satu register,
+     satu angka. Pada keadaan seed keduanya identik (2.695 jt); yang berubah adalah
+     definisinya, bukan tampilannya. */
+  const outstanding = FIRMFIN.arAging({ invoices }).open;
   const overdue = invoices.filter((i: any) => i.status === 'Overdue').reduce((s: any, i: any) => s + (i.amount - i.paid), 0);
 
   const shown = filter === 'All' ? invoices : invoices.filter((i: any) => i.status === filter);

@@ -10,6 +10,7 @@ import { RowKv } from './view_calc';
 import { FIRMFIN } from './data_firmfin';
 import { useFirmWip } from './use_firm_wip';
 import { useFirmCoa } from './use_firm_coa';
+import { useFirmSubledger } from './use_firm_subledger';
 import { useBankRecon } from './use_bank_recon';
 import { amsExportXlsx } from './export_xlsx';
 
@@ -43,7 +44,14 @@ function FirmFinance() {
   /* `reconLines` disalurkan supaya pencocokan di modul Rekonsiliasi Bank benar-benar
      menggeser residual Kas & gerbang ekspor di layar ini (PRD cash-bank-recon). */
   const { lines: reconLines } = useBankRecon();
-  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines }), [engagements, clients, coa, reconLines]);
+  /* Sub-buku piutang & utang yang HIDUP. Tanpa kunci ini `invOf`/`apOf` jatuh ke
+     seed, sehingga sisi sub-buku baris rekonsiliasi `1-200`/`2-100` beku sementara
+     sisi kontrol GL-nya bergerak. Kunci yang SAMA dikirim `view_firmgl.tsx`: kedua
+     layar merender baris rekonsiliasi yang sama dan mengunci ekspor dengan gerbang
+     yang sama — ctx yang berbeda akan membuat keduanya menjawab beda untuk
+     pertanyaan yang identik. */
+  const { invoices, firmap } = useFirmSubledger();
+  const ctx = useMemoFF(() => ({ engagements, clients, coa, reconLines, invoices, firmap }), [engagements, clients, coa, reconLines, invoices, firmap]);
   /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
      WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
   const { wip: wipLive } = useFirmWip();
