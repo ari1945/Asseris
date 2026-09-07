@@ -214,7 +214,8 @@ Rincian lengkap (RTO/RPO, backup off-box S3, rotasi kunci, kesiapan pentest) di 
 | Dokumen | Isi |
 |---|---|
 | [`BUILD.md`](BUILD.md) | Panduan build & alur kerja lengkap (rujukan utama pengembang) |
-| [`CLAUDE.md`](CLAUDE.md) | Onboarding agen — peta arsitektur, aturan anti-tabrakan, cara menambah modul |
+| [`AGENTS.md`](AGENTS.md) | Onboarding agen (netral-vendor) — aturan kerja pemilik repo, peta arsitektur, aturan anti-tabrakan, cara menambah modul. `CLAUDE.md`/`GEMINI.md` hanya penunjuk ke sini |
+| [`docs/handover/HANDOVER-2026-09-07.md`](docs/handover/HANDOVER-2026-09-07.md) | Serah-terima pengembangan: keadaan repo, kerja terparkir, pekerjaan terbuka berprioritas; `docs/handover/memory/` = 191 catatan pelajaran agen |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | Runbook deploy, DR, backup/restore |
 | [`docs/USER-GUIDE.md`](docs/USER-GUIDE.md) | Panduan pengguna |
 | [`docs/PILOT-ONBOARDING-PLAN.md`](docs/PILOT-ONBOARDING-PLAN.md) | Rencana onboarding pilot |
