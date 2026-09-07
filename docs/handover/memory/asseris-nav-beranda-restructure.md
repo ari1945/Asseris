@@ -1,0 +1,57 @@
+---
+name: asseris-nav-beranda-restructure
+description: "Handoff restrukturisasi navigasi & Beranda berbasis peran Asseris — Fase 0-3 SELESAI, Fase 4-8 sisa"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 4e69f20a-9e80-4b9d-8452-ee2642d79a0e
+---
+
+# Restrukturisasi Navigasi & Beranda Berbasis Peran (Asseris)
+
+**✅ SELESAI PENUH (Fase 0-8), COMMITTED `6fc9d6b`, & MERGED KE `master` 2026-07-01** (via PR #41 merge commit `243b6d9`; branch `feat/w9-coretax-connector` sudah DIHAPUS). 18 file, live-verified 4 peran. PRD lengkap ada di `master`: `PRD - Restrukturisasi Navigasi & Beranda Berbasis Peran.md`. Kerja ini SUDAH DI PRODUCTION-LINE (master) — tak perlu tindakan lanjut.
+
+## Masalah asal (3 keluhan Ari) + 5 keputusan scope
+Ari: (1) sidebar terlalu kompleks; (2) grup "SA Perikatan" salah tempat di menu Firma; (3) tak ada titik masuk kerja berbasis peran setelah login. Keputusan Ari atas 5 OQ: **(1) perlu peran baru** non-auditor · **(2) agregasi tugas penuh** (endpoint backend) · **(3) payroll self-service** · **(4) grup People & Compliance terbatas milik-user** · **(5) SEMUA peran mendarat di Beranda baru**. Lalu Ari pilih **closure penuh server-side** (bukan cuma filter UI) untuk data personal.
+
+## SELESAI & live-verified (Fase 0-3)
+- **Fase 1 (P2):** grup `'SA · Area Khusus & Perikatan'` dipindah `WORKSPACES.firm.groups`→`HIDDEN_GROUPS` (`icons.tsx`). +6 chip `RELATED_SA` (nonaudit/review2400/relatedsvc/assurance/duediligence/serviceorg) menjembatani 10 modul SA800/805/810/SPR2400/2410/SJAH3000/3400/3402/3410/3420. Live: chip "Portofolio Jasa"→drawer SA805 bekerja; ⌘K/Matriks Kepatuhan tetap jangkau.
+- **Fase 2 (RBAC):** `ROLES` 4→6 (+`'Admin & HR Firma'`, +`'Finance Firma'`), cap baru `HR_MANAGE`, `capForWrite` di-wire eksplisit (10 key HR→HR_MANAGE, 4 key firm-finance→FIRMFIN_EDIT). Seed 2 akun: **Yuni Marlina** `yuni.m@whr-cpa.id`/`HrAdmin#2025!` (Admin&HR), **Teguh Prasetyo** `teguh.p@whr-cpa.id`/`Finance#2025!` (Finance). Login live-verified via tRPC nyata.
+- **Fase 3 (closure baca-personal):** endpoint baru **`personal.get`** (`server/src/personalScope.ts` + `router.ts`) memfilter dokumen ke baris milik pemanggil kecuali `HR_MANAGE`/`FIRM_ADMIN`. Percabangan dipusatkan di `useAmsPersist` (`contexts.tsx` `PERSONAL_STATE_KEYS`) → **10 key** otomatis terlindungi (payrollData/leaveReqs/perfPeople/cpeExtra/independence/indepAppr/indepThreats/indepRotAck/pc.ethics/pc.gifts). `view_payroll.tsx`: `AMS.PAYROLL` statis → `useAmsPersist('payrollData')` + banner "slip Anda sendiri". Live: Fajar(Junior)→hanya EMP-031; Yuni→semua 10. 13 test isolasi baru (`personal_scope.test.ts`).
+
+## SELESAI (Fase 4) — 2026-07-01, uncommitted di `feat/w9-coretax-connector`
+- **F4 DONE:** endpoint `tasks.mine` (`server/src/router.ts` router `tasks`) + modul murni `server/src/taskAgg.ts` (helper `amsShortName` mirror + `deriveReviewNoteTasks`/`deriveWpAssignmentTasks`/`deriveDeadlineTasks` + `loadTaskSeed` cached). Iterasi `accessibleEngagementIds` (W7.5, TAK bikin jalur baca baru), baca `reviewNotes` StateDoc per-perikatan (fallback seed) → filter `open && to===me`, tag engId+client. **Sumber persis 3 yang disebut PRD:** review-notes (SATU-satunya per-perikatan → inti agregasi+isolasi), WP-assignment (firm-global WORKPAPERS, self-scope preparer/reviewer), deadline (firm-global, scope ke klien terjangkau). **NB arsitektur:** WORKPAPERS/DEADLINES firm-global (tak ada per-engagement di model) → cerita lintas-perikatan bertumpu pada review-notes. AJE & 'Catatan WP' (wpState) SENGAJA tak disertakan (di luar 3 sumber PRD; mudah ditambah). Output `{me, engagementCount, tasks[]}`; `MineTask` DTO lean (tanpa date-bucket — F5 view yang render). **14 test baru** `__tests__/task_agg.test.ts` (isolasi negatif: Fajar anggota A-saja NOL tugas ENG-B milik Dimas; Dimas anggota A&B lihat KEDUA; Partner VIEW_ALL). **Gate: typecheck hijau + 181 server test hijau** (dari 167). Server tak punya lint script. Migration TAK tersentuh (0 file) → gate migration tak terpengaruh.
+## SELESAI (Fase 5) — 2026-07-01, uncommitted di `feat/w9-coretax-connector`
+- **F5 DONE:** modul Beranda `migration/src/view_home.tsx` (`HomeView`, id `home`). Komposisi per peran: **auditor** (Partner/Manager/Senior/Junior) → hero + [oversight strip bila `ENGAGEMENT_VIEW_ALL`] + Perikatan Saya (accessible-filtered W7.5, kartu→`setActiveEngagementId`+nav cockpit) + Tugas Saya (`tasksMine()` server, sorted prioritas, degradasi anggun `taskOffline`) + Non-Perikatan Saya (leaveReqs self via `useAmsPersist` Fase 3 + quick-links cpe/leave/payroll/independence). **firm-ops** (Yuni/Teguh) → TANPA Perikatan Saya; "Area Kerja Saya" quick-links ke grup yg dikuasai (`HM_FIRMOPS_AREAS`: HR→People&Compliance 8 modul, Finance→Firm Finance 8 modul) + Tugas Saya (kosong-benar). Semua akses context DEFENSIF (tak asumsi `activeEngagement`).
+- **Wiring:** `api.ts` +`tasksMine()` (graceful null); `icons.tsx` +grup `'Beranda'` (di `MODULES` + **ditambah ke `HIDDEN_GROUPS`** → tak render di sidebar workspace & `wsForModule('home')`→null, tak paksa pindah workspace); `app.tsx` +import HomeView +`case 'home'`; `shell.tsx` **pin tombol "Beranda" di ATAS toggle workspace** (1-klik, netral-workspace) → penuhi "terjangkau 1 klik di luar toggle".
+- **Any-free (ratchet):** file .tsx BARU wajib bebas explicit-`any`. Pola: nilai dari React/context/useAmsPersist sudah `any` implisit (OK); tipe props eksplisit; **`key?: string` masuk tipe props tiap sub-komponen** (tanpa @types/react, `key` tak di-special-case → TS2322 kalau absen); ikon dinamis `type HmIcon = (p)=>JSX.Element` + helper `hmIcon()` (shim `jsx-intrinsics.d.ts`: `JSX.Element extends Record<string,any>`).
+- **Gate SEMUA hijau:** migration typecheck+lint+**400 test**+build · server **181 test**. **Live-verify DITUNDA ke F8** (server chat lain pegang :5180/:5181, `strictPort`/`autoPort:false` — tak diutak-atik). F4 endpoint sudah test-proven via router nyata; F5 build sukses = modul resolve/kompilasi.
+
+## SELESAI (Fase 6 & 7) — 2026-07-01, uncommitted di `feat/w9-coretax-connector`
+- **F6 DONE (kurasi sidebar per-peran, UI-only):** `icons.tsx` +`groupsVisibleFor(role, ws)` + peta `ROLE_SIDEBAR_GROUPS` (exported+window). Policy: Partner/Manager→null (semua, oversight); Senior/Junior→firm=`['People & Compliance','Portal & Dokumen']` (perikatan penuh); Admin&HR→firm=`['People & Compliance','Portal & Dokumen']`+engagement=`[]`; Finance→firm=`['Firm Finance (ERP)','Practice Operations']`+engagement=`[]`. `shell.tsx` Sidebar: +`useAuth().role`, filter grup pakai `groupsVisibleFor` (null=semua, array=hanya itu), **grup modul AKTIF selalu ikut tampil** (orientasi). **Escape hatch** tombol "Tampilkan semua modul"/"Tampilkan yang relevan" (persist `ams.sideShowAll`, muncul hanya bila `curatedGroups` non-null). Capability NOL berkurang — hanya default tampilan.
+- **F7 DONE (routing landing universal):** `app.tsx` default route `'dashboard'`→`'home'`. **Bedakan login vs reload:** `Root.enter(user, fresh=true)` — login EKSPLISIT (LoginScreen `onLoggedIn={enter}`, default fresh=true) set `ams.route='home'`; reload (`auth.me`→`enter(user, false)`) TAK sentuh rute (pulihkan tempat terakhir). Firm Dashboard tetap 1-klik (Partner/Manager: sidebar grup Firm Practice Management + tombol hero Beranda).
+- **Gate SEMUA hijau:** migration typecheck+lint+**400 test**+build · server **181 test**. **Prune suppression:** hapus `as any` di baris `groups` shell.tsx (ganti cast `Record<string,string>`) → `eslint-suppressions.json` shell.tsx 43→42 (net TURUN, bukan naik; contexts.tsx +1 itu warisan Fase 3, bukan F6/F7). Jalankan `npx eslint src --prune-suppressions` bila lint exit 2 "suppressions left that do not occur" (mekanisme ratchet — stale suppression = fail).
+- **Live-verify SEMUA (F4-F7) DITUNDA ke F8** (server chat lain pegang :5180/:5181 sepanjang sesi; tak diutak-atik launch.json). Static gate lengkap hijau.
+
+## SELESAI (Fase 8 — live-verify) — 2026-07-01
+- **Verifikasi live via Vite terisolasi** (config `vite-verify` :5182 → proxy backend :5181 chat lain yang `tsx watch` sudah hot-reload kodeku; config sudah di-revert pasca-verify). Server dev `tsx watch` = hot-reload; Vite proxy target hardcode `:5181` → bisa jalankan Vite kedua tanpa ganggu chat lain. Login non-disruptif: `window.AMS_API.auth.login.mutate(...)` via eval (set cookie httpOnly browser-ku, TAK revoke sesi lain), lalu reload.
+- **API (curl+Bearer) `tasks.mine` 4 peran:** Fajar(Junior,ENG-014)→engagementCount=1, RN-07+WP-C · Dimas(Senior,ENG-014&031)→**count=2** (agregasi!), RN-01/03/08+WP-B/E/R · Yuni(Admin&HR)→**count=0** (firm-ops, bukan anggota) · Hartono(Partner,VIEW_ALL)→count=7+4 deadline. Isolasi negatif live: Fajar NOL tugas ENG-031.
+- **UI:** Fajar Beranda = auditor (Perikatan Saya ENG-014 + Tugas Saya "2 tugas·1 perikatan" cocok API + Non-Perikatan Saya); Firma workspace → sidebar 2 grup terkurasi → toggle "Tampilkan semua" → 10 grup. Yuni Beranda = firm-ops (hasPerikatanSaya=false, "Area Kerja Saya — People & Compliance" 8 link). Nol console error. Landing 'home' kedua peran.
+- **Success Criteria #1/#3/#5/#6/#7 semua terpenuhi live.** Canon & sign-off nol sentuhan (#8).
+
+## Catatan (tutup PRD)
+- **F5:** modul baru `view_home.tsx` (id `home`): Perikatan Saya (accessible-filtered W7.5) + Tugas Saya (F4) + Non-Perikatan Saya (SKP/cuti/payroll self dari F3). Partner/Manager: +panel oversight (reuse portlet Firm Dashboard). 2 persona baru: komposisi BEDA (tanpa Perikatan Saya). Daftar di `icons.tsx` MODULES + `viewFor()` app.tsx. Terjangkau 1 klik di luar toggle workspace.
+- **F6 (P1):** `groupsVisibleFor(role, workspace)` kurasi grup sidebar per peran + escape hatch "tampilkan semua". Hanya UI-layer, capability tak berkurang.
+- **F7:** `app.tsx:~408` default route statis `'dashboard'` → role-aware `'home'` untuk 6 peran. Firm Dashboard tetap 1 klik.
+- **F8:** gate penuh + live-verify ≥3 peran non-Partner (termasuk 1 persona baru), nol regresi Firm Dashboard/My Tasks lama.
+
+## GOTCHA WAJIB
+- **JANGAN tambah Yuni/Teguh ke `AMS.STAFF`/`AMS.TEAM`.** Roster itu closed-set 4-grade; `view_pc_talent.tsx` **crash** (`REQ[s.grade]` undefined) kalau ada grade di luar Partner/Manager/Senior/Junior. Login mereka murni via `User`+dataJson, di luar roster HCM.
+- **Reseed WAJIB** setelah pull: `cd server; npm run seed` (2 akun + 7 dokumen personal-scope). Login akun current-seed dulu ditolak sebelum reseed.
+- **3 titik `PERSONAL_KEYS` harus sinkron:** `server/src/personalScope.ts` (PERSONAL_KEYS), `migration/src/contexts.tsx` (PERSONAL_STATE_KEYS), `server/src/seed.ts` (personalSeed). Seed melempar error kalau desync.
+- **Verifikasi live JANGAN pakai Partner saja** (pola berulang menyamarkan bug RBAC).
+- `FIRMFIN_EDIT` dulu vestigial (tak dikonsumsi `capForWrite`) — kini aktif. `lint:any-baseline` dulu rusak (flag ESLint v9 saling-eksklusif) — sudah diperbaiki di `migration/package.json`.
+- `capForWrite` per-DOKUMEN saja; row-filter baca = tugas `personal.get`. Tulis TETAP `state.set`+capForWrite (tak berubah).
+
+## Menjalankan & gate
+Server: preview `dev-all` (Vite :5180 + tRPC :5181) via launch.json. Gate (WAJIB hijau): di `migration/` → `npm run typecheck && npm run lint && npm run test && npm run build`; di `server/` → `npm run typecheck && npm run test`. Status terakhir (pasca-F5): **400 test migration + 181 server hijau**, canon tak tersentuh. Terkait: [[asseris-mytasks-integration]] [[asseris-authoritative-persist-key-recipe]] [[neosuite-ams-w7-5-isolation]] [[asseris-firm-people-gap-matrix]]
