@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
+import { cpeFromTraining, trainingSkpFor } from './cpe_training';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { AccessDenied, Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
@@ -179,6 +180,11 @@ function Learning() {
   const me = (auth && auth.user && auth.user.name) || 'Admin';
   const attToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
   const isConfirmed = (trId: string, empId: string) => !!(attendance as any)[trId]?.[empId]?.confirmed;
+  /* Kolom Σ SKP dulu menjumlahkan katalog sendiri. Ia kini memakai jembatan
+     yang sama (`cpeFromTraining`) yang benar-benar mengalirkan kredit itu ke
+     mesin PPL — sehingga angka di matriks ini tak dapat berbeda dari kredit
+     yang diterima CPE/PPL Tracker, Data Personal Saya, dan pplOf. */
+  const trainingCredits = cpeFromTraining(A.TRAINING_CATALOG, attendance);
   const attendOk = (trId: string, empId: string) => {
     const t = A.TRAINING_CATALOG.find((x: any) => x.id === trId);
     return t ? attendCheck(enrolOf(t), empId) : { ok: false, reason: 'Pelatihan tidak dikenal.' };
@@ -321,7 +327,7 @@ function Learning() {
                 </tr></thead>
                 <tbody>
                   {staff.map((s: any) => {
-                    const gained = A.TRAINING_CATALOG.reduce((n: any, t: any) => n + (isConfirmed(t.id, s.id) ? t.skp : 0), 0);
+                    const gained = trainingSkpFor(trainingCredits, s.id);
                     return (
                       <tr key={s.id}>
                         <td style={{ position: 'sticky', left: 0, background: 'var(--surface)' }}><div className="row ac gap8"><Avatar name={s.name} size={22} /><span className="truncate tiny" style={{ fontWeight: 600 }}>{s.name}</span></div></td>

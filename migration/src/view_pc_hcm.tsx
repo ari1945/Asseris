@@ -7,6 +7,8 @@ import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { leaveLedgerOf } from './canon_leave';
 import { perfPersonOf } from './canon_perf';
+import { pplPeriod } from './canon_ppl';
+import { cpeFromTraining, skpEntriesOf } from './cpe_training';
 import type { HolidayCalendar, LeaveRequestInput } from './canon_leave';
 
 const arrLv = (v: unknown): LeaveRequestInput[] => (Array.isArray(v) ? v as LeaveRequestInput[] : []);
@@ -53,6 +55,8 @@ function Profile360Drawer({ s, onClose }: any) {
   const [lvAll] = useAmsPersist('leaveBalance', () => A.LEAVE_BALANCE);
   const [lvReqs] = useAmsPersist('leaveReqs', () => A.LEAVE_REQUESTS);
   const [cpeAll] = useAmsPersist('cpeLog', () => A.CPE_LOG);
+  const [cpeExtraAll] = useAmsPersist('cpeExtra', {});
+  const [attendance] = useAmsPersist('trainingAttendance.v1', () => ({}));
   const [perfAll] = useAmsPersist('perfPeople', () => (A.PERF_CYCLE.people || {}));
   const [perfGoalsAll] = useAmsPersist('perfGoals', () => (A.PERF_CYCLE.goals || {}));
   const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
@@ -67,7 +71,16 @@ function Profile360Drawer({ s, onClose }: any) {
     String(AMS.TODAY || ''), AMS.LEAVE_HOLIDAYS as unknown as HolidayCalendar);
   const lvTotal = lvLedger.quota;
   const lvLeft = lvLedger.remaining;
-  const cpe = ((cpeAll || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
+  /* PRD sdm-kepatuhan PR-3 (lanjutan) — angka SKP KEEMPAT dicabut.
+     Drawer ini menjumlahkan `cpeLog` MENTAH lalu mewarnainya hijau pada
+     `cpe >= 40` — sebuah putusan kepatuhan PMK 186 Ps. 37 yang dibuat tanpa
+     batas SKP tidak terstruktur, tanpa materi wajib, tanpa periode, dan
+     tanpa dua register lainnya (cpeExtra & kredit pelatihan). Kini lewat
+     pintu yang sama dgn CPE/PPL Tracker, Data Personal Saya, dan pplOf. */
+  const pplTraining = cpeFromTraining(A.TRAINING_CATALOG, attendance);
+  const pplPer = pplPeriod(skpEntriesOf(s.id, { extra: cpeExtraAll, training: pplTraining, base: cpeAll }), String(AMS.TODAY));
+  const cpe = pplPer.status.countedTotal;
+  const cpeProven = pplPer.status.compliant && pplPer.status.topicsTracked;
   /* PRD sdm-kepatuhan PR-2 — skor & penempatan 9-box DITURUNKAN (canon_perf),
      bukan literal `perf`/`box` yang dapat bertentangan dgn KPI-nya sendiri. */
   const perfRec = (perfAll || {})[s.id];
@@ -101,7 +114,7 @@ function Profile360Drawer({ s, onClose }: any) {
           { type: 'heading', text: 'Identitas & Posisi' },
           { type: 'kv', rows: [['Nama', s.name], ['Grade', s.grade || '—'], ['Sertifikasi', s.cert || '—'], ['Status', s.status || '—'], ['Tenure', tenure + ' tahun']] },
           { type: 'heading', text: 'Kompensasi & Pengembangan' },
-          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP'], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
+          { type: 'kv', rows: [['CPE Tahun Berjalan', cpe + ' SKP terhitung dari ' + pplPer.req.annual + (pplPer.status.forfeitedUnstructured ? ' (' + pplPer.status.forfeitedUnstructured + ' SKP hangus, batas tidak terstruktur ' + pplPer.req.unstructuredCap + ')' : '') + (pplPer.status.topicsTracked ? '' : ' · materi wajib belum terlacak')], ['Kuota Cuti (hak + saldo lalu)', lvTotal + ' hari · terpakai ' + lvLedger.used + ' · sisa ' + lvLeft]] },
         ],
       });
     } finally {
@@ -136,7 +149,7 @@ function Profile360Drawer({ s, onClose }: any) {
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 11, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpeProven ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
           </div>
 
           <Section title="Informasi Pribadi & Kepegawaian">

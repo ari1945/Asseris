@@ -62,6 +62,41 @@ export function cpeFromTraining(
   return out;
 }
 
+/* ============================================================
+   KOMPOSISI REGISTER SKP — satu urutan, satu tempat.
+   ------------------------------------------------------------
+   SKP seorang pegawai tersebar di TIGA register:
+
+     cpeExtra    entri yang dicatat manual lewat formulir "Catat SKP"
+     training    kredit otomatis dari pelatihan terkonfirmasi (cpeFromTraining)
+     cpeLog      register dasar firma (AMS.CPE_LOG)
+
+   Sampai PR ini setiap konsumen merakit ketiganya sendiri — dan "Data Personal
+   Saya" merakit hanya DUA (ia tak pernah membaca kredit pelatihan). Angka
+   pegawai karenanya dapat berbeda dari angka HR bahkan bila mesinnya sama.
+
+   Satu mesin (`canon_ppl`) tidak cukup bila MASUKAN-nya dirakit berbeda-beda.
+   Karena itu komposisinya ada di sini, dan hanya di sini.
+   ============================================================ */
+export interface SkpSources<T extends SkpEntry = SkpEntry> {
+  extra?: Record<string, T[] | undefined> | null;
+  training?: Record<string, T[] | undefined> | null;
+  base?: Record<string, T[] | undefined> | null;
+}
+
+/** Seluruh entri SKP seorang pegawai, dari ketiga register, dalam satu urutan. */
+export function skpEntriesOf<T extends SkpEntry = SkpEntry>(
+  empId: string,
+  src: SkpSources<T> | null | undefined,
+): T[] {
+  const s = src || {};
+  return [
+    ...((s.extra && s.extra[empId]) || []),
+    ...((s.training && s.training[empId]) || []),
+    ...((s.base && s.base[empId]) || []),
+  ];
+}
+
 /* Jumlah kredit SKP (empId) yang bersumber dari pelatihan terkonfirmasi. */
 export function trainingSkpFor(byEmp: Record<string, CpeEntry[]>, empId: string): number {
   return (byEmp[empId] || []).reduce((a, r) => a + (r.skp || 0), 0);

@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
-import { cpeFromTraining } from './cpe_training';
-import { pplStatusFromEntries } from './canon_ppl';
+import { cpeFromTraining, skpEntriesOf } from './cpe_training';
+import { pplPeriod } from './canon_ppl';
 
 /* ---------- Ambang rotasi AP — SUMBER KEBENARAN TUNGGAL ----------
    Empat tingkat, dipakai lintas view (BO Lisensi · Firm Dashboard ·
@@ -62,16 +62,18 @@ export function rotTier(tenure: number, limit: number): RotTier {
      berdiri di 32/40 SKP di sini dan 28/40 di modul sebelah: satu orang, satu
      tahun, dua angka resmi, tanpa cara tahu mana yang dibaca orang. */
   function pplOf(empId: any) {
-    const base = (A().CPE_LOG && A().CPE_LOG[empId]) || [];
-    const extra = (LS('cpeExtra', {})[empId]) || [];
     /* kredit SKP otomatis dari pelatihan terkonfirmasi (admin/HR). Store firm-scope →
-       cacheKey berlingkup 'ams.v1.firm.<FIRM_SCOPE_ID>.trainingAttendance.v1'. */
-    const training = (cpeFromTraining(A().TRAINING_CATALOG, LS('firm.FIRM-WHR.trainingAttendance.v1', {}))[empId]) || [];
-    const recs = [...extra, ...training, ...base];
-    const st = pplStatusFromEntries(recs);
+       cacheKey berlingkup 'ams.v1.firm.<FIRM_SCOPE_ID>.trainingAttendance.v1'.
+
+       Komposisi ketiga register & periodenya lewat pintu yang sama dengan kedua
+       view PPL (`skpEntriesOf` + `pplPeriod`) — klok SSOT `AMS.TODAY`, klok yang
+       sama dengan `yearFrac` di atas. */
+    const training = cpeFromTraining(A().TRAINING_CATALOG, LS('firm.FIRM-WHR.trainingAttendance.v1', {}));
+    const per = pplPeriod(skpEntriesOf(empId, { extra: LS('cpeExtra', {}), training, base: A().CPE_LOG }), String(AMS.TODAY));
+    const st = per.status;
     return {
       /* `total` = SKP yang DAPAT DIPERHITUNGKAN (setelah cap), bukan jumlah mentah. */
-      total: st.countedTotal, structured: st.structured, recs, status: st,
+      total: st.countedTotal, structured: st.structured, recs: per.entries, status: st,
     };
   }
 

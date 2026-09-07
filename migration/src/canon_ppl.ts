@@ -196,10 +196,91 @@ export function pplFromEntries(entries: readonly SkpEntry[] | null | undefined):
   };
 }
 
-/** Status PPL langsung dari catatan SKP — satu pintu untuk seluruh konsumen. */
+/** Status PPL langsung dari catatan SKP — tanpa penyaringan periode.
+ *  Untuk konsumen yang menampilkan kewajiban satu tahun, pakai `pplPeriod`. */
 export function pplStatusFromEntries(
   entries: readonly SkpEntry[] | null | undefined,
   req: PplRequirement = PPL_REQ_PMK186,
 ): PplStatus {
   return pplStatus(pplFromEntries(entries), req);
+}
+
+/* ============================================================
+   PERIODE KEWAJIBAN — satu tahun takwim.
+   ------------------------------------------------------------
+   Pasal 37 mengikat PER TAHUN. Sampai PR ini seluruh konsumen
+   menjumlahkan SELURUH register SKP tanpa memeriksa tahunnya, sambil
+   melabelinya "tahun {req.year}" — label yang tak dijaga apa pun. Selama
+   seed hanya berisi 2026 itu tak terlihat; entri tahun lalu yang tersimpan
+   (`cpeExtra` bersifat append-only) akan diam-diam ikut terhitung.
+
+   Ia ditaruh di sini, bukan di tiap view, karena periode adalah bagian dari
+   kewajiban — bukan hiasan tampilan. Satu mesin, satu periode.
+
+   CATATAN: ambang-nya sendiri BELUM ber-periode (PMK 186 belum masuk
+   `regref_catalog`). `req` karenanya tetap `PPL_REQ_PMK186`; bila kelak
+   ambang itu berubah antar tahun, gantilah parameter `req` di SINI —
+   satu titik — bukan di pemanggilnya.
+   ============================================================ */
+
+/** Tahun takwim dari tanggal ISO. `null` = tak terbaca (bukan tahun mana pun). */
+export function pplYearOf(on: unknown): number | null {
+  const s = String(on == null ? '' : on).trim();
+  if (!s) return null;
+  const m = /^(\d{4})(-|$)/.exec(s);
+  if (m) return Number(m[1]);
+  const t = Date.parse(s);
+  return Number.isNaN(t) ? null : new Date(t).getFullYear();
+}
+
+/**
+ * Entri milik tahun `year`.
+ *
+ * Entri yang tanggalnya TAK TERBACA dipertahankan: membuangnya akan menghapus
+ * SKP seseorang tanpa suara, dan kita tak dapat membuktikan ia milik tahun
+ * lain. Yang dibuang hanyalah entri yang tanggalnya terbaca DAN menunjuk tahun
+ * berbeda — satu-satunya kasus yang benar-benar diketahui.
+ */
+export function skpInYear<T extends SkpEntry>(
+  entries: readonly T[] | null | undefined,
+  year: number,
+): T[] {
+  const out: T[] = [];
+  for (const e of entries || []) {
+    if (!e) continue;
+    const y = pplYearOf((e as SkpEntry).date);
+    if (y == null || y === year) out.push(e);
+  }
+  return out;
+}
+
+/** Kewajiban PPL satu periode: tahunnya, ambangnya, entri ter-scope, statusnya. */
+export interface PplPeriod<T extends SkpEntry = SkpEntry> {
+  /** Tahun takwim kewajiban. `null` = tanggal acuan tak terbaca ⇒ TIDAK ter-scope. */
+  year: number | null;
+  req: PplRequirement;
+  /** Entri di dalam periode (seluruhnya bila `year === null`). */
+  entries: T[];
+  status: PplStatus;
+}
+
+/**
+ * SATU PINTU bagi seluruh konsumen PPL: entri mentah + tanggal acuan
+ * (`AMS.TODAY`) → tahun, ambang, entri ter-scope, dan status Pasal 37.
+ *
+ * Bila tanggal acuan tak terbaca, periode TIDAK di-scope (`year === null`) dan
+ * seluruh entri ikut terhitung. Meng-scope ke tahun yang tak diketahui akan
+ * menolkan SKP orang yang sesungguhnya punya — kegagalan yang tak terlihat.
+ * Pemanggil wajib menampilkan `year` apa adanya, termasuk ketiadaannya.
+ */
+export function pplPeriod<T extends SkpEntry>(
+  entries: readonly T[] | null | undefined,
+  on: unknown,
+  req: PplRequirement = PPL_REQ_PMK186,
+): PplPeriod<T> {
+  const year = pplYearOf(on);
+  const scoped = year == null
+    ? (entries || []).filter((e): e is T => !!e)
+    : skpInYear(entries, year);
+  return { year, req, entries: scoped, status: pplStatus(pplFromEntries(scoped), req) };
 }

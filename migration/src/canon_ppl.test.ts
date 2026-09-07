@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pplStatus, pplFromEntries, PPL_REQ_PMK186, PPL_SHORTFALL_LABEL,
+import { pplStatus, pplFromEntries, pplPeriod, pplYearOf, skpInYear, PPL_REQ_PMK186, PPL_SHORTFALL_LABEL,
   type PplShortfallCode, type SkpEntry } from './canon_ppl';
 
 /* ============================================================
@@ -143,5 +143,69 @@ describe('pplFromEntries — ringkas dari catatan SKP', () => {
     expect(r.topicPembinaan).toBeUndefined();
     expect(s.countedTotal).toBe(24);
     expect(s.compliant).toBe(false);
+  });
+});
+
+/* ============================================================
+   PERIODE — Pasal 37 mengikat PER TAHUN.
+   ============================================================ */
+
+describe('periode kewajiban (pplPeriod)', () => {
+  const TAHUN_LALU: SkpEntry[] = [
+    { t: 'Workshop 2025', type: 'Terstruktur', skp: 30, date: '2025-11-02', topic: 'akuntansi' },
+  ];
+  const TAHUN_INI: SkpEntry[] = [
+    { t: 'Update SA', type: 'Terstruktur', skp: 8, date: '2026-02-10', topic: 'akuntansi' },
+    { t: 'Jurnal', type: 'Tidak Terstruktur', skp: 4, date: '2026-03-01' },
+  ];
+
+  it('tahun dibaca dari tanggal ISO; yang tak terbaca bukan tahun mana pun', () => {
+    expect(pplYearOf('2026-03-09')).toBe(2026);
+    expect(pplYearOf('2026')).toBe(2026);
+    expect(pplYearOf('')).toBeNull();
+    expect(pplYearOf(null)).toBeNull();
+    expect(pplYearOf('entah kapan')).toBeNull();
+  });
+
+  it('SKP tahun lalu tidak ikut terhitung — inilah gunanya label "tahun N"', () => {
+    const per = pplPeriod([...TAHUN_LALU, ...TAHUN_INI], '2026-03-09');
+    expect(per.year).toBe(2026);
+    expect(per.entries).toHaveLength(2);
+    expect(per.status.structured).toBe(8);
+    expect(per.status.countedTotal).toBe(12);
+    /* tanpa periode, 30 SKP tahun lalu akan meluluskan orang ini: */
+    expect(pplStatus(pplFromEntries([...TAHUN_LALU, ...TAHUN_INI])).structured).toBe(38);
+  });
+
+  it('entri tanpa tanggal terbaca DIPERTAHANKAN — membuangnya menghapus SKP tanpa suara', () => {
+    const tanpaTanggal: SkpEntry[] = [{ t: 'Entri manual', type: 'Terstruktur', skp: 6, topic: 'pembinaan' }];
+    expect(skpInYear([...TAHUN_INI, ...tanpaTanggal], 2026)).toHaveLength(3);
+    expect(pplPeriod(tanpaTanggal, '2026-03-09').status.structured).toBe(6);
+  });
+
+  it('tanggal acuan tak terbaca ⇒ TIDAK di-scope, dan itu dinyatakan (year === null)', () => {
+    /* Meng-scope ke tahun yang tak diketahui akan menolkan SKP orang yang
+       sesungguhnya punya — kegagalan senyap. Lebih baik tak menyaring dan
+       mengaku bahwa tahunnya tak diketahui. */
+    const per = pplPeriod([...TAHUN_LALU, ...TAHUN_INI], '');
+    expect(per.year).toBeNull();
+    expect(per.entries).toHaveLength(3);
+    expect(per.status.structured).toBe(38);
+  });
+
+  it('ambang & dasar hukum ikut dalam periode — pemanggil tak perlu mencarinya', () => {
+    const per = pplPeriod(TAHUN_INI, '2026-03-09');
+    expect(per.req).toBe(PPL_REQ_PMK186);
+    expect(per.req.basis).toContain('Pasal 37');
+  });
+
+  it('periode tidak mengubah mesinnya — status identik dgn pplStatus atas entri ter-scope', () => {
+    const per = pplPeriod([...TAHUN_LALU, ...TAHUN_INI], '2026-03-09');
+    expect(per.status).toEqual(pplStatus(pplFromEntries(TAHUN_INI)));
+  });
+
+  it('entri null/rusak tidak lolos ke daftar periode', () => {
+    const per = pplPeriod([null, ...TAHUN_INI] as unknown as SkpEntry[], '2026-03-09');
+    expect(per.entries).toHaveLength(2);
   });
 });

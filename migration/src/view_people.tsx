@@ -12,8 +12,8 @@ import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 import { rotTier } from './data_licensing';
-import { cpeFromTraining, type TrainingCourse } from './cpe_training';
-import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplStatusFromEntries } from './canon_ppl';
+import { cpeFromTraining, skpEntriesOf, type TrainingCourse } from './cpe_training';
+import { PPL_REQ_PMK186, PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplPeriod, pplYearOf } from './canon_ppl';
 
 /* ============================================================
    Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
@@ -201,10 +201,13 @@ function CPETracker() {
   const auth = useAuth();
   const staff: any = AMS.STAFF;
   /* Ambang PPL datang dari `canon_ppl.PPL_REQ_PMK186` — SATU sumber, dgn dasar
-     hukumnya melekat. `AMS.CPE_REQ` tinggal menyumbang tahun berjalan; nilainya
-     identik (40/30/10) sehingga pemindahan ini nol-delta. */
-  const pplYear: number = (AMS.CPE_REQ as { year?: number } | undefined)?.year || new Date().getFullYear();
-  const req = { annual: PPL_REQ_PMK186.annual, structured: PPL_REQ_PMK186.structuredMin, year: pplYear };
+     hukumnya melekat. TAHUNNYA kini datang dari klok SSOT (`AMS.TODAY`) lewat
+     `pplPeriod`, bukan dari `AMS.CPE_REQ.year` yang diketik terpisah: tabel ini
+     berlabel "tahun {req.year}" sejak dulu tetapi tak pernah MENYARING entri
+     menurut tahun itu. Nilai keduanya sama (2026) sehingga pemindahan ini
+     nol-delta atas data seed — yang berubah hanya: labelnya kini dijaga. */
+  const pplRef = String(AMS.TODAY || '');
+  const req = { annual: PPL_REQ_PMK186.annual, structured: PPL_REQ_PMK186.structuredMin, year: pplYearOf(pplRef) };
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   // 2026-07-05 — cpeLog (kredit SKP dasar) & cpeExtra ter-filter server (personal.get).
   const [cpeLog] = useAmsPersist('cpeLog', () => AMS.CPE_LOG);
@@ -218,7 +221,6 @@ function CPETracker() {
   const canFirm = !!(auth && typeof auth.can === 'function' && auth.can(CAP.PERSONAL_CPE_VIEW_FIRM));
   const scopedIds = new Set<string>([...Object.keys(cpeLog || {}), ...Object.keys(extraLog || {})]);
   const vstaff = canFirm ? staff : staff.filter((s: any) => scopedIds.has(s.id));
-  const log = (() => { const m = {}; vstaff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((cpeLog as any)[s.id]) || [])]; }); return m; })();
   const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: AMS.TODAY }, ...(l[id] || [])] }));
 
   /* PRD sdm-kepatuhan PR-3 — SATU mesin PPL.
@@ -227,9 +229,11 @@ function CPETracker() {
      ada di repo dan dipakai modul Kesiapan P2PK. EMP-007 karenanya berdiri di
      32/40 di sini dan 28/40 di sebelah. */
   const summary = vstaff.map((s: any) => {
-    const recs = (log as any)[s.id] || [];
-    const st = pplStatusFromEntries(recs);
-    return { ...s, structured: st.structured, total: st.countedTotal, compliant: st.compliant, st, recs };
+    /* Komposisi ketiga register ada di `skpEntriesOf` — SATU tempat, agar
+       "Data Personal Saya" tak dapat merakit masukan yang berbeda. */
+    const per = pplPeriod(skpEntriesOf(s.id, { extra: extraLog, training: trainingByEmp, base: cpeLog }), pplRef);
+    const st = per.status;
+    return { ...s, structured: st.structured, total: st.countedTotal, compliant: st.compliant, st, recs: per.entries };
   });
   const compliantN = summary.filter((s: any) => s.compliant).length;
   const atRisk = summary.filter((s: any) => !s.compliant && s.total < req.annual * 0.5).length;
@@ -239,7 +243,7 @@ function CPETracker() {
 
   return (
     <>
-      <SubBar moduleId="cpe" right={<div className="row gap8 ac"><Badge kind="blue">PPL {req.year} · {req.annual} SKP</Badge><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Catat SKP</Btn></div>} />
+      <SubBar moduleId="cpe" right={<div className="row gap8 ac"><Badge kind="blue">PPL {req.year == null ? '—' : req.year} · {req.annual} SKP</Badge><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Catat SKP</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${compliantN}/${vstaff.length}`} label="Memenuhi PPL" accent="var(--green)" /></div></Panel>
@@ -250,7 +254,7 @@ function CPETracker() {
 
         <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start' }}>
           <Panel noBody>
-            <div className="panel-h"><h3>Status PPL per Karyawan</h3><div style={{ flex: 1 }} /><span className="tiny muted">tahun {req.year}</span></div>
+            <div className="panel-h"><h3>Status PPL per Karyawan</h3><div style={{ flex: 1 }} /><span className="tiny muted">tahun {req.year == null ? '—' : req.year}</span></div>
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th className="num">Terstruktur</th><th className="num">Total SKP</th><th style={{ width: 140 }}>Progress</th><th>Status</th></tr></thead>
               <tbody>
@@ -284,7 +288,7 @@ function CPETracker() {
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Kurang</span><b className="mono">{Math.max(0, PPL_REQ_PMK186.annual - person.total)}</b></div>
                 </div>
               </div>
-              <div className="tiny muted upper" style={{ marginBottom: 6 }}>Riwayat SKP {req.year}</div>
+              <div className="tiny muted upper" style={{ marginBottom: 6 }}>Riwayat SKP {req.year == null ? '' : req.year}</div>
               <div style={{ display: 'grid', gap: 0 }}>
                 {person.recs.length ? person.recs.map((r: any, i: any) => (
                   <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: i < person.recs.length - 1 ? '1px solid var(--line-soft)' : 0 }}>

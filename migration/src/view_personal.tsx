@@ -3,8 +3,14 @@ import { AMS } from './data';
 import { evaluateLeaveRow, leaveLedgerOf } from './canon_leave';
 import { perfPersonOf } from './canon_perf';
 import { bpjsContribution } from './canon_bpjs';
+/* Ambang tidak diimpor terpisah: ia datang bersama periodenya (`pplPeriod().req`),
+   sehingga tak ada peluang menampilkan ambang satu tahun atas angka tahun lain. */
+import { PPL_SHORTFALL_LABEL, SKP_TOPIC_LABEL, isSkpTopic, pplPeriod } from './canon_ppl';
+import { cpeFromTraining, skpEntriesOf } from './cpe_training';
 import type { BpjsRegistry } from './canon_bpjs';
 import type { HolidayCalendar } from './canon_leave';
+import type { SkpTopic } from './canon_ppl';
+import type { TrainingAttendance, TrainingCourse } from './cpe_training';
 import { useAmsPersist, useAuth } from './contexts';
 import { resolveEmpId } from './ethics_compliance';
 import { personalSubmitLeave, personalDeclare } from './api';
@@ -29,7 +35,7 @@ type Emergency = { name?: string; rel?: string; phone?: string };
 type Prof = { salaryBand?: string; band?: string; empType?: string; location?: string; npwp?: string; nik?: string; bpjsKes?: string; bpjsTk?: string; emergency?: Emergency };
 type Bal = { carry?: number };
 type LeaveReq = { id: string; type: string; from: string; to: string; days: number; status: string; reason?: string; emp?: string };
-type SkpRec = { t: string; type: string; skp: number; date: string };
+type SkpRec = { t: string; type: string; skp: number; date: string; topic?: unknown; src?: string };
 type IndepRec = { id?: string; declared: boolean; conflicts: number; rotationClient: string; tenure: number; rotationLimit: number; finInterest?: string; sektor?: string; basis?: string; cooloff?: number };
 type EthicsRec = { signed: boolean; date: string; exceptions: number; items?: number[] };
 type CaseRec = { id: string; date: string; cat: string; severity: string; status: string; sanction: string; desc?: string; channel?: string };
@@ -107,6 +113,9 @@ function DataPersonalSaya() {
   const reqAll = arr<LeaveReq>(useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS)[0]);
   const cpeLogAll = rec<SkpRec[]>(useAmsPersist('cpeLog', () => AMS.CPE_LOG)[0]);
   const cpeExtraAll = rec<SkpRec[]>(useAmsPersist('cpeExtra', {})[0]);
+  /* Kredit SKP dari pelatihan terkonfirmasi — register KETIGA yang halaman ini
+     dulu tak pernah baca. Store firm-scope yang sama dengan CPE/PPL Tracker. */
+  const attendance = useAmsPersist('trainingAttendance.v1', () => ({}))[0] as TrainingAttendance;
   const indepAll = arr<IndepRec>(useAmsPersist('independence', () => AMS.INDEPENDENCE)[0]);
   const ethAll = rec<EthicsRec>(useAmsPersist('pc.ethics', () => AMS.ETHICS_DECL)[0]);
   const caseAll = arr<CaseRec & { staff: string }>(useAmsPersist('hrCases', () => AMS.HR_CASES)[0]);
@@ -116,7 +125,6 @@ function DataPersonalSaya() {
 
   const rosterA = AMS as { STAFF?: unknown; FIRM_STAFF?: unknown };
   const staff = [...arr<StaffRow>(rosterA.STAFF), ...arr<StaffRow>(rosterA.FIRM_STAFF)].find((s) => s.id === empId);
-  const req = (AMS as { CPE_REQ?: { annual: number; structured: number } }).CPE_REQ || { annual: 40, structured: 30 };
   const R = (AMS as { PAYROLL_RATES?: BpjsRegistry }).PAYROLL_RATES;
   const ethItems = arr<{ k: string }>((AMS as { ETHICS_ITEMS?: unknown }).ETHICS_ITEMS);
 
@@ -132,10 +140,27 @@ function DataPersonalSaya() {
   const pay = payAll[empId];
   const bal = balAll[empId];
   const myReqs = reqData.filter((r) => r.emp === empId);
-  const skpRecs: SkpRec[] = [...(cpeExtraAll[empId] || []), ...(cpeLogAll[empId] || [])];
-  const skpTotal = skpRecs.reduce((a, r) => a + (r.skp || 0), 0);
-  const skpStruct = skpRecs.filter((r) => r.type === 'Terstruktur').reduce((a, r) => a + (r.skp || 0), 0);
-  const skpOk = skpTotal >= req.annual && skpStruct >= req.structured;
+  /* PRD sdm-kepatuhan PR-3 (lanjutan) — SATU mesin PPL, juga di sini.
+     Halaman ini dulu menjumlahkan SKP MENTAH: tanpa batas 10 SKP tidak
+     terstruktur (PMK 186 Ps. 37), tanpa materi wajib, tanpa periode, dan
+     tanpa kredit pelatihan. Seorang pegawai karenanya dapat membaca
+     "44/40 — memenuhi" di halamannya sendiri sementara HR membaca 32/40
+     untuk orang dan tahun yang sama. `pplPeriod` + `skpEntriesOf` adalah
+     pintu yang sama persis dengan CPE/PPL Tracker dan LICENSING.pplOf. */
+  const trainingByEmp = cpeFromTraining((AMS as { TRAINING_CATALOG?: TrainingCourse[] }).TRAINING_CATALOG, attendance);
+  const skpAll = skpEntriesOf<SkpRec>(empId, { extra: cpeExtraAll, training: trainingByEmp, base: cpeLogAll });
+  const ppl = pplPeriod(skpAll, String(AMS.TODAY));
+  const pplSt = ppl.status;
+  const req = ppl.req;
+  const skpRecs: SkpRec[] = ppl.entries;
+  const skpTotal = pplSt.countedTotal;
+  const skpStruct = pplSt.structured;
+  /* `compliant` hanya menyatakan limb yang DAPAT diuji. Bila materi wajib belum
+     terlacak, kepatuhan Pasal 37 belum terbukti — dan tidak boleh disulap
+     menjadi centang hijau di halaman orangnya sendiri. */
+  const skpProven = pplSt.compliant && pplSt.topicsTracked;
+  const skpAccent = skpProven ? 'var(--green)' : 'var(--amber)';
+  const skpLabel = skpProven ? 'Memenuhi' : pplSt.compliant ? 'Belum terbukti' : 'Belum memenuhi';
   const myIndep = indepData.find((d) => d.id === empId);
   const myEthics = ethData[empId];
   const myCases = caseAll.filter((c) => c.staff === empId);
@@ -217,13 +242,33 @@ function DataPersonalSaya() {
         </>);
       }
       case 'cpe': return (<>
-        <div className="row gap8" style={{ marginBottom: 4 }}><Badge kind={skpOk ? 'green' : 'amber'}>{skpTotal}/{req.annual} SKP</Badge><Badge kind={skpStruct >= req.structured ? 'green' : 'amber'}>{skpStruct}/{req.structured} terstruktur</Badge></div>
+        <div className="row gap8" style={{ marginBottom: 4, flexWrap: 'wrap' }}>
+          <Badge kind={skpProven ? 'green' : 'amber'}>{skpTotal}/{req.annual} SKP terhitung</Badge>
+          <Badge kind={skpStruct >= req.structuredMin ? 'green' : 'amber'}>{skpStruct}/{req.structuredMin} terstruktur</Badge>
+          {pplSt.forfeitedUnstructured > 0 && <Badge kind="amber" title={'Batas SKP tidak terstruktur ' + req.unstructuredCap + ' SKP (' + req.basis + ')'}>{pplSt.forfeitedUnstructured} SKP hangus</Badge>}
+          <Badge kind="blue">Tahun {ppl.year == null ? '—' : ppl.year}</Badge>
+        </div>
+        <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+          Dari {pplSt.structured} SKP terstruktur + {pplSt.countedUnstructured} SKP tidak terstruktur yang dapat diperhitungkan (batas {req.unstructuredCap}). Dasar: {req.basis}.
+        </div>
         {skpRecs.length ? skpRecs.map((r, i) => (
           <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
-            <div style={{ minWidth: 0 }}><div className="tiny truncate" style={{ fontWeight: 600 }}>{r.t}</div><div className="tiny muted">{fmtDate(r.date)} · {r.type}</div></div>
+            <div style={{ minWidth: 0 }}><div className="tiny truncate" style={{ fontWeight: 600 }}>{r.t}{r.src === 'training' ? ' · dari pelatihan' : ''}</div><div className="tiny muted">{fmtDate(r.date)} · {r.type}{r.type === 'Terstruktur' ? (isSkpTopic(r.topic) ? ' · ' + SKP_TOPIC_LABEL[r.topic as SkpTopic] : ' · materi belum diklasifikasi') : ''}</div></div>
             <span className="mono" style={{ fontWeight: 700 }}>{r.skp} SKP</span>
           </div>
         )) : <div className="tiny muted">Belum ada SKP tercatat tahun ini.</div>}
+        {(pplSt.shortfalls.length > 0 || !pplSt.topicsTracked) && (
+          <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+            {pplSt.shortfalls.map((f) => (
+              <div key={f} className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>· {PPL_SHORTFALL_LABEL[f]}</div>
+            ))}
+            {!pplSt.topicsTracked && (
+              <div className="tiny" style={{ lineHeight: 1.5, marginTop: pplSt.shortfalls.length ? 4 : 0 }}>
+                Materi wajib ({req.topicPembinaanMin} SKP pembinaan/pengawasan AP &amp; KAP + {req.topicAkuntansiMin} SKP akuntansi/asurans) belum terlacak pada seluruh entri terstruktur Anda — kepatuhan penuh Pasal 37 <b>belum dapat dibuktikan</b> dari data ini. Lengkapi klasifikasi materi lewat HRD.
+              </div>
+            )}
+          </div>
+        )}
       </>);
       case 'leave': return (<>
         {bal ? (<>
@@ -393,7 +438,7 @@ function DataPersonalSaya() {
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={pay ? 'Rp ' + fmt(payBase / 1e6, 1) + ' jt' : '—'} label="Penghasilan Bruto / bln" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${skpTotal}/${req.annual}`} label="SKP (PPL) tahun ini" accent={skpOk ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${skpTotal}/${req.annual}`} label={ppl.year == null ? 'SKP (PPL) terhitung' : `SKP (PPL) ${ppl.year}`} accent={skpAccent} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={bal ? lvLeft + ' hari' : '—'} label="Sisa Cuti" accent="var(--blue)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={myCases.length} label="Kasus Disiplin" accent={myCases.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
@@ -414,10 +459,20 @@ function DataPersonalSaya() {
 
           <Section title="PPL / SKP" icon="book" onDetail={() => open('cpe')}>
             <div className="row gap12" style={{ marginBottom: 8 }}>
-              <Kv label="Total SKP" v={`${skpTotal}/${req.annual}`} accent={skpOk ? 'var(--green)' : 'var(--amber)'} />
-              <Kv label="Terstruktur" v={`${skpStruct}/${req.structured}`} accent={skpStruct >= req.structured ? 'var(--green)' : 'var(--amber)'} />
-              <Kv label="Status" v={skpOk ? 'Memenuhi' : 'Belum memenuhi'} accent={skpOk ? 'var(--green)' : 'var(--amber)'} />
+              <Kv label="SKP terhitung" v={`${skpTotal}/${req.annual}`} accent={skpAccent} />
+              <Kv label="Terstruktur" v={`${skpStruct}/${req.structuredMin}`} accent={skpStruct >= req.structuredMin ? 'var(--green)' : 'var(--amber)'} />
+              <Kv label="Status" v={skpLabel} accent={skpAccent} />
             </div>
+            {pplSt.forfeitedUnstructured > 0 && (
+              <div className="tiny" style={{ marginBottom: 8, lineHeight: 1.5, color: 'var(--amber)', fontWeight: 600 }}>
+                {pplSt.forfeitedUnstructured} SKP tidak terstruktur hangus — melewati batas {req.unstructuredCap} SKP ({req.basis}).
+              </div>
+            )}
+            {!pplSt.topicsTracked && (
+              <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+                Materi wajib Pasal 37 belum terlacak pada seluruh entri terstruktur — kepatuhan penuh belum dapat dibuktikan.
+              </div>
+            )}
             {skpRecs.length ? skpRecs.slice(0, 4).map((r, i) => (
               <div key={i} className="row ac jb" style={{ padding: '6px 0', borderBottom: i < Math.min(4, skpRecs.length) - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span className="tiny truncate" style={{ fontWeight: 600 }}>{r.t}</span><span className="tiny muted">{r.type} · {r.skp} SKP</span>

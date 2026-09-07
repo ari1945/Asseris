@@ -10,15 +10,15 @@
    Uji di sini dirancang agar GAGAL bila mesin kedua itu kembali.
    ============================================================ */
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { AMS } from './data';
 import './data_people';
 import {
-  PPL_REQ_PMK186, isSkpTopic, pplFromEntries, pplStatus, pplStatusFromEntries,
+  PPL_REQ_PMK186, isSkpTopic, pplFromEntries, pplPeriod, pplStatus, pplStatusFromEntries,
 } from './canon_ppl';
 import type { SkpEntry } from './canon_ppl';
-import { cpeFromTraining } from './cpe_training';
+import { cpeFromTraining, skpEntriesOf } from './cpe_training';
 import type { TrainingCourse } from './cpe_training';
 
 const CPE_LOG = AMS.CPE_LOG as unknown as Record<string, SkpEntry[]>;
@@ -228,6 +228,149 @@ describe('SC-24a — satu register SKP untuk satu firma', () => {
 });
 
 /* ------------------------------------------------------------------
+   5. "Data Personal Saya" tak dapat berpisah dari CPE/PPL Tracker
+   ------------------------------------------------------------------
+
+   PR-3 mencabut mesin kedua dari `view_people` dan `data_licensing`, tetapi
+   MELEWATKAN `view_personal` — halaman yang justru dibaca pegawai sendiri. Di
+   sana SKP dijumlahkan MENTAH:
+
+       skpTotal  = Σ skp
+       skpStruct = Σ skp (type === 'Terstruktur')
+       skpOk     = skpTotal >= 40 && skpStruct >= 30
+
+   Empat cacat sekaligus: tanpa batas 10 SKP tidak terstruktur, tanpa materi
+   wajib, tanpa periode, dan MASUKAN-nya kurang satu register (kredit pelatihan
+   tak pernah dibaca).
+
+   Gerbang `reduce`+`.skp` di §4 kemudian menemukan yang KEEMPAT: drawer profil
+   360° di `view_pc_hcm` menjumlahkan `cpeLog` mentah lalu memutuskan kepatuhan
+   dengan `cpe >= 40`. Satu orang, satu tahun, EMPAT angka resmi.
+
+   Yang dipaku di sini: mesin (`pplPeriod`) DAN komposisi masukannya
+   (`skpEntriesOf`) sama untuk seluruh konsumen. Menyatukan mesin saja tidak
+   cukup — dua pembaca yang merakit masukan berbeda tetap berpisah.
+   ------------------------------------------------------------------ */
+
+type Att = Record<string, Record<string, { confirmed?: boolean }>>;
+const TODAY = String(AMS.TODAY);
+
+/** Ketiga register, persis seperti yang dirakit kedua view & `pplOf`. */
+const sumberSkp = (extra: Record<string, SkpEntry[]>, att: Att) => ({
+  extra,
+  training: cpeFromTraining(CATALOG, att) as unknown as Record<string, SkpEntry[]>,
+  base: CPE_LOG,
+});
+
+describe('PR-3b — satu mesin DAN satu komposisi untuk seluruh pembaca SKP', () => {
+  it('angka pegawai = angka HR = angka laporan izin, untuk empId yang sama', async () => {
+    const { LICENSING } = await import('./data_licensing') as unknown as
+      { LICENSING: { pplOf: (id: string) => { total: number; structured: number } } };
+    const src = sumberSkp({}, {});
+    for (const emp of Object.keys(CPE_LOG)) {
+      const per = pplPeriod(skpEntriesOf(emp, src), TODAY);
+      /* `pplOf` adalah konsumen yang ditulis TERPISAH dan membaca store nyata —
+         bukan pemanggilan ulang ekspresi yang sama. */
+      expect(LICENSING.pplOf(emp).total, emp).toBe(per.status.countedTotal);
+      expect(LICENSING.pplOf(emp).structured, emp).toBe(per.status.structured);
+    }
+  });
+
+  it('KOMPOSISI: register ketiga (kredit pelatihan) benar-benar ikut', () => {
+    /* Ini yang membedakan `view_personal` lama: ia hanya membaca cpeExtra +
+       cpeLog. TR-05 = 6 SKP terstruktur, materi pembinaan. */
+    const att: Att = { 'TR-05': { 'EMP-021': { confirmed: true } } };
+    const tanpa = pplPeriod(skpEntriesOf('EMP-021', sumberSkp({}, {})), TODAY);
+    const dengan = pplPeriod(skpEntriesOf('EMP-021', sumberSkp({}, att)), TODAY);
+    expect(tanpa.status.countedTotal).toBe(12);
+    expect(dengan.status.countedTotal).toBe(18);
+    expect(dengan.status.structured).toBe(12);
+    /* dan kredit itu mengisi limb materi, bukan sekadar menambah angka */
+    expect(pplFromEntries(dengan.entries).topicPembinaan).toBe(6);
+  });
+
+  it('KOMPOSISI: entri manual (cpeExtra) mendahului register dasar', () => {
+    const extra = { 'EMP-021': [{ t: 'Catat manual', type: 'Terstruktur', skp: 2, date: TODAY, topic: 'akuntansi' }] };
+    const recs = skpEntriesOf('EMP-021', sumberSkp(extra as Record<string, SkpEntry[]>, {}));
+    expect(recs[0].t).toBe('Catat manual');
+    expect(recs).toHaveLength(3);
+  });
+
+  it('PERIODE: SKP tahun lalu tak lagi ikut — di KEDUA halaman sekaligus', () => {
+    const extra = { 'EMP-021': [{ t: 'Workshop 2025', type: 'Terstruktur', skp: 30, date: '2025-11-02', topic: 'akuntansi' }] };
+    const src = sumberSkp(extra as Record<string, SkpEntry[]>, {});
+    const per = pplPeriod(skpEntriesOf('EMP-021', src), TODAY);
+    expect(per.year).toBe(2026);
+    expect(per.status.countedTotal).toBe(12);
+    /* tanpa periode ia akan tampak 42 SKP dan "memenuhi" */
+    expect(pplStatusFromEntries(skpEntriesOf('EMP-021', src)).countedTotal).toBe(42);
+  });
+
+  /** Rumus MENTAH yang dicabut dari `view_personal` — disimpan sebagai oracle. */
+  const mentah = (entries: readonly SkpEntry[]) => {
+    const total = entries.reduce((a, r) => a + (Number(r.skp) || 0), 0);
+    const structured = entries.filter((r) => r.type === 'Terstruktur')
+      .reduce((a, r) => a + (Number(r.skp) || 0), 0);
+    return { total, structured, ok: total >= 40 && structured >= 30 };
+  };
+
+  it('ANGKA yang tampil berubah: 44 SKP mentah → 32 SKP terhitung', () => {
+    /* 22 terstruktur + 22 tidak terstruktur. Yang berpindah di sini adalah
+       ANGKANYA — satu orang, satu tahun, dua figur resmi. Batas 10 SKP tidak
+       terstruktur (Ps. 37) membakar 12 SKP yang tak pernah dapat dipakai. */
+    const entries: SkpEntry[] = [
+      { t: 'Terstruktur A', type: 'Terstruktur', skp: 22, date: '2026-02-01', topic: 'akuntansi' },
+      { t: 'Self-study', type: 'Tidak Terstruktur', skp: 22, date: '2026-02-02' },
+    ];
+    expect(mentah(entries).total).toBe(44);
+
+    const st = pplPeriod(entries, TODAY).status;
+    expect(st.countedTotal).toBe(32);
+    expect(st.forfeitedUnstructured).toBe(12);
+    /* kedua rumus SEPAKAT bahwa ia tidak patuh — yang berbeda hanya angkanya,
+       dan angka itulah yang dibaca pegawai serta dilaporkan ke PPPK. */
+    expect(mentah(entries).ok).toBe(false);
+    expect(st.compliant).toBe(false);
+    expect(st.shortfalls).toContain('total');
+    expect(st.shortfalls).toContain('structured');
+  });
+
+  it('PUTUSAN berubah: rumus mentah bilang "memenuhi", Pasal 37 bilang tidak', () => {
+    /* Batas SKP tidak terstruktur sendiri tak pernah dapat membalik putusan
+       (bila terstruktur ≥ 30, cap tak menggigit). Yang MEMBALIKKANNYA adalah
+       limb yang rumus mentah tak punya sama sekali: materi wajib 4 + 16.
+       30 SKP terstruktur seluruhnya materi akuntansi ⇒ pembinaan NOL. */
+    const entries: SkpEntry[] = [
+      { t: 'Rangkaian akuntansi', type: 'Terstruktur', skp: 30, date: '2026-02-01', topic: 'akuntansi' },
+      { t: 'Self-study', type: 'Tidak Terstruktur', skp: 10, date: '2026-02-02' },
+    ];
+    expect(mentah(entries)).toMatchObject({ total: 40, structured: 30, ok: true });
+
+    const st = pplPeriod(entries, TODAY).status;
+    expect(st.countedTotal).toBe(40);
+    expect(st.topicsTracked).toBe(true);
+    expect(st.shortfalls).toEqual(['topic-pembinaan']);
+    expect(st.compliant).toBe(false);
+  });
+
+  it('"patuh tetapi materi tak terlacak" BUKAN centang hijau', () => {
+    /* 30 terstruktur TANPA klasifikasi + 10 tidak terstruktur = 40 SKP: seluruh
+       limb yang DAPAT diuji terpenuhi, tetapi Pasal 37 belum terbukti. Halaman
+       wajib menampilkan bedanya, bukan menyulapnya jadi "Memenuhi" — karena
+       itu `skpProven = compliant && topicsTracked`, bukan `compliant` saja. */
+    const entries: SkpEntry[] = [
+      { t: 'Kursus tanpa klasifikasi', type: 'Terstruktur', skp: 30, date: '2026-02-01' },
+      { t: 'Self-study', type: 'Tidak Terstruktur', skp: 10, date: '2026-02-02' },
+    ];
+    const st = pplPeriod(entries, TODAY).status;
+    expect(st.countedTotal).toBe(40);
+    expect(st.compliant).toBe(true);
+    expect(st.topicsTracked).toBe(false);
+    expect(st.compliant && st.topicsTracked).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------
    4. GERBANG CAKUPAN
    ------------------------------------------------------------------ */
 
@@ -237,7 +380,7 @@ const read = (f: string) => readFileSync(join(SRC, f), 'utf8')
   .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 /** Setiap pembaca SKP. Menambah pembaca? Daftarkan di sini. */
-const KONSUMEN = ['view_people.tsx', 'data_licensing.ts', 'view_pppk.tsx', 'view_isqm_parts.tsx'];
+const KONSUMEN = ['view_people.tsx', 'view_personal.tsx', 'view_pc_hcm.tsx', 'data_licensing.ts', 'view_pppk.tsx', 'view_isqm_parts.tsx'];
 
 describe('gerbang cakupan — satu mesin PPL, nol penjumlah mentah', () => {
   it.each(KONSUMEN)('%s masuk lewat canon_ppl', (f) => {
@@ -275,6 +418,110 @@ describe('gerbang cakupan — satu mesin PPL, nol penjumlah mentah', () => {
     expect(src).toMatch(/PPL_REQ_PMK186\.annual/);
     /* CPE_REQ boleh dipakai untuk TAHUN saja, tidak untuk ambang. */
     expect(src).not.toMatch(/CPE_REQ[\s\S]{0,40}annual\s*[,}]/);
+  });
+
+  /* ---- SC-…b — penjumlah SKP mentah dilarang di SELURUH view ---- */
+
+  /* Penjumlah SKP tangan sendiri: satu baris yang memuat `reduce(` sekaligus
+     `.skp`. Baris render (`{r.skp} SKP`) tak pernah memuat `reduce(`. */
+  const NEWLINE = /\r?\n/;
+  const PUNYA_REDUCE = /\breduce\s*\(/;
+  const PUNYA_SKP = /\.skp\b/;
+  const menjumlahSkpMentah = (line: string) => PUNYA_REDUCE.test(line) && PUNYA_SKP.test(line);
+
+  /** Setiap `view_*.tsx`. Pembaca SKP baru tak dapat menyelinap tanpa terdaftar. */
+  const SEMUA_VIEW = readdirSync(SRC).filter((f) => /^view_.*\.tsx$/.test(f));
+
+  it('daftar view tidak kosong — gerbang ini harus benar-benar memindai sesuatu', () => {
+    expect(SEMUA_VIEW.length).toBeGreaterThan(50);
+    expect(SEMUA_VIEW).toContain('view_personal.tsx');
+    expect(SEMUA_VIEW).toContain('view_people.tsx');
+  });
+
+  it('TIDAK ADA view yang menjumlahkan SKP mentah — satu mesin PPL, tanpa kecuali', () => {
+    /* Pola yang dicabut: `recs.reduce((a, r) => a + (r.skp || 0), 0)`.
+       Dipindai per-BARIS (setelah komentar dibuang): sebuah baris yang memuat
+       `reduce(` sekaligus `.skp` adalah penjumlahan SKP tangan sendiri —
+       sementara baris render (`{r.skp} SKP`) tak pernah memuat `reduce(`. */
+    const pelanggar: string[] = [];
+    for (const f of SEMUA_VIEW) {
+      /* baris dilaporkan apa adanya, bukan nomornya: `read` membuang komentar
+         sehingga penomoran tak lagi sejajar dengan berkas aslinya. */
+      for (const line of read(f).split(NEWLINE)) {
+        if (menjumlahSkpMentah(line)) pelanggar.push(`${f} → ${line.trim()}`);
+      }
+    }
+    expect(pelanggar).toEqual([]);
+  });
+
+  it('gerbang itu benar-benar MENANGKAP polanya (kontrol negatif)', () => {
+    /* Gerbang yang tak pernah merah tak membuktikan apa pun. */
+    const contoh = 'const skpTotal = skpRecs.reduce((a, r) => a + (r.skp || 0), 0);';
+    expect(menjumlahSkpMentah(contoh)).toBe(true);
+    const render = '<span className="mono">{r.skp} SKP</span>';
+    expect(menjumlahSkpMentah(render)).toBe(false);
+  });
+
+  /* ---- view_personal: mesin, komposisi, dan yang WAJIB ditampilkan ---- */
+
+  it('view_personal masuk lewat `pplPeriod`, bukan `pplStatus` telanjang', () => {
+    const src = read('view_personal.tsx');
+    expect(src).toMatch(/pplPeriod\(/);
+    /* dan periodenya dari klok SSOT, bukan `new Date()` lokal peramban */
+    expect(src).toMatch(/pplPeriod\(skpAll, String\(AMS\.TODAY\)\)/);
+  });
+
+  it('view_personal merakit KETIGA register lewat `skpEntriesOf`', () => {
+    const src = read('view_personal.tsx');
+    expect(src).toMatch(/skpEntriesOf</);
+    /* register ketiga — kredit pelatihan — yang dulu tak pernah ia baca */
+    expect(src).toContain('cpeFromTraining');
+    expect(src).toContain('trainingAttendance.v1');
+    /* dan tak lagi merakit tangan sendiri dari cpeExtra + cpeLog */
+    expect(src).not.toMatch(/\[\s*\.\.\.\(cpeExtraAll\[/);
+  });
+
+  it('view_personal tidak lagi menghitung kepatuhan sendiri', () => {
+    /* pola lama: `skpTotal >= req.annual && skpStruct >= req.structured` */
+    expect(read('view_personal.tsx')).not.toMatch(/>=\s*req\.annual\s*&&/);
+    /* ambang tak lagi diambil dari CPE_REQ per-view */
+    expect(read('view_personal.tsx')).not.toContain('CPE_REQ');
+  });
+
+  it('view_personal menampilkan SKP hangus dan status materi wajib', () => {
+    const src = read('view_personal.tsx');
+    expect(src).toContain('forfeitedUnstructured');
+    expect(src).toContain('topicsTracked');
+    /* "patuh tetapi tak terbukti" harus punya kata-katanya sendiri */
+    expect(src).toContain('Belum terbukti');
+    expect(src).toContain('PPL_SHORTFALL_LABEL');
+  });
+
+  it('drawer 360° HCM tidak lagi memutuskan kepatuhan dari jumlah mentah', () => {
+    /* Angka SKP KEEMPAT: `cpe >= 40` diwarnai hijau di drawer profil, dihitung
+       dari `cpeLog` saja. Gerbang `reduce`+`.skp` di atas yang menemukannya. */
+    const src = read('view_pc_hcm.tsx');
+    expect(src).toMatch(/pplPeriod\(/);
+    expect(src).toMatch(/skpEntriesOf\(/);
+    expect(src).not.toMatch(/cpe\s*>=\s*40/);
+  });
+
+  it('matriks kehadiran pelatihan menjumlahkan lewat jembatan, bukan katalog', () => {
+    /* Σ SKP di matriks harus kredit yang SAMA dengan yang mengalir ke mesin PPL. */
+    const src = read('view_pc_talent.tsx');
+    expect(src).toContain('cpeFromTraining(A.TRAINING_CATALOG, attendance)');
+    expect(src).toMatch(/const gained = trainingSkpFor\(/);
+    /* `reduce` lain di berkas ini menghitung KURSI dan KEHADIRAN, bukan SKP —
+       gerbang `reduce`+`.skp` di atas yang menjaga bedanya. */
+  });
+
+  it('kedua halaman PPL memakai periode yang SAMA — satu klok, satu tahun', () => {
+    for (const f of ['view_people.tsx', 'view_personal.tsx']) {
+      expect(read(f), f).toMatch(/pplPeriod\(/);
+      expect(read(f), f).toMatch(/AMS\.TODAY/);
+      /* tahun tak boleh datang dari jam peramban: dua pembaca, dua tahun */
+      expect(read(f), f).not.toMatch(/new Date\(\)\.getFullYear\(\)/);
+    }
   });
 
   it('formulir Catat SKP merekam materi wajib untuk entri terstruktur', () => {
