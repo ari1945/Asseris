@@ -13,10 +13,18 @@ const checks = [
      Runner ini memanggil binary di node_modules LANGSUNG, jadi lifecycle npm
      (`pretest: prisma generate`) tidak ikut jalan; sesudah satu kali e2e Postgres lokal
      client-nya ber-provider postgresql dan semua uji server mati dengan pesan yang tak
-     menunjuk penyebabnya. Skrip di bawah MEMBANDINGKAN provider dulu dan hanya regenerate
-     bila perlu — regenerate buta akan EPERM di Windows saat `dev:all` sedang berjalan.
-     Catatan akurasi: `cd server && npm test` SUDAH aman lewat `pretest`. */
-  ['backend prisma client (cocokkan provider)', '.', 'tools/ensure-prisma-client.mjs', []],
+     menunjuk penyebabnya. Skrip di bawah MEMBANDINGKAN provider DAN BENTUK skema
+     (model → field → tipe + delegate di index.d.ts) dulu, lalu regenerate hanya bila
+     perlu — regenerate buta akan EPERM di Windows saat `dev:all` sedang berjalan.
+     Perbandingan bentuk ditambahkan sesudah 2026-08-15: `npm install` di server/ memasang
+     ulang @prisma/client dan meninggalkan client ber-provider BENAR tetapi kehilangan
+     model/field, sehingga gerbang ini mencetak OK dan cacatnya baru muncul 3 menit
+     kemudian sebagai 95 uji merah + ~60 TS2339 yang tak menunjuk penyebabnya.
+     Catatan akurasi: `cd server && npm test` SUDAH aman lewat `pretest`.
+     Catatan CI: `.github/workflows/ci.yml` menjalankan `npx prisma generate` tanpa syarat
+     sesudah `npm ci`, jadi CI tak pernah punya client basi — langkah ini adalah padanan
+     LOKAL-nya, dan menajamkannya tidak mengubah daftar langkah CI (R-7 tetap terpenuhi). */
+  ['backend prisma client (cocokkan skema)', '.', 'tools/ensure-prisma-client.mjs', []],
   ['frontend lint', 'migration', 'node_modules/eslint/bin/eslint.js', ['src']],
   ['frontend typecheck', 'migration', 'node_modules/typescript/bin/tsc', ['--noEmit']],
   ['frontend test typecheck', 'migration', 'node_modules/typescript/bin/tsc', ['--noEmit', '-p', 'tsconfig.test.json']],
