@@ -24,21 +24,21 @@
    justru cacatnya — jadi di sini sesi dibaca langsung dan tanpa jaring.
    ============================================================ */
 
-/** Bentuk minimal `auth.user` yang dibutuhkan atribusi tulis. */
-export interface SessionUser {
-  id?: string;
-  name?: string;
-}
+import { sessionActor } from './session_actor';
+import type { SessionUser } from './session_actor';
+
+export type { SessionUser };
 
 /**
  * Nama pelaku dari SESI, atau null bila sesi tak menyediakannya.
  * Tidak ada fallback ke data seed dan tidak ada literal 'Pengguna'.
+ *
+ * Aturannya sendiri kini tinggal di `session_actor.ts` — DMS memakai aturan yang
+ * sama untuk log akses SA 230, dan dua salinan aturan berarti dua tempat yang bisa
+ * berbeda diam-diam. Nama `glActor` dipertahankan karena ia yang dibaca gerbang
+ * sumber `apar_conventions.test.ts` dan dipakai di seluruh `view_firmgl.tsx`.
  */
-export function glActor(user: SessionUser | null | undefined): string | null {
-  if (!user) return null;
-  const name = typeof user.name === 'string' ? user.name.trim() : '';
-  return name ? name : null;
-}
+export const glActor = sessionActor;
 
 /**
  * Boleh menulis GL? Butuh KEDUANYA: kapabilitas (SoD finansial, `CAP.FIRMFIN_EDIT`

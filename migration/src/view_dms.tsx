@@ -3,7 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 /* Masa simpan = kebijakan firma per KELAS dokumen (SSOT lapisan Arsip). */
 import { RETENTION } from './data_records';
-import { useAmsPersist } from './contexts';
+import { useAmsPersist, useAuth } from './contexts';
+import { sessionActor } from './session_actor';
 import { FileDropField, FileList, SecurePipeline } from './evidence';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
@@ -19,6 +20,13 @@ import { FIRM_SCOPE_ID } from './persist_scope';
    Versioning · klasifikasi · retensi 10 thn · legal hold · SA 230.
    ============================================================ */
 const { useState: useDMS, useMemo: useMemoDMS } = React;
+
+/* Log akses, legal hold, dan baris versi adalah JEJAK SA 230 — ketiganya mengklaim
+   "siapa melakukan apa" atas dokumen yang justru disimpan untuk diperiksa. Pelakunya
+   diturunkan dari sesi (`sessionActor`), dan bila sesi tak menyediakannya kontrolnya
+   dimatikan alih-alih menulis nama tebakan. Sebelumnya ketiganya mencatat literal
+   'Anindya Pramesti' (dan 'Legal KAP' untuk hold) siapa pun yang menekan tombolnya. */
+const NO_ACTOR_TITLE = 'Identitas sesi tidak tersedia — aksi dinonaktifkan agar jejak akses dokumen tidak mencatat nama yang salah';
 
 const CLASS_KIND = { 'Rahasia': 'red', 'Internal': 'amber', 'Publik': 'green' };
 const ASSEMBLY = { 'complete': { k: 'green', l: 'Lengkap' }, 'in-progress': { k: 'amber', l: 'Perakitan' }, 'pending': { k: 'red', l: 'Tertunda' }, 'n/a': { k: 'gray', l: '—' } };
@@ -60,12 +68,14 @@ function assemblyInfo(d: any) {
 const DMS_TYPE_MODULE = { 'Kertas Kerja': 'workpapers', 'Laporan': 'fsgen', 'Surat Perikatan': 'engagement', 'EQR': 'eqr', 'Template': 'templates', 'Memo': 'strategy' };
 
 /* ---- Upload modal ---- */
-function UploadModal({ onClose, onAdd }: any) {
+function UploadModal({ onClose, onAdd, actor }: any) {
   const [f, setF] = useDMS({ name: '', eng: 'ENG-2025-014', type: 'Kertas Kerja', classification: 'Rahasia', linkedWP: '' });
   const [files, setFiles] = useDMS([]);
   const set = (k: any, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const okFiles = files.filter((m: any) => m.ok);
-  const valid = f.name.trim().length > 4 && (files.length === 0 || okFiles.length > 0);
+  /* Pemilik dokumen & baris versi pertama ditulis atas nama pelaku sesi; tanpa itu
+     unggahan akan membuat catatan arsip yang pemiliknya tebakan. */
+  const valid = !!actor && f.name.trim().length > 4 && (files.length === 0 || okFiles.length > 0);
   const engObj = DMS_ENGS.find(e => e.id === f.eng);
   const onFiles = (metas: any) => {
     setFiles(metas);
@@ -75,7 +85,7 @@ function UploadModal({ onClose, onAdd }: any) {
   const cls = okFiles[0] && (window as any).classifyDoc ? (window as any).classifyDoc(okFiles[0].name, {}, 0) : null;
   return (
     <PModal icon="upload" title="Unggah Dokumen ke DMS" sub="Terenkripsi AES-256 · klasifikasi & retensi otomatis sesuai SMM" onClose={onClose} width={560}
-      footer={<><Btn onClick={onClose}>Batal</Btn><Btn variant="primary" disabled={!valid} onClick={() => valid && onAdd({ ...f, files: okFiles })}><I.upload size={14} /> Unggah & Arsipkan</Btn></>}>
+      footer={<><Btn onClick={onClose}>Batal</Btn><Btn variant="primary" disabled={!valid} title={actor ? undefined : NO_ACTOR_TITLE} onClick={() => valid && onAdd({ ...f, files: okFiles })}><I.upload size={14} /> Unggah & Arsipkan</Btn></>}>
       <FileDropField onFiles={onFiles} />
       <FileList files={files} onRemove={(i: any) => setFiles((list: any) => list.filter((_: any, k: any) => k !== i))} />
       <div style={{ height: 12 }} />
@@ -89,13 +99,14 @@ function UploadModal({ onClose, onAdd }: any) {
       </div>
       {cls && <div className="tiny" style={{ marginTop: 10, color: 'var(--blue)', display: 'flex', alignItems: 'center', gap: 6 }}><I.sparkle size={12} /> AI mendeteksi <b>{cls.type}</b> — akan ditautkan ke modul <b>{((MODULE_INDEX as any)[cls.dest] || {}).label || cls.dest}</b>.</div>}
       <div style={{ marginTop: 12 }}><SecurePipeline /></div>
-      <div className="tiny muted" style={{ marginTop: 12 }}>Akan diarsipkan ke folder <b>{engObj ? engObj.id : f.eng}</b> · {engObj ? engObj.client : ''}.</div>
+      <div className="tiny muted" style={{ marginTop: 12 }}>Akan diarsipkan ke folder <b>{engObj ? engObj.id : f.eng}</b> · {engObj ? engObj.client : ''}{actor ? <> · pemilik <b>{actor}</b></> : ''}.</div>
+      {!actor && <div className="tiny" style={{ marginTop: 8, color: 'var(--red)' }}>{NO_ACTOR_TITLE}.</div>}
     </PModal>
   );
 }
 
 /* ---- Document detail drawer ---- */
-function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
+function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt, actor }: any) {
   const [sub, setSub] = useDMS('versi');
   const [cmp, setCmp] = useDMS([]);
   const r = retentionInfo(d);
@@ -235,13 +246,14 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
       </div>
 
       <div className="pdrawer-foot">
-        <Btn sm onClick={() => onAccess(d.id, 'download')}><I.download size={13} /> Unduh</Btn>
-        <Btn sm onClick={() => onAccess(d.id, 'print')}><I.doc size={13} /> Cetak</Btn>
+        <Btn sm disabled={!actor} title={actor ? undefined : NO_ACTOR_TITLE} onClick={() => onAccess(d.id, 'download')}><I.download size={13} /> Unduh</Btn>
+        <Btn sm disabled={!actor} title={actor ? undefined : NO_ACTOR_TITLE} onClick={() => onAccess(d.id, 'print')}><I.doc size={13} /> Cetak</Btn>
         <div style={{ flex: 1 }} />
         {d.legalHold
-          ? <Btn sm onClick={() => onToggleHold(d.id)}><I.check size={13} /> Lepas Hold</Btn>
-          : <Btn sm onClick={() => onToggleHold(d.id)} style={{ color: 'var(--red)' }}><I.lock size={13} /> Legal Hold</Btn>}
+          ? <Btn sm disabled={!actor} title={actor ? undefined : NO_ACTOR_TITLE} onClick={() => onToggleHold(d.id)}><I.check size={13} /> Lepas Hold</Btn>
+          : <Btn sm disabled={!actor} title={actor ? undefined : NO_ACTOR_TITLE} onClick={() => onToggleHold(d.id)} style={{ color: 'var(--red)' }}><I.lock size={13} /> Legal Hold</Btn>}
       </div>
+      {!actor && <div className="tiny muted" style={{ padding: '0 14px 12px' }}>{NO_ACTOR_TITLE}.</div>}
     </PDrawer>
   );
 }
@@ -255,10 +267,20 @@ function DocManagement() {
   const [selId, setSelId] = useDMS(null);
   const [showUpload, setShowUpload] = useDMS(false);
 
+  const auth = useAuth();
+  const actor = sessionActor(auth && auth.user);
+
   const patch = (id: any, fn: any) => setDocs((list: any) => list.map((d: any) => d.id === id ? fn(d) : d));
-  const toggleHold = (id: any) => patch(id, (d: any) => ({ ...d, legalHold: !d.legalHold, holdReason: !d.legalHold ? 'Legal hold manual oleh tim legal KAP.' : undefined, access: [...(d.access || []), ['Legal KAP', d.legalHold ? 'view' : 'lock', pNowTime()]] }));
-  const logAccess = (id: any, action: any) => patch(id, (d: any) => ({ ...d, access: [...(d.access || []), ['Anindya Pramesti', action, pNowTime()]] }));
+  const toggleHold = (id: any) => {
+    if (!actor) return;
+    patch(id, (d: any) => ({ ...d, legalHold: !d.legalHold, holdReason: !d.legalHold ? 'Legal hold manual oleh ' + actor + '.' : undefined, access: [...(d.access || []), [actor, d.legalHold ? 'view' : 'lock', pNowTime()]] }));
+  };
+  const logAccess = (id: any, action: any) => {
+    if (!actor) return;
+    patch(id, (d: any) => ({ ...d, access: [...(d.access || []), [actor, action, pNowTime()]] }));
+  };
   const addDoc = async (f: any) => {
+    if (!actor) return;
     const id = 'DOC-' + String(700 + Math.floor(Math.random() * 299)).padStart(4, '0');
     const engObj = DMS_ENGS.find(e => e.id === f.eng);
     const meta = (f.files && f.files[0]) || (window as any).amsFileMeta({ name: f.name + '.pdf' });
@@ -279,10 +301,12 @@ function DocManagement() {
         attachmentId = up.id; sha256 = up.sha256; realSize = +(up.size / 1048576).toFixed(1);
       } catch (e) { /* server absen / ditolak: pertahankan catatan metadata-only */ }
     }
-    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: AMS.TODAY, sizeMB: realSize, archivedOn: AMS.TODAY, legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
+    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: actor, modified: AMS.TODAY, sizeMB: realSize, archivedOn: AMS.TODAY, legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
       sha256, attachmentId, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
-      versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: AMS.TODAY, sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
-      access: [['Anindya Pramesti', 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
+      versions: [{ ver: 1, file: meta.name, by: actor, date: AMS.TODAY, sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
+      /* 'Sistem' DIPERTAHANKAN: pemindai antivirus memang bukan orang. Yang dicabut
+         hanya baris yang mengklaim tindakan MANUSIA. */
+      access: [[actor, 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
       linkedWP: f.linkedWP ? f.linkedWP.split(',').map((s: any) => s.trim()).filter(Boolean) : [] };
     setDocs((list: any) => [nd, ...list]); setShowUpload(false); setSelId(id);
     if ((window as any).amsAttachEvidence) (window as any).amsAttachEvidence((DMS_TYPE_MODULE as any)[f.type] || 'dms', { file: meta.name, type: 'Dokumen DMS · ' + f.type, std: f.classification, classified: 'dms', sha256, scan: 'clean' });
@@ -440,8 +464,8 @@ function DocManagement() {
           </Panel>
         </div>
       </div></div>
-      {sel && <DocDrawer d={sel} onClose={() => setSelId(null)} onToggleHold={toggleHold} onAccess={logAccess} fmt={fmt} />}
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onAdd={addDoc} />}
+      {sel && <DocDrawer d={sel} onClose={() => setSelId(null)} onToggleHold={toggleHold} onAccess={logAccess} fmt={fmt} actor={actor} />}
+      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onAdd={addDoc} actor={actor} />}
     </>
   );
 }
