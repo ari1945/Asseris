@@ -33,11 +33,16 @@ function mockFetch(body: unknown, ok = true, status = 200) {
   return { fn: fn as unknown as typeof fetch, calls };
 }
 
-// Same injection trick as llm.test.ts — the integration gates read only ctx.user.{id,role}.
+// D2 — firma penguji. Konektor kini MILIK sebuah firma (FK ke Firm), dan feed yang diposting
+// mendarat di StateDoc scope firma ini — bukan lagi konstanta 'FIRM-WHR' di dalam sync.ts.
+const FIRM = 'FIRM-INTEG';
+
+// Same injection trick as llm.test.ts — the integration gates read ctx.user.{id,role,firmId}.
 function callerAs(role: string, id = `U-${role}`) {
-  const user = { id, role, email: `${id}@test` } as unknown as User;
+  const user = { id, role, firmId: FIRM, email: `${id}@test` } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
+const MGR_ACTOR = { id: 'U-mgr', role: 'Audit Manager', firmId: FIRM };
 const anon = createCallerFactory(appRouter)({ user: null, token: null });
 
 // Two representative connectors inserted directly (the test DB is schema-only; the full seed
@@ -48,9 +53,16 @@ const SECRET_TOKEN = 'super-secret-access-token-xyz';
 beforeAll(async () => {
   await prisma.connectorToken.deleteMany();
   await prisma.connector.deleteMany();
+  await prisma.firm.upsert({
+    where: { id: FIRM },
+    update: {},
+    create: { id: FIRM, name: 'Firma Uji Integrasi', short: 'INTEG' },
+  });
   await prisma.connector.create({
     data: {
       id: 'bank',
+      firmId: FIRM,
+      key: 'bank',
       name: 'Bank Feed (BCA · Mandiri)',
       category: 'Keuangan',
       target: 'cashbank',
@@ -67,6 +79,8 @@ beforeAll(async () => {
   await prisma.connector.create({
     data: {
       id: 'emeterai',
+      firmId: FIRM,
+      key: 'emeterai',
       name: 'e-Meterai Peruri',
       category: 'Dokumen',
       target: 'opinion',
@@ -82,6 +96,8 @@ beforeAll(async () => {
   await prisma.connector.create({
     data: {
       id: 'coretax',
+      firmId: FIRM,
+      key: 'coretax',
       name: 'DJP Coretax / e-Faktur',
       category: 'Perpajakan',
       target: 'firmtax',
@@ -104,7 +120,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: 'FIRM-WHR', key: { in: ['bankFeed', 'taxFeed'] } } });
+  await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: FIRM, key: { in: ['bankFeed', 'taxFeed'] } } });
   await prisma.syncJob.deleteMany();
   await prisma.connectorToken.deleteMany();
   await prisma.connector.deleteMany();
@@ -166,7 +182,7 @@ describe('integration router (auth + RBAC + secret egress)', () => {
 
 // ---------------------------------------------------------------------------
 // W9 Fase 1 — the sync runner: pull → map → validate → control-total gate → idempotent post.
-const FIRM_BANK_STATE = { scope: 'firm', scopeId: 'FIRM-WHR', key: 'bankFeed' } as const;
+const FIRM_BANK_STATE = { scope: 'firm', scopeId: FIRM, key: 'bankFeed' } as const;
 
 async function resetBankPipeline() {
   await prisma.stateDoc.deleteMany({ where: FIRM_BANK_STATE });
@@ -187,7 +203,7 @@ describe('field mapping engine', () => {
 describe('bank sync runner (end-to-end against the fixture adapter)', () => {
   it('pulls → maps → control-total gate passes → posts to the cashbank SSOT, tied', async () => {
     await resetBankPipeline();
-    const r = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const r = await runBankSync(MGR_ACTOR);
     expect(r.status).toBe('posted');
     expect(r.gatePassed).toBe(true);
     expect(r.rows).toBe(5);
@@ -211,8 +227,8 @@ describe('bank sync runner (end-to-end against the fixture adapter)', () => {
 
   it('is idempotent — re-running posts the same rows with zero duplication', async () => {
     await resetBankPipeline();
-    const first = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
-    const second = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const first = await runBankSync(MGR_ACTOR);
+    const second = await runBankSync(MGR_ACTOR);
     expect(first.consumed).toBe(5);
     expect(second.consumed).toBe(5); // NOT 10 — merged by natural key
     expect(second.posted).toBe(5);
@@ -224,7 +240,7 @@ describe('bank sync runner (end-to-end against the fixture adapter)', () => {
 
   it('control-total gate BLOCKS posting when the balance does not tie (staged, nothing posted)', async () => {
     await resetBankPipeline();
-    const r = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' }, pullBankStatementBroken);
+    const r = await runBankSync(MGR_ACTOR, pullBankStatementBroken);
     expect(r.status).toBe('staged');
     expect(r.gatePassed).toBe(false);
     expect(r.posted).toBe(0);
@@ -237,17 +253,17 @@ describe('bank sync runner (end-to-end against the fixture adapter)', () => {
 
   it('reconcileBank reports the import↔consumption tie-out', async () => {
     await resetBankPipeline();
-    await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
-    const recon = await reconcileBank();
+    await runBankSync(MGR_ACTOR);
+    const recon = await reconcileBank(FIRM);
     expect(recon).toMatchObject({ connectorId: 'bank', target: 'cashbank', posted: 5, consumed: 5, tied: true, closingBalance: 1_500_000 });
   });
 
   it('appends a SYNC row to the audit chain (metadata only, no content)', async () => {
     await resetBankPipeline();
-    await runBankSync({ id: 'U-audit-sync', role: 'Audit Manager' });
+    await runBankSync({ id: 'U-audit-sync', role: 'Audit Manager', firmId: FIRM });
     const ev = await prisma.auditLog.findFirst({ where: { action: 'SYNC', actorUserId: 'U-audit-sync' }, orderBy: { seq: 'desc' } });
     expect(ev).not.toBeNull();
-    expect(ev?.scopeId).toBe('FIRM-WHR');
+    expect(ev?.scopeId).toBe(FIRM);
     expect(ev?.key).toBe('bank');
     expect(ev?.detail).toContain('posted=5');
     expect(ev?.detail).toContain('gate=true');
@@ -283,7 +299,7 @@ describe('integration.sync router (RBAC + wiring)', () => {
 // W9·2 — the Coretax / e-Faktur runner (output VAT → firmtax). Same pipeline shape as the bank
 // runner, with a tax control-total gate (Σ PPN Keluaran == declared SPT total) + per-faktur
 // arithmetic integrity.
-const FIRM_TAX_STATE = { scope: 'firm', scopeId: 'FIRM-WHR', key: 'taxFeed' } as const;
+const FIRM_TAX_STATE = { scope: 'firm', scopeId: FIRM, key: 'taxFeed' } as const;
 const DECLARED_VAT = 443_300_000;
 
 async function resetTaxPipeline() {
@@ -295,7 +311,7 @@ async function resetTaxPipeline() {
 describe('coretax sync runner (end-to-end against the fixture adapter)', () => {
   it('pulls → maps → control-total gate passes → posts output VAT to the firmtax SSOT, tied', async () => {
     await resetTaxPipeline();
-    const r = await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const r = await runCoretaxSync(MGR_ACTOR);
     expect(r.status).toBe('posted');
     expect(r.gatePassed).toBe(true);
     expect(r.rows).toBe(5);
@@ -319,8 +335,8 @@ describe('coretax sync runner (end-to-end against the fixture adapter)', () => {
 
   it('is idempotent — re-running posts the same invoices with zero duplication', async () => {
     await resetTaxPipeline();
-    const first = await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' });
-    const second = await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const first = await runCoretaxSync(MGR_ACTOR);
+    const second = await runCoretaxSync(MGR_ACTOR);
     expect(first.consumed).toBe(5);
     expect(second.consumed).toBe(5); // NOT 10 — merged by invoice_number
     expect(second.posted).toBe(5);
@@ -332,7 +348,7 @@ describe('coretax sync runner (end-to-end against the fixture adapter)', () => {
 
   it('control-total gate BLOCKS posting when Σ PPN does not tie the declared total (staged)', async () => {
     await resetTaxPipeline();
-    const r = await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' }, pullCoretaxFeedBroken);
+    const r = await runCoretaxSync(MGR_ACTOR, pullCoretaxFeedBroken);
     expect(r.status).toBe('staged');
     expect(r.gatePassed).toBe(false);
     expect(r.posted).toBe(0);
@@ -345,7 +361,7 @@ describe('coretax sync runner (end-to-end against the fixture adapter)', () => {
 
   it('a faktur with tampered PPN is rejected and the batch then stages (nothing posted)', async () => {
     await resetTaxPipeline();
-    const r = await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' }, pullCoretaxFeedBadInvoice);
+    const r = await runCoretaxSync(MGR_ACTOR, pullCoretaxFeedBadInvoice);
     expect(r.rejected).toBe(1); // round(DPP × rate) != PPN → that faktur fails validation
     expect(r.valid).toBe(4);
     expect(r.status).toBe('staged'); // surviving Σ no longer ties the declared total
@@ -356,17 +372,17 @@ describe('coretax sync runner (end-to-end against the fixture adapter)', () => {
 
   it('reconcileCoretax reports the import↔consumption tie-out with Σ PPN', async () => {
     await resetTaxPipeline();
-    await runCoretaxSync({ id: 'U-mgr', role: 'Audit Manager' });
-    const recon = await reconcileCoretax();
+    await runCoretaxSync(MGR_ACTOR);
+    const recon = await reconcileCoretax(FIRM);
     expect(recon).toMatchObject({ connectorId: 'coretax', target: 'firmtax', posted: 5, consumed: 5, tied: true, vatTotal: DECLARED_VAT });
   });
 
   it('appends a SYNC row to the audit chain (metadata only, key=coretax)', async () => {
     await resetTaxPipeline();
-    await runCoretaxSync({ id: 'U-coretax-sync', role: 'Audit Manager' });
+    await runCoretaxSync({ id: 'U-coretax-sync', role: 'Audit Manager', firmId: FIRM });
     const ev = await prisma.auditLog.findFirst({ where: { action: 'SYNC', actorUserId: 'U-coretax-sync' }, orderBy: { seq: 'desc' } });
     expect(ev).not.toBeNull();
-    expect(ev?.scopeId).toBe('FIRM-WHR');
+    expect(ev?.scopeId).toBe(FIRM);
     expect(ev?.key).toBe('coretax');
     expect(ev?.detail).toContain('posted=5');
     expect(ev?.detail).toContain('gate=true');

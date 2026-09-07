@@ -28,6 +28,7 @@ model Firm {
   clients     Client[]
   engagements Engagement[]
   roles       Role[]
+  connectors  Connector[]
 }
 
 // RBAC admin console — dynamic replacement for the hardcoded GRANTS map in
@@ -79,9 +80,51 @@ model User {
   totpFailedAttempts Int       @default(0)
   totpLockedUntil    DateTime?
 
+  // B1 — penonaktifan pengguna (offboarding staf). SOFT dan tak dapat dibalik lewat penghapusan:
+  // baris User TETAP ada supaya setiap tanda tangan, sign-off, dan baris audit yang menyebut
+  // orang ini tetap dapat ditelusuri (SA 230). Null = aktif. Diberlakukan di DUA tempat:
+  // auth.login menolak, dan resolveSession menolak — sehingga sesi yang SUDAH hidup langsung
+  // mati saat dinonaktifkan, bukan menunggu 8 jam sampai TTL-nya habis.
+  deactivatedAt DateTime?
+  deactivatedBy String?
+
   sessions              Session[]
   authEvents            AuthEvent[]
   engagementMemberships EngagementMember[]
+  credentialTokens      CredentialToken[]
+}
+
+// B2 — token sekali-pakai untuk menyetel password TANPA sesi: undangan staf baru (purpose
+// 'invite') dan lupa-password (purpose 'reset'). Satu tabel untuk keduanya karena alur akhirnya
+// identik — yang berbeda hanya TTL dan siapa yang memicunya.
+//
+// KEAMANAN, dan alasannya masing-masing:
+// · `tokenHash` menyimpan SHA-256 dari token, BUKAN tokennya. Token mentah hanya pernah ada di
+//   memori proses dan di email penerima; pembaca database (backup, dump, operator) karena itu tak
+//   dapat mengambil alih akun siapa pun. Token 256-bit acak → SHA-256 tanpa salt sudah memadai di
+//   sini (tak ada ruang tebak untuk dibalik lewat rainbow table, tak seperti password manusia).
+// · `usedAt` membuatnya SEKALI PAKAI: dipakai ulang setelah terisi akan ditolak.
+// · `expiresAt` pendek untuk reset, panjang untuk undangan.
+// · Tak ada kolom yang menyimpan password baru — token hanya OTORISASI, bukan pembawa rahasia.
+model CredentialToken {
+  id        String    @id @default(cuid())
+  userId    String
+  // onDelete: Cascade DINYATAKAN EKSPLISIT supaya skema dan migrasi SQL tak menyimpang: migrasi
+  // menulis ON DELETE CASCADE, sedangkan default Prisma untuk relasi wajib adalah Restrict —
+  // tanpa baris ini Postgres akan meng-cascade sementara SQLite dev menolak, dan cacatnya hanya
+  // muncul di satu dari dua lingkungan. Cascade-lah yang benar: token adalah kredensial sementara,
+  // bukan bukti audit, dan token menggantung tanpa pemilik adalah kredensial tanpa pemilik.
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   String // 'reset' | 'invite'
+  tokenHash String    @unique // SHA-256 hex dari token mentah — token mentah TAK PERNAH disimpan
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  createdBy String? // userId admin yang mengundang; null untuk permintaan reset mandiri
+  requestIp String?
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
 }
 
 // W7.5 — per-engagement data isolation. A user may read/write an engagement's WORKING DATA
@@ -261,8 +304,23 @@ model TeamMember {
 // read-model). Display-only fields (icon/uptime/latency/vol/expiry/webhooks/syncs/desc) ride in
 // metaJson — a lossless envelope, mirroring User.dataJson — so the read-model can reconstruct the
 // exact prototype card without bloating queryable columns.
+// D2 (2026-08-31) — konektor DIMILIKI satu firma.
+//
+// Sebelumnya tabel ini TANPA kolom tenant sama sekali: `id` berupa kunci global ('coretax'),
+// sehingga (a) dua firma tak mungkin sama-sama punya konektor Coretax, dan (b) pada database
+// bersama, kredensial ConnectorToken satu firma terjangkau query firma lain. Pola perbaikannya
+// meniru `Role` di berkas ini: surrogate `id` + identitas alami unik PER FIRMA.
+//
+// `key` adalah identitas yang dilihat KLIEN ('coretax' | 'bank' | 'esign' | 'dms' | …) — ia yang
+// dikirim sebagai `connectorId` di tRPC dan yang dipaparkan ConnectorView.id, jadi kontrak kawat
+// tak berubah. `id` murni internal (target FK SyncJob/ConnectorToken). Baris yang sudah ada
+// mempertahankan id lamanya ('bank'); hanya baris BARU yang memakai cuid — itulah sebabnya
+// migrasi D2 tak perlu menulis ulang satu pun foreign key.
 model Connector {
-  id          String  @id // 'coretax' | 'bank' | 'esign' | 'dms' | …
+  id          String  @id @default(cuid())
+  firmId      String
+  firm        Firm    @relation(fields: [firmId], references: [id])
+  key         String // identitas stabil yang dipakai klien: 'coretax' | 'bank' | 'esign' | …
   name        String
   category    String // 'Perpajakan' | 'Keuangan' | 'Dokumen' | …
   target      String // owner module id the data is POSTED into (the SSOT) — e.g. 'cashbank'
@@ -277,6 +335,9 @@ model Connector {
 
   jobs   SyncJob[]
   tokens ConnectorToken[]
+
+  @@unique([firmId, key])
+  @@index([firmId])
 }
 
 // W9 — one sync run. The job runner (Fase 1) appends a row per pull: pull → stage → validate →

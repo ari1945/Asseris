@@ -17,11 +17,18 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 // instead of "can log in but invisible in rosters". Admin & HR Firma / Finance Firma are
 // deliberately excluded — same design decision already encoded in migration/src/rbac.ts's
 // comment on ROLES: those two roles never sit on the audit-staffing roster.
-const AUDIT_ROLES = new Set(['Rekan Pemimpin', 'Engagement Partner', 'Rekan', 'Audit Manager', 'Senior Auditor', 'Junior Auditor']);
+export const AUDIT_ROLES = new Set(['Rekan Pemimpin', 'Engagement Partner', 'Rekan', 'Audit Manager', 'Senior Auditor', 'Junior Auditor']);
 
 export interface AddUserInput {
   firmId: string;
-  user: { id?: string; name: string; email: string; password: string; role: string; initials?: string };
+  /*
+   * B1 — `password` kini OPSIONAL. Dihilangkan berarti akun dibuat TANPA password sama sekali
+   * (passwordHash null), yaitu bentuk yang dipakai alur UNDANGAN: staf memilih passwordnya
+   * sendiri lewat token kredensial, sehingga operator tak pernah mengetahui password siapa pun.
+   * Akun tanpa password TAK DAPAT login (auth.login menolak `!user.passwordHash`) sampai
+   * undangannya ditebus — jadi celah antara "dibuat" dan "disetel" bukan akun terbuka.
+   */
+  user: { id?: string; name: string; email: string; password?: string | null; role: string; initials?: string };
   /** default true — provision + arm TOTP. false → password-only (no 2FA). */
   enrolTotp?: boolean;
 }
@@ -58,17 +65,24 @@ export async function addUser(
   if (!ROLES.includes(input.user.role)) {
     throw new Error(`add-user MENOLAK: peran '${input.user.role}' tidak dikenal. Peran valid: ${ROLES.join(', ')}.`);
   }
-  if ((input.user.password ?? '').length < 12) {
+  // Password boleh TIDAK ADA (alur undangan). Bila ada, aturan panjangnya tetap berlaku.
+  const wantsPassword = input.user.password != null && input.user.password !== '';
+  if (wantsPassword && (input.user.password ?? '').length < 12) {
     throw new Error('USER_PASSWORD minimal 12 karakter.');
   }
 
   const userId = input.user.id ?? `USER-${slug(input.firmId)}-${slug(input.user.name)}`;
-  const passwordHash = await hashPassword(input.user.password);
+  const passwordHash = wantsPassword ? await hashPassword(input.user.password as string) : null;
 
   let totp: AddUserResult['totp'];
   let totpSecret: string | null = null;
   let totpEnabled = false;
-  if (input.enrolTotp !== false) {
+  /* Akun undangan (tanpa password) TAK PERNAH dipersenjatai TOTP di sini. Rahasia TOTP hanya
+     berguna bila ditunjukkan SEKALI kepada pemiliknya; membuatnya untuk akun yang pemiliknya
+     belum hadir berarti menyalakan faktor kedua yang tak seorang pun pegang — akun terkunci
+     sejak lahir. Staf mendaftarkan authenticator-nya sendiri lewat auth.enrollTotp setelah
+     password pertamanya disetel. */
+  if (wantsPassword && input.enrolTotp !== false) {
     const secret = generateSecret();
     totpSecret = encryptSecret(secret); // encrypted-at-rest when APP_ENCRYPTION_KEY set; plaintext in dev
     totpEnabled = true;

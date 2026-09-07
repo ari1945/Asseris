@@ -246,7 +246,12 @@ async function main() {
   for (const c of CONNECTORS) {
     await prisma.connector.create({
       data: {
+        // D2 — id baris kini surrogate. Seed demo sengaja MEMPERTAHANKAN id lama ('bank') supaya
+        // DB hasil seed identik dengan DB hasil migrasi dari instance lama: satu bentuk data untuk
+        // diuji, bukan dua. `key` adalah identitas klien; `firmId` menjadikan konektor milik firma.
         id: c.id,
+        firmId: FIRM_ID,
+        key: c.id,
         name: c.name,
         category: c.cat,
         target: c.target,

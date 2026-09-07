@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { hydrateCoreFromApi, api } from './api';
 import { AppProviders, NavContext, NavFromContext } from './contexts';
 import { LoginScreen } from './view_login';
+import { SetPasswordScreen, isSetPasswordRoute } from './view_setpassword';
 import { Copilot } from './copilot';
 import { I, MODULE_INDEX } from './icons';
 import { MiniMap } from './minimap';
@@ -325,6 +326,11 @@ function Root() {
   const { useState: useStateRT, useEffect: useEffectRT, useCallback: useCallbackRT } = React;
   const [phase, setPhase] = useStateRT('checking');
   const [me, setMe] = useStateRT(null);
+  // Ditangkap SEKALI saat mount: alur ini mengosongkan hash ketika selesai, jadi membacanya
+  // ulang tiap render akan membuat layar menghilang di tengah pengisian formulir.
+  const [setPwHash, setSetPwHash] = useStateRT(
+    typeof location !== 'undefined' && isSetPasswordRoute(location.hash) ? location.hash : '',
+  );
 
   const enter = useCallbackRT(async (user: any, fresh: boolean = true) => {
     setMe(user);
@@ -357,6 +363,19 @@ function Root() {
     return () => { cancelled = true; window.removeEventListener('ams:auth-expired', onExpired); };
   }, [enter]);
 
+  /* B2 — layar setel-password PRA-LOGIN, dipilih dari HASH dan sengaja DIPERIKSA LEBIH DULU
+     daripada `phase`.
+     Urutannya penting, bukan gaya penulisan: `authFetch` memancarkan `ams:auth-expired` pada
+     SETIAP balasan 401, dan token kredensial yang kedaluwarsa/terpakai memang dijawab 401. Kalau
+     cabang ini berada di bawah pemeriksaan phase, satu tautan basi akan menendang pengguna ke
+     layar masuk tepat saat layar seharusnya menjelaskan APA yang salah dengan tautannya. */
+  if (setPwHash) {
+    return <SetPasswordScreen hash={setPwHash} onDone={() => {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* abaikan */ }
+      setSetPwHash('');
+      setPhase('login');
+    }} />;
+  }
   if (phase === 'checking') return <BootSplash label="Memeriksa sesi…" />;
   if (phase === 'login') return <LoginScreen onLoggedIn={enter} />;
   return <AppProviders me={me} onLogout={logout}><App /></AppProviders>;

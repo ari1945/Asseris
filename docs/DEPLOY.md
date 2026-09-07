@@ -597,3 +597,46 @@ opinion** — belum direview pengacara Indonesia. Jangan jadikan dasar klaim kep
 klien firma pilot sampai `docs/PDP-COMPLIANCE-ASSESSMENT.md` §5 selesai. Ini gap #2 (UU PDP) yang
 tersisa dari evaluasi menyeluruh sebelumnya — statusnya bergeser dari "0%" ke "kajian awal +
 kebijakan ada, implementasi teknis (DSR wiring, purge otomatis) & review hukum masih terbuka".
+
+## 21. Email transaksional (B2, 2026-08-31) — undangan staf & reset password mandiri
+
+Tanpa bagian ini terkonfigurasi, dua hal TIDAK berfungsi: staf tak dapat menyetel ulang
+passwordnya sendiri, dan undangan staf baru tak terkirim otomatis. Keduanya gagal dengan
+ANGGUN (aplikasi tetap jalan, admin tetap dapat menyerahkan tautan secara langsung), tetapi
+untuk firma di atas beberapa orang ini adalah beban dukungan harian.
+
+**Kenapa SMTP dan bukan Amazon SES SDK.** SES tidak tersedia di `ap-southeast-3` (Jakarta) —
+region default produk ini (§20, `docs/HOSTING-DATA-RESIDENCY-REVIEW.md`). Mengunci ke SES berarti
+memaksa email yang memuat nama + alamat email staf melintas ke region lain, yaitu persis kelas
+isu transfer lintas-batas UU PDP Ps. 56 yang masih terbuka untuk fitur LLM. SMTP membiarkan firma
+memakai mail server sendiri di dalam negeri — dan SES tetap dapat dipakai lewat endpoint SMTP-nya
+bila firma memang menginginkannya.
+
+**Variabel** (lihat `.env.example`):
+
+| Var | Wajib | Catatan |
+|---|---|---|
+| `MAIL_SMTP_HOST` | ya | host SMTP |
+| `MAIL_SMTP_PORT` | — | default 587 |
+| `MAIL_SMTP_SECURE` | — | `1` = TLS langsung (465); kosong = STARTTLS bila port bukan 465 |
+| `MAIL_SMTP_USER` / `MAIL_SMTP_PASS` | — | kosongkan untuk relay tanpa autentikasi |
+| `MAIL_FROM` | ya | mis. `Asseris <noreply@kap-anda.id>` |
+| `PUBLIC_BASE_URL` | ya | basis tautan di dalam email, mis. `https://kap-anda.asseris.id` |
+
+`PUBLIC_BASE_URL` WAJIB dan sengaja tidak diturunkan dari header `Host` permintaan masuk: itu
+jalur klasik host-header injection, yang akan membuat server dengan patuh mengirimkan tautan
+setel-ulang yang menunjuk ke domain penyerang.
+
+**Perilaku bila tidak dikonfigurasi** (bukan kegagalan, melainkan degradasi yang dinyatakan):
+- "Lupa kata sandi?" melapor bahwa instance ini belum dapat mengirim email dan mengarahkan staf
+  ke admin firma. Tak ada token yang diterbitkan.
+- **Manajemen Pengguna** tetap dapat mengundang staf; tautan sekali-pakai dikembalikan ke layar
+  admin untuk diserahkan langsung (pola sama dengan QR TOTP yang dicetak sekali oleh `add-user`).
+
+**Keamanan yang sudah tertanam** (tak perlu dikonfigurasi, disebut agar dapat diverifikasi):
+token disimpan sebagai SHA-256 — bukan token mentah — sehingga pembaca backup/dump tak dapat
+mengambil alih akun; sekali pakai; reset berlaku 30 menit, undangan 7 hari; permintaan baru
+membatalkan tautan sebelumnya; maksimal 3 permintaan reset per akun per jam; balasan endpoint
+identik untuk alamat terdaftar maupun tidak (tak dapat dipakai mengenumerasi staf sebuah KAP);
+2FA TETAP diminta bila akun mengaktifkannya; dan reset yang berhasil mencabut SELURUH sesi akun
+itu.

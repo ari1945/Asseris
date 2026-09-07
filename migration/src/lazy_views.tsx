@@ -14,6 +14,7 @@ const { lazy } = React;
    index-signature tanpa anotasi `:any` eksplisit (ratchet tetap bersih). */
 export const LazyViews: Record<string, ReturnType<typeof lazy>> = {
   'home': lazy(() => import('./view_home').then(m => ({ default: m.HomeView }))),
+  'users': lazy(() => import('./view_users').then(m => ({ default: m.UserManagement }))),
   'personal': lazy(() => import('./view_personal').then(m => ({ default: m.DataPersonalSaya }))),
   'dashboard': lazy(() => import('./view_dashboard').then(m => ({ default: m.FirmDashboard }))),
   'bi': lazy(() => import('./view_bi').then(m => ({ default: m.FirmBI }))),

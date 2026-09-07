@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { prisma } from './db';
-import { assertEngagementAccess } from './engagementAccess';
+import { assertEngagementAccess, assertFirmScoped } from './engagementAccess';
 import { PERSONAL_KEYS } from './personalScope';
 import { can, CAP } from './rbac';
 
@@ -10,9 +10,11 @@ export type StateReadTarget = {
   key: string;
 };
 
+/* D3 (fail-closed tenancy) — firmId WAJIB. Lihat catatan pada Principal di engagementAccess.ts:
+   selama ia opsional, pembaca tanpa firmId melewati SETIAP cek lintas-firma di berkas ini. */
 type StateReader = {
   id: string;
-  firmId?: string | null;
+  firmId: string;
   role: string;
 };
 
@@ -67,9 +69,9 @@ function isAllowlistedFirmKey(key: string): boolean {
 }
 
 async function assertSameFirmUser(reader: StateReader, targetUserId: string): Promise<void> {
-  if (!reader.firmId) return; // Compatibility for direct unit-test callers; HTTP sessions always carry it.
+  const firmId = assertFirmScoped(reader);
   const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { firmId: true } });
-  if (!target || target.firmId !== reader.firmId) {
+  if (!target || target.firmId !== firmId) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-user' });
   }
 }
@@ -102,7 +104,7 @@ export async function assertStateDocRead(
     return;
   }
 
-  if (reader.firmId && target.scopeId !== reader.firmId) {
+  if (target.scopeId !== assertFirmScoped(reader)) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-state' });
   }
   if (options.personal) return;

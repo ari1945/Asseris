@@ -8,7 +8,10 @@ import { accessibleEngagementIds, isEngagementMember } from '../engagementAccess
 // callerAs injects ctx.user; the engagement gate then looks membership up in the DB by id,
 // so the membership rows below MUST use the same ids the callers use.
 function callerAs(role: string, id: string) {
-  const user = { id, role } as unknown as User;
+// D3 (fail-closed tenancy) — principal uji WAJIB membawa firmId, sama seperti sesi nyata.
+// Sebelumnya ia dihilangkan dan setiap cek lintas-firma dilewati; uji lolos lewat jalur
+// yang tak pernah ditempuh pengguna sungguhan.
+  const user = { id, role, firmId: FIRM } as unknown as User;
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 const anon = createCallerFactory(appRouter)({ user: null, token: null });
@@ -45,8 +48,8 @@ describe('access helpers', () => {
     expect(await isEngagementMember(JR, ENG_B)).toBe(false);
   });
   it('accessibleEngagementIds: list for a member, "all" for oversight', async () => {
-    expect(await accessibleEngagementIds({ id: JR, role: 'Junior Auditor' })).toEqual([ENG_A]);
-    expect(await accessibleEngagementIds({ id: MGR, role: 'Audit Manager' })).toBe('all');
+    expect(await accessibleEngagementIds({ id: JR, role: 'Junior Auditor', firmId: FIRM })).toEqual([ENG_A]);
+    expect(await accessibleEngagementIds({ id: MGR, role: 'Audit Manager', firmId: FIRM })).toBe('all');
   });
 });
 

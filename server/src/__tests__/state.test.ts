@@ -7,8 +7,32 @@ import { MAX_STATE_DOC_BYTES, serializeStateDoc, StateDocTooLargeError } from '.
 
 // W7 Fase 1 — state.* now require a session. Inject a Partner (all capabilities) so this
 // suite tests compare-and-swap, not authorization (that is authz.test.ts).
-const partner = { id: 'TEST-PARTNER', role: 'Engagement Partner' } as unknown as User;
+//
+// D3 (fail-closed tenancy) — principal uji kini membawa firmId, dan karena assertEngagementAccess
+// memverifikasi perikatannya SUNGGUH ADA dan milik firma itu, suite ini harus menyediakan baris
+// Firm/Client/Engagement sungguhan. Sebelumnya ia menulis ke id perikatan yang tak pernah ada di
+// tabel mana pun — jalur yang hanya terbuka karena principal tak berfirma.
+const SFIRM = 'ST-FIRM';
+const SCLI = 'ST-CLI';
+const ENGAGEMENTS = ['TEST-ENG', 'TEST-ENG-HIST', 'TEST-ENG-LIMIT', 'TEST-ENG-ORPHAN'];
+const partner = { id: 'TEST-PARTNER', role: 'Engagement Partner', firmId: SFIRM } as unknown as User;
 const caller = createCallerFactory(appRouter)({ user: partner, token: 'test' });
+
+beforeAll(async () => {
+  await prisma.firm.upsert({ where: { id: SFIRM }, update: {}, create: { id: SFIRM, name: 'State Firm', short: 'ST' } });
+  await prisma.client.upsert({ where: { id: SCLI }, update: {}, create: { id: SCLI, firmId: SFIRM, name: 'State Client' } });
+  for (const id of ENGAGEMENTS) {
+    await prisma.engagement.upsert({ where: { id }, update: {}, create: { id, firmId: SFIRM, clientId: SCLI } });
+  }
+});
+
+afterAll(async () => {
+  await prisma.stateDoc.deleteMany({ where: { scopeId: { in: ENGAGEMENTS } } });
+  await prisma.stateDocHistory.deleteMany({ where: { scopeId: { in: ENGAGEMENTS } } });
+  await prisma.engagement.deleteMany({ where: { id: { in: ENGAGEMENTS } } });
+  await prisma.client.deleteMany({ where: { id: SCLI } });
+  await prisma.firm.deleteMany({ where: { id: SFIRM } });
+});
 
 describe('deployment payload limits', () => {
   it('accepts a StateDoc at the byte ceiling and rejects one byte above it', () => {
@@ -234,14 +258,14 @@ describe('assembly-lock (K7)', () => {
   });
 
   it('a Manager (no PHASE_OVERRIDE) is FORBIDDEN from writing past the 60-day lock', async () => {
-    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager' } as unknown as User, token: 'test' });
+    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager', firmId: AFIRM } as unknown as User, token: 'test' });
     await expect(
       mgr.state.set({ scope: 'engagement', scopeId: AENG, key: 'wtbImport', value: { x: 1 }, baseVersion: 0 }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
   it('a Partner (PHASE_OVERRIDE) can still write past the lock, tagged distinctly in the audit detail', async () => {
-    const p = createCallerFactory(appRouter)({ user: { id: PARTNER_ID, role: 'Engagement Partner' } as unknown as User, token: 'test' });
+    const p = createCallerFactory(appRouter)({ user: { id: PARTNER_ID, role: 'Engagement Partner', firmId: AFIRM } as unknown as User, token: 'test' });
     const r = await p.state.set({ scope: 'engagement', scopeId: AENG, key: 'wtbImport', value: { x: 1 }, baseVersion: 0 });
     expect(r.version).toBe(1);
     const row = await prisma.auditLog.findFirst({ where: { action: 'STATE_SET', scopeId: AENG, key: 'wtbImport' }, orderBy: { seq: 'desc' } });
@@ -252,7 +276,7 @@ describe('assembly-lock (K7)', () => {
     const RECENT_ENG = 'LOCK-ENG-RECENT';
     await prisma.engagement.create({ data: { id: RECENT_ENG, firmId: AFIRM, clientId: ACLI, archivedAt: new Date() } });
     await prisma.engagementMember.create({ data: { engagementId: RECENT_ENG, userId: MGR_ID } });
-    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager' } as unknown as User, token: 'test' });
+    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager', firmId: AFIRM } as unknown as User, token: 'test' });
     const r = await mgr.state.set({ scope: 'engagement', scopeId: RECENT_ENG, key: 'wtbImport', value: { x: 1 }, baseVersion: 0 });
     expect(r.version).toBe(1);
     await prisma.stateDoc.deleteMany({ where: { scopeId: RECENT_ENG } });
@@ -287,12 +311,12 @@ describe('engagement.archive (K7)', () => {
   });
 
   it('a Manager (no FIRM_ADMIN) cannot archive', async () => {
-    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager' } as unknown as User, token: 'test' });
+    const mgr = createCallerFactory(appRouter)({ user: { id: MGR_ID, role: 'Audit Manager', firmId: AFIRM } as unknown as User, token: 'test' });
     await expect(mgr.engagement.archive({ engagementId: AENG })).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
   it('a Partner (FIRM_ADMIN) can archive; archivedAt is set and an ARCHIVE row is audited', async () => {
-    const p = createCallerFactory(appRouter)({ user: { id: PARTNER_ID, role: 'Engagement Partner' } as unknown as User, token: 'test' });
+    const p = createCallerFactory(appRouter)({ user: { id: PARTNER_ID, role: 'Engagement Partner', firmId: AFIRM } as unknown as User, token: 'test' });
     const before = await prisma.auditLog.count({ where: { action: 'ARCHIVE', scopeId: AENG } });
     const r = await p.engagement.archive({ engagementId: AENG });
     expect(r.archivedAt).toBeInstanceOf(Date);

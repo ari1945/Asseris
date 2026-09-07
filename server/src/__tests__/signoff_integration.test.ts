@@ -13,8 +13,12 @@ import { createHash } from 'node:crypto';
 /* PRD prd-wp-signoff-integrity — sesi kini membawa NAMA, dan tanda tangan harus
    menyebut penulisnya. `mk` karenanya menyuntikkan nama juga; tanpa itu tulisan
    ditolak `signature-name-mismatch` — persis yang kita inginkan dari produksi. */
+// D3 (fail-closed tenancy) — principal uji membawa firmId, dan perikatannya harus benar-benar ada
+// (fixture di beforeAll di bawah). Keduanya kini diverifikasi assertEngagementAccess.
+const SIFIRM = 'FIRM-TEST-SIGNOFF';
+const SICLI = 'SI-CLI';
 const mk = (id: string, role: string, name: string) =>
-  createCallerFactory(appRouter)({ user: { id, name, role } as unknown as User, token: 'test' });
+  createCallerFactory(appRouter)({ user: { id, name, role, firmId: SIFIRM } as unknown as User, token: 'test' });
 const manager = mk('TEST-MGR', 'Audit Manager', 'Mira Gunawan');
 const partner = mk('TEST-PTR', 'Engagement Partner', 'Toni Prasetyo');
 const _senior = mk('TEST-SNR', 'Senior Auditor', 'Bagas Winata');
@@ -43,7 +47,23 @@ const sigPtr = { by: 'Toni P.', byUserId: 'TEST-PTR', at: at() };
 const scope = 'engagement' as const;
 const scopeId = 'TEST-ENG-SIGNOFF';
 const key = 'wpState';
-const firmScopeId = 'FIRM-TEST-SIGNOFF';
+const firmScopeId = SIFIRM;
+
+/* D3 — fixture firma/klien/perikatan sungguhan. assertEngagementAccess kini memverifikasi
+   perikatan ini ADA dan milik firma pemanggil; sebelumnya suite ini menulis ke id perikatan
+   yang tak punya baris sama sekali. `firmScopeId` sengaja dilebur ke SIFIRM: tulisan firm-scope
+   di bawah sesi nyata hanya boleh menyasar firma pemanggil sendiri. */
+beforeAll(async () => {
+  await prisma.firm.upsert({ where: { id: SIFIRM }, update: {}, create: { id: SIFIRM, name: 'Signoff Firm', short: 'SI' } });
+  await prisma.client.upsert({ where: { id: SICLI }, update: {}, create: { id: SICLI, firmId: SIFIRM, name: 'Signoff Client' } });
+  await prisma.engagement.upsert({ where: { id: scopeId }, update: {}, create: { id: scopeId, firmId: SIFIRM, clientId: SICLI } });
+});
+
+afterAll(async () => {
+  await prisma.engagement.deleteMany({ where: { id: scopeId } });
+  await prisma.client.deleteMany({ where: { id: SICLI } });
+  await prisma.firm.deleteMany({ where: { id: SIFIRM } });
+});
 
 describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
   beforeAll(async () => {
@@ -172,6 +192,12 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
   /** Perikatan bersih milik satu uji; registri di-seed hanya bila diminta. */
   const engFor = async (name: string, opts: { register?: boolean; eval?: unknown } = {}) => {
     const scopeId = XPREFIX + name;
+    // D3 — perikatan harus BENAR-BENAR ada dan milik firma pemanggil; assertEngagementAccess
+    // memverifikasi keduanya sekarang.
+    await prisma.engagement.upsert({
+      where: { id: scopeId }, update: {},
+      create: { id: scopeId, firmId: SIFIRM, clientId: SICLI },
+    });
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
     await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
     await prisma.attachment.deleteMany({ where: { scope, scopeId } });
@@ -184,6 +210,7 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
     await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
     await prisma.attachment.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
+    await prisma.engagement.deleteMany({ where: { id: { startsWith: XPREFIX } } });
   });
 
   it('K1 — Manager DITOLAK menandatangani sa540 saat evaluasi pakar kosong', async () => {
@@ -308,7 +335,11 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
    sesi → EMP lewat roster (`STAFF ∪ FIRM_STAFF`), dan akun di luar roster
    GAGAL-TERTUTUP — perilaku yang ikut diuji di bawah.
    ============================================================ */
-const indepScopeId = 'FIRM-TEST-INDEP';
+/* D3 — tulisan firm-scope hanya boleh menyasar firma PEMANGGIL. Konstanta ini dulu bernilai
+   sendiri ('FIRM-TEST-INDEP') yang tak pernah sama dengan firma sesi mana pun; itu lolos hanya
+   karena state.set belum memeriksa batas firma pada sisi tulis. Ia kini firma suite ini. */
+const indepScopeId = SIFIRM;
+const INDEP_KEYS = ['indepAppr', 'independence'];
 const YUNI_EMP = 'EMP-501';   // Yuni Marlina — Admin & HR Firma (FIRM_STAFF)
 const HW_EMP = 'EMP-001';     // Hartono Wijaya — Rekan Pemimpin (STAFF)
 const yuni = mk('TEST-YUNI', 'Admin & HR Firma', 'Yuni Marlina');
@@ -320,12 +351,12 @@ const indepSig = (userId: string, empId: string, name: string) =>
 
 describe('SoD rantai independensi ditegakkan via state.set (tRPC)', () => {
   beforeAll(async () => {
-    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
-    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId, key: { in: INDEP_KEYS } } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId, key: { in: INDEP_KEYS } } });
   });
   afterAll(async () => {
-    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
-    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId } });
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId, key: { in: INDEP_KEYS } } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'firm', scopeId: indepScopeId, key: { in: INDEP_KEYS } } });
   });
 
   it('MENOLAK tiga lapis sekali tulis — celah yang gate UI tak dapat menutup', async () => {

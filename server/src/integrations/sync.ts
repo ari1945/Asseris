@@ -7,7 +7,7 @@
 // re-run merges by natural key → zero duplicates (idempotent).
 import { prisma } from '../db';
 import { appendAudit } from '../audit/log';
-import { getConnector } from './config';
+import { getConnectorRecord } from './config';
 import { applyMapping } from './mapping';
 import { pullBankStatement, type BankPullFn } from './providers/bankFixture';
 import { readBankHttpConfig, makeHttpBankPull } from './providers/httpBank';
@@ -16,7 +16,6 @@ import { readCoretaxHttpConfig, makeHttpCoretaxPull } from './providers/httpCore
 import { mutateStateDoc } from '../stateMutation';
 
 const FIRM_SCOPE = 'firm';
-const FIRM_ID = 'FIRM-WHR';
 const BANK_STATE_KEY = 'bankFeed'; // firm-scoped StateDoc the cashbank module consumes
 const TAX_STATE_KEY = 'taxFeed'; // firm-scoped StateDoc the firmtax module consumes (output VAT)
 const MAX_CAS_RETRIES = 5;
@@ -33,6 +32,22 @@ interface BankState {
   transactions: Record<string, BankTxn>;
   openingBalance: number;
   closingBalance: number;
+}
+
+/*
+ * D2 — aktor sync membawa FIRMA-nya.
+ *
+ * Sampai perubahan ini berkas ini memakai `const FIRM_ID = 'FIRM-WHR'` — id firma DEMO dari
+ * seed. Akibatnya bukan sekadar bau multi-tenancy melainkan CACAT NYATA pada instance pilot mana
+ * pun: sinkronisasi Bank Feed / Coretax menulis StateDoc 'bankFeed'/'taxFeed' ke scopeId
+ * 'FIRM-WHR' apa pun firma yang login, sehingga modul cashbank/firmtax firma sungguhan (mis.
+ * FIRM-KAPA) tak pernah melihat baris yang baru saja "berhasil diposting" — dan audit event-nya
+ * mencatat firma yang salah. Firma kini diturunkan dari konektor yang dijalankan.
+ */
+export interface SyncActor {
+  id: string;
+  role: string;
+  firmId: string;
 }
 
 export interface SyncSummary {
@@ -65,7 +80,7 @@ interface MergeFeedOpts<TRow> {
   storedOf: (r: TRow) => unknown; // the value persisted under the natural key
   scalars: Record<string, number>; // header figures stored as siblings of the collection
   updatedBy: string;
-  actor: { id: string; role: string };
+  actor: SyncActor;
   auditDetail: string;
   auditKey: string;
 }
@@ -74,7 +89,7 @@ async function mergeFeedState<TRow>(opts: MergeFeedOpts<TRow>): Promise<number> 
   const { stateKey, collKey, rows, keyOf, storedOf, scalars, updatedBy, actor, auditDetail, auditKey } = opts;
   const written = await mutateStateDoc<number>({
     scope: FIRM_SCOPE,
-    scopeId: FIRM_ID,
+    scopeId: actor.firmId,
     key: stateKey,
     updatedBy,
     actorUserId: actor.id,
@@ -101,7 +116,7 @@ async function mergeFeedState<TRow>(opts: MergeFeedOpts<TRow>): Promise<number> 
 
 // Merge transactions into the firm-scoped bank StateDoc. Thin wrapper over mergeFeedState that pins
 // the bank's collection/natural-key/scalars — behavior identical to the pre-W9·2 implementation.
-async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening: number, closing: number, actor: { id: string; role: string }): Promise<number> {
+async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening: number, closing: number, actor: SyncActor): Promise<number> {
   return mergeFeedState({
     stateKey: BANK_STATE_KEY,
     collKey: 'transactions',
@@ -134,12 +149,13 @@ export function defaultBankPull(): BankPullFn {
  * authenticated caller (the router enforces INTEGRATION_MANAGE before we get here), recorded in the
  * audit.
  */
-export async function runBankSync(actor: { id: string; role: string }, pull: BankPullFn = defaultBankPull()): Promise<SyncSummary> {
-  const conn = await getConnector('bank');
-  if (!conn) throw new Error('connector-not-found:bank');
+export async function runBankSync(actor: SyncActor, pull: BankPullFn = defaultBankPull()): Promise<SyncSummary> {
+  const rec = await getConnectorRecord(actor.firmId, 'bank');
+  if (!rec) throw new Error('connector-not-found:bank');
+  const conn = rec.view;
 
   const job = await prisma.syncJob.create({
-    data: { connectorId: 'bank', status: 'running', mode: 'auto', dataset: 'Mutasi rekening firma', target: conn.target, unit: 'transaksi' },
+    data: { connectorId: rec.rowId, status: 'running', mode: 'auto', dataset: 'Mutasi rekening firma', target: conn.target, unit: 'transaksi' },
   });
 
   try {
@@ -184,7 +200,7 @@ export async function runBankSync(actor: { id: string; role: string }, pull: Ban
       posted = valid.length;
       status = 'posted';
       // first successful post marks the connector wired (a real adapter has driven it)
-      await prisma.connector.update({ where: { id: 'bank' }, data: { wired: true, status: 'connected' } });
+      await prisma.connector.update({ where: { id: rec.rowId }, data: { wired: true, status: 'connected' } });
     }
 
     await prisma.syncJob.update({
@@ -195,7 +211,7 @@ export async function runBankSync(actor: { id: string; role: string }, pull: Ban
     if (status === 'staged') {
       await appendAudit({
         actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
-        scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'bank',
+        scope: FIRM_SCOPE, scopeId: actor.firmId, key: 'bank',
         detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
       });
     }
@@ -225,14 +241,14 @@ export interface ReconciliationRow {
 }
 
 /** Import↔consumption tie-out for the bank connector: does the SSOT hold exactly what we posted? */
-export async function reconcileBank(): Promise<ReconciliationRow> {
+export async function reconcileBank(firmId: string): Promise<ReconciliationRow> {
   const doc = await prisma.stateDoc.findUnique({
-    where: { scope_scopeId_key: { scope: FIRM_SCOPE, scopeId: FIRM_ID, key: BANK_STATE_KEY } },
+    where: { scope_scopeId_key: { scope: FIRM_SCOPE, scopeId: firmId, key: BANK_STATE_KEY } },
   });
   const state = doc ? (JSON.parse(doc.valueJson) as BankState) : null;
   const consumed = state ? Object.keys(state.transactions).length : 0;
   const lastPosted = await prisma.syncJob.findFirst({
-    where: { connectorId: 'bank', status: 'posted' },
+    where: { connector: { firmId, key: 'bank' }, status: 'posted' },
     orderBy: { startedAt: 'desc' },
   });
   const posted = lastPosted?.valid ?? 0;
@@ -288,12 +304,13 @@ export function defaultCoretaxPull(): TaxPullFn {
  * mismatched control total stages the batch and posts nothing — tainted tax data never reaches the
  * SSOT. `actor` is the authenticated caller (the router enforces INTEGRATION_MANAGE first).
  */
-export async function runCoretaxSync(actor: { id: string; role: string }, pull: TaxPullFn = defaultCoretaxPull()): Promise<SyncSummary> {
-  const conn = await getConnector('coretax');
-  if (!conn) throw new Error('connector-not-found:coretax');
+export async function runCoretaxSync(actor: SyncActor, pull: TaxPullFn = defaultCoretaxPull()): Promise<SyncSummary> {
+  const rec = await getConnectorRecord(actor.firmId, 'coretax');
+  if (!rec) throw new Error('connector-not-found:coretax');
+  const conn = rec.view;
 
   const job = await prisma.syncJob.create({
-    data: { connectorId: 'coretax', status: 'running', mode: 'auto', dataset: 'e-Faktur Keluaran (PPN)', target: conn.target, unit: 'faktur' },
+    data: { connectorId: rec.rowId, status: 'running', mode: 'auto', dataset: 'e-Faktur Keluaran (PPN)', target: conn.target, unit: 'faktur' },
   });
 
   try {
@@ -355,7 +372,7 @@ export async function runCoretaxSync(actor: { id: string; role: string }, pull: 
       posted = valid.length;
       status = 'posted';
       // first successful post marks the connector wired (a real adapter has driven it)
-      await prisma.connector.update({ where: { id: 'coretax' }, data: { wired: true, status: 'connected' } });
+      await prisma.connector.update({ where: { id: rec.rowId }, data: { wired: true, status: 'connected' } });
     }
 
     await prisma.syncJob.update({
@@ -366,7 +383,7 @@ export async function runCoretaxSync(actor: { id: string; role: string }, pull: 
     if (status === 'staged') {
       await appendAudit({
         actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
-        scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'coretax',
+        scope: FIRM_SCOPE, scopeId: actor.firmId, key: 'coretax',
         detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
       });
     }
@@ -397,14 +414,14 @@ export interface CoretaxReconciliationRow {
 
 /** Import↔consumption tie-out for the coretax connector: does the firmtax SSOT hold exactly what we
  *  posted? `vatTotal` is the posted Σ PPN, the same figure the Integrasi cockpit reconciles against. */
-export async function reconcileCoretax(): Promise<CoretaxReconciliationRow> {
+export async function reconcileCoretax(firmId: string): Promise<CoretaxReconciliationRow> {
   const doc = await prisma.stateDoc.findUnique({
-    where: { scope_scopeId_key: { scope: FIRM_SCOPE, scopeId: FIRM_ID, key: TAX_STATE_KEY } },
+    where: { scope_scopeId_key: { scope: FIRM_SCOPE, scopeId: firmId, key: TAX_STATE_KEY } },
   });
   const state = doc ? (JSON.parse(doc.valueJson) as TaxState) : null;
   const consumed = state ? Object.keys(state.invoices).length : 0;
   const lastPosted = await prisma.syncJob.findFirst({
-    where: { connectorId: 'coretax', status: 'posted' },
+    where: { connector: { firmId, key: 'coretax' }, status: 'posted' },
     orderBy: { startedAt: 'desc' },
   });
   const posted = lastPosted?.valid ?? 0;
@@ -416,10 +433,14 @@ export async function reconcileCoretax(): Promise<CoretaxReconciliationRow> {
   };
 }
 
-/** SyncJob history for a connector (newest first), for the import-queue UI. */
-export async function listJobs(connectorId?: string, limit = 50) {
+/**
+ * Riwayat SyncJob (terbaru dulu) untuk antrean impor — DIBATASI konektor milik `firmId`.
+ * `connectorKey` opsional adalah key klien ('bank'), bukan id baris; penyaringannya lewat relasi
+ * sehingga job firma lain tak pernah masuk hasil bahkan ketika dua firma memakai key yang sama.
+ */
+export async function listJobs(firmId: string, connectorKey?: string, limit = 50) {
   return prisma.syncJob.findMany({
-    where: connectorId ? { connectorId } : undefined,
+    where: { connector: { firmId, ...(connectorKey ? { key: connectorKey } : {}) } },
     orderBy: { startedAt: 'desc' },
     take: limit,
   });
