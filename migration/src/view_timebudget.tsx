@@ -14,11 +14,10 @@ import { amsExportXlsx } from './export_xlsx';
    ============================================================ */
 const { useState: useTB, useMemo: useTBMemo } = React;
 
-/* charge-out (standard) rates, cost rates & roster — SSOT bersama di FIRMFIN
-   (dipakai juga oleh WIP Valuation/WIP & Realisasi via overlay jam-aktual). */
-const TB_BILL = FIRMFIN.WIP_BILL;
-const TB_COST = FIRMFIN.WIP_COST;
-const TB_ROSTER = FIRMFIN.WIP_ROSTER_ENG['ENG-2025-014'];
+/* Tarif charge-out/cost & roster jam hidup di FIRMFIN (SSOT bersama WIP Valuation /
+   WIP & Realisasi lewat overlay jam-aktual). SENGAJA tak ada konstanta lingkup-modul
+   untuk keduanya di sini: satu-satunya jalan masuk adalah `FIRMFIN.engagementWip(_, e.id)`,
+   sehingga tak ada jalur yang bisa menampilkan angka perikatan lain (lihat `tbModel`). */
 /* Program B lanjutan (K-07) — fee perikatan dari SSOT klien (dulu literal
    1,52 M — drift dgn client.fee 1,85 M). Fallback utk data lama. */
 const TB_FEE_FALLBACK = 1_520_000_000;
@@ -41,37 +40,70 @@ const tbM  = (n: any) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 /* ----- shared derived model (reactive to live timesheet) -----
    Roster + jam aktual + nilai standar/biaya ditarik dari SSOT `FIRMFIN.engagementWip`
    (sama persis dengan yang dipakai overlay WIP). Fase tetap lokal (presentasi T&B). */
-function useTBModel(timeEntries: any, e: any) {
-  return useTBMemo(() => {
-    const ew = (FIRMFIN.engagementWip(timeEntries, e.id) || FIRMFIN.engagementWip(timeEntries, 'ENG-2025-014'))!;
-    const roster = ew.roster;
-    const liveByPhase: any = {};
-    timeEntries.forEach((t: any) => { liveByPhase[t.phase] = (liveByPhase[t.phase] || 0) + t.hours; });
-    const phases = TB_PHASES.map(p => {
-      const actual = p.base + (liveByPhase[p.id] || 0);
-      const eac = p.pct > 0 ? actual / (p.pct / 100) : p.budget;
-      return { ...p, actual, eac, variance: p.budget - actual };
-    });
-    const actualTotal = ew.actualHrs;
-    const budgetTotal = ew.budgetHrs;
-    const stdValue = ew.stdValue;
-    const costActual = ew.costValue;
-    const stdValueBudget = roster.reduce((s: any, r: any) => s + r.budget * r.bill, 0);
-    const costBudget = roster.reduce((s: any, r: any) => s + r.budget * r.cost, 0);
-    const prog = (e.progress || 0) / 100;
-    const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
-    /* fee dari SSOT klien perikatan (fallback liter 1,52 M) */
-    const fee = (AMS.CLIENTS as { id: string; fee?: number }[]).find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
-    const revRecognized = fee * prog;
-    return {
-      roster, phases, actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
-      burn: actualTotal / budgetTotal, stdValue, costActual, stdValueBudget, costBudget,
-      eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal), revRecognized,
-      fee, marginNow: revRecognized - costActual,
-      marginCompletion: fee - costBudget, realization: fee / stdValueBudget,
-      blendedBill: stdValue / actualTotal, blendedCost: costActual / actualTotal,
-    };
-  }, [timeEntries, e]);
+export interface TBRosterRow {
+  name: string; role: string; budget: number; base: number; actual: number;
+  bill: number; cost: number; billVal: number; costVal: number; variance: number; util: number;
+}
+export interface TBPhaseRow {
+  id: string; label: string; budget: number; base: number; pct: number; period: string;
+  actual: number; eac: number; variance: number;
+}
+export interface TBModel {
+  roster: TBRosterRow[]; phases: TBPhaseRow[];
+  actualTotal: number; budgetTotal: number; remaining: number; burn: number;
+  stdValue: number; costActual: number; stdValueBudget: number; costBudget: number;
+  eacHrs: number; etcHrs: number; revRecognized: number; fee: number;
+  marginNow: number; marginCompletion: number; realization: number;
+  blendedBill: number; blendedCost: number;
+}
+export interface TBEngagement { id: string; clientId?: string; progress?: number }
+interface TBTimeEntry { member: string; phase: string; hours: number }
+interface TBEngWip { roster: TBRosterRow[]; actualHrs: number; budgetHrs: number; stdValue: number; costValue: number }
+
+/* ISOLASI PER-PERIKATAN (W7.5) — TIDAK ADA FALLBACK.
+   Sampai 2026-08-15 baris di bawah berbunyi
+     `FIRMFIN.engagementWip(timeEntries, e.id) || FIRMFIN.engagementWip(timeEntries, 'ENG-2025-014')`
+   Hanya ENG-2025-014 yang punya roster di `WIP_ROSTER_ENG`; enam dari tujuh perikatan
+   demo tidak. Untuk keenamnya modul ini karena itu menampilkan roster, jam aktual,
+   nilai standar dan biaya MILIK ENG-2025-014 sebagai milik perikatan aktif — tanpa
+   penanda apa pun. Angka satu klien tampil di ruang kerja klien lain.
+   Sekarang: roster tak ada → `null`, dan layar mengatakannya (lihat `TBNoRoster`).
+   Meminjam angka perikatan lain lebih buruk daripada tidak menampilkan angka. */
+function tbModel(timeEntries: TBTimeEntry[], e: TBEngagement): TBModel | null {
+  const ew = FIRMFIN.engagementWip(timeEntries, e.id) as TBEngWip | null;
+  if (!ew) return null;
+  const roster = ew.roster;
+  const liveByPhase: Record<string, number> = {};
+  timeEntries.forEach((t) => { liveByPhase[t.phase] = (liveByPhase[t.phase] || 0) + t.hours; });
+  const phases: TBPhaseRow[] = TB_PHASES.map(p => {
+    const actual = p.base + (liveByPhase[p.id] || 0);
+    const eac = p.pct > 0 ? actual / (p.pct / 100) : p.budget;
+    return { ...p, actual, eac, variance: p.budget - actual };
+  });
+  const actualTotal = ew.actualHrs;
+  const budgetTotal = ew.budgetHrs;
+  const stdValue = ew.stdValue;
+  const costActual = ew.costValue;
+  const stdValueBudget = roster.reduce((s, r) => s + r.budget * r.bill, 0);
+  const costBudget = roster.reduce((s, r) => s + r.budget * r.cost, 0);
+  const prog = (e.progress || 0) / 100;
+  const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
+  /* fee dari SSOT klien perikatan (fallback liter 1,52 M) */
+  const fee = (AMS.CLIENTS as { id: string; fee?: number }[]).find((c) => c.id === e.clientId)?.fee || TB_FEE_FALLBACK;
+  const revRecognized = fee * prog;
+  return {
+    roster, phases, actualTotal, budgetTotal, remaining: budgetTotal - actualTotal,
+    burn: actualTotal / budgetTotal, stdValue, costActual, stdValueBudget, costBudget,
+    eacHrs, etcHrs: Math.max(0, eacHrs - actualTotal), revRecognized,
+    fee, marginNow: revRecognized - costActual,
+    marginCompletion: fee - costBudget, realization: fee / stdValueBudget,
+    blendedBill: stdValue / actualTotal, blendedCost: costActual / actualTotal,
+  };
+}
+
+/* Anotasi di LUAR `useTBMemo`: React di repo ini untyped, hasil useMemo `any`. */
+function useTBModel(timeEntries: TBTimeEntry[], e: TBEngagement): TBModel | null {
+  return useTBMemo(() => tbModel(timeEntries, e), [timeEntries, e]) as TBModel | null;
 }
 
 /* small horizontal budget/actual bar */
@@ -98,7 +130,7 @@ function TimeBudget() {
   /* K-06 lanjutan — wire tombol "Export Timesheet" (dulu mati): ekspor XLSX tersegel
      timesheet + anggaran per fase. */
   const onExportXlsx = async () => {
-    if (exporting) return;
+    if (exporting || !m) return;
     setExporting(true);
     try {
       const tsRows = timeEntries.map((t: { date: string; member: string; task: string; phase: string; hours: number }) => [
@@ -145,19 +177,42 @@ function TimeBudget() {
         <div className="row gap8 ac">
           <Badge kind="blue">{e.id}</Badge>
           <Btn sm><I.sparkle size={13} /> Analisis AI</Btn>
-          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Timesheet'}</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting || !m}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Timesheet'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
         {locked && <LockBanner />}
-        <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
-        {tab === 'overview' && <TBOverview m={m} e={e} />}
-        {tab === 'phase' && <TBPhase m={m} />}
-        {tab === 'timesheet' && <TBTimesheet m={m} timeEntries={timeEntries} addTimeEntry={addTimeEntry} team={team} locked={locked} />}
-        {tab === 'team' && <TBTeam m={m} />}
-        {tab === 'econ' && <TBEconomics m={m} e={e} />}
+        {!m ? <TBNoRoster e={e} /> : (
+          <>
+            <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
+            {tab === 'overview' && <TBOverview m={m} e={e} />}
+            {tab === 'phase' && <TBPhase m={m} />}
+            {tab === 'timesheet' && <TBTimesheet m={m} timeEntries={timeEntries} addTimeEntry={addTimeEntry} team={team} locked={locked} />}
+            {tab === 'team' && <TBTeam m={m} />}
+            {tab === 'econ' && <TBEconomics m={m} e={e} />}
+          </>
+        )}
       </div></div>
     </>
+  );
+}
+
+/* =================== KEADAAN KOSONG (tanpa roster) ===================
+   Dirender MENGGANTIKAN seluruh isi modul, bukan sebagai catatan kaki: tanpa roster
+   tak satu pun angka di modul ini punya dasar untuk perikatan aktif — anggaran jam,
+   burn, EAC, realisasi dan margin semuanya berakar di sana. Menampilkan sebagiannya
+   dari sumber lain persis cacat yang diperbaiki (lihat `tbModel`). */
+function TBNoRoster({ e }: { e: { id: string; clientName?: string } }) {
+  return (
+    <div className="panel" style={{ maxWidth: 620, margin: '40px auto', padding: 30, textAlign: 'center' }}>
+      <div style={{ color: 'var(--amber)', marginBottom: 12 }}><I.clock size={30} /></div>
+      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Roster jam belum disiapkan untuk perikatan ini</div>
+      <div className="tiny muted" style={{ lineHeight: 1.6 }}>
+        Anggaran jam per anggota tim untuk <b>{e.id}</b>{e.clientName ? ' · ' + e.clientName : ''} belum dibuat,
+        sehingga jam aktual, nilai standar (WIP) dan biaya perikatan ini belum dapat diturunkan.
+        Angka perikatan lain <b>tidak</b> dipinjam untuk mengisi layar ini.
+      </div>
+    </div>
   );
 }
 
@@ -401,8 +456,10 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
             <thead><tr><th>Tanggal</th><th>Anggota</th><th>Tugas</th><th>Fase</th><th className="num">Jam</th><th className="num">Nilai (std)</th></tr></thead>
             <tbody>
               {filtered.map((t: any) => {
-                const r = TB_ROSTER.find(x => x.name === t.member);
-                const val = r ? t.hours * (TB_BILL as any)[r.role] : 0;
+                /* tarif dari roster PERIKATAN INI (m.roster), bukan roster modul-lingkup
+                   ENG-2025-014 seperti sebelumnya — anggota di luar roster bernilai 0. */
+                const r = m.roster.find((x: TBRosterRow) => x.name === t.member);
+                const val = r ? t.hours * r.bill : 0;
                 return (
                   <tr key={t.id}>
                     <td className="mono tiny muted">{new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -570,5 +627,8 @@ function TBEconomics({ m, e }: any) {
 
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { TimeBudget };
+/* [codemod] ESM exports (dual-publish; window writes dipertahankan)
+   `tbModel` diekspor agar isolasi per-perikatan dapat DIUJI langsung atas model
+   yang benar-benar dirender — bukan atas tiruan yang bisa menyimpang darinya
+   (lihat `timebudget_engagement_isolation.test.ts`). */
+export { TimeBudget, tbModel };
