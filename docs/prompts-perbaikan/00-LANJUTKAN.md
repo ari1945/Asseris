@@ -96,6 +96,16 @@ yang menunggu keputusan saya. Lalu tunggu saya menyebut modul berikutnya.
 
 ## Status (perbarui setiap sesi)
 
+> **2026-09-07 — SERAH-TERIMA.** Status repo yang berlaku (master `052d6c9`, PR terbuka,
+> kerja terparkir, prioritas) ada di
+> [`../handover/HANDOVER-2026-09-07.md`](../handover/HANDOVER-2026-09-07.md). Bagian di
+> bawah (2026-08-29) tetap benar untuk sensus prompt dan metode; yang berubah sejak itu:
+> kerja belum-commit di checkout utama **sudah di-commit** ke cabang
+> `wip/parkir-mesin-nol-pemanggil-2026-09-07` (empat mesin nol-pemanggil masih terhalang
+> keputusan yang sama), `claude/intelligent-keller-7b28db` **sudah digantikan** #332,
+> gelombang W1 ditutup, dan W2 (`DEFAULT_ENG_ID`) dibuka lewat PR #335. Instruksi agen
+> kini di `AGENTS.md` (bukan `CLAUDE.md`).
+
 **Terakhir diperbarui:** 2026-08-29 · `origin/master` `1f54758` · sensus terverifikasi
 **blob & pohon**, bukan `git log` / `git cherry` / hitungan "N ahead".
 
