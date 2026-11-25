@@ -31,13 +31,14 @@
     "@aws-sdk/client-secrets-manager": "^3.1126.0",
     "@prisma/client": "^6.2.1",
     "@trpc/server": "^11.0.0",
-    "nodemailer": "^9.0.6",
+    "nodemailer": "^10.6.1",
     "prisma": "^6.2.1",
     "tsx": "^4.23.13",
     "zod": "^4.5.4"
   },
   "overrides": {
-    "deepmerge-ts": "^8.0.1"
+    "deepmerge-ts": "^8.0.1",
+    "effect": "^3.22.5"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
