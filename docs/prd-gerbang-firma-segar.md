@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — "Proceed." 2026-11-26 (Q-1 = C · Q-2 = 2026-12-31 · Q-4 = tidak; Q-3 belum dijawab). Fase 1 selesai (§12); Fase 2 belum |
+| Status | In Progress — "Proceed." 2026-11-26 (Q-1 = C · Q-2 = 2026-12-31 · Q-4 = tidak; Q-3 = buktikan di CI lewat PR, 2026-11-26). Fase 1 selesai (§12); Fase 2 selesai kecuali langkah 4 (§13) |
 | Tanggal | 2026-11-26 |
 | Pemilik | Ari Widodo |
 | Asal | [`EVALUASI-MENYELURUH-2026-11-25.md`](EVALUASI-MENYELURUH-2026-11-25.md) §2 — empat P0 lolos gerbang hijau |
@@ -202,4 +202,68 @@ memaksa penggantian `it.fails → it` begitu cacatnya ditutup.
   firma demo tetap terisi — mis. lewat data server, bukan konstanta frontend.
 
 **Sisa:** Fase 2a/2b (Playwright, stack `bootstrapFirm` terpisah) menunggu izin push (Q-3) dan,
-untuk langkah perikatan, PRD P0-2.
+untuk langkah perikatan, PRD P0-2. *(Diselesaikan di §13.)*
+
+## 13. Catatan eksekusi Fase 2 (2026-11-26, cabang `test/gerbang-firma-segar-fase2`, PR #400)
+
+**Q-3 dijawab** oleh Ari: buktikan di CI lewat PR. Postgres 16 lokal ternyata ADA (service
+`postgresql-x64-16`; §6 keliru karena binernya tak di PATH), tetapi kredensial e2e ditolak dan
+tidak tercatat di repo — jadi tetap lewat CI.
+
+**Stack (berkas):** `e2e/playwright.fresh.config.ts` (konfigurasi sendiri: `webServer` Playwright
+berlaku global per jalan, bukan per project — §8 menyebut "project kedua", itu tak mungkin) ·
+`start-api.mjs` `E2E_STACK=fresh` (`migrate reset` + `npm run bootstrap`, cwd `e2e/`) ·
+`prepare-postgres.mjs` `resetFreshPostgres()` menolak DB tak berakhiran `_fresh` ·
+`e2e/fresh-firm.mjs` (satu sumber identitas + penanda demo) · `start-web.mjs` `E2E_REUSE_BUILD` ·
+`vite.config.mjs` preview `E2E_API_TARGET` · `e2e.yml` `CREATE DATABASE` + jalan kedua
+(`!cancelled()`). Env `webServer` menimpa `DATABASE_URL` job — diverifikasi di
+`playwright/lib/runner/index.js:858-861`, bukan diasumsikan.
+
+**Spek `e2e/tests/09-fresh-firm.spec.ts`:** 5 prasyarat NON-karantina + langkah 1, 2, 3, 5
+`test.fail()` `// KARANTINA s/d 2026-12-31` + langkah 4 `test.fixme`.
+
+**Merah-dulu — dua jalan CI tanpa karantina:**
+
+| Jalan | Langkah 1 | Langkah 2 | Langkah 3 | Langkah 5 |
+|---|---|---|---|---|
+| `5abbe17` | merah, **alasan SALAH** (timeout) | **LULUS — palsu** | merah (P0-2) | merah (P0-1) |
+| `46f1fad` | merah (P0-4/P0-1) | merah (P0-1) | merah (P0-2) | merah (P0-1) |
+
+Pesan kegagalan `46f1fad`:
+
+| Langkah | Pesan |
+|---|---|
+| 1 | `chipHasOwnShort: false`, `firmNameShown: false`, 8 nama klien demo + "Hartono Wijaya" di layar; `crmRendered: true` |
+| 2 | `PT Uji Segar Bertahan` tak terlihat dari sesi peramban baru |
+| 3 | `engagement.list harus memuat perikatan untuk C-125` |
+| 5 | StateDoc `clients`: `written: false`, `hasNewClient: false` |
+
+**Temuan selama eksekusi (jangan diulang):**
+
+- **Langkah 2 versi pertama lulus PALSU.** `page.reload()` memuat klien dari cache localStorage
+  `ams.v1.*` walau server menolak tulisannya. Cache itu hanya offline-cache (AGENTS.md §3.3);
+  "bertahan" harus dibuktikan dari konteks peramban baru (setara perangkat lain).
+- **`settings` bukan rute hash.** Ia tak ada di `MODULE_INDEX`, sehingga `#/settings` diabaikan
+  `app.tsx:222-223`; pintunya topbar "Tampilan" → "Semua Pengaturan…" (`shell.tsx:92, :535`).
+  Kedua kesalahan alasan di atas akan LOLOS SENYAP di balik `test.fail()` — itulah gunanya jalan
+  tanpa karantina dan prasyarat yang memaku pintu tiap langkah.
+- Screenshot kegagalan pertama memperlihatkan P0-4 di layar: admin firma segar melihat "KLIEN
+  AKTIF: Sentosa Makmur Tbk · ENG-2025-014", portofolio 6 perikatan demo, antrean EQR demo.
+
+**Cacat baru (belum ada di evaluasi 2026-11-25):**
+
+- `blankClient()` dan `ENGAGEMENT_FORM_INIT` memaku partner/manajer firma demo, plus tenggat
+  2026-04-30 dan materialitas Rp 2 M (`view_firm.tsx:224, :235, :489, :523-524`). Klien pertama
+  firma segar tersimpan dengan partner firma lain. Langkah 5 menangkapnya begitu P0-1 diperbaiki.
+- `ClientCRM` membaca `clients[0].id` tanpa penjaga (`view_firm.tsx:23,31`) → firma tanpa klien
+  crash di modul CRM begitu P0-4 diperbaiki. Langkah 1 menuntut `crmRendered: true`.
+
+**Penyimpangan dari §4/§10 (disengaja):** langkah 4 `test.fixme`, bukan `test.fail()`. `users.invite`
+ada (`router.ts:740`), tetapi tak ada API/UI penugasan staf ke perikatan (`engagementMember.create`
+hanya `seed.ts:239` & `pilotProvision.ts:108`). Uji yang ditulis sekarang memakai selektor karangan
+dan tetap merah sesudah perbaikan yang benar. Ditulis bersama PRD P0-2.
+
+**Biaya CI:** jalan kedua ±40 dtk uji + `migrate reset`/`bootstrap` (SPA tak dibangun ulang,
+`E2E_REUSE_BUILD=1`).
+
+**Sisa:** langkah 4 (menunggu PRD P0-2). Begitu P0 diperbaiki, `test.fail` → `test` per langkah.

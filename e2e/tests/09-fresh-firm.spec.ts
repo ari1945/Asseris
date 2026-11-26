@@ -147,7 +147,7 @@ test.describe('prasyarat — stack ini sungguh firma segar hasil bootstrap', () 
 test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // KARANTINA s/d 2026-12-31 — P0-4 (+P0-1): app.tsx menghidrasi ENG-2025-014 untuk SEMUA firma;
   // bootstrap ditolak cross-firm-engagement, galatnya ditelan, AMS.FIRM/CLIENTS tetap demo.
-  test('langkah 1 — firma segar melihat identitasnya sendiri, nol data demo', async ({ page }) => {
+  test.fail('langkah 1 — firma segar melihat identitasnya sendiri, nol data demo', async ({ page }) => {
     await login(page, ADMIN);
 
     await openSettings(page);
@@ -178,7 +178,7 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // pertama memakai reload dan LULUS di CI walau server menolak tulisannya — klien kembali dari
   // cache localStorage `ams.v1.*`, yang menurut AGENTS.md §3.3 hanya offline-cache. "Bertahan"
   // berarti bertahan di SSOT server.
-  test('langkah 2 — klien yang dibuat terlihat dari perangkat lain (sesi baru)', async ({ page, browser }) => {
+  test.fail('langkah 2 — klien yang dibuat terlihat dari perangkat lain (sesi baru)', async ({ page, browser }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Bertahan');
 
@@ -198,7 +198,7 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // pilotProvision.ts); addEngagement UI hanya menulis StateDoc (contexts.tsx). engagement.list,
   // bootstrap, dan assertEngagementAccess membaca tabel Prisma ⇒ perikatan baru tak pernah ada.
   // Asersi sengaja NETRAL-DESAIN: apa pun bentuk perbaikannya, server harus mengenal perikatan itu.
-  test('langkah 3 — perikatan yang dibuat lewat UI dikenal server dan dapat ditulisi', async ({ page }) => {
+  test.fail('langkah 3 — perikatan yang dibuat lewat UI dikenal server dan dapat ditulisi', async ({ page }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Perikatan');
     await createEngagementViaUi(page, c.name);
@@ -227,7 +227,7 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // KARANTINA s/d 2026-12-31 — P0-4 (+P0-1): StateDoc `clients` firma segar tak pernah ditulis
   // (tulisan ke FIRM-WHR ditolak). Begitu P0-1 diperbaiki, tulisan pertama akan memuat 8 klien
   // demo (Fase 1 G1-d) dan partner demo yang dipaku blankClient() (view_firm.tsx:224).
-  test('langkah 5 — StateDoc firma segar memuat klien barunya dan NOL entitas demo', async ({ page }) => {
+  test.fail('langkah 5 — StateDoc firma segar memuat klien barunya dan NOL entitas demo', async ({ page }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Bersih');
 
