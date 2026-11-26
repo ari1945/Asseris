@@ -2,6 +2,7 @@
 // Preview memakai proxy /trpc yang sama dengan dev server (lihat
 // migration/vite.config.mjs `preview.proxy`), jadi browser menembak satu origin.
 import { spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,13 +61,21 @@ async function main() {
     );
   }
 
-  console.log('[e2e] build SPA (vite build)…');
-  const buildSpec = npmArgs(['run', 'build'], MIGRATION);
-  const build = spawnSync(buildSpec.command, buildSpec.args, { ...buildSpec.opts, stdio: 'inherit' });
-  if (build.status !== 0) {
-    throw new Error(
-      `[e2e] vite build gagal (status ${build.status}, error ${build.error ?? 'none'})`,
-    );
+  // E2E_REUSE_BUILD=1 — stack kedua (gerbang firma segar) di CI berjalan SESUDAH suite demo atas
+  // commit yang sama, jadi `dist/` yang baru dibangun itu identik; membangun ulang hanya membuang
+  // waktu. Lokal default tetap membangun: dist/ basi dari cabang lain adalah jebakan nyata.
+  const reuse = process.env.E2E_REUSE_BUILD === '1' && existsSync(resolve(MIGRATION, 'dist', 'index.html'));
+  if (reuse) {
+    console.log('[e2e] E2E_REUSE_BUILD=1 — memakai migration/dist yang sudah ada (tanpa vite build).');
+  } else {
+    console.log('[e2e] build SPA (vite build)…');
+    const buildSpec = npmArgs(['run', 'build'], MIGRATION);
+    const build = spawnSync(buildSpec.command, buildSpec.args, { ...buildSpec.opts, stdio: 'inherit' });
+    if (build.status !== 0) {
+      throw new Error(
+        `[e2e] vite build gagal (status ${build.status}, error ${build.error ?? 'none'})`,
+      );
+    }
   }
 
   console.log('[e2e] vite preview…');

@@ -10,6 +10,9 @@ const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 5180);
 
 export default defineConfig({
   testDir: './tests',
+  // Spek 09 butuh stack firma SEGAR (bootstrap, bukan seed demo) — jalan lewat
+  // playwright.fresh.config.ts. Di stack demo ia akan menguji firma yang salah.
+  testIgnore: '09-fresh-firm.spec.ts',
   // Satu worker + serial: seluruh spek berbagi satu DB Postgres yang di-seed sekali
   // (sama seperti kontrak produksi single-process), jadi urutan deterministik.
   fullyParallel: false,

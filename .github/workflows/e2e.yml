@@ -68,17 +68,38 @@ jobs:
         run: npm test
         working-directory: e2e
 
+      # Gerbang firma segar (docs/prd-gerbang-firma-segar.md Fase 2) — stack KEDUA atas DB
+      # terpisah di service yang sama, dibuat lewat `migrate reset` + `npm run bootstrap`
+      # (jalur pelanggan pertama), BUKAN seed demo. Konfigurasi Playwright sendiri karena
+      # webServer berlaku global per jalan. Tetap jalan walau suite demo merah: dua sinyal
+      # yang berbeda tak boleh saling menyembunyikan.
+      - name: create fresh-firm DB
+        if: ${{ !cancelled() }}
+        run: psql "postgresql://neosuite:e2e-ci-pw@localhost:5432/neosuite_e2e" -c 'CREATE DATABASE neosuite_e2e_fresh'
+      - name: run Playwright (gerbang firma segar, stack bootstrap)
+        if: ${{ !cancelled() }}
+        run: npx playwright test -c playwright.fresh.config.ts
+        working-directory: e2e
+        env:
+          DATABASE_URL_FRESH: postgresql://neosuite:e2e-ci-pw@localhost:5432/neosuite_e2e_fresh
+          # dist/ baru saja dibangun oleh suite demo atas commit yang sama.
+          E2E_REUSE_BUILD: '1'
+
       - name: upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
-          path: e2e/playwright-report/
+          path: |
+            e2e/playwright-report/
+            e2e/playwright-report-fresh/
           if-no-files-found: ignore
       - name: upload test results on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results
-          path: e2e/test-results/
+          path: |
+            e2e/test-results/
+            e2e/test-results-fresh/
           if-no-files-found: ignore

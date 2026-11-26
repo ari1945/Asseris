@@ -11,7 +11,13 @@ import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_DATABASE_URL, databaseUrl, preparePostgres } from './prepare-postgres.mjs';
+import { DEFAULT_DATABASE_URL, databaseUrl, preparePostgres, resetFreshPostgres } from './prepare-postgres.mjs';
+import { FRESH_FIRM } from '../fresh-firm.mjs';
+
+// Gerbang firma segar (docs/prd-gerbang-firma-segar.md Fase 2): E2E_STACK=fresh mengganti
+// "migrate deploy + seed demo" dengan "migrate reset + `npm run bootstrap`" — jalur yang ditempuh
+// pelanggan pertama, bukan jalur demo. Tanpa variabel ini perilaku stack demo TIDAK berubah.
+const FRESH = process.env.E2E_STACK === 'fresh';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -67,24 +73,53 @@ async function main() {
         'atau pilih port lain dengan E2E_API_PORT (lalu samakan target proxy di migration/vite.config.mjs).',
     );
   }
-  warnDestructiveSeed();
+  if (FRESH) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[e2e:fresh] NODE_ENV=production terdeteksi — stack segar MERESET DB-nya.');
+    }
+    console.log('[e2e:fresh] prepare: prisma generate + migrate reset (Postgres, DB *_fresh)…');
+    resetFreshPostgres();
 
-  console.log('[e2e] prepare: prisma generate + migrate deploy (Postgres)…');
-  preparePostgres();
+    console.log(`[e2e:fresh] bootstrap firma "${FRESH_FIRM.name}" (bukan seed demo)…`);
+    const boot = spawn(process.execPath, [TSX_BIN, resolve(SERVER, 'src/bootstrap.ts')], {
+      // cwd = e2e/, BUKAN server/: src/env.ts memuat .env dari cwd dan MENIMPA env yang ada —
+      // server/.env yang tracked menunjuk sqlite dev. Alasan yang sama dengan server di bawah.
+      cwd: HERE,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseUrl(),
+        NODE_ENV: 'development',
+        FIRM_NAME: FRESH_FIRM.name,
+        FIRM_SHORT: FRESH_FIRM.short,
+        ADMIN_NAME: FRESH_FIRM.admin.name,
+        ADMIN_EMAIL: FRESH_FIRM.admin.email,
+        ADMIN_PASSWORD: FRESH_FIRM.admin.password,
+        BOOTSTRAP_TOTP: '0',
+      },
+    });
+    const bootExit = await new Promise((resolveExit) => boot.on('exit', resolveExit));
+    if (bootExit !== 0) throw new Error(`[e2e:fresh] bootstrap gagal (exit ${bootExit})`);
+  } else {
+    warnDestructiveSeed();
 
-  console.log('[e2e] seed demo…');
-  const seed = spawn(process.execPath, [TSX_BIN, 'src/seed.ts'], {
-    cwd: SERVER,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      DATABASE_URL: databaseUrl(),
-      NODE_ENV: 'development',
-      ALLOW_DEMO_SEED: '1',
-    },
-  });
-  const seedExit = await new Promise((resolveExit) => seed.on('exit', resolveExit));
-  if (seedExit !== 0) throw new Error(`[e2e] seed gagal (exit ${seedExit})`);
+    console.log('[e2e] prepare: prisma generate + migrate deploy (Postgres)…');
+    preparePostgres();
+
+    console.log('[e2e] seed demo…');
+    const seed = spawn(process.execPath, [TSX_BIN, 'src/seed.ts'], {
+      cwd: SERVER,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseUrl(),
+        NODE_ENV: 'development',
+        ALLOW_DEMO_SEED: '1',
+      },
+    });
+    const seedExit = await new Promise((resolveExit) => seed.on('exit', resolveExit));
+    if (seedExit !== 0) throw new Error(`[e2e] seed gagal (exit ${seedExit})`);
+  }
 
   console.log('[e2e] menjalankan server tRPC…');
   const child = spawn(process.execPath, [TSX_BIN, resolve(SERVER, 'src/server.ts')], {
