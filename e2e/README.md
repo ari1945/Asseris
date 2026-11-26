@@ -86,7 +86,7 @@ npx playwright test -c playwright.fresh.config.ts
   `E2E_FRESH_API_PORT` / `E2E_FRESH_WEB_PORT`; SPA mem-proxy ke API lewat `E2E_API_TARGET`.
 - `E2E_REUSE_BUILD=1` memakai `migration/dist` yang sudah ada (dipakai CI; lokal sebaiknya biarkan
   membangun ulang).
-- Uji cacat ber-`test.fail()` + `// KARANTINA s/d <tanggal>`; tiga prasyarat di atasnya **wajib
+- Uji cacat ber-`test.fail()` + `// KARANTINA s/d <tanggal>`; lima prasyarat di atasnya **wajib
   hijau**, karena `test.fail()` juga lulus bila harness-nya rusak.
 
 ## CI

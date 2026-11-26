@@ -51,12 +51,38 @@ async function createClientViaUi(page: Page, name: string): Promise<CreatedClien
   await page.getByLabel('Industri').fill('Jasa Profesional');
   await page.getByLabel('Domisili').fill('Bandung');
 
-  const isClientsWrite = (url: string, body: string | null) =>
-    url.includes('state.set') && (body ?? '').includes('"key":"clients"');
-  const write = page.waitForResponse((r) => isClientsWrite(r.url(), r.request().postData()), { timeout: 15_000 });
+  const write = waitForStateWrite(page, 'clients');
   await page.getByRole('button', { name: /Tambah Klien/ }).click();
   const res = await write;
   return { id, name, writeBody: res.request().postData() ?? '', writeStatus: res.status() };
+}
+
+/** Respons `state.set` (batch tRPC) yang memuat kunci tertentu — diterima ATAU ditolak. */
+function waitForStateWrite(page: Page, key: string) {
+  return page.waitForResponse(
+    (r) => r.url().includes('state.set') && (r.request().postData() ?? '').includes(`"key":"${key}"`),
+    { timeout: 15_000 },
+  );
+}
+
+/** Buat perikatan lewat #/engagement → "Engagement Baru" untuk klien tertentu; tunggu tulisannya. */
+async function createEngagementViaUi(page: Page, clientName: string): Promise<{ writeBody: string }> {
+  await gotoModule(page, 'engagement');
+  await page.getByRole('button', { name: /Engagement Baru/ }).first().click();
+  await page.getByLabel('Klien', { exact: true }).selectOption({ label: clientName });
+  const write = waitForStateWrite(page, 'engagements');
+  await page.getByRole('button', { name: /Buat Engagement/ }).click();
+  const res = await write;
+  return { writeBody: res.request().postData() ?? '' };
+}
+
+/** Buka Pengaturan seperti pengguna: `settings` BUKAN rute sidebar (tak ada di MODULE_INDEX), jadi
+ *  navigasi hash diabaikan app.tsx:222-223; satu-satunya pintu UI = topbar "Tampilan" →
+ *  "Semua Pengaturan…" (shell.tsx:92, :535). */
+async function openSettings(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Tampilan' }).click();
+  await page.getByText('Semua Pengaturan…').click();
+  await expect(page.locator('.subbar .crumb')).toContainText('Pengaturan');
 }
 
 /* ------------------------------------------------------------------------------------------
@@ -97,6 +123,21 @@ test.describe('prasyarat — stack ini sungguh firma segar hasil bootstrap', () 
     expect(c.writeBody).toContain('PT Prasyarat Tulis Segar');
     expect(c.writeStatus, 'server harus menjawab tulisan itu (diterima ATAU ditolak)').toBeGreaterThan(0);
   });
+
+  test('formulir "Engagement Baru" dapat dikirim dan MENCOBA menulis kunci `engagements`', async ({ page }) => {
+    await login(page, ADMIN);
+    const c = await createClientViaUi(page, 'PT Prasyarat Perikatan Segar');
+    const e = await createEngagementViaUi(page, c.name);
+    expect(e.writeBody).toContain(c.id);
+  });
+
+  test('Pengaturan dapat dibuka lewat menu "Tampilan" (pintu yang dipakai langkah 1)', async ({ page }) => {
+    await login(page, ADMIN);
+    await openSettings(page);
+    await expect(page.locator('.subbar .chip', { hasText: 'Enterprise' })).toBeVisible();
+    await page.getByText('Firma & Standar').first().click();
+    await expect(page.getByText('Identitas Firma')).toBeVisible();
+  });
 });
 
 /* ------------------------------------------------------------------------------------------
@@ -109,10 +150,11 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   test('langkah 1 — firma segar melihat identitasnya sendiri, nol data demo', async ({ page }) => {
     await login(page, ADMIN);
 
-    await gotoModule(page, 'settings');
+    await openSettings(page);
     const chip = (await page.locator('.subbar .chip', { hasText: 'Enterprise' }).first().textContent()) ?? '';
     await page.getByText('Firma & Standar').first().click();
-    const firmNameShown = await page.getByText(FRESH_FIRM.name).first().isVisible().catch(() => false);
+    await expect(page.getByText('Identitas Firma')).toBeVisible();
+    const firmNameShown = await page.getByText(FRESH_FIRM.name).first().isVisible();
 
     await gotoModule(page, 'crm');
     // Modul harus BENAR-BENAR terender. Begitu data demo hilang, firma tanpa klien membuat
@@ -130,15 +172,26 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   });
 
   // KARANTINA s/d 2026-12-31 — P0-1: FIRM_SCOPE_ID='FIRM-WHR' (persist_scope.ts:22) ⇒ tulisan
-  // `clients` menuju firma demo dan ditolak cross-firm-state; klien baru hilang saat muat ulang.
-  test('langkah 2 — klien yang dibuat masih ada sesudah muat ulang', async ({ page }) => {
+  // `clients` menuju firma demo dan ditolak cross-firm-state; klien hanya hidup di cache peramban.
+  //
+  // Dibuktikan di KONTEKS PERAMBAN BARU (setara perangkat lain), BUKAN `page.reload()`: draf
+  // pertama memakai reload dan LULUS di CI walau server menolak tulisannya — klien kembali dari
+  // cache localStorage `ams.v1.*`, yang menurut AGENTS.md §3.3 hanya offline-cache. "Bertahan"
+  // berarti bertahan di SSOT server.
+  test('langkah 2 — klien yang dibuat terlihat dari perangkat lain (sesi baru)', async ({ page, browser }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Bertahan');
 
-    await page.reload();
-    await expect(page.locator('.topbar')).toBeVisible();
-    await gotoModule(page, 'crm');
-    await expect(page.getByText(c.name).first()).toBeVisible();
+    const other = await browser.newContext();
+    try {
+      const page2 = await other.newPage();
+      await login(page2, ADMIN);
+      await gotoModule(page2, 'crm');
+      await expect(page2.getByRole('button', { name: /Klien Baru/ })).toBeVisible();
+      await expect(page2.getByText(c.name).first()).toBeVisible();
+    } finally {
+      await other.close();
+    }
   });
 
   // KARANTINA s/d 2026-12-31 — P0-2: tak ada API yang membuat baris Engagement (hanya seed.ts &
@@ -148,11 +201,7 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   test('langkah 3 — perikatan yang dibuat lewat UI dikenal server dan dapat ditulisi', async ({ page }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Perikatan');
-
-    await gotoModule(page, 'engagement');
-    await page.getByRole('button', { name: /Engagement Baru/ }).first().click();
-    await page.getByLabel('Klien', { exact: true }).selectOption({ label: c.name });
-    await page.getByRole('button', { name: /Buat Engagement/ }).click();
+    await createEngagementViaUi(page, c.name);
 
     await page.reload();
     await expect(page.locator('.topbar')).toBeVisible();
