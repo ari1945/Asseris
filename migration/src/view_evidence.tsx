@@ -111,6 +111,10 @@ type EvArea = { id: string; area: string; wp: string; risk: string; suff: number
 function EvidenceEvaluation() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  /* Identitas perikatan dari perikatan AKTIF, bukan literal perikatan demo (PRD
+     prd-identitas-firma-sesi A7 kelas 3 — literal ini dulu tercetak di meta artefak ekspor). */
+  const engId = firm?.activeEngagement?.id || '—';
+  const engFy = firm?.activeEngagement?.fy || '—';
   const [tab, setTab] = useStateEV('ringkasan');
   const [items, setItems] = useAmsPersist('evidenceEval.v1', () => EV_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [selId, setSelId] = useStateEV('EV-C');
@@ -174,7 +178,7 @@ function EvidenceEvaluation() {
         kind: 'evidence-memo', scope: 'engagement',
         fileName: `Memo Evaluasi Bukti (SA 500) - ${client}.pdf`,
         title: 'Memo — Evaluasi Bukti Audit (SA 500)',
-        meta: [`${client} · ENG-2025-014 · FY2025 · SA 500`,
+        meta: [`${client} · ${engId} · ${engFy} · SA 500`,
           `Skor rata-rata ${avgScore.toFixed(1)}/5 · cakupan asersi ${coverage}% · ${openContra} kontradiksi terbuka`],
         blocks: [
           { type: 'heading', text: '1. Kecukupan & Ketepatan Bukti per Area' },
@@ -205,7 +209,7 @@ function EvidenceEvaluation() {
             <div style={{ minWidth: 180 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Evaluasi Bukti Audit</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>{client}</div>
-              <div className="tiny muted">{live.length} area · {firm?.activeEngagement?.id || 'ENG-2025-014'}</div>
+              <div className="tiny muted">{live.length} area · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Skor Bukti</div><div className="mono" style={{ fontWeight: 700, fontSize: 13, color: `var(--${avgScore >= 3.5 ? 'green' : 'amber'})` }}>{avgScore.toFixed(1)} / 5</div></div>

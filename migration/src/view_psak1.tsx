@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 1 · Penyajian Laporan Keuangan
@@ -135,7 +136,7 @@ function PSAK1View() {
   const attention = comps.filter((c: any) => c.st === 'review').length + feats.filter((f: any) => f.st === 'review').length + disc.filter((d: any) => !d.ok).length;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   const ident = [
     { ref: '¶51(a)', k: 'Nama entitas pelapor', v: client.name },

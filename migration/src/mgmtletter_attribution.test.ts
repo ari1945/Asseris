@@ -31,7 +31,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AMS } from './data';
-import { persistCacheKey, DEFAULT_ENG_ID, setSessionFirmId } from './persist_scope';
+import { persistCacheKey, setSessionFirmId } from './persist_scope';
+import { SEED_ENGAGEMENT_ID } from './data_seed_firm';
 import { SEED_FIRM_ID } from './data_seed_firm';
 /* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI. Uji ini memerankan sesi firma demo. */
 const FIRM_SCOPE_ID = SEED_FIRM_ID;
@@ -204,7 +205,7 @@ describe('ML-2 · temuan satu perikatan tak terlihat pada perikatan lain', () =>
     expect(ids).toContain(ENG_A);
     expect(ids).toContain(ENG_B);
     expect(ENG_A).not.toBe(ENG_B);
-    expect(ENG_A).toBe(DEFAULT_ENG_ID);
+    expect(ENG_A).toBe(SEED_ENGAGEMENT_ID);
   });
 
   it('kedua kunci mgmtletter terdaftar BERLINGKUP PERIKATAN di AMS_PERSIST_SCOPE', () => {

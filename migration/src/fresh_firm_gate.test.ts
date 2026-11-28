@@ -250,6 +250,25 @@ describe('G1-d · P0-4 — firma segar tak pernah MENAMPILKAN maupun MENULIS bar
   });
 });
 
+describe('G1-e · A7 — firma TANPA perikatan tidak menyentuh perikatan mana pun', () => {
+  /* PRD prd-identitas-firma-sesi PR-C. `activeEng` dulu bernilai awal `DEFAULT_ENG_ID`
+     (ENG-2025-014) dan `useAmsPersist` jatuh ke perikatan yang sama: firma tanpa perikatan
+     membaca kertas kerja perikatan demo (server menolak `cross-firm-engagement`, galatnya
+     ditelan) dan MENGALAMATKAN setiap suntingan ke sana. Terbukti di log server lokal PR-B:
+     belasan 403 per muat halaman. Tanpa perikatan aktif yang benar adalah TIDAK ADA alamat. */
+  it('nol bacaan/tulisan berlingkup perikatan, dan nol bootstrap untuk perikatan yang tak dimiliki', async () => {
+    await renderProviders();
+    await act(async () => { await settle(); vi.advanceTimersByTime(1000); await settle(); });
+    // Prasyarat: provider benar-benar berjalan (membaca dokumen firma).
+    expect(srv.calls.some((c: Call) => c.path === 'state.get' && c.arg.scope === 'firm')).toBe(true);
+    const engagementCalls = srv.calls.filter((c: Call) => c.arg.scope === 'engagement');
+    const bootstraps = srv.calls.filter((c: Call) => c.path === 'bootstrap' && c.arg.engagementId != null);
+    expect({ engagementCalls: engagementCalls.map((c: Call) => c.path + ':' + String(c.arg.scopeId)), bootstraps: bootstraps.length })
+      .toEqual({ engagementCalls: [], bootstraps: 0 });
+    expect((exposed as unknown as { activeEngagementId: unknown }).activeEngagementId ?? null).toBeNull();
+  });
+});
+
 /* Menjalankan `hydrateCoreFromApi` NYATA terhadap satu bundel tertentu: server palsu
    dijawab sukses hanya untuk panggilan ini. */
 async function hydrateCoreFromApiWithBundle(bundle: unknown): Promise<boolean> {

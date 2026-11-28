@@ -780,7 +780,7 @@ function InvForm({ register, onClose, onAdd }: any) {
           <div className="field"><label htmlFor={uid+'-klien'}>Klien</label><select id={uid+'-klien'} className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div className="field"><label htmlFor={uid+'-termin'}>Termin</label><select id={uid+'-termin'} className="select" value={d.milestone} onChange={(e: any) => set('milestone', e.target.value)}>{['Termin 1 (50%)', 'Termin 2 (30%)', 'Termin 3 (20%)', 'Final (100%)'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label htmlFor={uid+'-engagement-opsional'}>Engagement (opsional)</label><input id={uid+'-engagement-opsional'} className="input mono" value={d.eng} onChange={(e: any) => set('eng', e.target.value)} placeholder="ENG-2025-014" /></div>
+            <div className="field"><label htmlFor={uid+'-engagement-opsional'}>Engagement (opsional)</label><input id={uid+'-engagement-opsional'} className="input mono" value={d.eng} onChange={(e: any) => set('eng', e.target.value)} placeholder="mis. ENG-2026-001" /></div>
           </div>
           <div className="field"><label htmlFor={uid+'-nilai-rp'}>Nilai (Rp)</label><input id={uid+'-nilai-rp'} className="input mono" type="number" value={d.amount} onChange={(e: any) => set('amount', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>

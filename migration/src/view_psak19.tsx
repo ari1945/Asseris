@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 19 · Aset Takberwujud (Intangible Assets)
@@ -158,7 +159,7 @@ function PSAK19View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja E-INT" (dulu mati): ekspor XLSX tersegel
      roll-forward nilai tercatat + klasifikasi per kelompok. Angka Rp juta dari canon.intangibles. */

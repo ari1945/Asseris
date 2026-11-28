@@ -10,8 +10,8 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 16 |
-| Implemented | 39 |
+| In Progress | 15 |
+| Implemented | 40 |
 | Superseded | 1 |
 
 ## Daftar
@@ -101,7 +101,7 @@
 | docs/prd-firm-erp-deepening.md | In Progress — Approved ("Proceed sesuai rekomendasi" 2026-08-16; Q-1=keenam PR · Q-2=blokir ekspor · Q-3=utang · Q-4=bentuk B isi A · Q-5=read-only) |
 | docs/prd-framework-ssot-hilir.md | In Progress — "Proceed." 2026-08-27; PR-1 & PR-2 selesai (D1+D2 tertutup), PR-3..PR-5 belum |
 | docs/prd-gerbang-firma-segar.md | In Progress — "Proceed." 2026-11-26. Fase 1 selesai (fresh_firm_gate.test.ts: 3 uji cacat dikarantina s/d 2026-12-31, merah-dulu & uji mutasi terbukti); Fase 2 selesai kecuali langkah 4 (e2e/tests/09-fresh-firm.spec.ts atas stack bootstrap kedua, PR #400: 4 uji langkah dikarantina s/d 2026-12-31, merah-dulu di CI; langkah 4 test.fixme menunggu PRD P0-2) |
-| docs/prd-identitas-firma-sesi.md | In Progress — Approved ("Proceed, ikuti rekomendasi" 2026-11-28; Q-1..Q-5 = rekomendasi); PR-A MERGED #406 `112411c`; PR-B (A1/A3/A4/A5/A6, membalik G1-a/c/d + langkah 1/2/5) berjalan; perbaikan P0-1 + P0-4 (FIRM_SCOPE_ID & hidrasi demo); membalik 6 karantina gerbang firma segar; tenggat 2026-12-31 |
+| docs/prd-identitas-firma-sesi.md | Implemented — perbaikan P0-1 + P0-4 + A7 ("Proceed, ikuti rekomendasi" 2026-11-28; lingkup PR-C "Ketiga kelas"). PR-A #406 `112411c` (sesi memuat firmId, bootstrap tanpa engagementId) · PR-B #407 `7c361d3` (lingkup firma dari sesi, hidrasi jujur, formulir bersih; membalik G1-a/c/d + langkah 1/2/5) · PR-C (penjaga shell, activeEng tanpa default demo, nol literal identitas demo — gerbang SC-6). Langkah 3 tetap karantina (P0-2). Temuan lanjutan: kelas 4 nama demo & A8 namespace seed (§13) |
 | docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
 | docs/prd-lint-coverage-server-e2e.md | Implemented — dieksekusi 2026-08-13 lewat PR #207 (master e2deb29); Q1=A · Q2=langsung error · Q3=tidak |
 | docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |

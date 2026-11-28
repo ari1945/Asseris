@@ -59,7 +59,7 @@ function SA530View() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engLabel = firm?.activeEngagement?.id || '—';
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useInitialTab('sa530', 'kalkulator');
 
@@ -183,7 +183,7 @@ function SA530View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 530</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Sampling Audit</div>
-              <div className="tiny muted">{client} · Piutang Usaha · ENG-2025-014</div>
+              <div className="tiny muted">{client} · Piutang Usaha · {engLabel}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Populasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{bv.toLocaleString('id-ID')} · {SA530_POPULATION.length} item ilustratif</div></div>

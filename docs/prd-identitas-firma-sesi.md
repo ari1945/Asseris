@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — Approved ("Proceed, ikuti rekomendasi" 2026-11-28; Q-1..Q-5 = rekomendasi) |
+| Status | Implemented — PR-A #406 · PR-B #407 · PR-C (SC-1..SC-6); temuan lanjutan kelas 4 & A8 dicatat §13 |
 | Tanggal | 2026-11-28 |
 | Pemilik | Ari Widodo |
 | Asal | [`EVALUASI-MENYELURUH-2026-11-25.md`](EVALUASI-MENYELURUH-2026-11-25.md) P0-1 & P0-4 · gerbang [`prd-gerbang-firma-segar.md`](prd-gerbang-firma-segar.md) §12–§13 |
@@ -254,3 +254,69 @@ aging piutang), dan kinerja tim. Sumbernya seed `AMS.*` lain (REVIEW_NOTES, RISK
 pernah dihidrasi server. Kelasnya sama dengan P0-4, tetapi lingkupnya jauh lebih luas daripada A4. Riwayat
 dan kontak Direktori Klien juga masih **dikarang** per klien (`view_firm.tsx` `history`/`contacts`: "Hartono W.",
 "Sari D."), meskipun tak terlihat di tab Profil default.
+
+### Keputusan lingkup PR-C (2026-11-28)
+
+Sensus atas master sesudah PR-B menemukan **tiga kelas**, bukan "17 situs":
+(1) `|| 'ENG-2025-014'` (17 situs, sensus lama);
+(2) objek cadangan `firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' }` (±20 situs di modul
+PSAK/restatement/SPR 2410; regex sensus lama hanya mencari bentuk string);
+(3) literal identitas di teks/meta (`` `${client} · ENG-2025-014 · FY2025` `` di SA 200/501/520/530/Evidence,
+sebagian di meta artefak ekspor; `DMS_ENGS`/nilai awal DMS; judul tie-out Reconcile).
+Ari: **"Ketiga kelas"** — PR-C mencakup ketiganya; gerbang SC-6 memaku nol literal untuk ketiganya.
+- **PR-B mendarat:** PR #407 → `7c361d3`. CI 9/9 hijau. E2E demo 01–08: 22 lulus. Spek 09: langkah 1, 2, 5
+  lulus sebagai uji biasa; langkah 3 tetap ✘ yang diharapkan di bawah `test.fail` (SC-2).
+
+### PR-C — 2026-11-28
+
+**Merah dulu (atas kode sesudah PR-B):**
+- `identitas_demo_gate.test.ts` (SC-6) memerah atas 54 baris (47 `ENG-2025-014` + 7 `DEFAULT_ENG_ID`; sensus tokenizer yang sama): kelas 1–3, `DEFAULT_ENG_ID`, `fw_canon`, DMS,
+  Reconcile, dan Pipeline. Prasyarat tokenizer dan cakupan hijau.
+- `fresh_firm_gate.test.ts` G1-e memerah: **15** bacaan berlingkup perikatan dan **1** `bootstrap` untuk
+  perikatan demo dari firma tanpa perikatan. Angka ini cocok dengan log server lokal PR-B.
+
+**Perubahan:**
+- `DEFAULT_ENG_ID` dicabut. Dua peran yang dulu disatukan konstanta itu kini dipisah. *Pemilik data seed*
+  menjadi `SEED_ENGAGEMENT_ID` di `data_seed_firm.ts`; konstanta ini hanya untuk me-rute-kan WTB dan
+  struktur grup seed (`fw_canon`, `view_newdisc`). *Perikatan bila tak ada yang aktif* tidak lagi ada.
+- `activeEng` bernilai awal perikatan boot (`bootEngagementId`, disetel `hydrateForSession`), atau `null`.
+  Perikatan aktif yang tak dapat diakses dilepas ke `null`, termasuk saat daftar aksesnya kosong.
+- `useServerState` tanpa `scopeId` bersifat **inert**: hanya nilai awal, tanpa baca/tulis server, tanpa cache.
+  `useAmsPersist` berlingkup perikatan tanpa perikatan aktif menghasilkan `null`.
+- Penjaga tingkat shell (`engagement_guard.tsx`, Q-3) dipasang di `App`, per grup modul. Ruang kerja
+  Perikatan (kecuali Referensi & Indeks), grup SA/PSAK/Syariah yang tersembunyi, dan Portal Klien
+  merender "Belum ada perikatan aktif" tanpa perikatan aktif.
+- Kelas 1: 13 situs → `'—'`/`''`. Kelas 2: 18 berkas → `NO_ACTIVE_ENGAGEMENT`. Kelas 3: meta & teks
+  SA 200/501/520/530/Evidence kini dari perikatan aktif. DMS memilih folder dari perikatan firma sesi.
+  Tie-out di tab Alur Data mengikuti klien aktif; dulu dipaku `'C-014'`, sehingga WTB klien A disandingkan
+  dengan fee klien demo. Placeholder Pipeline diganti.
+- Spek 09 mendapat uji **SC-4** non-karantina: modul firma terbuka tanpa "Gagal merender modul", modul
+  perikatan menampilkan keadaan kosong, dan topbar tanpa ENG-2025-014.
+
+**Hasil:**
+- Gerbang SC-6 4/4 hijau. G1-e hijau. `engagement_guard.test.ts` 33/33 hijau.
+- Suite frontend 234 berkas / 4040 uji hijau. Lint, `tsc`, dan `typecheck:test` bersih.
+
+**Verifikasi peramban:**
+- Firma segar (SQLite, hasil `bootstrap`): sesudah muat ulang tanpa cache, log server mencatat **nol**
+  `cross-firm-engagement` (sebelum PR-C: belasan per muat). WTB, PSAK 1, SA 701, dan Portal Klien
+  menampilkan penjaga; CRM dan Perikatan terbuka.
+- Firma demo (SQLite, hasil `seed`, login Anindya): topbar "Sentosa Makmur Tbk · ENG-2025-014 · FY2025";
+  ke-25 modul yang disentuh terender dengan isi nyata, nol boundary, nol penjaga. Label kelas 3 identik,
+  kini berasal dari perikatan aktif.
+- **Koreksi atas verifikasi PR-B:** pemeriksaan "tanpa error boundary" di sana memakai regex
+  `/Modul gagal|Terjadi kesalahan/`, sedangkan teks boundary sebenarnya "Gagal merender modul …". Bagian
+  itu **vakum**. Bukti render PR-B tetap berdiri lewat isi khas tiap modul ("Belum ada klien…",
+  "TOTAL ENGAGEMENT 0", "Selamat datang, Laksmi"). Uji SC-4 kini memakai teks yang benar.
+
+**Ditemukan, TIDAK dikerjakan (di luar keputusan "Ketiga kelas"):**
+- **Kelas 4 — nama klien/orang demo sebagai cadangan atau narasi:** 53 baris "Sentosa Makmur" di jalur
+  produksi. Contohnya `|| 'PT Sentosa Makmur Tbk'` di ±20 modul, narasi ilustratif PSAK 22/65, tanda tangan
+  "Hartono Wijaya, CPA" di laporan SPR 2410, partner cadangan di Evidence, staf cadangan Portal Klien, serta
+  riwayat dan kontak karangan di Direktori Klien. Di balik penjaga, cadangan nama klien tak terjangkau;
+  narasi dan tanda tangan **tetap terlihat** di perikatan mana pun.
+- **A8** (sudah dicatat di PR-B): namespace seed lain di Beranda (EQR, catatan reviu, risiko, keuangan firma).
+- 5× `firm-key-not-allowlisted` per muat untuk `copilot.msgs2/govshare/govlog/learn/acc`. Ini terjadi juga
+  di firma demo (perilaku lama); untuk firma segar dulu tertutup oleh `cross-firm-state`.
+- DMS: daftar folder unggah demo dulu memuat perikatan arsip `ENG-2024-014`/`ENG-2021-008`. Kini hanya
+  perikatan firma sesi, jadi firma demo tak lagi menawarkan kedua folder arsip itu sebagai tujuan unggah.

@@ -42,9 +42,13 @@ vi.mock('./api', () => ({
 
 import { AMS } from './data';
 import { AppProviders, useAudit, useFirm } from './contexts';
-import { DEFAULT_ENG_ID } from './persist_scope';
+import { setBootEngagementId } from './persist_scope';
+import { SEED_ENGAGEMENT_ID } from './data_seed_firm';
 
-const ENG_A = DEFAULT_ENG_ID;
+/* PRD prd-identitas-firma-sesi A7: `activeEng` tak lagi bernilai awal perikatan demo; nilai
+   awalnya = perikatan yang dihidrasi saat boot. Uji ini memerankan boot atas perikatan seed. */
+const ENG_A = SEED_ENGAGEMENT_ID;
+setBootEngagementId(ENG_A);
 const ENG_B = 'ENG-STAGE0-B';
 const ME = {
   id: 'USER-STAGE0', firmId: 'FIRM-WHR', name: 'Stage 0 User', initials: 'S0',

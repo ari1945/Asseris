@@ -39,6 +39,7 @@
    ============================================================ */
 import { CLIENTS, ENGAGEMENTS, WTB as WTB_ENG014 } from './data_part1';
 import { WTB_BY_ENGAGEMENT } from './data_wtb_eng';
+import { SEED_ENGAGEMENT_ID } from './data_seed_firm';
 import { entityFigures } from './canon_base';
 import type { WTB } from './canon_types';
 
@@ -157,7 +158,7 @@ export function fwUmkmTier(cap: number | null, sales: number | null): string {
    yang ditutup PR-J.
    ============================================================ */
 export function wtbForEngagement(engId: string): WTB | undefined {
-  if (engId === 'ENG-2025-014') return WTB_ENG014 as unknown as WTB;
+  if (engId === SEED_ENGAGEMENT_ID) return WTB_ENG014 as unknown as WTB;
   return WTB_BY_ENGAGEMENT[engId] as unknown as WTB | undefined;
 }
 

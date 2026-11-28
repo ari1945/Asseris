@@ -56,6 +56,10 @@ const LIT_CASES = getLitCases();
 function SA501View() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  /* Identitas perikatan dari perikatan AKTIF, bukan literal perikatan demo (PRD
+     prd-identitas-firma-sesi A7 kelas 3 — literal ini dulu tercetak di meta artefak ekspor). */
+  const engId = firm?.activeEngagement?.id || '—';
+  const engFy = firm?.activeEngagement?.fy || '—';
   const [tab, setTab] = useState501('ringkasan');
 
   const invTotal = INV_LOCATIONS.reduce((s, l) => s + l.val, 0);
@@ -79,7 +83,7 @@ function SA501View() {
         kind: 'sa501-memo', scope: 'engagement',
         fileName: `Memo SA 501 - ${client}.pdf`,
         title: 'Memo — Bukti Audit: Unsur Pilihan (SA 501)',
-        meta: [`${client} · ENG-2025-014 · FY2025 · SA 501`,
+        meta: [`${client} · ${engId} · ${engFy} · SA 501`,
           `Persediaan Rp ${invTotal} jt (${INV_LOCATIONS.length} lokasi) · eksposur litigasi Rp ${litExposure} jt`],
         blocks: [
           { type: 'heading', text: '1. Kehadiran Perhitungan Fisik (¶4–5)' },
@@ -113,7 +117,7 @@ function SA501View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 501</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Bukti Audit — Unsur Pilihan</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Persediaan (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{invTotal.toLocaleString('id-ID')} · 5 lokasi</div></div>

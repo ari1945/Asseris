@@ -69,7 +69,7 @@ function SA710View() {
   const firm = useFirm();
   const nav = useNav();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engId = firm?.activeEngagement?.id || '—';
   const [tab, setTab] = useState710('jenis');
 
   /* SSOT bersama modul opini — pendekatan (compMode), inklusi paragraf (opts.comparative)

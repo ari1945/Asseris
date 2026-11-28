@@ -10,6 +10,7 @@ import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 import { amsDateLongId } from './clock_ssot';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — SPR 2410 · Reviu atas Informasi Keuangan Interim
@@ -74,7 +75,7 @@ function SPR2410View() {
   /* PR-A - `materiality` dibuang dari stub fallback: berkas ini menarik OM dari
      `useMateriality()` (baris di bawah), jadi angka di sini tak pernah dibaca dan
      hanya menjadi konstanta basi yang menunggu dipakai orang berikutnya. */
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */
   const mat = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)

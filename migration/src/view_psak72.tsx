@@ -9,6 +9,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { P72_ContractBal, P72_FiveStep, P72_SspTable } from './view_psak72_parts';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 72 · Pendapatan dari Kontrak dengan Pelanggan
@@ -132,7 +133,7 @@ function PSAK72View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
   const riskRev = (((AMS && AMS.RISKS) as any[]) || []).find(r => r.id === 'R-01');
 
   /* K-06 gelombang 2 — wire tombol "Kertas Kerja R" (dulu mati): ekspor XLSX tersegel

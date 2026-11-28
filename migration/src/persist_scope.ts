@@ -63,9 +63,23 @@ export function coreDataBelongsTo(firm: { id?: unknown } | null | undefined, fir
   return !!firmId && coreDataOwner(firm) === firmId;
 }
 
-/* Perikatan cadangan untuk jalur yang belum sadar "tanpa perikatan aktif" — DICABUT di
-   PR-C (penjaga tingkat shell). Bukan lingkup firma; jangan dipakai di kode baru. */
-export const DEFAULT_ENG_ID = 'ENG-2025-014';
+/* ============================================================
+   PERIKATAN BOOT (PRD prd-identitas-firma-sesi A7).
+   Perikatan yang dihidrasi `hydrateForSession` — nilai AWAL `activeEng` di FirmProvider,
+   supaya layar pertama dan neraca saldo yang dihidrasi menunjuk perikatan yang sama.
+   `null` = firma tanpa perikatan yang dapat diakses: TIDAK ADA perikatan aktif, dan kunci
+   berlingkup perikatan tidak punya alamat (useServerState inert). Dulu `DEFAULT_ENG_ID`
+   ('ENG-2025-014') mengisi kekosongan itu untuk SEMUA firma.
+   ============================================================ */
+let bootEngagement: string | null = null;
+
+export function setBootEngagementId(engagementId: string | null | undefined): void {
+  bootEngagement = typeof engagementId === 'string' && engagementId.trim() ? engagementId : null;
+}
+
+export function bootEngagementId(): string | null {
+  return bootEngagement;
+}
 
 export type PersistScope = 'user' | 'firm' | 'engagement';
 

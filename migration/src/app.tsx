@@ -3,7 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { api } from './api';
 import { hydrateForSession } from './boot_hydrate';
-import { AppProviders, NavContext, NavFromContext } from './contexts';
+import { AppProviders, NavContext, NavFromContext, useFirm } from './contexts';
+import { NoActiveEngagement, requiresActiveEngagement } from './engagement_guard';
 import { LoginScreen } from './view_login';
 import { SetPasswordScreen, isSetPasswordRoute } from './view_setpassword';
 import { Copilot } from './copilot';
@@ -275,6 +276,12 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  /* Q-3 (PRD prd-identitas-firma-sesi A7) — SATU penjaga untuk semua modul perikatan:
+     tanpa perikatan aktif modulnya tak dirender, jadi tak ada modul yang perlu (atau boleh)
+     mengarang perikatan cadangan. */
+  const firmCtx = useFirm() as { activeEngagement?: unknown } | null;
+  const needsEngagement = requiresActiveEngagement(route) && !(firmCtx && firmCtx.activeEngagement);
+
   return (
     <NavContext.Provider value={navigate}>
      <NavFromContext.Provider value={navFrom}>
@@ -286,7 +293,9 @@ function App() {
             {/* Tahap 8 — route-level code splitting: React.lazy memerlukan
                 Suspense. Fallback ringan dipakai selama chunk rute dimuat. */}
             <React.Suspense fallback={<RouteFallback moduleId={route} />}>
-              <ViewErrorBoundary routeKey={route}>{viewFor(route)}</ViewErrorBoundary>
+              <ViewErrorBoundary routeKey={route}>{needsEngagement
+                ? <NoActiveEngagement moduleLabel={((MODULE_INDEX as Record<string, { label?: string } | undefined>)[route] || {}).label || route} onNavigate={navigate} />
+                : viewFor(route)}</ViewErrorBoundary>
               <ModuleLineage moduleId={route} />
               <StandardLinkback moduleId={route} />
             </React.Suspense>
