@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { hydrateCoreFromApi, api } from './api';
+import { api } from './api';
+import { hydrateForSession } from './boot_hydrate';
 import { AppProviders, NavContext, NavFromContext } from './contexts';
 import { LoginScreen } from './view_login';
 import { SetPasswordScreen, isSetPasswordRoute } from './view_setpassword';
@@ -306,7 +307,25 @@ function App() {
   );
 }
 
-const DEFAULT_ENG_ID = 'ENG-2025-014';
+/* Q-2 (PRD prd-identitas-firma-sesi) — galat hidrasi SESUDAH login adalah galat, bukan
+   "mode offline": tak ada data demo di balik layar ini. */
+function BootError({ onRetry, onLogout }: { onRetry: () => void; onLogout: () => void }) {
+  return (
+    <div role="alert" style={{ display: 'grid', placeItems: 'center', height: '100vh', background: 'var(--bg)' }}>
+      <div style={{ maxWidth: 420, padding: 24, textAlign: 'center', color: 'var(--ink)' }}>
+        <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 700, marginBottom: 8 }}>Data firma tidak dapat dimuat</div>
+        <div style={{ fontSize: 'var(--fs-md)', color: 'var(--ink-2)', marginBottom: 16 }}>
+          Anda sudah masuk, tetapi server tidak mengirim data firma Anda. Aplikasi tidak menampilkan
+          data lain sebagai gantinya. Coba lagi; bila tetap gagal, hubungi admin firma.
+        </div>
+        <div className="row gap8" style={{ justifyContent: 'center' }}>
+          <Btn variant="primary" onClick={onRetry}>Coba lagi</Btn>
+          <Btn onClick={onLogout}>Keluar</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function BootSplash({ label }: any) {
   return (
@@ -343,8 +362,16 @@ function Root() {
       try { localStorage.setItem('ams.route', 'home'); } catch (e) { /* private mode */ }
       try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* abaikan */ }
     }
-    try { await hydrateCoreFromApi(DEFAULT_ENG_ID, user.id); } catch (e) { /* offline: data.js fallback */ }
-    setPhase('ready');
+    /* PRD prd-identitas-firma-sesi A1 + A3 — lingkup firma dari sesi, perikatan dari yang
+       boleh diakses (atau tanpa perikatan), dan galat TIDAK ditelan. Dulu: ENG-2025-014 untuk
+       semua firma + `catch` kosong, sehingga firma segar berjalan di atas seed demo. */
+    setPhase('hydrating');
+    try {
+      await hydrateForSession(user);
+      setPhase('ready');
+    } catch (e) {
+      setPhase('error');
+    }
   }, []);
 
   const logout = useCallbackRT(() => {
@@ -377,6 +404,8 @@ function Root() {
     }} />;
   }
   if (phase === 'checking') return <BootSplash label="Memeriksa sesi…" />;
+  if (phase === 'hydrating') return <BootSplash label="Memuat data firma…" />;
+  if (phase === 'error') return <BootError onRetry={() => { if (me) enter(me, false); }} onLogout={logout} />;
   if (phase === 'login') return <LoginScreen onLoggedIn={enter} />;
   return <AppProviders me={me} onLogout={logout}><App /></AppProviders>;
 }

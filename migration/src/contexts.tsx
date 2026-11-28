@@ -9,7 +9,7 @@ import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
 import { parseHash } from './route_hash';
 import { coerceTab, tabFromHash, writeTabToAddress } from './tab_address';
-import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
+import { DEFAULT_ENG_ID, sessionFirmId, setSessionFirmId, coreDataBelongsTo } from './persist_scope';
 /* PR-1 (prd-export-seal-identity-ssot) — SATU-SATUNYA penerbit register
    identitas ekspor. Gerbang `export_identity.test.ts` §3 menolak penulis kedua. */
 import { publishActiveEngagement } from './export_identity';
@@ -418,10 +418,8 @@ function notesForEngagement(notes: any, engId: any) {
      user       → this user      (profile / role / activeEng / prefs)
      firm        → the firm        (clients / engagements / firm-wide registries)
      engagement  → active engagement (aje / risks / wpState / review notes / …)
-   Single-firm/single-user demo, so the firm/user scopeIds are constants that
-   match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
-/* FIRM_SCOPE_ID & DEFAULT_ENG_ID kini di-SSOT-kan di `persist_scope.ts` — canon
-   (non-React) memerlukan konstanta yang sama untuk membaca cache terpersist (PR-1a). */
+   scopeId firma = firmId SESI (`sessionFirmId()`, persist_scope.ts) — bukan lagi konstanta
+   firma demo (PRD prd-identitas-firma-sesi A1). ============================================================ */
 function userScopeId() { try { return (AMS && AMS.USER && AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
 
 /* Public useAmsPersist (module state) defaults to firm scope — i.e. today's
@@ -783,7 +781,9 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
         const stateGet = (api as unknown as {
           state: { get: { query: (a: { scope: string; scopeId: string; key: string }) => Promise<{ value: unknown; version: number }> } };
         }).state.get;
-        stateGet.query({ scope: 'firm', scopeId: FIRM_SCOPE_ID, key }).then((f) => {
+        const firmId = sessionFirmId();
+        if (!firmId) return;
+        stateGet.query({ scope: 'firm', scopeId: firmId, key }).then((f) => {
           if (cancelled || !f || f.version <= 0) return;
           setValRaw(f.value);
           cacheWrite(cacheKey, f.value);
@@ -928,7 +928,7 @@ function useAmsPersist(key: any, initial: any) {
   const firm = useFirm(); // always called (rules-of-hooks); null outside provider
   const scopeId = scope === 'engagement'
     ? ((firm && firm.activeEngagementId) || DEFAULT_ENG_ID)
-    : (scope === 'user' ? userScopeId() : FIRM_SCOPE_ID);
+    : (scope === 'user' ? userScopeId() : (sessionFirmId() || ''));
   return useServerState(key, initial, scope, scopeId);
 }
 window.useAmsPersist = useAmsPersist;
@@ -1048,11 +1048,20 @@ function AuthProvider({ me, onLogout, children }: any) {
   );
 }
 
+/* Nilai awal kosong yang STABIL (satu identitas) untuk koleksi firma yang bukan milik sesi. */
+const NO_ROWS: never[] = [];
+
 function FirmProvider({ children }: any) {
   const D: any = AMS;
   const uid = (useAuth() as any).user?.id || 'USER-1';
-    const [clients, setClients] = useServerState('clients', D.CLIENTS, 'firm', FIRM_SCOPE_ID);
-    const [engagements, setEngagements] = useServerState('engagements', D.ENGAGEMENTS, 'firm', FIRM_SCOPE_ID);
+    /* PRD prd-identitas-firma-sesi A1 + A4 — dokumen firma dialamatkan ke firma SESI, dan
+       baris `AMS` dipakai sebagai nilai awal HANYA bila memang milik firma itu (seed demo
+       milik firma demo; bundel server milik firma sesi). Dulu: `FIRM_SCOPE_ID` demo + seed
+       demo untuk SEMUA firma — firma segar melihat 8 klien demo dan menulisnya ke server. */
+    const firmId = sessionFirmId() || '';
+    const ownsCore = coreDataBelongsTo(D.FIRM, firmId);
+    const [clients, setClients] = useServerState('clients', ownsCore ? D.CLIENTS : NO_ROWS, 'firm', firmId);
+    const [engagements, setEngagements] = useServerState('engagements', ownsCore ? D.ENGAGEMENTS : NO_ROWS, 'firm', firmId);
     const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
 
     /* ---- W7.5: per-engagement access set (server-filtered engagement.list) ----
@@ -1528,6 +1537,10 @@ function ExportRefusalToaster() {
 }
 
 function AppProviders({ me, onLogout, children }: any) {
+  /* Lingkup firma sesi disetel SEBELUM provider anak membacanya (render induk mendahului
+     anak). `Root.enter` sudah menyetelnya sebelum hidrasi; ini menjamin hal yang sama untuk
+     setiap pemasang provider lain (uji, wedge). Idempoten. */
+  setSessionFirmId(me && me.firmId);
   return (
     <AuthProvider me={me} onLogout={onLogout}>
       <FirmProvider>

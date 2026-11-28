@@ -1,6 +1,10 @@
 /* PR-1a — rantai baca-lewat cache terpersist (perikatan → firma → legacy → default). */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { readPersisted, persistCacheKey, legacyCacheKey, FIRM_SCOPE_ID } from './persist_scope';
+import { readPersisted, persistCacheKey, legacyCacheKey, setSessionFirmId } from './persist_scope';
+import { SEED_FIRM_ID } from './data_seed_firm';
+/* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI. Uji ini memerankan sesi firma demo. */
+const FIRM_SCOPE_ID = SEED_FIRM_ID;
+setSessionFirmId(FIRM_SCOPE_ID);
 
 const ENG = 'ENG-2025-014';
 const put = (k: string, v: unknown) => localStorage.setItem(k, JSON.stringify(v));

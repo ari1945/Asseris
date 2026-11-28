@@ -10,7 +10,6 @@ import { auditList, auditVerify } from './api';
 import { resolveAuditView, deriveStats, type AuditRow, type VerifyState } from './audit_trail_core';
 import { amsExportPdf } from './export_pdf';
 import { amsDateIso } from './clock_ssot';
-import { FIRM_SCOPE_ID } from './persist_scope';
 
 /* ============================================================
    Asseris — Firm Platform · Audit Trail (PRD prd-audit-trail-server-chain.md)

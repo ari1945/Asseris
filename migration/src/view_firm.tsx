@@ -11,16 +11,30 @@ import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2'
 import { MSub } from './view_fpm_parts';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff';
 import { isEngagementPreAcceptance } from './engagement_entry_gate';
+import { CAP, can as rbacCan } from './rbac';
 
 /* ============================================================
    Asseris — Client CRM + Engagement Management
    ============================================================ */
 const { useState: useStateF } = React;
 
+/* PRD prd-identitas-firma-sesi A5 — pilihan orang di formulir klien/perikatan berasal dari
+   PENGGUNA FIRMA SESI (bundel `bootstrap.users` → `AMS.FIRM_USERS`), menurut kapabilitas,
+   bukan tiga nama partner & tiga manajer firma demo yang dipaku. Nilai yang sudah tersimpan
+   pada baris (mode edit) tetap ditawarkan walau orangnya tak ada di daftar, supaya membuka
+   lalu menyimpan tak pernah diam-diam mengganti partner penanggung jawab. */
+function firmPeopleWith(cap: string, current?: string): string[] {
+  const users = (AMS.FIRM_USERS || []) as Array<{ name: string; role: string }>;
+  const names = users.filter((u) => rbacCan(u.role, cap)).map((u) => u.name);
+  if (current && !names.includes(current)) names.unshift(current);
+  return names;
+}
+
 function ClientCRM() {
   const { fmt, rp } = AMS;
   const { clients, engagementsForClient, setActiveEngagementId, addClient, updateClient } = useFirm();
-  const [selId, setSelId] = useStateF(clients[0].id);
+  /* A6 — firma tanpa klien: tak ada baris pertama untuk dipilih (dulu crash di `clients[0].id`). */
+  const [selId, setSelId] = useStateF(clients[0]?.id ?? null);
   const [q, setQ] = useStateF('');
   const [riskFilter, setRiskFilter] = useStateF('All');
   const [tab, setTab] = useStateF('profil');
@@ -30,16 +44,16 @@ function ClientCRM() {
     (riskFilter === 'All' || c.risk === riskFilter) &&
     (q === '' || c.name.toLowerCase().includes(q.toLowerCase()) || c.id.toLowerCase().includes(q.toLowerCase())));
   const sel = clients.find((c: any) => c.id === selId) || clients[0];
-  const selEngs = engagementsForClient(sel.id);
+  const selEngs = sel ? engagementsForClient(sel.id) : [];
   const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   // derived mock contacts + history per client
-  const contacts = [
+  const contacts = !sel ? [] : [
     { name: 'Direktur Keuangan', role: 'CFO', email: 'cfo@' + sel.id.toLowerCase() + '.co.id', phone: '+62 21 5• ••• •••', pic: true },
     { name: 'Kepala Akuntansi', role: 'Accounting Manager', email: 'acct@' + sel.id.toLowerCase() + '.co.id', phone: '+62 21 5• ••• •••' },
     { name: 'Komite Audit', role: 'Audit Committee Chair', email: 'auditcom@' + sel.id.toLowerCase() + '.co.id', phone: '—' },
   ];
-  const history = [
+  const history = !sel ? [] : [
     { d: '2026-03-02', t: 'Fieldwork dimulai untuk ' + sel.id, who: 'Anindya P.', icon: 'briefcase' },
     { d: '2026-01-15', t: 'Engagement letter ' + (sel.since + 9) + ' ditandatangani', who: 'Hartono W.', icon: 'doc' },
     { d: '2025-12-20', t: 'Penilaian penerimaan & keberlanjutan klien (lulus)', who: 'Sari D.', icon: 'check' },
@@ -102,7 +116,7 @@ function ClientCRM() {
                   </tr></thead>
                   <tbody>
                     {filtered.map((c: any) => (
-                      <tr key={c.id} className={c.id === sel.id ? 'sel' : ''} onClick={() => { setSelId(c.id); setTab('profil'); }} style={{ cursor: 'pointer' }}>
+                      <tr key={c.id} className={c.id === sel?.id ? 'sel' : ''} onClick={() => { setSelId(c.id); setTab('profil'); }} style={{ cursor: 'pointer' }}>
                         <td>
                           <div className="row ac gap8">
                             <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 28px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
@@ -121,10 +135,20 @@ function ClientCRM() {
                     ))}
                   </tbody>
                 </table>
+                {clients.length === 0 && (
+                  <div className="muted" style={{ padding: '18px 16px', fontSize: 12 }}>
+                    Belum ada klien di direktori firma ini. Tambahkan lewat tombol <b>Klien Baru</b>.
+                  </div>
+                )}
               </div>
             </Panel>
 
             {/* Client detail */}
+            {!sel ? (
+              <Panel>
+                <div className="muted" style={{ padding: '18px 16px', fontSize: 12 }}>Pilih atau tambahkan klien untuk melihat profilnya.</div>
+              </Panel>
+            ) : (
             <Panel noBody>
               <div style={{ background: 'linear-gradient(120deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '14px 16px' }}>
                 <div className="row ac gap12">
@@ -208,6 +232,7 @@ function ClientCRM() {
                 )}
               </div>
             </Panel>
+            )}
           </div>
         </div>
       </div>}
@@ -221,7 +246,7 @@ function ClientCRM() {
 
 function blankClient() {
   const n = Math.floor(Math.random() * 900 + 100);
-  return { id: 'C-' + n, name: '', industry: '', tier: 'Tier 2', risk: 'Medium', npwp: '', city: '', listed: false, since: 2026, partner: 'Hartono Wijaya, CPA', fee: 500000000, status: 'Proposal' };
+  return { id: 'C-' + n, name: '', industry: '', tier: 'Tier 2', risk: 'Medium', npwp: '', city: '', listed: false, since: 2026, partner: '', fee: 500000000, status: 'Proposal' };
 }
 
 function ClientForm({ form, onClose, onSave }: any) {
@@ -229,8 +254,10 @@ function ClientForm({ form, onClose, onSave }: any) {
   const { fmt } = AMS;
   const [d, setD] = useStateF(form.data);
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
-  const valid = d.name.trim() && d.industry.trim() && d.city.trim();
-  const partners = ['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'];
+  /* Q-4 (2026-11-28) — partner penanggung jawab WAJIB dipilih: "klien tanpa partner" bukan
+     keadaan sah untuk KAP, dan admin bootstrap selalu tersedia sebagai pilihan. */
+  const valid = d.name.trim() && d.industry.trim() && d.city.trim() && String(d.partner || '').trim();
+  const partners = firmPeopleWith(CAP.OPINION_APPROVE, form.mode === 'edit' ? d.partner : undefined);
 
   return (
     <Overlay
@@ -271,7 +298,7 @@ function ClientForm({ form, onClose, onSave }: any) {
             <div className="field"><label htmlFor={uid+'-status'}>Status</label><select id={uid+'-status'} className="select" value={d.status} onChange={(e: any) => set('status', e.target.value)}>{['Proposal', 'Active', 'Completed'].map(t => <option key={t}>{t}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label htmlFor={uid+'-partner-penanggung-jawab'}>Partner Penanggung Jawab</label><select id={uid+'-partner-penanggung-jawab'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-partner-penanggung-jawab'}>Partner Penanggung Jawab</label><select id={uid+'-partner-penanggung-jawab'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}><option value="">— pilih partner —</option>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
             <div className="field"><label htmlFor={uid+'-annual-fee-rp'}>Annual Fee (Rp)</label><input id={uid+'-annual-fee-rp'} className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
             <div className="field"><label htmlFor={uid+'-klien-sejak'}>Klien Sejak</label><input id={uid+'-klien-sejak'} className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
@@ -486,19 +513,26 @@ function EngagementDetail({ e, client, onClose }: any) {
   );
 }
 
-const ENGAGEMENT_FORM_INIT = { clientId: '', type: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1200, materiality: 2000000000, risk: 'Medium' };
+/* PRD prd-identitas-firma-sesi A5 — tanpa nilai awal karangan. Dulu: partner "Hartono Wijaya,
+   CPA", manajer "Anindya Pramesti", tenggat 2026-04-30, 1.200 jam, dan materialitas Rp 2 M —
+   identitas & angka firma demo yang ikut tertulis ke perikatan firma mana pun. Materialitas
+   TIDAK ditetapkan di sini: SSOT-nya Materiality Workspace (AGENTS §3.2). */
+const ENGAGEMENT_FORM_INIT = { clientId: '', type: 'Audit Laporan Keuangan', standard: 'SA', partner: '', manager: '', deadline: '', budgetHrs: '', risk: 'Medium' };
 
 function EngagementForm({ clients, onClose, onAdd }: any) {
   const uid = React.useId();
-  const [d, setD] = useStateF({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id });
+  const init = { ...ENGAGEMENT_FORM_INIT, clientId: clients[0]?.id ?? '' };
+  const [d, setD] = useStateF(init);
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
-  const valid = d.clientId && +d.budgetHrs > 0;
+  const valid = d.clientId && d.partner && d.deadline && +d.budgetHrs > 0;
+  const partners = firmPeopleWith(CAP.OPINION_APPROVE);
+  const managers = firmPeopleWith(CAP.SIGNOFF_REVIEWER);
   return (
     <Overlay
       variant="modal"
       size="md"
       onClose={onClose}
-      isDirty={() => JSON.stringify(d) !== JSON.stringify({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id })}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(init)}
       bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
       header={(
         <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: 'var(--on-dark-fg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
@@ -520,8 +554,8 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
             <div className="field"><label htmlFor={uid+'-standar'}>Standar</label><select id={uid+'-standar'} className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label htmlFor={uid+'-partner'}>Partner</label><select id={uid+'-partner'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label htmlFor={uid+'-manajer'}>Manajer</label><select id={uid+'-manajer'} className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-partner'}>Partner</label><select id={uid+'-partner'} className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}><option value="">— pilih partner —</option>{partners.map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label htmlFor={uid+'-manajer'}>Manajer</label><select id={uid+'-manajer'} className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}><option value="">— belum ditetapkan —</option>{managers.map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div className="field"><label htmlFor={uid+'-anggaran-jam'}>Anggaran Jam</label><input id={uid+'-anggaran-jam'} className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>

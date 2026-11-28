@@ -205,3 +205,52 @@ membuat klien, dari pengguna firma. Q-5 = PR-A → PR-B → PR-C berurutan di se
   Tanpa `engagementId`, prosedurnya memanggil `assertFirmScoped` (tetap `firm-unresolved` gagal-tertutup),
   dan `wtb`/`states` tidak di-query. Select firm memuat `id`.
 - Hasil: 7/7 hijau; suite server 35 berkas / 518 uji hijau; `tsc` migration bersih (kontrak hanya bertambah).
+- **Mendarat:** PR #406 → `112411c` (CI 9/9 hijau).
+
+### PR-B (frontend) — 2026-11-28
+
+**Perubahan**
+- A1: konstanta `FIRM_SCOPE_ID` dicabut. Penggantinya register sesi `setSessionFirmId`/`sessionFirmId`
+  (`persist_scope.ts`), disetel `hydrateForSession` dan `AppProviders` dari `me.firmId`. Pemakainya
+  dialihkan: `FirmProvider`, `useAmsPersist`, baca-lewat firma, `readPersisted`, `view_dms`.
+  `buildExportIdentity` tetap **murni** dengan `firmId` sebagai parameter. Tanpa sesi, segel firma
+  ditolak dan tidak dialamatkan ke firma cadangan.
+- A3 + Q-2: `boot_hydrate.ts` memilih perikatan dari `engagement.list`: yang aktif terakhir, lalu yang
+  pertama, lalu tanpa perikatan. Galatnya dilempar, dan `Root` menampilkan `BootError` ("Coba lagi" / "Keluar").
+  Untuk firma demo hasilnya identik: ENG-2025-014 adalah id terkecil yang dapat diakses keempat akun demo.
+- A4: penjaga `.length` di `hydrateCoreFromApi` dicabut. Pengguna tanpa profil mendapat profil minimal dari
+  sesi, bukan profil demo. Kepemilikan baris inti dicatat **pada datanya** (`AMS.FIRM.id`); seed tanpa
+  `id` berarti milik `SEED_FIRM_ID` (`data_seed_firm.ts`), dan `FirmProvider` memakai seed sebagai nilai awal
+  hanya untuk firma pemiliknya.
+- A5 + Q-4: pilihan partner/manajer berasal dari `AMS.FIRM_USERS` (bundel `users`) menurut kapabilitas
+  (`OPINION_APPROVE` / `SIGNOFF_REVIEWER`). Partner klien **wajib**. Formulir perikatan tanpa partner,
+  manajer, tenggat, atau jam karangan, dan tanpa materialitas (SSOT Materiality Workspace).
+- A6: Direktori Klien punya keadaan kosong.
+
+**Merah dulu**
+- Fase 1 G1-a, G1-c, G1-d sudah terbukti merah di gerbang (#399). Kini `it.fails` → `it`, 7/7 hijau.
+- `view_firm_fresh.test.ts` (4 uji) dijalankan di worktree `origin/master` `19b79b9`: **4/4 merah**, dengan
+  `Cannot read properties of undefined (reading 'id')` (A6) dan `expected 'Hartono Wijaya, CPA' to be ''` (A5).
+- `boot_hydrate.test.ts` (10 uji) memuat gerbang statik `app.tsx`. Gerbang itu merah di master karena
+  `hydrateCoreFromApi(DEFAULT_ENG_ID, …)` dan `catch` kosong ada di sana.
+
+**Pelajaran: register terlepas dari datanya.** Draf pertama mencatat pemilik di variabel modul terpisah.
+G1-d memerah: uji sebelumnya menghidrasi bundel segar, lalu `afterEach` memulihkan baris demo ke `AMS`,
+sementara register masih berkata "milik firma segar". Hasilnya 8 klien demo dianggap milik firma segar.
+Kepemilikan dipindah ke `AMS.FIRM.id`, sehingga memulihkan data ikut memulihkan pemiliknya.
+
+**Verifikasi peramban lokal** (stack SQLite terpisah: `db push` + `npm run bootstrap` dengan identitas
+`e2e/fresh-firm.mjs`, Vite dev): login admin firma segar → Beranda, Client CRM, Engagement Mgmt, dan
+Pengaturan terender tanpa error boundary. Topbar "—", bukan "Sentosa Makmur · ENG-2025-014". Chip
+Pengaturan "SEGAR · Enterprise", nama firma sendiri, nol penanda demo di CRM dan Pengaturan. Klien
+dibuat lewat UI, lalu **diterima server**: StateDoc `firm/FIRM-SEGAR/clients` v1 hanya berisi klien itu,
+dengan partner = admin. Log server: **nol** `cross-firm-state`. Sisa 403 semuanya `cross-firm-engagement`,
+yaitu bacaan perikatan `ENG-2025-014` karena `activeEng` masih default `DEFAULT_ENG_ID` (A7 = PR-C, sesuai rencana).
+
+**Temuan baru di luar lingkup (A8 — TIDAK dikerjakan, perlu keputusan):** Beranda firma segar masih
+menampilkan data demo dari namespace **selain** tiga koleksi inti: antrean EQR ("PT Sentosa Makmur Tbk ·
+EQR-014"), catatan reviu atas nama "Dimas R."/"Anindya P.", risiko signifikan, keuangan firma (WIP Rp 7,72 M,
+aging piutang), dan kinerja tim. Sumbernya seed `AMS.*` lain (REVIEW_NOTES, RISKS, FIRMFIN, …) yang tak
+pernah dihidrasi server. Kelasnya sama dengan P0-4, tetapi lingkupnya jauh lebih luas daripada A4. Riwayat
+dan kontak Direktori Klien juga masih **dikarang** per klien (`view_firm.tsx` `history`/`contacts`: "Hartono W.",
+"Sari D."), meskipun tak terlihat di tab Profil default.

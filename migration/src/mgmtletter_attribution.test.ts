@@ -31,7 +31,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AMS } from './data';
-import { persistCacheKey, FIRM_SCOPE_ID, DEFAULT_ENG_ID } from './persist_scope';
+import { persistCacheKey, DEFAULT_ENG_ID, setSessionFirmId } from './persist_scope';
+import { SEED_FIRM_ID } from './data_seed_firm';
+/* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI. Uji ini memerankan sesi firma demo. */
+const FIRM_SCOPE_ID = SEED_FIRM_ID;
+setSessionFirmId(FIRM_SCOPE_ID);
 import { amsDateIso } from './clock_ssot';
 import {
   mlActor, mlActorLabel, mlDiscussionNote, mlDecisionFields, mlDecisionStamp,
