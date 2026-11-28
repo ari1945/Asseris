@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { Badge, Btn, Panel, Stat } from './ui';
 
@@ -103,6 +103,13 @@ function DFRekonsiliasi() {
   const nav = useNav();
   const { wtb, aje } = useAudit();
   const canon = AMS_CANON;
+  /* A7 kelas 3 (PRD prd-identitas-firma-sesi) — neraca saldo di bawah milik perikatan AKTIF,
+     tetapi judul & tie-out dulu dipaku ke 'C-014' / "ENG-2025-014 · PT Sentosa Makmur": di
+     perikatan lain panel ini menyandingkan WTB klien A dengan fee klien demo. */
+  const firmRC = useFirm() as { activeEngagement?: { id?: string }; activeClient?: { id?: string; name?: string } } | null;
+  const rcEngId = (firmRC && firmRC.activeEngagement && firmRC.activeEngagement.id) || '—';
+  const rcClientId = (firmRC && firmRC.activeClient && firmRC.activeClient.id) || null;
+  const rcClient = (firmRC && firmRC.activeClient && firmRC.activeClient.name) || '—';
 
   const R = useMemoRC(() => canon.reconcile(wtb, aje), [wtb, aje]);
   const rows = R.accounting;
@@ -114,8 +121,8 @@ function DFRekonsiliasi() {
 
   /* ---- tie-out keuangan firma (fee perikatan aktif lintas-modul) ---- */
   const fmt = AMS.fmt;
-  const pppk = ((AMS.PPPK_CLIENTS as any[]) || []).find(c => c.id === 'C-014');
-  const crm = ((AMS.CRM_360 || {}) as any)['C-014'];
+  const pppk = rcClientId ? ((AMS.PPPK_CLIENTS as any[]) || []).find(c => c.id === rcClientId) : null;
+  const crm = rcClientId ? ((AMS.CRM_360 || {}) as any)[rcClientId] : null;
   const crmAudit = crm && crm.contracts ? crm.contracts.find((c: any) => /Audit/.test(c.type)) : null;
   const feePppk = pppk ? pppk.fee : null;                         // Rp juta
   const feeCrm = crmAudit ? Math.round(crmAudit.value / 1e6) : null;
@@ -156,14 +163,14 @@ function DFRekonsiliasi() {
       {/* ---- tabel rekonsiliasi ---- */}
       <div style={{ height: 12 }} />
       <div className="row jb ac" style={{ marginBottom: 8 }}>
-        <h3 style={{ fontSize: 13, fontWeight: 700 }}>Rekonsiliasi Pos Akuntansi Entitas — PT Sentosa Makmur</h3>
+        <h3 style={{ fontSize: 13, fontWeight: 700 }}>Rekonsiliasi Pos Akuntansi Entitas — {rcClient}</h3>
         <Btn sm onClick={() => nav('wtb')}><I.table size={13} /> Buka WTB</Btn>
       </div>
       {rows.map((r: any) => <RCRow key={r.id} r={r} nav={nav} />)}
 
       {/* ---- tie-out keuangan firma ---- */}
       <div style={{ height: 6 }} />
-      <Panel title="Tie-out Keuangan Firma" sub="fee perikatan lintas-modul (ENG-2025-014 · PT Sentosa Makmur)">
+      <Panel title="Tie-out Keuangan Firma" sub={'fee perikatan lintas-modul (' + rcEngId + ' · ' + rcClient + ')'}>
         <div style={{ padding: 13, display: 'grid', gap: 9 }}>
           <div className="row ac gap8" style={{ padding: '8px 11px', borderRadius: 8, background: 'var(--surface-2)' }}>
             <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />

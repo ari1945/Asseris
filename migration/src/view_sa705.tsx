@@ -52,7 +52,7 @@ function SA705View() {
   const firm = useFirm();
   const nav = useNav();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engId = firm?.activeEngagement?.id || '—';
   const [tab, setTab] = useState705('penentuan');
   /* SSOT bersama modul opini — engagement-scope (AMS_PERSIST_SCOPE) + isolasi W7.5.
      Seed = DEFAULT_DOC_O yang sama dengan view_opinion (cegah data-loss lintas modul). */

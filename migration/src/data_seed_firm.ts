@@ -10,3 +10,11 @@
    non-demo menulis ke firma demo dan melihat data demo (PRD prd-identitas-firma-sesi A1/A4).
    ============================================================ */
 export const SEED_FIRM_ID = 'FIRM-WHR';
+
+/* Perikatan PEMILIK baris seed yang tak berkunci perikatan: neraca saldo `WTB` (data_part1)
+   dan struktur grup kanonik (`AMS_CANON.GROUP_SUBS/INTERCO`). Hanya untuk me-RUTE-kan data
+   seed ke pemiliknya (fw_canon `wtbForEngagement`, view_newdisc) — BUKAN perikatan cadangan.
+   Dulu nilai yang sama dipakai sebagai `DEFAULT_ENG_ID` = "perikatan bila tak ada yang aktif",
+   sehingga firma tanpa perikatan membaca & menulis berkas perikatan demo (PRD
+   prd-identitas-firma-sesi A7). */
+export const SEED_ENGAGEMENT_ID = 'ENG-2025-014';

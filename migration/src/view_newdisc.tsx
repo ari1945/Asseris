@@ -5,7 +5,7 @@ import { AMS_CANON } from './canon';
 import { fxAt } from './canon_fx';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { DEFAULT_ENG_ID } from './persist_scope';
+import { SEED_ENGAGEMENT_ID } from './data_seed_firm';
 import { P2_MIN_RATE, P2_THRESHOLD_EUR, pillarTwo, supplierFinance } from './newdisc_derive';
 import type { P2Component, P2JurisRow } from './newdisc_derive';
 import { SubBar } from './shell';
@@ -56,7 +56,7 @@ function NewDisclosures2024() {
   const nav = useNav();
   const [tab, setTab] = useStateND('pilar2');
 
-  const engId = (firm && firm.activeEngagement && firm.activeEngagement.id) || DEFAULT_ENG_ID;
+  const engId = (firm && firm.activeEngagement && firm.activeEngagement.id) || null;
   /* Tanggal pelaporan perikatan (akhir periode) — dasar pencarian kurs. */
   const reportDate = AMS_CANON.ASOF.y + '-' + String(AMS_CANON.ASOF.m).padStart(2, '0') + '-31';
   const parentName = (firm && firm.activeClient && firm.activeClient.name) || 'Entitas induk';
@@ -70,7 +70,7 @@ function NewDisclosures2024() {
        berarti menampilkan entitas anak KLIEN LAIN — kelas kebocoran yang sama
        dengan neraca saldo lintas-perikatan (PR-J). Di luar itu: daftar kosong,
        dan `pillarTwo` akan menandai `groupScoped: false`. */
-    const owns = engId === DEFAULT_ENG_ID;
+    const owns = engId === SEED_ENGAGEMENT_ID;
     const subs: P2Component[] = owns
       ? (AMS_CANON.GROUP_SUBS || []).map(s => ({
           id: s.id, name: s.name, country: s.country, pbt: s.pbt, tax: s.tax, rev: s.rev,
@@ -146,7 +146,7 @@ function NewDisclosures2024() {
 
                 {p2.available && !p2.groupScoped && (
                   <CannotAssert title="Struktur grup per-yurisdiksi belum terdaftar untuk perikatan ini">
-                    Hanya yurisdiksi <b>entitas induk</b> yang dapat diturunkan (dari neraca saldonya sendiri). Entitas anak, yurisdiksi asing, dan karenanya uji ambang cakupan GloBE belum dapat disimpulkan. Struktur grup kanonik (<Src module="psak65">PSAK 65</Src> · <Src module="groupaudit">SA 600</Src>) melekat pada perikatan <span className="mono">{DEFAULT_ENG_ID}</span> dan <b>tidak dipinjamkan</b> ke perikatan lain.
+                    Hanya yurisdiksi <b>entitas induk</b> yang dapat diturunkan (dari neraca saldonya sendiri). Entitas anak, yurisdiksi asing, dan karenanya uji ambang cakupan GloBE belum dapat disimpulkan. Struktur grup kanonik (<Src module="psak65">PSAK 65</Src> · <Src module="groupaudit">SA 600</Src>) melekat pada perikatan pemiliknya dan <b>tidak dipinjamkan</b> ke perikatan lain.
                   </CannotAssert>
                 )}
 

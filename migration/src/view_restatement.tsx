@@ -20,6 +20,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import type { RestatementItem } from './canon_types';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 const { useMemo: useMemoRS } = React;
 
@@ -120,7 +121,7 @@ function RestatementView() {
   const fmtJt = (v: number) => (v < 0 ? '(' + fmt(Math.abs(Math.round(v))) + ')' : fmt(Math.round(v)));
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   const TABS = [
     { id: 'register', label: 'Register Item', count: items.length },

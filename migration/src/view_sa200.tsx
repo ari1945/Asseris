@@ -33,6 +33,10 @@ const SA200_SKEPTIS = [
 function SA200View() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  /* Identitas perikatan dari perikatan AKTIF, bukan literal perikatan demo (PRD
+     prd-identitas-firma-sesi A7 kelas 3 — literal ini dulu tercetak di meta artefak ekspor). */
+  const engId = firm?.activeEngagement?.id || '—';
+  const engFy = firm?.activeEngagement?.fy || '—';
   const [tab, setTab] = useStateS2('tujuan');
 
   const tabs = [
@@ -54,7 +58,7 @@ function SA200View() {
         kind: 'sa200-memo', scope: 'engagement',
         fileName: `Memo SA 200 - ${client}.pdf`,
         title: 'Memo — Tujuan Keseluruhan Auditor (SA 200)',
-        meta: [`${client} · ENG-2025-014 · FY2025 · SA (IAPI)`,
+        meta: [`${client} · ${engId} · ${engFy} · SA (IAPI)`,
           'Kerangka SAK tujuan umum · keyakinan memadai (bukan absolut)'],
         blocks: [
           { type: 'heading', text: '1. Tujuan & Premis Audit' },
@@ -87,7 +91,7 @@ function SA200View() {
             <div style={{ minWidth: 230 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 200</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Tujuan Keseluruhan Auditor Independen</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Kerangka Pelaporan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>SAK · Tujuan Umum</div></div>

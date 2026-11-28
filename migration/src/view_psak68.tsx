@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Check, Donut, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { fvDisclosureSummary, type DisclosureSummary, type Psak68Like } from './canon_fv_disclosure';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 import {
   EXPERT_EVAL_STEPS, expertEvalComplete, expertEvalDone, expertEvalMissing, expertRefsOf,
   type ExpertEvalState, type ExpertEvalStepKey,
@@ -165,7 +166,7 @@ function PSAK68View() {
     setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), [key]: on } }));
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja V-1" (dulu mati): ekspor XLSX tersegel
      inventaris pos nilai wajar + hierarki Level 1-3 + roll-forward Level 3 + sensitivitas. */

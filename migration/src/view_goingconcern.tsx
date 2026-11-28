@@ -157,7 +157,7 @@ function GoingConcern() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engLabel = firm?.activeEngagement?.id || '—';
   const locked = !!(firm && firm.locked);
   /* rasio & Altman Z dari WTB (SSOT) — reaktif terhadap AJE live */
   const audit = useAudit();

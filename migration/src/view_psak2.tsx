@@ -8,6 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 2 · Laporan Arus Kas
@@ -126,7 +127,7 @@ function PSAK2View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja" (dulu mati): ekspor XLSX tersegel
      laporan arus kas (metode aktif) + tie-out saldo. Angka Rp juta dari FSGEN/AMS_CANON. */

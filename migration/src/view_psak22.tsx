@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 22 · Kombinasi Bisnis (IFRS 3)
@@ -107,7 +108,7 @@ function PSAK22View() {
   const score = Math.round(doneCount / p22.proc.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
   const deal = p22.deals.find((d: any) => d.id === sel) || p22.deals[0];
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja G-2" (dulu mati): ekspor XLSX tersegel

@@ -9,6 +9,7 @@ import { Badge, Btn, Donut, Panel } from './ui';
 import { wpSignersFor } from './wp_signoff';
 import { amsExportXlsx } from './export_xlsx';
 import { stateHistory, auditVerify } from './api';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 71 · Instrumen Keuangan (IFRS 9)
@@ -355,7 +356,9 @@ function P71IntegrityChain({ engId, done, probs }: { engId?: string; done: Recor
 
   useEffectIC(() => {
     let live = true;
-    const eng = engId || 'ENG-2025-014';
+    /* Tanpa perikatan tak ada riwayat untuk dibaca — bukan riwayat perikatan demo. */
+    const eng = engId || '';
+    if (!eng) { setRows([]); return () => { live = false; }; }
     (async () => {
       const [dHist, pHist, v] = await Promise.all([
         stateHistory('engagement', eng, 'psak71.done.v1'),
@@ -452,7 +455,7 @@ function PSAK71View() {
   const score = Math.round(doneCount / P71_PROC.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* what-if overlay live (tab forward-looking) */
   const probSum = p71.scenarios.reduce((a: any, s: any) => a + (probs[s.id] || 0), 0) || 1;

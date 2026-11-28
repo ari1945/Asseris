@@ -251,7 +251,7 @@ function verdictForAvg(avg: any) {
 function UseOfExpert() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engLabel = firm?.activeEngagement?.id || '—';
   const locked = !!(firm && firm.locked);
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'experts.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */

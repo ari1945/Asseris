@@ -29,7 +29,7 @@ function SA701View() {
   const firm = useFirm();
   const nav = useNav();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engId = firm?.activeEngagement?.id || '—';
   const listed = firm?.activeClient?.listed;
   const [tab, setTab] = useInitialTab('sa701', 'penentuan');
   /* SSOT KAM bersama modul opini — engagement-scope + isolasi W7.5. Seed identik. */

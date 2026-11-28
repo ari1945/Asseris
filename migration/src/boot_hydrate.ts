@@ -19,7 +19,7 @@
    ENG-2025-014 adalah id terkecil yang dapat diakses keempat akun demo.
    ============================================================ */
 import { api, hydrateCoreFromApi } from './api';
-import { persistCacheKey, setSessionFirmId } from './persist_scope';
+import { persistCacheKey, setBootEngagementId, setSessionFirmId } from './persist_scope';
 
 export interface SessionUser {
   id: string;
@@ -68,5 +68,6 @@ export async function hydrateForSession(user: SessionUser): Promise<string | nul
 
   const applied = await hydrateCoreFromApi(engagementId ?? undefined, user.id);
   if (!applied) throw new BootHydrationError('Server tidak mengirim data firma.');
+  setBootEngagementId(engagementId);
   return engagementId;
 }

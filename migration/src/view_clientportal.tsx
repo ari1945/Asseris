@@ -298,7 +298,8 @@ function ClientPortal() {
   const audit = useAudit();
   const eng = firm.activeEngagement || {};
   const clientObj = firm.activeClient || {};
-  const engId = eng.id || 'ENG-2025-014';
+  /* Terjaga di shell (engagement_guard ENGAGEMENT_SCOPED_MODULES): PBC ditulis per perikatan. */
+  const engId = eng.id || '';
   const clientName = clientObj.name || 'PT Sentosa Makmur Tbk';
   const logActivity = audit.logActivity || (() => {});
   /* roster peminta dari sumber kebenaran tunggal (tim perikatan) */

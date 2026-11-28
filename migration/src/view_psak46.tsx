@@ -10,6 +10,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 46 · Pajak Penghasilan (Income Taxes)
@@ -216,7 +217,7 @@ function PSAK46View() {
   const netDT = DT.closing;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   const currentTax = DT.currentTax, deferredPL = DT.deferredPL, taxExpense = DT.taxExpense, pbt = DT.pbt;
   /* ETR tak terdefinisi bila PBT nol (canon mengembalikan null, bukan Infinity).

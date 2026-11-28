@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 58 · Aset Tidak Lancar Dimiliki untuk Dijual
@@ -119,7 +120,7 @@ function PSAK58View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja E-7" (dulu mati): ekspor XLSX tersegel
      reklasifikasi disposal group + pengukuran FVLCS + operasi dihentikan. Rp juta dari canon.psak58. */

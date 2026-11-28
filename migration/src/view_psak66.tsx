@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 66 · Pengaturan Bersama (Joint Arrangements)
@@ -96,7 +97,7 @@ function PSAK66View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja G-3" (dulu mati): ekspor XLSX tersegel
      register pengaturan bersama (JV/JO) + informasi keuangan ringkas. Rp juta dari canon.psak66. */

@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 /* Masa simpan = kebijakan firma per KELAS dokumen (SSOT lapisan Arsip). */
 import { RETENTION } from './data_records';
-import { useAmsPersist, useAuth } from './contexts';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
 import { sessionActor } from './session_actor';
 import { FileDropField, FileList, SecurePipeline } from './evidence';
 import { I, MODULE_INDEX } from './icons';
@@ -33,13 +33,23 @@ const ASSEMBLY = { 'complete': { k: 'green', l: 'Lengkap' }, 'in-progress': { k:
 const ACCESS_LBL = { view: 'Melihat', download: 'Mengunduh', edit: 'Menyunting', lock: 'Mengunci', print: 'Mencetak' };
 const TYPE_ICON = { 'Kertas Kerja': 'flask', 'Laporan': 'report', 'Surat Perikatan': 'doc', 'EQR': 'shield', 'Template': 'template' };
 const DMS_TYPES = ['Kertas Kerja', 'Laporan', 'Surat Perikatan', 'EQR', 'Template', 'Memo'];
-const DMS_ENGS = [
-  { id: 'ENG-2025-014', client: 'PT Sentosa Makmur Tbk' },
-  { id: 'ENG-2025-047', client: 'PT Mandiri Sejahtera Finance' },
-  { id: 'ENG-2025-063', client: 'PT Graha Properti Nusantara' },
-  { id: 'ENG-2024-014', client: 'PT Sentosa Makmur Tbk' },
-  { id: 'ENG-2021-008', client: 'PT Bumi Hijau Lestari' },
-];
+/* A7 kelas 3 (PRD prd-identitas-firma-sesi) — folder perikatan tujuan unggah dulu daftar DEMO
+   yang dipaku (lima perikatan firma demo, nilai awal ENG-2025-014): firma mana pun mengarsipkan
+   dokumennya ke folder perikatan demo. Kini dari perikatan firma SESI. */
+type DmsEng = { id: string; client: string };
+function useDmsEngagements(): { engs: DmsEng[]; activeId: string } {
+  const firm = useFirm() as {
+    engagements?: Array<{ id: string; clientId?: string }>;
+    clientById?: (id: string) => { name?: string } | undefined;
+    activeEngagementId?: string | null;
+  } | null;
+  const list = (firm && firm.engagements) || [];
+  const engs = list.map((e) => ({
+    id: e.id,
+    client: (firm && firm.clientById && e.clientId && firm.clientById(e.clientId)?.name) || e.clientId || '—',
+  }));
+  return { engs, activeId: (firm && firm.activeEngagementId) || '' };
+}
 const REF = new Date(AMS.TODAY); /* K-02: klok SSOT */
 const dDate = (d: any, opt?: any) => d ? new Date(d).toLocaleDateString('id-ID', opt || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -69,14 +79,15 @@ const DMS_TYPE_MODULE = { 'Kertas Kerja': 'workpapers', 'Laporan': 'fsgen', 'Sur
 
 /* ---- Upload modal ---- */
 function UploadModal({ onClose, onAdd, actor }: any) {
-  const [f, setF] = useDMS({ name: '', eng: 'ENG-2025-014', type: 'Kertas Kerja', classification: 'Rahasia', linkedWP: '' });
+  const { engs, activeId } = useDmsEngagements();
+  const [f, setF] = useDMS({ name: '', eng: activeId || (engs[0] ? engs[0].id : ''), type: 'Kertas Kerja', classification: 'Rahasia', linkedWP: '' });
   const [files, setFiles] = useDMS([]);
   const set = (k: any, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const okFiles = files.filter((m: any) => m.ok);
   /* Pemilik dokumen & baris versi pertama ditulis atas nama pelaku sesi; tanpa itu
      unggahan akan membuat catatan arsip yang pemiliknya tebakan. */
   const valid = !!actor && f.name.trim().length > 4 && (files.length === 0 || okFiles.length > 0);
-  const engObj = DMS_ENGS.find(e => e.id === f.eng);
+  const engObj = engs.find(e => e.id === f.eng);
   const onFiles = (metas: any) => {
     setFiles(metas);
     const first = metas.find((m: any) => m.ok) || metas[0];
@@ -91,7 +102,7 @@ function UploadModal({ onClose, onAdd, actor }: any) {
       <div style={{ height: 12 }} />
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <PField label="Nama Dokumen" span><input className="input" value={f.name} onChange={(e: any) => set('name', e.target.value)} placeholder="mis. Kertas Kerja — Sentosa Makmur FY2025" autoFocus /></PField>
-        <PField label="Engagement"><select className="select" value={f.eng} onChange={(e: any) => set('eng', e.target.value)}>{DMS_ENGS.map(e => <option key={e.id} value={e.id}>{e.id} · {e.client.replace('PT ', '')}</option>)}</select></PField>
+        <PField label="Engagement"><select className="select" value={f.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map(e => <option key={e.id} value={e.id}>{e.id} · {e.client.replace('PT ', '')}</option>)}</select></PField>
         <PField label="Jenis"><select className="select" value={f.type} onChange={(e: any) => set('type', e.target.value)}>{DMS_TYPES.map(t => <option key={t}>{t}</option>)}</select></PField>
         <PField label="Klasifikasi"><select className="select" value={f.classification} onChange={(e: any) => set('classification', e.target.value)}>{Object.keys(CLASS_KIND).map(c => <option key={c}>{c}</option>)}</select></PField>
         <PField label="Retensi (tahun)" hint="Kebijakan firma per kelas dokumen — bukan per dokumen"><div className="input" style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)' }}><span className="mono" style={{ fontWeight: 700 }}>{RETENTION.retentionYearsForType(f.type)} thn</span><span className="tiny muted" style={{ marginLeft: 8 }}>{RETENTION.classForType(f.type).jenis}</span></div></PField>
@@ -269,6 +280,7 @@ function DocManagement() {
 
   const auth = useAuth();
   const actor = sessionActor(auth && auth.user);
+  const { engs } = useDmsEngagements();
 
   const patch = (id: any, fn: any) => setDocs((list: any) => list.map((d: any) => d.id === id ? fn(d) : d));
   const toggleHold = (id: any) => {
@@ -282,7 +294,7 @@ function DocManagement() {
   const addDoc = async (f: any) => {
     if (!actor) return;
     const id = 'DOC-' + String(700 + Math.floor(Math.random() * 299)).padStart(4, '0');
-    const engObj = DMS_ENGS.find(e => e.id === f.eng);
+    const engObj = engs.find(e => e.id === f.eng);
     const meta = (f.files && f.files[0]) || (window as any).amsFileMeta({ name: f.name + '.pdf' });
     // F0.1 (PRD 2026-07-19) — unggah BYTE asli ke server (bukan lagi metadata + hash fiktif). Doc
     // index tetap firm-scope (dms.v2); byte disimpan sbagai lampiran (terenkripsi, SHA-256 nyata

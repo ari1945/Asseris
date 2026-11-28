@@ -61,7 +61,10 @@ vi.mock('./api', () => ({
 }));
 
 import { AppProviders, useFirm } from './contexts';
-import { DEFAULT_ENG_ID, persistCacheKey } from './persist_scope';
+import { persistCacheKey } from './persist_scope';
+import { SEED_ENGAGEMENT_ID } from './data_seed_firm';
+/* Dulu `DEFAULT_ENG_ID` = perikatan cadangan; kini hanya id pemilik data seed (A7). */
+const DEFAULT_ENG_ID = SEED_ENGAGEMENT_ID;
 import { SEED_FIRM_ID } from './data_seed_firm';
 /* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI (ME.firmId di bawah = firma demo). */
 const FIRM_SCOPE_ID = SEED_FIRM_ID;

@@ -9,7 +9,7 @@ import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
 import { parseHash } from './route_hash';
 import { coerceTab, tabFromHash, writeTabToAddress } from './tab_address';
-import { DEFAULT_ENG_ID, sessionFirmId, setSessionFirmId, coreDataBelongsTo } from './persist_scope';
+import { bootEngagementId, sessionFirmId, setSessionFirmId, coreDataBelongsTo } from './persist_scope';
 /* PR-1 (prd-export-seal-identity-ssot) — SATU-SATUNYA penerbit register
    identitas ekspor. Gerbang `export_identity.test.ts` §3 menolak penulis kedua. */
 import { publishActiveEngagement } from './export_identity';
@@ -724,9 +724,15 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
   const cacheKey = 'ams.v1.' + scope + '.' + scopeId + '.' + key;
   const legacyKey = 'ams.v1.' + key;
   const isPersonal = PERSONAL_STATE_KEYS.has(key);
+  /* A7 (PRD prd-identitas-firma-sesi) — TANPA ALAMAT = INERT. scopeId kosong (firma tanpa
+     perikatan aktif) dulu tak mungkin terjadi karena `DEFAULT_ENG_ID` selalu mengisinya —
+     dengan perikatan DEMO. Kini kosong berarti: nilai awal saja, tanpa baca/tulis server,
+     tanpa cache. Penjaga shell mencegah modul perikatan dirender dalam keadaan ini. */
+  const inert = !scopeId;
+  const initialValue = () => (typeof initial === 'function' ? initial() : initial);
   // Personal keys: JANGAN baca cache firm-scope bersama (bisa memuat baris pengguna lain dari
   // sesi sebelumnya) dan JANGAN pakai nilai penuh AMS.* — mulai dari kosong-aman, server mengisi.
-  const [val, setValRaw] = React.useState(() => isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial));
+  const [val, setValRaw] = React.useState(() => isPersonal ? emptyLike(initial) : (inert ? initialValue() : cacheRead(cacheKey, legacyKey, initial)));
   const versionRef = React.useRef(0);
   const timerRef = React.useRef(null);
   /* Argumen tipe generik TIDAK bisa dipakai pada hook React di repo ini (tak ada
@@ -762,6 +768,11 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
 
   const hydrate = React.useCallback(() => {
     let cancelled = false;
+    if (!scopeId) {
+      setValRaw(isPersonal ? emptyLike(initial) : (typeof initial === 'function' ? initial() : initial));
+      versionRef.current = 0;
+      return () => { cancelled = true; };
+    }
     setValRaw(isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache (kosong-aman utk personal)
     versionRef.current = 0;
     const reader = isPersonal ? (api as any).personal.get : (api as any).state.get;
@@ -885,6 +896,7 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
     setValRaw((prev: any) => {
       const value = typeof next === 'function' ? next(prev) : next;
       const target = targetRef.current as WriteTarget;   // alamat SAAT EDIT, bukan saat flush
+      if (!target.scopeId) return value;                 // A7 — tanpa alamat: lokal saja, tak ditulis ke mana pun
       cacheWrite(target.cacheKey, value);
       /* Edit beruntun ke target yang sama menumpuk di atas baseVersion yang sama —
          belum ada satu pun yang di-commit, jadi versinya belum bergerak. */
@@ -927,7 +939,7 @@ function useAmsPersist(key: any, initial: any) {
   const scope = (AMS_PERSIST_SCOPE as any)[key] || (PR4_ENGAGEMENT_KEY_RE.test(key) ? 'engagement' : 'firm');
   const firm = useFirm(); // always called (rules-of-hooks); null outside provider
   const scopeId = scope === 'engagement'
-    ? ((firm && firm.activeEngagementId) || DEFAULT_ENG_ID)
+    ? ((firm && firm.activeEngagementId) || null)
     : (scope === 'user' ? userScopeId() : (sessionFirmId() || ''));
   return useServerState(key, initial, scope, scopeId);
 }
@@ -1062,7 +1074,9 @@ function FirmProvider({ children }: any) {
     const ownsCore = coreDataBelongsTo(D.FIRM, firmId);
     const [clients, setClients] = useServerState('clients', ownsCore ? D.CLIENTS : NO_ROWS, 'firm', firmId);
     const [engagements, setEngagements] = useServerState('engagements', ownsCore ? D.ENGAGEMENTS : NO_ROWS, 'firm', firmId);
-    const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
+    /* A7 — nilai awal = perikatan yang dihidrasi saat boot (`null` bila firma tak punya
+       perikatan yang dapat diakses). Dulu `DEFAULT_ENG_ID` = ENG-2025-014 untuk SEMUA firma. */
+    const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', bootEngagementId(), 'user', uid);
 
     /* ---- W7.5: per-engagement access set (server-filtered engagement.list) ----
        null = unknown/offline → don't restrict the UI (server still enforces isolation;
@@ -1086,10 +1100,14 @@ function FirmProvider({ children }: any) {
     }, [accessibleEngIds, setActiveEngagementId]);
     /* If the active engagement falls outside the accessible set (e.g. stale default for a
        non-member), move to the first allowed one so the workspace never shows a dead engagement. */
+    /* A7 — juga ketika daftarnya KOSONG: perikatan aktif basi (cache sesi lama) dilepas ke
+       `null`, bukan dibiarkan menunjuk perikatan yang tak dapat diakses. */
     useEffect(() => {
-      if (accessibleEngIds && accessibleEngIds.length && !accessibleEngIds.includes(activeEngagementId)) {
-        setActiveEngagementId(accessibleEngIds[0]);
-      }
+      if (!accessibleEngIds) return;
+      const want = activeEngagementId && accessibleEngIds.includes(activeEngagementId)
+        ? activeEngagementId
+        : (accessibleEngIds[0] ?? null);
+      if (want !== activeEngagementId) setActiveEngagementId(want);
     }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
 
     /* ============================================================

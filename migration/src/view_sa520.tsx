@@ -156,7 +156,7 @@ function SA520View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 520</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Prosedur Analitis</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {firm?.activeEngagement?.id || '—'}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Prosedur Substantif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{SAP_ROWS.length} area akun</div></div>

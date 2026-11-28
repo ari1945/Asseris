@@ -148,6 +148,33 @@ test.describe('prasyarat — stack ini sungguh firma segar hasil bootstrap', () 
 });
 
 /* ------------------------------------------------------------------------------------------
+   SC-4 (PRD prd-identitas-firma-sesi PR-C) — firma tanpa perikatan aktif adalah keadaan
+   KELAS-SATU, bukan keadaan yang ditambal data demo. Penanda kegagalan = teks persis yang
+   dirender ViewErrorBoundary (app.tsx "Gagal merender modul"), bukan tebakan.
+   ------------------------------------------------------------------------------------------ */
+test.describe('SC-4 — firma tanpa perikatan aktif', () => {
+  test('modul tingkat firma terbuka tanpa error boundary; modul perikatan menampilkan keadaan kosong', async ({ page }) => {
+    await login(page, ADMIN);
+    for (const [route, marker] of [
+      ['home', /Selamat datang/],
+      ['crm', /Direktori Klien/],
+      ['engagement', /TOTAL ENGAGEMENT/i],
+    ] as const) {
+      await gotoModule(page, route);
+      await expect(page.locator('.main-col')).toContainText(marker);
+      await expect(page.getByText('Gagal merender modul')).toHaveCount(0);
+    }
+    // Server tidak mengenal perikatan apa pun untuk firma ini (P0-2), jadi tak ada perikatan aktif.
+    for (const route of ['wtb', 'psak1', 'sa701', 'clientportal']) {
+      await gotoModule(page, route);
+      await expect(page.getByText('Belum ada perikatan aktif')).toBeVisible();
+      await expect(page.getByText('Gagal merender modul')).toHaveCount(0);
+    }
+    await expect(page.locator('.topbar')).not.toContainText(DEMO_MARKERS.engagementId);
+  });
+});
+
+/* ------------------------------------------------------------------------------------------
    UJI CACAT — dikarantina (R-7: master selalu hijau). `test.fail()` LULUS selama cacatnya ada,
    dan MEMERAH begitu cacatnya diperbaiki — saat itu ganti `test.fail` → `test`.
    ------------------------------------------------------------------------------------------ */

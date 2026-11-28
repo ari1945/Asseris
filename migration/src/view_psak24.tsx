@@ -9,6 +9,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 24 · Imbalan Kerja (Employee Benefits)
@@ -130,7 +131,7 @@ function PSAK24View() {
   const score = Math.round((doneCount / procs.length) * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
 
   /* K-06 gelombang 3 — wire tombol "Kertas Kerja H-2" (dulu mati): ekspor XLSX tersegel
      rekonsiliasi liabilitas imbalan pasti + peta penyajian. Angka Rp juta dari canon FIG. */

@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel } from './ui';
 import { amsExportXlsx } from './export_xlsx';
 import { type ViuField, type ViuParams } from './canon_viu';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 48/57 · Penurunan Nilai Aset & Provisi
@@ -150,7 +151,7 @@ function PSAK48View() {
   const doneCount = P48_PROC.filter((p, i) => done[p.ref + i]).length;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
   const impaired = p48.totalImpair > 0;
   const headKind = p48.headroomPct < 0 ? 'red' : p48.headroomPct < 0.08 ? 'amber' : 'green';
 

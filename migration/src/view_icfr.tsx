@@ -145,7 +145,7 @@ function InternalControl() {
   const auth = useAuth();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const engLabel = firm?.activeEngagement?.id || '—';
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useStateIC('overview');
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'icfrMatrix.v1' → engagement) — isolasi W7.5

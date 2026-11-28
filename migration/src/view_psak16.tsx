@@ -10,6 +10,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_psak16_register';
 import { amsExportXlsx } from './export_xlsx';
+import { NO_ACTIVE_ENGAGEMENT } from './engagement_guard';
 
 /* ============================================================
    Asseris — PSAK 16 · Aset Tetap (Property, Plant & Equipment)
@@ -160,7 +161,7 @@ function PSAK16View() {
   }
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
+  const eng = firm.activeEngagement || NO_ACTIVE_ENGAGEMENT;
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const riskPPE = (((AMS && AMS.RISKS) || []) as any[]).find(r => r.id === 'R-04');
 
