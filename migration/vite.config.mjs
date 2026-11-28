@@ -28,7 +28,9 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/trpc': {
-        target: 'http://localhost:5181',
+        // E2E_API_TARGET — stack e2e kedua (gerbang firma segar, API :5182) menembak API-nya
+        // sendiri. Tanpa variabel ini preview tetap ke :5181 seperti sebelumnya.
+        target: process.env.E2E_API_TARGET || 'http://localhost:5181',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/trpc/, ''),
       },

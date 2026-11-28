@@ -65,6 +65,30 @@ kebetulan berjalan di port yang sama (pesan kesalahan eksplisit).
 | `E2E_API_PORT` | `5181` | Port API tRPC (ubah bersama target proxy di `migration/vite.config.mjs`) |
 | `E2E_WEB_PORT` | `5180` | Port SPA preview |
 
+## Gerbang firma segar — stack kedua (`09-fresh-firm.spec.ts`)
+
+Spek 01–08 berjalan di atas seed demo `FIRM-WHR`, jadi id demo yang dipaku di frontend tak
+pernah terlihat salah di sana. Spek 09 berjalan di stack **terpisah** yang dibuat lewat jalur
+pelanggan pertama — `migrate reset` + `npm run bootstrap` (bukan seed) — dengan identitas dari
+[`fresh-firm.mjs`](fresh-firm.mjs). PRD: [`docs/prd-gerbang-firma-segar.md`](../docs/prd-gerbang-firma-segar.md).
+
+```powershell
+# sekali saja: buat DB kosong yang namanya berakhiran _fresh
+createdb -U neosuite neosuite_e2e_fresh
+cd e2e
+$env:DATABASE_URL_FRESH='postgresql://neosuite:changeme@localhost:5432/neosuite_e2e_fresh'
+npx playwright test -c playwright.fresh.config.ts
+```
+
+- Tiap jalan **mereset** DB itu (bootstrapFirm menolak DB yang sudah berisi firma).
+  `resetFreshPostgres()` menolak DB yang namanya tidak berakhiran `_fresh`.
+- Port `:5182` (API) / `:5183` (SPA), jadi bisa hidup bersamaan dengan stack demo. Ubah lewat
+  `E2E_FRESH_API_PORT` / `E2E_FRESH_WEB_PORT`; SPA mem-proxy ke API lewat `E2E_API_TARGET`.
+- `E2E_REUSE_BUILD=1` memakai `migration/dist` yang sudah ada (dipakai CI; lokal sebaiknya biarkan
+  membangun ulang).
+- Uji cacat ber-`test.fail()` + `// KARANTINA s/d <tanggal>`; lima prasyarat di atasnya **wajib
+  hijau**, karena `test.fail()` juga lulus bila harness-nya rusak.
+
 ## CI
 
 `.github/workflows/e2e.yml` menjalankan suite ini terhadap service container

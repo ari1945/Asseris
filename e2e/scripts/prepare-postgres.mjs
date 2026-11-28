@@ -79,6 +79,42 @@ export function preparePostgres() {
   });
 }
 
+/** Gerbang firma segar (docs/prd-gerbang-firma-segar.md Fase 2) — KOSONGKAN DB lalu terapkan
+ *  ulang semua migrasi. `bootstrapFirm` MENOLAK DB yang sudah berisi firma (bootstrapFirm.ts:36),
+ *  jadi stack segar wajib mulai dari nol di setiap jalan, termasuk jalan ulang lokal.
+ *
+ *  `migrate reset` menghapus SELURUH data, sehingga ia hanya mau menyentuh DB yang namanya
+ *  berakhiran `_fresh`. Penjaga ini bukan formalitas: DATABASE_URL yang salah ketik di sini
+ *  akan mengosongkan DB demo e2e, atau lebih buruk lagi, DB pilot. */
+export function resetFreshPostgres() {
+  assertPrismaAvailable();
+  const url = databaseUrl();
+  let dbName = '';
+  try {
+    dbName = decodeURIComponent(new URL(url).pathname.replace(/^\//, ''));
+  } catch {
+    /* URL tak terbaca — ditolak di bawah */
+  }
+  if (!url.startsWith('postgresql://') || !/_fresh$/.test(dbName)) {
+    throw new Error(
+      `[e2e:fresh] MENOLAK reset: DATABASE_URL harus Postgres dengan nama DB berakhiran "_fresh" ` +
+        `(didapat "${dbName || '?'}"). Reset menghapus seluruh data.`,
+    );
+  }
+  const schema = writePostgresSchema();
+  const env = { ...process.env, DATABASE_URL: url };
+  execFileSync(process.execPath, [PRISMA_BIN, 'generate', '--schema', schema], {
+    cwd: SERVER,
+    env,
+    stdio: 'inherit',
+  });
+  execFileSync(
+    process.execPath,
+    [PRISMA_BIN, 'migrate', 'reset', '--force', '--skip-seed', '--skip-generate', '--schema', schema],
+    { cwd: SERVER, env, stdio: 'inherit' },
+  );
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   preparePostgres();
 }
