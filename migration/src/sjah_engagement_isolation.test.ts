@@ -61,7 +61,10 @@ vi.mock('./api', () => ({
 }));
 
 import { AppProviders, useFirm } from './contexts';
-import { DEFAULT_ENG_ID, FIRM_SCOPE_ID, persistCacheKey } from './persist_scope';
+import { DEFAULT_ENG_ID, persistCacheKey } from './persist_scope';
+import { SEED_FIRM_ID } from './data_seed_firm';
+/* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI (ME.firmId di bawah = firma demo). */
+const FIRM_SCOPE_ID = SEED_FIRM_ID;
 
 /* Nilai uji SENGAJA berbeda per kunci: kalau satu kunci tertukar dengan kunci
    lain, "sama-sama terisi" tak boleh lolos sebagai benar. */

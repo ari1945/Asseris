@@ -21,6 +21,7 @@ import type {
   EngagementRow,
   RiskRow,
   TeamMember,
+  FirmUserRow,
   WorkpaperRow,
   ActivityItem,
   DeadlineRow,
@@ -49,6 +50,8 @@ export interface AmsData {
   AJE: AjeRow[];
   RISKS: RiskRow[];
   TEAM: TeamMember[];
+  /** Pengguna firma sesi dari bundel server; tak ada di seed demo. */
+  FIRM_USERS?: FirmUserRow[];
   WORKPAPERS: WorkpaperRow[];
   ACTIVITY: ActivityItem[];
   DEADLINES: DeadlineRow[];

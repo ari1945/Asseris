@@ -43,7 +43,7 @@
    = dua sumber kebenaran = cacat yang sama dalam bentuk baru.
    ============================================================ */
 import { AMS } from './data';
-import { FIRM_SCOPE_ID } from './persist_scope';
+import { sessionFirmId } from './persist_scope';
 
 /** Lingkup artefak. Hanya call-site yang tahu ini — sebuah memo perikatan vs
  *  register firma bukan fakta yang bisa diturunkan dari state mana pun. */
@@ -127,11 +127,18 @@ export function buildExportIdentity(
   scope: ExportScope,
   firmName: string,
   engagementId: string | null | undefined,
+  firmId: string | null | undefined = null,
 ): ExportIdentity {
   const firm = (firmName || '').trim();
   if (!firm) return { ok: false, reason: NO_FIRM_IDENTITY_MSG };
 
-  if (scope === 'firm') return { ok: true, firm, scope, scopeId: FIRM_SCOPE_ID };
+  if (scope === 'firm') {
+    /* scopeId firma = firma SESI (PRD prd-identitas-firma-sesi A1). Tanpa sesi tak ada firma
+       yang sah untuk disegel — ditolak, bukan dialamatkan ke firma demo. */
+    const fid = normalizeId(firmId);
+    if (!fid) return { ok: false, reason: NO_FIRM_IDENTITY_MSG };
+    return { ok: true, firm, scope, scopeId: fid };
+  }
 
   const engId = normalizeId(engagementId);
   if (!engId) return { ok: false, reason: NO_ENGAGEMENT_EXPORT_MSG };
@@ -146,5 +153,5 @@ export function buildExportIdentity(
  * scope adalah tiga cara berbeda untuk berbohong pelan.
  */
 export function resolveExportIdentity(scope: ExportScope): ExportIdentity {
-  return buildExportIdentity(scope, firmNameFromSsot(), activeEngagementId);
+  return buildExportIdentity(scope, firmNameFromSsot(), activeEngagementId, sessionFirmId());
 }

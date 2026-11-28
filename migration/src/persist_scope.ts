@@ -17,9 +17,54 @@
    berpindah lingkup: nilai lama tetap terbaca sampai pengguna menyimpan ulang.
    ============================================================ */
 
-/* Demo satu-firma: scopeId firma & perikatan adalah konstanta yang cocok dengan
-   seed. Di-SSOT-kan di sini karena kini dipakai contexts.tsx DAN canon. */
-export const FIRM_SCOPE_ID = 'FIRM-WHR';
+import { SEED_FIRM_ID } from './data_seed_firm';
+
+/* ============================================================
+   LINGKUP FIRMA SESI (PRD prd-identitas-firma-sesi A1).
+   Dulu `FIRM_SCOPE_ID = 'FIRM-WHR'` — konstanta firma demo yang dipakai SEMUA firma:
+   firma non-demo membaca & menulis dokumen firm-scope atas nama firma demo, dan server
+   menolak setiap tulisannya (`cross-firm-state`). Kini firmId berasal dari SESI
+   (`auth.me().firmId`, PR-A), disetel sekali di titik masuk (`Root.enter` / `AppProviders`)
+   SEBELUM provider & canon membacanya. `null` = belum login: tier firma tidak dibaca —
+   tak ada firma cadangan.
+   ============================================================ */
+let sessionFirm: string | null = null;
+
+/** Setel lingkup firma sesi. Dipanggil di titik masuk sesi, sebelum provider dipasang. */
+export function setSessionFirmId(firmId: string | null | undefined): void {
+  sessionFirm = typeof firmId === 'string' && firmId.trim() ? firmId : null;
+}
+
+/** firmId sesi yang sedang login, atau `null` sebelum login. */
+export function sessionFirmId(): string | null {
+  return sessionFirm;
+}
+
+/* ============================================================
+   KEPEMILIKAN DATA INTI `AMS` (PRD prd-identitas-firma-sesi A4).
+   `AMS.CLIENTS/ENGAGEMENTS/TEAM/USER` adalah baris milik SATU firma, dan pemiliknya
+   tercatat PADA DATANYA SENDIRI: `AMS.FIRM.id`. Seed demo tak memuat `id` — artinya milik
+   `SEED_FIRM_ID`; `hydrateCoreFromApi` menulis `id` firma bundel bersama barisnya.
+   Provider memakai baris itu sebagai nilai awal HANYA bila pemiliknya = firma sesi; selain
+   itu nilai awalnya kosong. Tanpa syarat ini, firma segar yang dipasang tanpa hidrasi
+   menampilkan 8 klien demo — lalu MENULISKANNYA ke server sebagai klien firmanya sendiri
+   pada suntingan pertama (gerbang G1-d).
+
+   Sengaja BUKAN register terpisah: register yang terlepas dari datanya dapat berkata
+   "milik firma X" sementara barisnya sudah dikembalikan ke seed (terbukti di uji G1-d).
+   ============================================================ */
+export function coreDataOwner(firm: { id?: unknown } | null | undefined): string {
+  const id = firm && typeof firm.id === 'string' ? firm.id.trim() : '';
+  return id || SEED_FIRM_ID;
+}
+
+/** true bila isi `AMS` inti (pemilik `firm`) milik firma sesi ini — satu-satunya syarat boleh jadi nilai awal. */
+export function coreDataBelongsTo(firm: { id?: unknown } | null | undefined, firmId: string | null | undefined): boolean {
+  return !!firmId && coreDataOwner(firm) === firmId;
+}
+
+/* Perikatan cadangan untuk jalur yang belum sadar "tanpa perikatan aktif" — DICABUT di
+   PR-C (penjaga tingkat shell). Bukan lingkup firma; jangan dipakai di kode baru. */
 export const DEFAULT_ENG_ID = 'ENG-2025-014';
 
 export type PersistScope = 'user' | 'firm' | 'engagement';
@@ -76,7 +121,8 @@ export interface PersistedRead<T> {
 export function readPersistedWithHit<T,>(key: string, fallback: T, engagementId?: string | null): PersistedRead<T> {
   const tiers: string[] = [];
   if (engagementId) tiers.push(persistCacheKey('engagement', engagementId, key));
-  tiers.push(persistCacheKey('firm', FIRM_SCOPE_ID, key));
+  const firmId = sessionFirmId();
+  if (firmId) tiers.push(persistCacheKey('firm', firmId, key));
   tiers.push(legacyCacheKey(key));
   for (const k of tiers) {
     const r = rawRead(k);

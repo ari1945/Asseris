@@ -2,7 +2,11 @@
    PR-1a menambahkan kelompok uji rantai baca berlingkup (lihat bawah). */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { materiality, psak22, psak66 } from './canon_part4';
-import { persistCacheKey, FIRM_SCOPE_ID } from './persist_scope';
+import { persistCacheKey, setSessionFirmId } from './persist_scope';
+import { SEED_FIRM_ID } from './data_seed_firm';
+/* PRD prd-identitas-firma-sesi A1: lingkup firma = firma SESI. Uji ini memerankan sesi firma demo. */
+const FIRM_SCOPE_ID = SEED_FIRM_ID;
+setSessionFirmId(FIRM_SCOPE_ID);
 import type { MaterialityConfig } from './canon_types';
 
 describe('materiality() — penentuan materialitas (patokan W0-BASELINE)', () => {

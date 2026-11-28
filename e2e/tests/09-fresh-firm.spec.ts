@@ -50,6 +50,9 @@ async function createClientViaUi(page: Page, name: string): Promise<CreatedClien
   await page.getByLabel('Nama Entitas').fill(name);
   await page.getByLabel('Industri').fill('Jasa Profesional');
   await page.getByLabel('Domisili').fill('Bandung');
+  // Q-4 (PRD prd-identitas-firma-sesi): partner WAJIB, dipilih dari pengguna firma — firma segar
+  // hanya punya admin bootstrap, yang selalu tersedia sebagai pilihan.
+  await page.getByLabel('Partner Penanggung Jawab').selectOption({ label: ADMIN.name });
 
   const write = waitForStateWrite(page, 'clients');
   await page.getByRole('button', { name: /Tambah Klien/ }).click();
@@ -70,6 +73,10 @@ async function createEngagementViaUi(page: Page, clientName: string): Promise<{ 
   await gotoModule(page, 'engagement');
   await page.getByRole('button', { name: /Engagement Baru/ }).first().click();
   await page.getByLabel('Klien', { exact: true }).selectOption({ label: clientName });
+  // A5 (PRD prd-identitas-firma-sesi): tak ada lagi partner/tenggat/jam karangan sebagai nilai awal.
+  await page.getByLabel('Partner', { exact: true }).selectOption({ label: ADMIN.name });
+  await page.getByLabel('Tenggat').fill('2027-03-31');
+  await page.getByLabel('Anggaran Jam').fill('800');
   const write = waitForStateWrite(page, 'engagements');
   await page.getByRole('button', { name: /Buat Engagement/ }).click();
   const res = await write;
@@ -145,9 +152,9 @@ test.describe('prasyarat — stack ini sungguh firma segar hasil bootstrap', () 
    dan MEMERAH begitu cacatnya diperbaiki — saat itu ganti `test.fail` → `test`.
    ------------------------------------------------------------------------------------------ */
 test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
-  // KARANTINA s/d 2026-12-31 — P0-4 (+P0-1): app.tsx menghidrasi ENG-2025-014 untuk SEMUA firma;
-  // bootstrap ditolak cross-firm-engagement, galatnya ditelan, AMS.FIRM/CLIENTS tetap demo.
-  test.fail('langkah 1 — firma segar melihat identitasnya sendiri, nol data demo', async ({ page }) => {
+  // Dulu dikarantina (P0-4 + P0-1: hidrasi ENG-2025-014 untuk semua firma, galat ditelan). Ditutup
+  // PRD prd-identitas-firma-sesi PR-B (boot_hydrate.ts + bundel kosong menimpa).
+  test('langkah 1 — firma segar melihat identitasnya sendiri, nol data demo', async ({ page }) => {
     await login(page, ADMIN);
 
     await openSettings(page);
@@ -171,14 +178,14 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
     }).toEqual({ chipHasOwnShort: true, firmNameShown: true, crmRendered: true, demoMarkersOnScreen: [] });
   });
 
-  // KARANTINA s/d 2026-12-31 — P0-1: FIRM_SCOPE_ID='FIRM-WHR' (persist_scope.ts:22) ⇒ tulisan
-  // `clients` menuju firma demo dan ditolak cross-firm-state; klien hanya hidup di cache peramban.
+  // Dulu dikarantina (P0-1: FIRM_SCOPE_ID='FIRM-WHR' ⇒ tulisan `clients` ditolak cross-firm-state).
+  // Ditutup PRD prd-identitas-firma-sesi PR-B: lingkup firma = firmId sesi.
   //
   // Dibuktikan di KONTEKS PERAMBAN BARU (setara perangkat lain), BUKAN `page.reload()`: draf
   // pertama memakai reload dan LULUS di CI walau server menolak tulisannya — klien kembali dari
   // cache localStorage `ams.v1.*`, yang menurut AGENTS.md §3.3 hanya offline-cache. "Bertahan"
   // berarti bertahan di SSOT server.
-  test.fail('langkah 2 — klien yang dibuat terlihat dari perangkat lain (sesi baru)', async ({ page, browser }) => {
+  test('langkah 2 — klien yang dibuat terlihat dari perangkat lain (sesi baru)', async ({ page, browser }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Bertahan');
 
@@ -198,6 +205,9 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // pilotProvision.ts); addEngagement UI hanya menulis StateDoc (contexts.tsx). engagement.list,
   // bootstrap, dan assertEngagementAccess membaca tabel Prisma ⇒ perikatan baru tak pernah ada.
   // Asersi sengaja NETRAL-DESAIN: apa pun bentuk perbaikannya, server harus mengenal perikatan itu.
+  // TETAP karantina sesudah PRD prd-identitas-firma-sesi (SC-2): tulisan StateDoc `engagements`
+  // kini DITERIMA, tetapi server tetap tak mengenal perikatannya. Bila uji ini hijau tanpa P0-2,
+  // berhenti dan selidiki — SSOT ganda sedang menyembunyikan sesuatu.
   test.fail('langkah 3 — perikatan yang dibuat lewat UI dikenal server dan dapat ditulisi', async ({ page }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Perikatan');
@@ -224,10 +234,10 @@ test.describe('perjalanan firma segar (P0 evaluasi 2026-11-25)', () => {
   // tetap merah sesudah perbaikan yang benar. Ditulis bersama PRD P0-2 (PRD §10 baris 2b).
   test.fixme('langkah 4 — staf yang diundang & ditugaskan melihat perikatannya', async () => {});
 
-  // KARANTINA s/d 2026-12-31 — P0-4 (+P0-1): StateDoc `clients` firma segar tak pernah ditulis
-  // (tulisan ke FIRM-WHR ditolak). Begitu P0-1 diperbaiki, tulisan pertama akan memuat 8 klien
-  // demo (Fase 1 G1-d) dan partner demo yang dipaku blankClient() (view_firm.tsx:224).
-  test.fail('langkah 5 — StateDoc firma segar memuat klien barunya dan NOL entitas demo', async ({ page }) => {
+  // Dulu dikarantina (P0-4 + P0-1: StateDoc `clients` firma segar tak pernah ditulis; begitu P0-1
+  // diperbaiki sendirian, tulisan pertama memuat 8 klien demo + partner demo). Ditutup PRD
+  // prd-identitas-firma-sesi PR-B bersama A4 + A5 — urutan yang mengikat (PRD §6).
+  test('langkah 5 — StateDoc firma segar memuat klien barunya dan NOL entitas demo', async ({ page }) => {
     await login(page, ADMIN);
     const c = await createClientViaUi(page, 'PT Uji Segar Bersih');
 

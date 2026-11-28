@@ -22,7 +22,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { FIRM_SCOPE_ID } from './persist_scope';
+import { setSessionFirmId } from './persist_scope';
+/* Firma sesi NON-demo dengan sengaja: dulu scopeId firma adalah konstanta firma demo, sehingga
+   uji yang memakai firma demo tak dapat membedakan "dari sesi" dan "dipaku" (PRD
+   prd-identitas-firma-sesi A1). */
+const SESSION_FIRM = 'FIRM-UJI-EKSPOR';
 import {
   NO_ENGAGEMENT_EXPORT_MSG,
   NO_FIRM_IDENTITY_MSG,
@@ -34,7 +38,7 @@ import {
 
 const FIRM = 'KAP Wijaya Hartono & Rekan';
 
-beforeEach(() => { publishActiveEngagement(null); });
+beforeEach(() => { publishActiveEngagement(null); setSessionFirmId(SESSION_FIRM); });
 
 /* ---------------------------------------------------------------
    §1 · PENOLAKAN
@@ -118,12 +122,19 @@ describe('§2 register perikatan aktif (SC-8)', () => {
     expect(activeEngagementScopeId()).toBe('ENG-2025-047');
   });
 
-  it('lingkup FIRMA memakai SSOT scopeId & tak bergantung perikatan', () => {
+  it('lingkup FIRMA memakai firmId SESI & tak bergantung perikatan', () => {
     const tanpa = resolveExportIdentity('firm');
     publishActiveEngagement('ENG-2025-014');
     const dengan = resolveExportIdentity('firm');
-    expect(tanpa.ok === true && tanpa.scopeId).toBe(FIRM_SCOPE_ID);
-    expect(dengan.ok === true && dengan.scopeId).toBe(FIRM_SCOPE_ID);
+    expect(tanpa.ok === true && tanpa.scopeId).toBe(SESSION_FIRM);
+    expect(dengan.ok === true && dengan.scopeId).toBe(SESSION_FIRM);
+  });
+
+  it('tanpa firma sesi, segel lingkup FIRMA DITOLAK — tak dialamatkan ke firma cadangan', () => {
+    setSessionFirmId(null);
+    const id = resolveExportIdentity('firm');
+    expect(id.ok).toBe(false);
+    expect(JSON.stringify(id)).not.toContain('FIRM-WHR');
   });
 
   it('firma diambil dari SSOT AMS.FIRM, bukan literal di modul ini', () => {

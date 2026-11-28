@@ -7,6 +7,7 @@
    ============================================================ */
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { AMS } from './data';
+import { sessionFirmId } from './persist_scope';
 
 /* ----- Stage 5 — cookie-only browser session transport -----
    The opaque session credential is issued only as an HttpOnly cookie. JavaScript neither
@@ -406,8 +407,17 @@ export async function hydrateCoreFromApi(engagementId?: any, userId?: any) {
   if (ticket !== hydrateSeq) return false;   // hidrasi yang lebih baru sudah dimulai — buang
   if (!b) return false;
 
+  /* PRD prd-identitas-firma-sesi A4 — BUNDEL SERVER ADALAH KEBENARAN, TERMASUK SAAT KOSONG.
+     Penjaga lama `&& b.clients.length` (dan engagements/team) membuat firma tanpa klien
+     MEMPERTAHANKAN 8 klien demo: kesalahan "larik kosong yang diberikan = tidak diberi" yang
+     sama dengan PR-I (WTB) di bawah, kemunculan keempatnya. Firma segar lalu melihat portofolio
+     demo dan menulisnya ke server sebagai miliknya. Kini setiap koleksi yang DATANG ditimpa. */
+  /* `id` = PEMILIK baris inti di bawah (persist_scope.ts coreDataOwner). Bundel selalu
+     berasal dari firma sesi (server menyaringnya), jadi bila `firm.id` tak terkirim,
+     pemiliknya tetap firma sesi — tak pernah dibiarkan kosong (kosong = milik seed demo). */
+  const ownerId = (b.firm && b.firm.id) || sessionFirmId() || undefined;
   if (b.firm) {
-    AMS.FIRM = { ...(AMS.FIRM as any), name: b.firm.name, short: b.firm.short, license: b.firm.license,
+    AMS.FIRM = { ...(AMS.FIRM as any), id: ownerId, name: b.firm.name, short: b.firm.short, license: b.firm.license,
       partners: b.firm.partners, managers: b.firm.managers, staff: b.firm.staff };
   }
   // W7 — AMS.USER reflects the AUTHENTICATED user (so userScopeId / TopBar / sign-offs are
@@ -415,21 +425,33 @@ export async function hydrateCoreFromApi(engagementId?: any, userId?: any) {
   const users = Array.isArray(b.users) ? b.users : [];
   const mine = (userId && users.find((u: any) => u.id === userId)) || users[0];
   if (mine && mine.profile) { AMS.USER = mine.profile; }
+  else if (userId && mine && mine.id === userId) {
+    /* Pengguna tanpa profil tersimpan (admin hasil `bootstrap`): profil MINIMAL dari sesinya,
+       BUKAN profil demo (Anindya Pramesti, "reportsTo: Hartono Wijaya") yang dibiarkan tinggal. */
+    AMS.USER = { name: mine.name, initials: mine.initials, role: mine.role, title: mine.role, email: mine.email || '',
+      phone: '', photo: null, employeeId: '', department: '', office: '', joinDate: '', reportsTo: '',
+      apNumber: '', stan: '', iapiNumber: '', cpaSince: '', cpeHours: 0, cpeTarget: 0, languages: '' };
+  }
+  if (Array.isArray(b.users)) {
+    AMS.FIRM_USERS = users.map((u: { id: string; name: string; initials: string; role: string }) =>
+      ({ id: u.id, name: u.name, initials: u.initials, role: u.role }));
+  }
 
-  if (Array.isArray(b.clients) && b.clients.length) {
+  if (Array.isArray(b.clients)) {
     AMS.CLIENTS = b.clients.map((c: any) => ({ id: c.id, name: c.name, industry: c.industry, tier: c.tier,
       risk: c.risk, npwp: c.npwp, city: c.city, listed: c.listed, since: c.since,
       partner: c.partner, fee: c.fee, status: c.status }));
   }
-  if (Array.isArray(b.engagements) && b.engagements.length) {
+  if (Array.isArray(b.engagements)) {
     AMS.ENGAGEMENTS = b.engagements.map((e: any) => ({ id: e.id, clientId: e.clientId, type: e.type, fy: e.fy,
       standard: e.standard, status: e.status, phase: e.phase, progress: e.progress, partner: e.partner,
       manager: e.manager, deadline: e.deadline, budgetHrs: e.budgetHrs, actualHrs: e.actualHrs,
       risk: e.risk, materiality: e.materiality }));
   }
-  if (Array.isArray(b.team) && b.team.length) {
+  if (Array.isArray(b.team)) {
     AMS.TEAM = b.team.map((t: any) => ({ name: t.name, role: t.role, util: t.util }));
   }
+  if (!b.firm) AMS.FIRM = { ...AMS.FIRM, id: ownerId };
   /* PR-I — BUNDLE PERIKATAN TANPA BARIS WTB HARUS MENGOSONGKAN, BUKAN MEMBIARKAN.
      Penjaga lama `&& b.wtb.length` membuat perikatan yang belum mengimpor neraca saldo
      tidak menimpa apa pun, sehingga `AMS.WTB` MEMPERTAHANKAN neraca saldo perikatan yang

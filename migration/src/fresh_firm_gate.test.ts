@@ -185,10 +185,9 @@ describe('prasyarat gerbang (bukan uji cacat) — harness ini benar-benar menguj
 });
 
 describe('G1-a · P0-1 — data firm-scope dialamatkan ke firma SESI, bukan firma demo', () => {
-  // KARANTINA s/d 2026-12-31 — P0-1: FIRM_SCOPE_ID dipaku FIRM-WHR (persist_scope.ts:22).
-  //   Merah di master 3de574c (dibuktikan tanpa karantina); tambalan lokal membaliknya.
-  //   PR yang menutup cacatnya WAJIB mengganti it.fails → it (R-7, BUILD.md).
-  it.fails('setiap state.get/personal.get scope firma memakai firmId sesi', async () => {
+  // Dulu dikarantina (P0-1: FIRM_SCOPE_ID dipaku FIRM-WHR). Ditutup PRD prd-identitas-firma-sesi
+  //   PR-B: lingkup firma = `me.firmId` sesi (persist_scope.ts sessionFirmId).
+  it('setiap state.get/personal.get scope firma memakai firmId sesi', async () => {
     await renderProviders();
     const firmReads = srv.calls.filter(
       (c: Call) => (c.path === 'state.get' || c.path === 'personal.get') && c.arg.scope === 'firm',
@@ -200,10 +199,9 @@ describe('G1-a · P0-1 — data firm-scope dialamatkan ke firma SESI, bukan firm
 });
 
 describe('G1-c · P0-4 — bundel firma tanpa klien/perikatan/tim MENGOSONGKAN, bukan mempertahankan demo', () => {
-  // KARANTINA s/d 2026-12-31 — P0-4: penjaga .length di api.ts:419/424/430.
-  //   Merah di master 3de574c (dibuktikan tanpa karantina); tambalan lokal membaliknya.
-  //   PR yang menutup cacatnya WAJIB mengganti it.fails → it (R-7, BUILD.md).
-  it.fails('hydrateCoreFromApi dengan koleksi kosong meninggalkan nol baris demo', async () => {
+  // Dulu dikarantina (P0-4: penjaga .length di api.ts). Ditutup PRD prd-identitas-firma-sesi PR-B:
+  //   koleksi yang DATANG dari server selalu ditimpa, termasuk saat kosong.
+  it('hydrateCoreFromApi dengan koleksi kosong meninggalkan nol baris demo', async () => {
     // Satu-satunya tempat bootstrap dijawab sukses: yang diuji di sini adalah PENERAPAN bundel,
     // bukan perikatan mana yang diminta saat boot (itu perjalanan Fase 2).
     const applied = await hydrateCoreFromApiWithBundle(FRESH_BUNDLE);
@@ -217,10 +215,10 @@ describe('G1-c · P0-4 — bundel firma tanpa klien/perikatan/tim MENGOSONGKAN, 
 });
 
 describe('G1-d · P0-4 — firma segar tak pernah MENAMPILKAN maupun MENULIS baris demo', () => {
-  // KARANTINA s/d 2026-12-31 — P0-4: nilai awal clients/engagements = seed demo (contexts.tsx:1054-1055).
-  //   Merah di master 3de574c (dibuktikan tanpa karantina); tambalan lokal membaliknya.
-  //   PR yang menutup cacatnya WAJIB mengganti it.fails → it (R-7, BUILD.md).
-  it.fails('daftar klien & perikatan bebas demo, dan tak satu pun tulisan memuat id demo', async () => {
+  // Dulu dikarantina (P0-4: nilai awal clients/engagements = seed demo). Ditutup PRD
+  //   prd-identitas-firma-sesi PR-B: seed dipakai sebagai nilai awal HANYA untuk firma pemiliknya
+  //   (persist_scope.ts coreDataBelongsTo).
+  it('daftar klien & perikatan bebas demo, dan tak satu pun tulisan memuat id demo', async () => {
     await renderProviders();
     // SC-4: provider terpasang dan mengekspos daftar.
     expect(exposed).not.toBeNull();

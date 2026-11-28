@@ -17,6 +17,8 @@ import type { AcceptanceRef, ClientKind, EngagementLetterRef } from './engagemen
 
 /* ---------- Entitas firma & pengguna (objek tunggal, core) ---------- */
 export interface FirmInfo {
+  /** id firma server (bundel `bootstrap`, PR-A). Seed demo tak memuatnya. */
+  id?: string;
   name: string;
   short: string;
   license: string;
@@ -45,6 +47,15 @@ export interface UserInfo {
   cpeHours: number;
   cpeTarget: number;
   languages: string;
+}
+
+/** Pengguna firma yang boleh dilihat sesi ini (bundel `bootstrap.users`) — sumber pilihan
+ *  partner/manajer di formulir klien & perikatan (PRD prd-identitas-firma-sesi A5). */
+export interface FirmUserRow {
+  id: string;
+  name: string;
+  initials: string;
+  role: string;
 }
 
 /* ---------- Klien & perikatan ---------- */
