@@ -108,7 +108,9 @@ function retainsFirmAdmin(
 
 // The user shape the client may see — never the passwordHash/totpSecret.
 function publicUser(u: User) {
-  return { id: u.id, name: u.name, initials: u.initials, role: u.role, email: u.email, totpEnabled: u.totpEnabled };
+  // firmId (PRD prd-identitas-firma-sesi A2): satu-satunya cara frontend mengetahui lingkup firma sesinya.
+  // Bukan rahasia — ia melekat di setiap baris yang boleh dibaca pengguna ini.
+  return { id: u.id, firmId: u.firmId, name: u.name, initials: u.initials, role: u.role, email: u.email, totpEnabled: u.totpEnabled };
 }
 
 const BOOTSTRAP_PROFILE_KEYS = new Set([
@@ -1277,13 +1279,19 @@ export const appRouter = router({
   // One round-trip boot payload: public core entities + this engagement's WTB + state metadata.
   // Used by the client to hydrate window.AMS before canon computes. Requires a session AND
   // (W7.5) access to the requested engagement.
+  //
+  // `engagementId` OPSIONAL (PRD prd-identitas-firma-sesi A3): firma tanpa perikatan aktif — tiap
+  // firma segar hasil `npm run bootstrap` — tetap menerima bundel tingkat-firmanya; `wtb`/`states`
+  // perikatan lalu kosong. Dulu input ini wajib, jadi firma segar tak bisa hidrasi sama sekali
+  // dan klien jatuh ke data demo (P0-4).
   bootstrap: protectedProcedure
-    .input(z.object({ engagementId: z.string().min(1) }))
+    .input(z.object({ engagementId: z.string().min(1).optional() }))
     .query(async ({ input, ctx }) => {
       // assertEngagementAccess sudah fail-closed atas firmId (D3) DAN membuktikan perikatan ini
-      // milik firma pemanggil — jadi firmId di bawah tak perlu tangga fallback lagi.
-      await assertEngagementAccess(ctx.user, input.engagementId);
-      const firmId = ctx.user.firmId;
+      // milik firma pemanggil. Tanpa engagementId, assertFirmScoped memberi jaminan firma yang sama.
+      const engagementId = input.engagementId;
+      if (engagementId) await assertEngagementAccess(ctx.user, engagementId);
+      const firmId = assertFirmScoped(ctx.user);
 
       const accessible = await accessibleEngagementIds(ctx.user);
       const engagementWhere = {
@@ -1303,7 +1311,7 @@ export const appRouter = router({
       const [firm, users, team, clients, engagements, wtb, states] = await Promise.all([
         prisma.firm.findUnique({
           where: { id: firmId },
-          select: { name: true, short: true, license: true, partners: true, managers: true, staff: true },
+          select: { id: true, name: true, short: true, license: true, partners: true, managers: true, staff: true },
         }),
         prisma.user.findMany({
           where: visibleUserWhere,
@@ -1332,19 +1340,23 @@ export const appRouter = router({
           },
           orderBy: { id: 'asc' },
         }),
-        prisma.wtbRow.findMany({
-          where: { engagementId: input.engagementId },
-          select: { ord: true, group: true, code: true, name: true, ly: true, unadj: true, aje: true, lead: true },
-          orderBy: { ord: 'asc' },
-        }),
-        prisma.stateDoc.findMany({
-          where: {
-            scope: 'engagement', scopeId: input.engagementId,
-            key: { notIn: Object.keys(PERSONAL_KEYS) },
-          },
-          select: { key: true, version: true },
-          orderBy: { key: 'asc' },
-        }),
+        engagementId
+          ? prisma.wtbRow.findMany({
+            where: { engagementId },
+            select: { ord: true, group: true, code: true, name: true, ly: true, unadj: true, aje: true, lead: true },
+            orderBy: { ord: 'asc' },
+          })
+          : Promise.resolve([]),
+        engagementId
+          ? prisma.stateDoc.findMany({
+            where: {
+              scope: 'engagement', scopeId: engagementId,
+              key: { notIn: Object.keys(PERSONAL_KEYS) },
+            },
+            select: { key: true, version: true },
+            orderBy: { key: 'asc' },
+          })
+          : Promise.resolve([]),
       ]);
       const visibleNames = new Set(users.map((user) => user.name));
       const visibleTeam = accessible === 'all' ? team : team.filter((member) => visibleNames.has(member.name));
