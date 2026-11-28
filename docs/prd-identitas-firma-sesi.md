@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | Draft |
+| Status | In Progress — Approved ("Proceed, ikuti rekomendasi" 2026-11-28; Q-1..Q-5 = rekomendasi) |
 | Tanggal | 2026-11-28 |
 | Pemilik | Ari Widodo |
 | Asal | [`EVALUASI-MENYELURUH-2026-11-25.md`](EVALUASI-MENYELURUH-2026-11-25.md) P0-1 & P0-4 · gerbang [`prd-gerbang-firma-segar.md`](prd-gerbang-firma-segar.md) §12–§13 |
@@ -185,3 +185,23 @@ Tiap PR: uji merah-dulu → perbaikan → `npm run verify` → PR → CI (e2e) h
 - **Q-5** — PR-A sampai PR-C dikerjakan di sesi ini satu per satu, atau PR-C dipecah ke sesi terpisah sesudah
   PR-B mendarat? *Rekomendasi: berurutan di sini; PR-C bergantung pada keadaan kosong yang baru
   ada sesudah PR-B.*
+
+## 12. Keputusan (2026-11-28)
+
+Ari: **"Proceed, ikuti rekomendasi"**. Q-1 = `firmId` dari sesi (`auth.me`). Q-2 = galat hidrasi sesudah login
+menjadi layar galat + "Coba lagi". Q-3 = penjaga tingkat shell. Q-4 = partner **wajib** dipilih saat
+membuat klien, dari pengguna firma. Q-5 = PR-A → PR-B → PR-C berurutan di sesi ini.
+
+## 13. Catatan eksekusi
+
+### PR-A (server) — 2026-11-28
+
+- Uji baru `server/src/__tests__/session_firm_identity.test.ts` (7 uji), **merah dulu** atas `19b79b9`:
+  6 gagal / 1 lulus. Yang lulus adalah uji akses yang *dipertahankan* (bundel ber-`engagementId`
+  tetap FORBIDDEN lintas firma & non-anggota), memang harus hijau di kedua sisi. Pesan merahnya:
+  `expected undefined to be 'SFI-FIRM-FRESH'` (`auth.me` tanpa `firmId`), `firm.id` undefined, dan
+  `ZodError … engagementId expected string, received undefined` (firma tanpa perikatan tak bisa hidrasi).
+- Perbaikan `server/src/router.ts`: `publicUser` memuat `firmId`; `bootstrap.engagementId` opsional.
+  Tanpa `engagementId`, prosedurnya memanggil `assertFirmScoped` (tetap `firm-unresolved` gagal-tertutup),
+  dan `wtb`/`states` tidak di-query. Select firm memuat `id`.
+- Hasil: 7/7 hijau; suite server 35 berkas / 518 uji hijau; `tsc` migration bersih (kontrak hanya bertambah).

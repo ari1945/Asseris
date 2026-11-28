@@ -8,9 +8,9 @@
 
 | Status | Jumlah |
 |---|---|
-| Draft | 54 |
+| Draft | 53 |
 | Approved | 5 |
-| In Progress | 15 |
+| In Progress | 16 |
 | Implemented | 39 |
 | Superseded | 1 |
 
@@ -101,7 +101,7 @@
 | docs/prd-firm-erp-deepening.md | In Progress — Approved ("Proceed sesuai rekomendasi" 2026-08-16; Q-1=keenam PR · Q-2=blokir ekspor · Q-3=utang · Q-4=bentuk B isi A · Q-5=read-only) |
 | docs/prd-framework-ssot-hilir.md | In Progress — "Proceed." 2026-08-27; PR-1 & PR-2 selesai (D1+D2 tertutup), PR-3..PR-5 belum |
 | docs/prd-gerbang-firma-segar.md | In Progress — "Proceed." 2026-11-26. Fase 1 selesai (fresh_firm_gate.test.ts: 3 uji cacat dikarantina s/d 2026-12-31, merah-dulu & uji mutasi terbukti); Fase 2 selesai kecuali langkah 4 (e2e/tests/09-fresh-firm.spec.ts atas stack bootstrap kedua, PR #400: 4 uji langkah dikarantina s/d 2026-12-31, merah-dulu di CI; langkah 4 test.fixme menunggu PRD P0-2) |
-| docs/prd-identitas-firma-sesi.md | Draft — perbaikan P0-1 + P0-4 (FIRM_SCOPE_ID & hidrasi demo); membalik 6 karantina gerbang firma segar; tenggat 2026-12-31 |
+| docs/prd-identitas-firma-sesi.md | In Progress — Approved ("Proceed, ikuti rekomendasi" 2026-11-28; Q-1..Q-5 = rekomendasi); perbaikan P0-1 + P0-4 (FIRM_SCOPE_ID & hidrasi demo); membalik 6 karantina gerbang firma segar; tenggat 2026-12-31 |
 | docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
 | docs/prd-lint-coverage-server-e2e.md | Implemented — dieksekusi 2026-08-13 lewat PR #207 (master e2deb29); Q1=A · Q2=langsung error · Q3=tidak |
 | docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
